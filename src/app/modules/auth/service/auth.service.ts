@@ -40,6 +40,14 @@ export class AuthService {
     }
   }
 
+
+  /** commentNg
+ * @author [PipeChavarro]
+ *
+ * @remarks
+ * se va a refactorizar la logica del login, ya que el codigo no en entendible y demasiado codigo se puede mejorar creando signals y haciendo logica en un servicio aparte yo me encargo de hacerlo
+ * */
+
   login(email: string, password: string) {
     return this.http
       .post<ApiResponse<IAuthResponse>>(this.loginUrl, {
@@ -74,7 +82,7 @@ export class AuthService {
                     localStorage.setItem('enterpriseId', enterpriseId.toString());
                     console.log('Enterprise ID almacenado:', enterpriseId);
                   }
-                  this.enterpriseIdSig.set(enterpriseId);
+                 this.enterpriseIdSig.set(enterpriseId);
                 } else {
                   console.log('Usuario no está asociado a una empresa');
                   if (this.isBrowser) {
@@ -137,7 +145,7 @@ export class AuthService {
     );
   }
 
-  
+
   getEnterpriseId(): number | null {
     return this.enterpriseIdSig();
   }

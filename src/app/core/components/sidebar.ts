@@ -89,15 +89,7 @@ export interface SidebarItem {
       <div class="border-t border-gray-200 dark:border-gray-700 p-4">
         @if (isExpanded()) {
           <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-              <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-              </svg>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-gray-900 dark:text-white truncate">Usuario</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400 truncate">user@example.com</p>
-            </div>
+
           </div>
         } @else {
           <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mx-auto" title="Usuario">
