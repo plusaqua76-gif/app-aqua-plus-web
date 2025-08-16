@@ -66,7 +66,7 @@ export class LoginComponent {
         const resp = this.login.value()!;
         if (resp.code === 200 && resp.response?.token) {
           this.toast.success('Bienvenido', 'Inicio de sesión exitoso');
-          this.router.navigate(['/start/start']);
+          this.router.navigate(['/start']);
         } else {
           this.toast.error(
             'Error de autenticación',
