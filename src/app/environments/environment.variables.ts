@@ -1,7 +1,7 @@
 import { ProductoService } from "../modules/accounting/service/producto.service";
 
 export const END_POINT_SERVICE = {
-  POST_AUTH_USER: 'Usuario/Autentication',
+  POST_AUTH_USER: 'usuario/validar',
   POST_REC_PASS: 'recoverPassword',
   POST_UPD_PASS: 'update-password',
   PUT_UPD_PASS: 'Password',
