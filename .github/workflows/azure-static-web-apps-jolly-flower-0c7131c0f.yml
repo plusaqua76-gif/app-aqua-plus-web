@@ -19,8 +19,16 @@ jobs:
         with:
           submodules: true
           lfs: false
-      - name: Install OIDC Client from Core Package
-        run: npm install @actions/core@1.6.0 @actions/http-client
+      # 2. Configurar Node.js para usar la versión compatible con Angular (v20.19 o v22.12)
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.19'  # o usa '22.12' según tu preferencia
+
+      # 3. Instalar las dependencias de Node.js
+      - name: Install dependencies
+        run: npm install
+
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
