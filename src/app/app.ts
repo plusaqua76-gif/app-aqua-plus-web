@@ -23,7 +23,7 @@ export class App implements OnInit {
     private readonly router: Router
   ) {}
 
-  title = 'app-multi-acueductos';
+  title = 'app-aqua-plus-web';
 
   ngOnInit(): void {
     this.flowbiteService.loadFlowbite((flowbite) => {
