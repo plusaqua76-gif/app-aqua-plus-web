@@ -32,8 +32,6 @@ jobs:
                const coredemo = require('@actions/core')
                return await coredemo.getIDToken()
            result-encoding: string
-      - name: Verificar archivos generados
-        run: ls -la dist/app-multi_acueductos
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
@@ -47,7 +45,8 @@ jobs:
           output_location: "dist/app-multi_acueductos/server" # Built app content directory - optional
           github_id_token: ${{ steps.idtoken.outputs.result }}
           ###### End of Repository/Build Configurations ######
-
+      - name: Verificar archivos generados
+        run: ls -la dist/app-multi_acueductos
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
