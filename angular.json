@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "app-multi_acueductos": {
+    "aqua-plus": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -61,10 +61,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "app-multi_acueductos:build:production"
+              "buildTarget": "aqua-plus:build:production"
             },
             "development": {
-              "buildTarget": "app-multi_acueductos:build:development"
+              "buildTarget": "aqua-plus:build:development"
             }
           },
           "defaultConfiguration": "development"

@@ -8,7 +8,6 @@ import { ApiResponse } from '@interfaces/Iresponse';
 import { ToastService } from '@services/toast.service';
 import * as XLSX from 'xlsx';
 
-import * as FileSaver from 'file-saver';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { TableComponent } from '@components/table';
@@ -183,9 +182,11 @@ export class Bill {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
   });
 
-  FileSaver.saveAs(blob, `Historial_Facturas_${new Date().toISOString()}.xlsx`);
+  // FileSaver.saveAs(blob, `Historial_Facturas_${new Date().toISOString()}.xlsx`);
   this.toastService.success('Descarga completa', 'Historial de facturas descargado con éxito.');
 }
 
 
 }
+
+
