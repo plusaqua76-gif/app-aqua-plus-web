@@ -45,6 +45,8 @@ export class CreateClient implements OnInit {
   protected readonly route = inject(ActivatedRoute);
   protected readonly toast = inject(ToastService);
 
+  // rectificar la calidad del codigo y utilizar las señales y el rxResource para las llamadas
+
   ngOnInit(): void {
     this.initializeForm();
     this.loadDepartamentData();

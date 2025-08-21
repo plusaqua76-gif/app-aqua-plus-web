@@ -6,4 +6,61 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-:root { color-scheme: light dark; }
+:root {
+  --primary-text-color: #000;
+  --bg-color: #ffffff;
+  color-scheme: light dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+
+@import "tailwindcss";
+
+
+@theme inline {
+
+  --animate-aurora: aurora 90s linear infinite;
+
+  @keyframes aurora {
+    0%   { background-position: 40% 45%, 40% 45%; }
+    100% { background-position: 380% 45%, 380% 45%; }
+  }
+}
+
+/* Fondo base más oscuro + viñeta suave */
+:root {
+  --bg-a: #0b0c10;
+  --bg-b: #0f1115;
+  --white: #fff;
+  --black: #000;
+
+  /* paleta fría + toque cálido (como la referencia) */
+  --blue-500: #3b82f6;
+  --indigo-400: #6366f1;
+  --blue-300: #93c5fd;
+  --slate-700: #334155;
+  --amber-500: #f59e0b;
+
+  /* patrón aurora */
+  --aurora: repeating-linear-gradient(
+    100deg,
+    var(--blue-500) 8%,
+    var(--indigo-400) 12%,
+    var(--blue-300) 17%,
+    var(--slate-700) 24%,
+    var(--amber-500) 30%
+  );
+
+  /* rayado blanco/negro para diferencia/contraste (modo claro/oscuro) */
+  --white-stripes: repeating-linear-gradient(100deg,#0f1115 0%,#fff 7%,transparent 10%,transparent 12%,#fff 16%);
+  --dark-stripes:  repeating-linear-gradient(100deg,#000 0%,#000 7%,transparent 10%,transparent 12%,#000 16%);
+}
+
+

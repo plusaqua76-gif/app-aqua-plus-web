@@ -1,12 +1,16 @@
 import { Component } from '@angular/core';
 import { Welcome } from '@components/welcome';
 
+
 @Component({
   selector: 'app-home',
-  imports: [ Welcome],
+  imports: [Welcome],
   template: `
+
+
+
   <div  class="content">
-      <app-Welcome></app-Welcome>
+    <app-Welcome></app-Welcome>
   </div>
   `,
   styles:`

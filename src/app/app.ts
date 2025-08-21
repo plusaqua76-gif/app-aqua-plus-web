@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import {
   RouterOutlet,
   RouterModule,
@@ -8,6 +8,7 @@ import {
 import { FlowbiteService } from './core/services/flowbite.service';
 import { initFlowbite } from 'flowbite';
 import { Toast } from '@shared/components/toast';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-root',
@@ -19,16 +20,22 @@ import { Toast } from '@shared/components/toast';
 })
 export class App implements OnInit {
   constructor(
-    private readonly flowbiteService: FlowbiteService,
-    private readonly router: Router
+
   ) {}
+
+
+  private readonly flowbiteService = inject(FlowbiteService);
+  private readonly router = inject(Router);
+  private readonly platformId = inject(PLATFORM_ID);
 
   title = 'app-aqua-plus-web';
 
+
   ngOnInit(): void {
-    this.flowbiteService.loadFlowbite((flowbite) => {
-      initFlowbite();
-    });
+    if (isPlatformBrowser(this.platformId)) {
+      this.flowbiteService.loadFlowbite((flowbite) => {
+        initFlowbite();
+      });
 
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
@@ -77,4 +84,6 @@ export class App implements OnInit {
       }
     });
   }
+}
+
 }
