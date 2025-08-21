@@ -3,6 +3,8 @@ import {
   ChangeDetectionStrategy,
   CUSTOM_ELEMENTS_SCHEMA,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
+
 
 @Component({
   selector: 'app-Welcome',
@@ -628,7 +630,7 @@ import {
   ],
   template: `
     <div
-      class="flex min-h-[100vh] flex-col bg-[#fcfcfc]
+      class="dark flex min-h-[100vh] flex-col bg-[#fcfcfc]
             text-black dark:bg-black  dark:text-white"
     >
       <div
@@ -679,8 +681,10 @@ import {
             >AquaPlus</span
           >
         </a>
+        <input type="checkbox" id="menu-toggle" class="hidden peer" />
+
         <div
-          class="collapsible-header animated-collapse max-lg:shadow-md bg bg-transparent"
+          class="collapsible-header animated-collapse max-lg:shadow-md bg bg-transparent peer-checked:!opacity-100 peer-checked:!h-auto peer-checked:!min-h-[calc(100vh-60px)]"
         >
           <nav
             class="relative flex h-full max-lg:h-max w-max gap-5 text-base max-lg:mt-[30px] max-lg:flex-col
@@ -689,117 +693,11 @@ import {
             <a class="header-links text-amber-100" href="#"> Nosotros </a>
             <a class="header-links text-amber-100" href="#"> Galeria </a>
             <a class="header-links text-amber-100" href="#"> Soluciones </a>
-
-            <div class="relative flex flex-col place-items-center">
-              <div
-                id="nav-dropdown-toggle-0"
-                class="max-lg:max-w-fit flex header-links gap-1  place-items-center"
-              >
-                <span class="text-amber-100"> Contactanos </span>
-                <i class="text-sm bi bi-chevron-down"></i>
-              </div>
-              <nav
-                id="nav-dropdown-list-0"
-                data-open="false"
-                class="scale-0 opacity-0  lg:fixed flex lg:top-[80px] lg:left-1/2 lg:-translate-x-1/2
-                                    w-[90%] rounded-lg max-lg:h-0 max-lg:w-0
-                                    lg:h-[450px] overflow-hidden
-                                     bg-white dark:bg-[#17181B] duration-300
-                                     transition-opacity transition-height shadow-lg p-4"
-              >
-                <div
-                  class="grid max-xl:flex max-xl:flex-col justify-around grid-cols-2 w-full"
-                >
-                  <a class="header-links flex text-left gap-4 !p-4" href="#">
-                    <div class="font-semibold text-3xl">
-                      <i class="bi"></i>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                      <div
-                        class="text-lg text-black dark:text-white font-medium"
-                      >
-                        Prompt library
-                      </div>
-                      <p>Comes packed with pre-made prompt templates</p>
-                    </div>
-                  </a>
-
-                  <a class="header-links flex text-left gap-4 !p-4" href="#">
-                    <div class="font-semibold text-3xl">
-                      <i class="bi bi-grid-1x2-fill"></i>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                      <div
-                        class="text-lg text-black dark:text-white font-medium"
-                      >
-                        Unified Interface
-                      </div>
-                      <p class="">Test multiple AI models in one interface</p>
-                    </div>
-                  </a>
-
-                  <a class="header-links flex text-left gap-4 !p-4" href="#">
-                    <div class="font-semibold text-3xl">
-                      <i class="bi bi-globe"></i>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                      <div
-                        class="text-lg text-black dark:text-white font-medium"
-                      >
-                        Realtime web search
-                      </div>
-                      <p class="">Search the internet in realtime</p>
-                    </div>
-                  </a>
-
-                  <a class="header-links flex text-left gap-4 !p-4" href="#">
-                    <div class="font-semibold text-3xl">
-                      <i class="bi bi-image-fill"></i>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                      <div
-                        class="text-lg text-black dark:text-white font-medium"
-                      >
-                        Image generation
-                      </div>
-                      <p class="">Generate images from prompts</p>
-                    </div>
-                  </a>
-
-                  <a class="header-links flex text-left gap-4 !p-4" href="#">
-                    <div class="font-semibold text-3xl">
-                      <i class="bi bi-calendar-range"></i>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                      <div
-                        class="text-lg text-black dark:text-white font-medium"
-                      >
-                        History
-                      </div>
-                      <p class="">Continue from where you left off</p>
-                    </div>
-                  </a>
-
-                  <a class="header-links flex text-left gap-4 !p-4" href="#">
-                    <div class="font-semibold text-3xl">
-                      <i class="bi bi-translate"></i>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                      <div
-                        class="text-lg text-black dark:text-white font-medium"
-                      >
-                        Multilingual
-                      </div>
-                      <p class="">Converse in multiple languages</p>
-                    </div>
-                  </a>
-                </div>
-              </nav>
-            </div>
+            <a class="header-links text-amber-100" href="#"> Contactanos </a>
           </nav>
           <div
-            class="lg:mx-4 flex place-items-center gap-[20px] text-base max-md:w-full
-                            max-md:flex-col max-md:place-content-center"
+            class="lg:mx-4 flex place-items-center gap-[10px] text-base max-md:w-full
+                            max-md:flex-col max-md:place-content-center p-1"
           >
             <button
               type="button"
@@ -807,71 +705,43 @@ import {
               title="toggle-theme"
               id="theme-toggle"
             >
-              <i class="bi bi-sun" id="toggle-mode-icon"></i>
+              <i class="bi bi-moon-fill" id="toggle-mode-icon"></i>
             </button>
             <a
-              href="#"
+              routerLink="auth/login"
               aria-label="Try Pixa Playground"
               class="btn flex gap-3 px-3 py-2 transition-transform
                                     duration-[0.3s] hover:translate-x-2"
-            >
+             >
               <span class="text-amber-100">Iniciar Sesion</span>
-              <i class="bi bi-arrow-right"></i>
+
+
+            </a>
+                        <a
+              routerLink="auth/register"
+              aria-label="Try Pixa Playground"
+              class="btn flex gap-3 px-3 py-2 transition-transform
+                                    duration-[0.3s] hover:translate-x-2"
+             >
+
+              <span class="text-amber-100">Registrate</span>
+
             </a>
           </div>
         </div>
-        <button
-          class="bi bi-list absolute right-3 top-3 z-50 text-3xl text-gray-500 lg:hidden"
+
+        <!-- Label que actúa como botón hamburguesa -->
+        <label
+          for="menu-toggle"
+          class="bi bi-list absolute right-3 top-3 z-50 text-3xl text-gray-500 lg:hidden cursor-pointer"
           aria-label="menu"
-          id="collapse-btn"
-        ></button>
+        ></label>
       </header>
 
       <section
         class="hero-section relative mt-20 flex min-h-[100vh] w-full max-w-[100vw] flex-col overflow-hidden max-lg:mt-[100px]"
         id="hero-section"
       >
-        <div
-          class="fixed bg-[#000000af] dark:bg-[#80808085] top-0 left-1/2 -translate-x-1/2 z-20 transition-opacity
-                duration-300 scale-0 opacity-0 p-2
-                w-full h-full flex place-content-center place-items-center"
-          id="video-container-bg"
-        >
-          <div
-            class="max-w-[80vw] max-lg:max-w-full max-lg:w-full scale-0 transition-transform duration-500 p-6 rounded-xl  max-lg:px-2 w-full gap-2 shadow-md
-                            h-[90vh] max-lg:h-auto max-lg:min-h-[400px] bg-white dark:bg-[#16171A] max-h-full
-                            "
-            id="video-container"
-          >
-            <div class="w-full flex">
-              <button
-                type="button"
-                class="ml-auto text-xl"
-                title="close"
-              >
-                <i class="bi bi-x-circle-fill"></i>
-              </button>
-            </div>
-            <div
-              class="flex w-full  rounded-xl px-[5%] max-md:px-2 min-h-[300px] max-h-[90%] h-full"
-            >
-              <div
-                class="relative bg-black min-w-full min-h-full overflow-clip rounded-md"
-              >
-                <iframe
-                  class="absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%] w-full h-full"
-                  src="https://www.youtube.com/embed/6j4fPVkA3EA?si=llcTrXPRM-MRXDZB&amp;controls=0&rel=0&showinfo=0&autoplay=1&loop=1&mute=1"
-                  title="YouTube video player"
-                  frameborder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerpolicy="strict-origin-when-cross-origin"
-                  allowfullscreen
-                ></iframe>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div
           class="hero-bg-gradient relative flex h-full min-h-[100vh] w-full flex-col place-content-center gap-6 p-[5%] max-xl:place-items-center max-lg:p-4"
         >
@@ -1094,9 +964,9 @@ import {
           <p
             class="reveal-up mt-8 max-w-[650px] text-gray-900 dark:text-gray-200 text-center max-md:text-sm"
           >
-            AquaPlus centraliza clientes, lecturas, facturas y pagos en
-            una plataforma en la nube. Automatiza tus procesos y gana tiempo en
-            cada ciclo de facturación.
+            AquaPlus centraliza clientes, lecturas, facturas y pagos en una
+            plataforma en la nube. Automatiza tus procesos y gana tiempo en cada
+            ciclo de facturación.
           </p>
           <div class="reveal-up flex mt-8">
             <a
@@ -1238,7 +1108,7 @@ import {
                                 flex-col w-full h-full bg-[#f6f7fb] dark:bg-[#171717] rounded-3xl shadow-inner shadow-gray-50 dark:shadow-gray-900
                                 hover:scale-[1.02]"
                 >
-                  <!-- Efectos de gradiente animados con opacidad inicial -->
+
                   <div
                     class="absolute inset-0 opacity-30 group-hover:opacity-100 transition-opacity duration-500"
                   >
@@ -1253,7 +1123,7 @@ import {
                     ></div>
                   </div>
 
-                  <!-- Contenido con z-index más alto -->
+
                   <div class="relative z-10 flex flex-col gap-5 h-full">
                     <div class="overflow-hidden w-full min-h-[180px] h-[180px]">
                       <img
@@ -1344,10 +1214,9 @@ import {
         </div>
       </section>
 
-
       <section
         class="relative mt-10 flex min-h-[100vh] w-full max-w-[100vw] flex-col place-items-center lg:p-6"
-       >
+      >
         <div
           class="reveal-up mt-[5%] flex h-full w-full place-content-center
                         gap-12 p-4 max-lg:max-w-full max-lg:flex-col"
@@ -1387,7 +1256,9 @@ import {
                 <div class="flex flex-col gap-4">
                   <h3 class="text-2xl max-md:text-xl">Clientes</h3>
                   <p class="text-gray-800 dark:text-gray-100 max-md:text-sm">
-                   Administra la información de cada suscriptor de manera organizada. Registra datos, consulta historiales y mantén actualizado el estado de tus usuarios.
+                    Administra la información de cada suscriptor de manera
+                    organizada. Registra datos, consulta historiales y mantén
+                    actualizado el estado de tus usuarios.
                   </p>
 
                   <div class="mt-auto flex gap-2 underline underline-offset-4">
@@ -1414,7 +1285,9 @@ import {
                 <div class="flex flex-col gap-4">
                   <h3 class="text-2xl max-md:text-xl">Lecturas</h3>
                   <p class="text-gray-800 dark:text-gray-100 max-md:text-sm">
-                  Registra y controla las mediciones de consumo de agua. Obtén un historial detallado que garantiza transparencia y precisión en la facturación.
+                    Registra y controla las mediciones de consumo de agua. Obtén
+                    un historial detallado que garantiza transparencia y
+                    precisión en la facturación.
                   </p>
 
                   <div class="mt-auto flex gap-2 underline underline-offset-4">
@@ -1441,7 +1314,9 @@ import {
                 <div class="flex flex-col gap-4">
                   <h3 class="text-2xl max-md:text-xl">Facturas</h3>
                   <p class="text-gray-800 dark:text-gray-100 max-md:text-sm">
-                    Genera y personaliza facturas en segundos. Programa la facturación automática, descarga documentos en PDF y envíalos digitalmente a tus clientes.
+                    Genera y personaliza facturas en segundos. Programa la
+                    facturación automática, descarga documentos en PDF y
+                    envíalos digitalmente a tus clientes.
                   </p>
 
                   <div class="mt-auto flex gap-2 underline underline-offset-4">
@@ -1468,7 +1343,9 @@ import {
                 <div class="flex flex-col gap-4">
                   <h3 class="text-2xl max-md:text-xl">Pagos</h3>
                   <p class="text-gray-800 dark:text-gray-100 max-md:text-sm">
-                   Lleva un control completo de abonos, acuerdos y estados de cuenta. Visualiza la cartera al instante y mejora la gestión financiera de tu acueducto.
+                    Lleva un control completo de abonos, acuerdos y estados de
+                    cuenta. Visualiza la cartera al instante y mejora la gestión
+                    financiera de tu acueducto.
                   </p>
 
                   <div class="mt-auto flex gap-2 underline underline-offset-4">
@@ -1495,7 +1372,9 @@ import {
                 <div class="flex flex-col gap-4">
                   <h3 class="text-2xl max-md:text-xl">Contadores</h3>
                   <p class="text-gray-800 dark:text-gray-100 max-md:text-sm">
-                   Registra, actualiza y gestiona la información de cada medidor. Controla ubicación, estado y lecturas para asegurar facturación confiable.
+                    Registra, actualiza y gestiona la información de cada
+                    medidor. Controla ubicación, estado y lecturas para asegurar
+                    facturación confiable.
                   </p>
 
                   <div class="mt-auto flex gap-2 underline underline-offset-4">
@@ -1516,13 +1395,15 @@ import {
                                     hover:shadow-lg dark:shadow-[#171717] duration-300 transition-all p-8 group/card"
               >
                 <div class="text-4xl max-md:text-2xl">
-                  <i class="bi bi-camera-video-fill"></i>
+                  <i class="bi bi-people-fill"></i>
                 </div>
 
                 <div class="flex flex-col gap-4">
                   <h3 class="text-2xl max-md:text-xl">Empleados</h3>
                   <p class="text-gray-800 dark:text-gray-100 max-md:text-sm">
-                   Organiza tu equipo de trabajo asignando roles, permisos y actividades. Ten siempre a mano la información del personal de tu acueducto.
+                    Organiza tu equipo de trabajo asignando roles, permisos y
+                    actividades. Ten siempre a mano la información del personal
+                    de tu acueducto.
                   </p>
 
                   <div class="mt-auto flex gap-2 underline underline-offset-4">
@@ -1539,8 +1420,6 @@ import {
         </div>
       </section>
 
-
-
       <section
         class="relative flex  w-full min-h-[110vh] max-md:min-h-[80vh] flex-col place-content-center place-items-center overflow-hidden"
       >
@@ -1553,9 +1432,6 @@ import {
           >
             Inventario y Contabilidad
           </h3>
-          <!-- <p class="reveal-up mt-3 max-w-[600px] text-center ">
-                </p> -->
-
           <div
             class="mt-8 relative gap-10 p-4 grid place-items-center grid-cols-3 max-lg:flex max-lg:flex-col"
           >
@@ -1580,7 +1456,9 @@ import {
               <p
                 class="text-gray-700 dark:text-gray-300 px-4 text-center text-sm"
               >
-              Monitorea en tiempo real la cantidad de materiales, equipos y suministros disponibles, evitando pérdidas y faltantes inesperados.
+                Monitorea en tiempo real la cantidad de materiales, equipos y
+                suministros disponibles, evitando pérdidas y faltantes
+                inesperados.
               </p>
             </div>
 
@@ -1605,7 +1483,8 @@ import {
               <p
                 class="text-gray-700 dark:text-gray-300 px-4 text-center text-sm"
               >
-               Lleva un historial claro de entradas y salidas del inventario, con detalles de fechas, cantidades y responsables.
+                Lleva un historial claro de entradas y salidas del inventario,
+                con detalles de fechas, cantidades y responsables.
               </p>
             </div>
 
@@ -1630,7 +1509,8 @@ import {
               <p
                 class="text-gray-700 dark:text-gray-300 px-4 text-center text-sm"
               >
-               Identifica necesidades de reposición y organiza pedidos con anticipación para garantizar el funcionamiento del acueducto.
+                Identifica necesidades de reposición y organiza pedidos con
+                anticipación para garantizar el funcionamiento del acueducto.
               </p>
             </div>
 
@@ -1655,7 +1535,8 @@ import {
               <p
                 class="text-gray-700 dark:text-gray-300 px-4 text-center text-sm"
               >
-               Registra y clasifica todos los movimientos financieros de tu acueducto, manteniendo un control ordenado de la economía.
+                Registra y clasifica todos los movimientos financieros de tu
+                acueducto, manteniendo un control ordenado de la economía.
               </p>
             </div>
 
@@ -1680,7 +1561,8 @@ import {
               <p
                 class="text-gray-700 dark:text-gray-300 px-4 text-center text-sm"
               >
-               Genera balances, estados de resultados y reportes personalizados que te permiten conocer la salud financiera de tu acueducto.
+                Genera balances, estados de resultados y reportes personalizados
+                que te permiten conocer la salud financiera de tu acueducto.
               </p>
             </div>
 
@@ -1705,96 +1587,99 @@ import {
               <p
                 class="text-gray-700 dark:text-gray-300 px-4 text-center text-sm"
               >
-               Vincula automáticamente los pagos de los clientes con la contabilidad para obtener información precisa y actualizada en todo momento.
+                Vincula automáticamente los pagos de los clientes con la
+                contabilidad para obtener información precisa y actualizada en
+                todo momento.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-<footer
-  class="mt-auto flex flex-col w-full gap-4 text-sm pt-[5%] pb-10 px-[10%]
+      <footer
+        class="mt-auto flex flex-col w-full gap-4 text-sm pt-[5%] pb-10 px-[10%]
               text-black dark:text-white max-md:flex-col"
->
-  <div
-    class="flex max-md:flex-col max-md:gap-6 gap-3 w-full place-content-around"
-  >
-    <div
-      class="flex h-full w-[250px] flex-col place-items-center gap-6 max-md:w-full"
-    >
-      <a href="#" class="w-full place-items-center flex flex-col gap-6">
-        <img
-          src="/images/logoAquaplus.png"
-          alt="logo"
-          class="max-w-[120px]"
-        />
-        <div class="max-w-[120px] text-center text-3xl h-fit">AquaPlus</div>
-      </a>
-      <div class="flex gap-4 text-lg">
-        <a href="https://github.com/" aria-label="Github">
-          <i class="bi bi-github"></i>
-        </a>
-        <a href="https://twitter.com/" aria-label="Twitter">
-          <i class="bi bi-twitter"></i>
-        </a>
-        <a href="https://www.linkedin.com/" aria-label="Linkedin">
-          <i class="bi bi-linkedin"></i>
-        </a>
-      </div>
-    </div>
+      >
+        <div
+          class="flex max-md:flex-col max-md:gap-6 gap-3 w-full place-content-around"
+        >
+          <div
+            class="flex h-full w-[250px] flex-col place-items-center gap-6 max-md:w-full"
+          >
+            <a href="#" class="w-full place-items-center flex flex-col gap-6">
+              <img
+                src="/images/logoAquaplus.png"
+                alt="logo"
+                class="max-w-[120px]"
+              />
+              <div class="max-w-[120px] text-center text-3xl h-fit">
+                AquaPlus
+              </div>
+            </a>
+            <div class="flex gap-4 text-lg">
+              <a href="https://github.com/" aria-label="Github">
+                <i class="bi bi-github"></i>
+              </a>
+              <a href="https://twitter.com/" aria-label="Twitter">
+                <i class="bi bi-twitter"></i>
+              </a>
+              <a href="https://www.linkedin.com/" aria-label="Linkedin">
+                <i class="bi bi-linkedin"></i>
+              </a>
+            </div>
+          </div>
 
-    <div
-      class="flex max-md:flex-col flex-wrap gap-6 h-full w-full justify-around"
-    >
-      <!-- Recursos -->
-      <div class="flex h-full w-[200px] flex-col gap-4">
-        <h2 class="text-xl">Recursos</h2>
-        <div class="flex flex-col gap-3">
-          <a href="#" class="footer-link">Primeros pasos</a>
-          <a href="#" class="footer-link">Manual de usuario</a>
-          <a href="#" class="footer-link">Preguntas frecuentes</a>
-          <a href="#" class="footer-link">Tutoriales y videos</a>
-          <a href="#" class="footer-link">Planes y precios</a>
+          <div
+            class="flex max-md:flex-col flex-wrap gap-6 h-full w-full justify-around"
+          >
+
+            <div class="flex h-full w-[200px] flex-col gap-4">
+              <h2 class="text-xl">Recursos</h2>
+              <div class="flex flex-col gap-3">
+                <a href="#" class="footer-link">Primeros pasos</a>
+                <a href="#" class="footer-link">Manual de usuario</a>
+                <a href="#" class="footer-link">Preguntas frecuentes</a>
+                <a href="#" class="footer-link">Tutoriales y videos</a>
+                <a href="#" class="footer-link">Planes y precios</a>
+              </div>
+            </div>
+
+
+            <div class="flex h-full w-[200px] flex-col gap-4">
+              <h2 class="text-xl">Compañía</h2>
+              <div class="flex flex-col gap-3">
+                <a href="#" class="footer-link">Quiénes somos</a>
+                <a href="#" class="footer-link">Soporte técnico</a>
+                <a href="#" class="footer-link">Blog / Noticias</a>
+                <a href="#" class="footer-link">Casos de éxito</a>
+                <a href="#" class="footer-link">Contacto</a>
+              </div>
+            </div>
+
+            <div class="flex h-full w-[200px] flex-col gap-4">
+              <h2 class="text-xl">Legal</h2>
+              <div class="flex flex-col gap-3">
+                <a href="#" class="footer-link">Términos de servicio</a>
+                <a href="#" class="footer-link">Política de privacidad</a>
+                <a href="#" class="footer-link">Protección de datos</a>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <!-- Compañía -->
-      <div class="flex h-full w-[200px] flex-col gap-4">
-        <h2 class="text-xl">Compañía</h2>
-        <div class="flex flex-col gap-3">
-          <a href="#" class="footer-link">Quiénes somos</a>
-          <a href="#" class="footer-link">Soporte técnico</a>
-          <a href="#" class="footer-link">Blog / Noticias</a>
-          <a href="#" class="footer-link">Casos de éxito</a>
-          <a href="#" class="footer-link">Contacto</a>
-        </div>
-      </div>
-
-      <!-- Legal -->
-      <div class="flex h-full w-[200px] flex-col gap-4">
-        <h2 class="text-xl">Legal</h2>
-        <div class="flex flex-col gap-3">
-          <a href="#" class="footer-link">Términos de servicio</a>
-          <a href="#" class="footer-link">Política de privacidad</a>
-          <a href="#" class="footer-link">Protección de datos</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="mt-8" />
-  <div
-    class="mt-2 flex gap-2 flex-col text-gray-700 dark:text-gray-300 place-items-center
+        <hr class="mt-8" />
+        <div
+          class="mt-2 flex gap-2 flex-col text-gray-700 dark:text-gray-300 place-items-center
               text-[12px] w-full text-center place-content-around"
-  >
-    <span>Copyright &#169; 2025 AquaPlus</span>
-    <span>Todos los derechos reservados.</span>
-  </div>
-</footer>
-
+        >
+          <span>Copyright &#169; 2025 AquaPlus</span>
+          <span>Todos los derechos reservados.</span>
+        </div>
+      </footer>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  imports: [RouterLink],
 })
 export class Welcome {}

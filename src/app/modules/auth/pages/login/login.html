@@ -1,4 +1,4 @@
-<div class="min-h-screen w-full bg-gray-100">
+<div class="min-h-screen w-full bg-white">
     <div class="w-full h-screen bg-white shadow-lg rounded-none overflow-hidden flex flex-col">
 
         <div class="relative w-full overflow-hidden" style="height: 220px; width: 130%;">
@@ -22,7 +22,7 @@
 
         <div class="flex flex-col items-center justify-center px-4 py-8 flex-1">
             <div class="w-full max-w-md">
-                <h2 class="text-2xl font-bold text-center mb-2 text-gray-800 dark:text-gray-100">Iniciar Sesión</h2>
+                <h2 class="text-2xl font-bold text-center mb-2 text-gray-800 ">Iniciar Sesión</h2>
                 <p class="text-center font-semibold text-gray-500 mb-6">
                     ¡Bienvenido! Por favor, ingresa tus datos
                 </p>
@@ -33,7 +33,7 @@
                             <i class="fa fa-user"></i>
                         </span>
                         <input type="text" name="username" [(ngModel)]="username" placeholder="Usuario..."
-                            class="w-full pl-12 pr-4 py-2 text-lg bg-gray-100 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-500" />
+                            class="w-full pl-12 pr-4 py-2 text-lg bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-500 text-gray-800" />
                     </div>
 
                     <div class="mb-4 relative w-3/4 mx-auto">
@@ -43,7 +43,7 @@
 
                         <input [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password"
                             placeholder="Contraseña..."
-                            class="w-full pl-12 pr-10 py-2 text-lg bg-gray-100 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-500" />
+                            class="w-full pl-12 pr-10 py-2 text-lg bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-500 text-gray-800" />
 
                         <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer"
                             (click)="togglePasswordVisibility()">
