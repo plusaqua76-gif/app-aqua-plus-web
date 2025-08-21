@@ -17,22 +17,7 @@ export class DepartamentService {
   protected readonly http= inject(HttpClient)
 
   getAllDepartaments(): Observable<ApiResponse<IDepartament[]>> {
-    return this.http.get<ApiResponse<IDepartament[]>>(`${this.apiUrl}/Departamento/all`).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.get<ApiResponse<IDepartament[]>>(`${this.apiUrl}/departamento/all`)
   }
 
-  private handleError(error: HttpErrorResponse): Observable<never> {
-    let errorMessage = 'Ocurrió un error desconocido al cargar departamentos.';
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = `Error del cliente: ${error.error.message}`;
-    } else {
-      errorMessage = `Error del servidor: ${error.status} - ${error.message || ''}`;
-      if (error.error && error.error.message) {
-        errorMessage = `${errorMessage} - ${error.error.message}`;
-      }
-    }
-    console.error('Error en DepartamentoService:', errorMessage);
-    return throwError(() => new Error(errorMessage));
-  }
 }

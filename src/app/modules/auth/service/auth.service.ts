@@ -11,6 +11,8 @@ import { catchError, map, mergeMap, Observable, of, tap, throwError } from 'rxjs
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+
+
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
