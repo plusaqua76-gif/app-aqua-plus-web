@@ -103,7 +103,7 @@ import { Link }   from '@shared/components/link';
 })
 export class Footer {
 
-  companyName   = 'Multi Acueductos';
+  companyName   = 'Aqua Plus';
   companySlogan = 'Servicios que simplifican tu vida';
   currentYear   = new Date().getFullYear();
 

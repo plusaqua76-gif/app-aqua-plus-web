@@ -53,8 +53,8 @@ export class AuthService {
   login(email: string, password: string) {
     return this.http
       .post<ApiResponse<IAuthResponse>>(this.loginUrl, {
-        username: email,
-        password,
+        nombre: email,
+        contrasena: password,
       })
       .pipe(
         mergeMap((res: ApiResponse<IAuthResponse>) => {

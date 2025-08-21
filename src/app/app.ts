@@ -23,11 +23,13 @@ export class App implements OnInit {
 
   ) {}
 
-    private readonly flowbiteService = inject(FlowbiteService);
+
+  private readonly flowbiteService = inject(FlowbiteService);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
 
-  title = 'app-multi-acueductos';
+  title = 'app-aqua-plus-web';
+
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
