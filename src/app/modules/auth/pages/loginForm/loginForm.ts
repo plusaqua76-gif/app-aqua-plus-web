@@ -2,12 +2,14 @@ import { ChangeDetectionStrategy, Component, inject, output, signal } from '@ang
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Auth } from '@interfaces/IAuth';
+import { RouterLink } from '@angular/router';
+
 
 
 
 @Component({
   selector: 'app-login-form',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form (ngSubmit)="login()" [formGroup]="loginForm" class="w-full">
@@ -66,7 +68,7 @@ import { Auth } from '@interfaces/IAuth';
 
 
       <div class="text-center mb-6">
-        <a href="#" class="text-sm text-gray-500 hover:text-blue-600 cursor-pointer transition-colors duration-200">
+        <a routerLink="/auth/forgot-password" href="#" class="text-sm text-gray-500 hover:text-blue-600 cursor-pointer transition-colors duration-200">
           ¿Olvidaste tu contraseña?
         </a>
       </div>

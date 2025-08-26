@@ -5,7 +5,6 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-
 @Component({
   selector: 'app-Welcome',
   standalone: true,
@@ -75,12 +74,12 @@ import { RouterLink } from '@angular/router';
       }
 
       header > .collapsible-header {
+        align-items: anchor-center;
         display: flex;
         gap: 1rem;
         width: 100%;
         place-content: center;
-        overflow: hidden;
-        transition: width 0.3s ease, height 0.3s ease;
+        transition: opacity 0.3s ease, height 0.3s ease, transform 0.3s ease;
       }
 
       hr {
@@ -364,29 +363,6 @@ import { RouterLink } from '@angular/router';
         transition: max-height 0.4s, padding 0.4s;
       }
 
-      @media not all and (min-width: 1024px) {
-        header .collapsible-header {
-          position: fixed;
-          top: 60px;
-          left: 0px;
-          flex-direction: column;
-          opacity: 0;
-          height: 0vh;
-          min-height: 0vh;
-          width: 100vw;
-          justify-content: space-between;
-          padding: 5px;
-          padding-top: 5%;
-          padding-bottom: 5%;
-          place-items: center;
-          text-align: center;
-
-          overflow-y: auto;
-
-          box-shadow: 0px 2px 3px 2px #9f9f9f7c;
-        }
-      }
-
       @keyframes slideUp {
         0% {
           transform: translateY(100%);
@@ -663,79 +639,114 @@ import { RouterLink } from '@angular/router';
         ></div>
       </div>
       <header
-        class="lg:px-4 max-w-[100vw] max-w-lg:mr-auto max-lg:top-0 fixed top-4 lg:left-1/2 lg:-translate-x-1/2 z-20 flex h-[60px] w-full
-                    text-gray-700 dark:text-gray-700 px-[3%] lg:max-w-5xl
-                    lg:justify-around bg-white/70 dark:bg-gray-900/60 backdrop-blur-md border border-gray-300 dark:border-gray-800 rounded-2xl shadow-lg"
+        class="fixed top-4 lg:left-1/2 lg:-translate-x-1/2 z-20
+         flex h-[60px] w-full lg:max-w-5xl max-w-[100vw]
+         items-center justify-between
+         px-[3%] lg:px-4
+         text-gray-700 dark:text-gray-300
+         bg-white/70 dark:bg-gray-900/60 backdrop-blur-md
+         border border-gray-300 dark:border-gray-800
+         rounded-2xl shadow-lg"
       >
-        <a class="flex p-[4px] gap-2 place-items-center" href="#">
+        <!-- Logo + marca -->
+        <a href="#" class="flex gap-2 items-center p-1">
           <div
-            class="w-16 h-16 transition-transform duration-300 hover:scale-110"
+            class="w-10 h-10 lg:w-16 lg:h-16 transition-transform duration-300 hover:scale-110"
           >
             <img
               src="/images/logoAquaplus.png"
-              alt="logoAquaplus"
+              alt="AquaPlus logo"
               class="object-contain h-full w-full"
             />
           </div>
-          <span class="uppercase text-base font-medium text-amber-100 "
+          <span class="uppercase text-base font-medium text-amber-100"
             >AquaPlus</span
           >
         </a>
+
+        <!-- Toggle (peer) -->
         <input type="checkbox" id="menu-toggle" class="hidden peer" />
 
+        <!-- Contenedor colapsable -->
         <div
-          class="collapsible-header animated-collapse max-lg:shadow-md bg bg-transparent peer-checked:!opacity-100 peer-checked:!h-auto peer-checked:!min-h-[calc(100vh-60px)]"
+          class="collapsible-header
+           lg:static lg:flex lg:w-auto lg:opacity-100 lg:visible lg:pointer-events-auto lg:translate-y-0 lg:shadow-none lg:bg-transparent
+           max-lg:fixed max-lg:top-[60px] max-lg:left-0 max-lg:right-0
+           max-lg:w-screen max-lg:max-h-[calc(100vh-60px)]
+           max-lg:flex max-lg:flex-col max-lg:items-center max-lg:justify-between
+           max-lg:bg-white/95 max-lg:dark:bg-gray-900/90
+           max-lg:opacity-0 max-lg:invisible max-lg:pointer-events-none max-lg:translate-y-2
+           max-lg:overflow-y-auto max-lg:shadow-md
+           z-40
+           transition-[opacity,transform,visibility] duration-300 ease-out
+           peer-checked:max-lg:opacity-100 peer-checked:max-lg:visible
+           peer-checked:max-lg:pointer-events-auto peer-checked:max-lg:translate-y-0"
         >
+          <!-- Links -->
           <nav
-            class="relative flex h-full max-lg:h-max w-max gap-5 text-base max-lg:mt-[30px] max-lg:flex-col
-                                max-lg:gap-5 lg:mx-auto place-items-center"
+            class="relative flex h-full items-center
+             gap-6 text-base lg:mx-auto
+             max-lg:flex-col max-lg:h-max max-lg:gap-5 max-lg:mt-6"
           >
-            <a class="header-links text-amber-100" href="#"> Nosotros </a>
-            <a class="header-links text-amber-100" href="#"> Galeria </a>
-            <a class="header-links text-amber-100" href="#"> Soluciones </a>
-            <a class="header-links text-amber-100" href="#"> Contactanos </a>
-          </nav>
-          <div
-            class="lg:mx-4 flex place-items-center gap-[10px] text-base max-md:w-full
-                            max-md:flex-col max-md:place-content-center p-1"
-          >
-            <button
-              type="button"
-              class="header-links text-gray-600 dark:text-gray-300"
-              title="toggle-theme"
-              id="theme-toggle"
+            <a class="text-amber-100 hover:opacity-80 transition" href="#"
+              >Nosotros</a
             >
-              <i class="bi bi-moon-fill" id="toggle-mode-icon"></i>
-            </button>
+            <a class="text-amber-100 hover:opacity-80 transition" href="#"
+              >Galería</a
+            >
+            <a class="text-amber-100 hover:opacity-80 transition" href="#"
+              >Soluciones</a
+            >
+            <a class="text-amber-100 hover:opacity-80 transition" href="#"
+              >Contáctanos</a
+            >
+          </nav>
+
+          <!-- Botones de acción (sin bordes) -->
+          <div
+            class="flex items-center gap-3 text-base p-1
+             lg:ml-6
+             max-md:w-full max-md:flex-col max-md:justify-center"
+          >
             <a
-              routerLink="auth/login"
-              aria-label="Try Pixa Playground"
-              class="btn flex gap-3 px-3 py-2 transition-transform
-                                    duration-[0.3s] hover:translate-x-2"
-             >
-              <span class="text-amber-100">Iniciar Sesion</span>
-
-
+              routerLink="/auth/login"
+              class="px-3 py-2 rounded-md hover:translate-x-1 hover:bg-white/10 dark:hover:bg-white/10 transition
+               flex items-center gap-2"
+            >
+              <span class="text-amber-100">Iniciar Sesión</span>
             </a>
-                        <a
-              routerLink="auth/register"
-              aria-label="Try Pixa Playground"
-              class="btn flex gap-3 px-3 py-2 transition-transform
-                                    duration-[0.3s] hover:translate-x-2"
-             >
 
-              <span class="text-amber-100">Registrate</span>
-
+            <a
+              routerLink="/auth/register"
+              class="px-3 py-2 rounded-md hover:translate-x-1 hover:bg-white/10 dark:hover:bg-white/10 transition
+               flex items-center gap-2"
+            >
+              <span class="text-amber-100">Regístrate</span>
             </a>
           </div>
         </div>
 
-        <!-- Label que actúa como botón hamburguesa -->
         <label
           for="menu-toggle"
-          class="bi bi-list absolute right-3 top-3 z-50 text-3xl text-gray-500 lg:hidden cursor-pointer"
-          aria-label="menu"
-        ></label>
+          class="lg:hidden absolute right-3 top-2 z-50 block cursor-pointer p-2 rounded-md
+           focus:outline-none focus:ring-2 focus:ring-blue-400"
+          aria-label="Abrir menú"
+        >
+          <svg
+            class="w-7 h-7 text-gray-200"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </label>
       </header>
 
       <section
@@ -1108,7 +1119,6 @@ import { RouterLink } from '@angular/router';
                                 flex-col w-full h-full bg-[#f6f7fb] dark:bg-[#171717] rounded-3xl shadow-inner shadow-gray-50 dark:shadow-gray-900
                                 hover:scale-[1.02]"
                 >
-
                   <div
                     class="absolute inset-0 opacity-30 group-hover:opacity-100 transition-opacity duration-500"
                   >
@@ -1122,7 +1132,6 @@ import { RouterLink } from '@angular/router';
                                 before:rounded-full before:-z-10 before:blur-xl before:top-20 before:right-16"
                     ></div>
                   </div>
-
 
                   <div class="relative z-10 flex flex-col gap-5 h-full">
                     <div class="overflow-hidden w-full min-h-[180px] h-[180px]">
@@ -1632,7 +1641,6 @@ import { RouterLink } from '@angular/router';
           <div
             class="flex max-md:flex-col flex-wrap gap-6 h-full w-full justify-around"
           >
-
             <div class="flex h-full w-[200px] flex-col gap-4">
               <h2 class="text-xl">Recursos</h2>
               <div class="flex flex-col gap-3">
@@ -1643,7 +1651,6 @@ import { RouterLink } from '@angular/router';
                 <a href="#" class="footer-link">Planes y precios</a>
               </div>
             </div>
-
 
             <div class="flex h-full w-[200px] flex-col gap-4">
               <h2 class="text-xl">Compañía</h2>

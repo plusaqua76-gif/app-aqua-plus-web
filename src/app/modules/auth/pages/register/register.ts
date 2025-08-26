@@ -81,12 +81,22 @@ export class Register implements OnInit {
       nit: ['', [Validators.required]],
       codigoEmpresa: ['', [Validators.required]],
       correo: ['', [Validators.required]],
-      telefono: ['', [Validators.required]]
+      telefono: ['', [Validators.required]],
+      archivo: ['']
     });
   }
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.registerForm.patchValue({
+        archivo: file
+      });
+    }
   }
 
   loadDepartamentData(): void {

@@ -76,9 +76,9 @@ export class EnterpriseClientCounterService {
     return throwError(() => new Error(errorMessage));
   }
 
-
+  // changePipe
   getAllCounterByIdEnterprise(enterpriseId: number): Observable<ApiResponse<IEnterpriseClientCounter[]>> {
-    const url = `${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_ENT_BY_ID}/${enterpriseId}`;
+    const url = `${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_CLIENT}/${enterpriseId}`;
     return this.http.get<ApiResponse<IEnterpriseClientCounter[]>>(url);
   }
 

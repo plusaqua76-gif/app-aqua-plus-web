@@ -55,7 +55,8 @@ export const END_POINT_SERVICE = {
 };
 
 export const ENTERPRISE_CLIENT_COUNT = {
-  ENT_CLI_COU: 'EmpresaClienteContador',
+  ENT_CLI_COU: 'empresa-cliente-contador',
+  GET_CLIENT: 'clientes',
   GET_ALL_CLI: 'all',
   GET_ENT_BY_ID: 'empresa',
   POST_SAVE_CLI: 'save',
@@ -65,7 +66,7 @@ export const ENTERPRISE_CLIENT_COUNT = {
 
 export const COUNTER = {
   COUNTER: 'Contador',
-  
+
 }
 
 export const TYPE_COUNTER = {

@@ -1,3 +1,4 @@
+import { EnterpriseClientCounterService } from './../../service/enterpriseClientCounter.service';
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal, computed, effect } from '@angular/core';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
@@ -5,11 +6,11 @@ import {
   Action,
   TableComponent,
 } from '../../../../core/components/table';
-import { EnterpriseClientCounterService } from '../../service/enterpriseClientCounter.service';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ToastService } from '@services/toast.service';
 import { map } from 'rxjs';
 import { PopupComponent } from "@shared/components/popUp";
+import { EnterpriseIdService } from '@services/enterpriceId.service';
 
 
 
@@ -57,7 +58,7 @@ import { PopupComponent } from "@shared/components/popUp";
   </ng-template>
 
 
-  <app-table-dynamic
+  <!-- <app-table-dynamic
     [title]="title"
     [columns]="clienteColumns()"
     [datasource]="clientData()"
@@ -66,7 +67,7 @@ import { PopupComponent } from "@shared/components/popUp";
     [showAddButton]="true"
     [addButtonText]="'Agregar Cliente'"
     (action)="onTableAction($event)">
-  </app-table-dynamic>
+  </app-table-dynamic> -->
 
 
   <app-pop-up
@@ -85,6 +86,9 @@ export class Client {
 
   showDeleteConfirm = signal(false);
   itemToDelete: number | null = null;
+  title = 'Gestion de clientes';
+  private enterpriseIdService = inject(EnterpriseIdService);
+  readonly enterpriseId = signal<number>(0);
 
   clienteColumns = signal([
     { field: 'idContador', header: 'ID Contador' },
@@ -98,14 +102,17 @@ export class Client {
     { field: 'estado', header: 'Estado', template: 'estadoTpl' },
   ]);
 
-  clientData = computed(() => this.dataClientCounter.value() ?? []);
-  title = 'Gestion de clientes';
-
   constructor() {
-    effect(() => {
-      console.log('clientData__________>', this.clientData());
+     this.enterpriseIdService.getEnterpriseId().subscribe(id => {
+      this.enterpriseId.set(id || 0);
     });
-  }  
+
+    effect(() => {
+    if (this.dataClientCounter.hasValue()) {
+      console.log('Clientes:', this.dataClientCounter.value());
+    }
+  });
+  }
 
   protected readonly enterpriseClientCounterService = inject(EnterpriseClientCounterService);
   protected readonly router = inject(Router);
@@ -113,33 +120,37 @@ export class Client {
   protected readonly toastService = inject(ToastService);
 
   dataClientCounter = rxResource({
-    stream: () => this.enterpriseClientCounterService.getAllClienteEnterprise().pipe(  // cambiar por el endpoint de getAllCounterByIdEnterprise , me trae las cleintesa asociados a ala empresa
-      map(data => {
-        return (data.clientes ?? []).map(clienteItem => {
-          const personaId = clienteItem.cliente?.id;
-          const correo = data.correos.find(c => c.persona?.id === personaId)?.correo ?? '';
-          const telefono = data.telefonos.find(t => t.persona?.id === personaId)?.numero ?? '';
+  params: () => ({ id: this.enterpriseId() }),
+  stream: ({ params }) => this.enterpriseClientCounterService.getAllCounterByIdEnterprise(params.id)
+  })
 
-          return {
-            idpersona: clienteItem.id,
-            id: clienteItem.cliente?.id,
-            idContador: clienteItem.contador?.serial ?? '',
-            codigoDepart: clienteItem.cliente?.direccion?.departamentoId?.nombre ?? '',
-            codigoMuni: clienteItem.cliente?.direccion?.ciudadId?.nombre ?? '',
-            codigoVereda: clienteItem.cliente?.direccion?.corregimientoId?.nombre ?? '',
-            numeroIdentificacion: clienteItem.cliente?.numeroCedula ?? '',
-            razonSocial: clienteItem.empresa?.nombre ?? '',
-            nombreCliente: `${clienteItem.cliente?.nombre ?? ''} ${clienteItem.cliente?.segundoNombre ?? ''} ${clienteItem.cliente?.apellido ?? ''} ${clienteItem.cliente?.segundoApellido ?? ''}`,
-            telefono,
-            direccion: clienteItem.cliente?.direccion?.descripcion ?? '',
-            correo,
-            estado: clienteItem.activo,
-          };
-        });
-      })
-    )
+  // dataClientCounter = rxResource({
+  //   stream: () => this.enterpriseClientCounterService.getAllClienteEnterprise().pipe(  // cambiar por el endpoint de getAllCounterByIdEnterprise , me trae las cleintesa asociados a ala empresa
+  //     map(data => {
+  //       return (data.clientes ?? []).map(clienteItem => {
+  //         const personaId = clienteItem.cliente?.id;
+  //         const correo = data.correos.find(c => c.persona?.id === personaId)?.correo ?? '';
+  //         const telefono = data.telefonos.find(t => t.persona?.id === personaId)?.numero ?? '';
 
-  });
+  //         return {
+  //           idpersona: clienteItem.id,
+  //           id: clienteItem.cliente?.id,
+  //           idContador: clienteItem.contador?.serial ?? '',
+  //           codigoDepart: clienteItem.cliente?.direccion?.departamentoId?.nombre ?? '',
+  //           codigoMuni: clienteItem.cliente?.direccion?.ciudadId?.nombre ?? '',
+  //           codigoVereda: clienteItem.cliente?.direccion?.corregimientoId?.nombre ?? '',
+  //           numeroIdentificacion: clienteItem.cliente?.numeroCedula ?? '',
+  //           razonSocial: clienteItem.empresa?.nombre ?? '',
+  //           nombreCliente: `${clienteItem.cliente?.nombre ?? ''} ${clienteItem.cliente?.segundoNombre ?? ''} ${clienteItem.cliente?.apellido ?? ''} ${clienteItem.cliente?.segundoApellido ?? ''}`,
+  //           telefono,
+  //           direccion: clienteItem.cliente?.direccion?.descripcion ?? '',
+  //           correo,
+  //           estado: clienteItem.activo,
+  //         };
+  //       });
+  //     })
+  //   )
+  // });
 
   onToggle(row: any) {
   const nuevoEstado = !row.estado;

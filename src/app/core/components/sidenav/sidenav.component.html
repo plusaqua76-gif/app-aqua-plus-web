@@ -1,0 +1,47 @@
+@if (screenWidth <= 768 && !collapsed) {
+  <button class="mobile-menu-btn"
+      (click)="toggleCollapse()">
+    <i class="fas fa-bars"></i>
+  </button>
+}
+
+@if (screenWidth <= 768 && collapsed) {
+  <div class="sidebar-overlay" (click)="closeSidenav()"></div>
+}
+
+<div class="sidenav" [ngClass]="collapsed ? 'sidenav-collapsed': ''">
+  <div class="logo-container">
+    <button class="logo" (click)="toggleCollapse()">A</button>
+
+    @if (collapsed) {
+      <div class="logo-text" @fadeInOut>Angular</div>
+    }
+
+    @if (collapsed) {
+      <button class="btn-close" @rotate (click)="closeSidenav()">
+        <i class="fas fa-times close-icon"></i>
+      </button>
+    }
+  </div>
+
+  <ul class="sidenav-nav">
+    @for (data of navData; track $index) {
+      <li class="sidenav-nav-item">
+        <a
+          class="sidenav-nav-link"
+          [routerLink]="[data.routeLink]"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          <i class="sidenav-link-icon" [class]="data.icon"></i>
+
+          @if (collapsed) {
+            <span class="sidenav-link-text" @fadeInOut>
+              {{ data.label }}
+            </span>
+          }
+        </a>
+      </li>
+    }
+  </ul>
+</div>
