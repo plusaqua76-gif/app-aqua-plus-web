@@ -8,14 +8,16 @@ import {
 import { FlowbiteService } from './core/services/flowbite.service';
 import { initFlowbite } from 'flowbite';
 import { Toast } from '@shared/components/toast';
+import { GlobalLoader } from './core/components/global-loader';
 import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterModule, Toast],
+  imports: [RouterOutlet, RouterModule, Toast, GlobalLoader],
   template: `
     <router-outlet></router-outlet>
     <app-toast></app-toast>
+    <app-global-loader></app-global-loader>
   `,
 })
 export class App implements OnInit {

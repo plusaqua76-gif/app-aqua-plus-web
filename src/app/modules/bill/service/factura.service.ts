@@ -3,7 +3,7 @@ import { environment } from "../../../environments/environment.local";
 import { END_POINT_SERVICE } from "../../../environments/environment.variables";
 import { Router } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
-import { catchError, Observable, throwError } from "rxjs";
+import { catchError, map, Observable, throwError } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";
 import { IFactura, IfacturaResponse } from "@interfaces/Ifactura";
 
@@ -17,9 +17,10 @@ export class FacturaService {
     protected readonly router = inject(Router)
     protected readonly http = inject(HttpClient)
 
-    getAllBill(): Observable<ApiResponse<IfacturaResponse[]>> {
-        return this.http.get<ApiResponse<IfacturaResponse[]>>(`${this.apiUrl}/${END_POINT_SERVICE.GET_FACTURA_ALL}`).pipe(
-            catchError(this.handleError)
+    getAllBillById(id: number): Observable<ApiResponse<IfacturaResponse[]>> {
+        const url = `${this.apiUrl}/empresa/${id}`;
+        return this.http.get<ApiResponse<IfacturaResponse[]>>(url).pipe(
+            map(response => response),
         );
     }
 

@@ -10,6 +10,9 @@ import { ICorreoPerson, IPerson } from '@interfaces/Iperson';
 import { ITelefonoGeneral } from '@interfaces/ItelefonoGeneral';
 import { CorreoPersonaService } from './correoPersona.service';
 import { TelefonoGeneralService } from './telefonoPersona.service';
+import { ClienteApi } from '@interfaces/client/IclienteApi';
+import { ClientRow } from '@interfaces/client/IclientRow';
+import { toClientRow } from '@shared/mappers/clientRow';
 
 @Injectable({
   providedIn: 'root'
@@ -76,10 +79,21 @@ export class EnterpriseClientCounterService {
     return throwError(() => new Error(errorMessage));
   }
 
-  // changePipe
-  getAllCounterByIdEnterprise(enterpriseId: number): Observable<ApiResponse<IEnterpriseClientCounter[]>> {
+  // Método original que devuelve ClienteApi[] (mantener para compatibilidad)
+  getAllCounterByIdEnterpriseRaw(enterpriseId: number): Observable<ApiResponse<ClienteApi[]>> {
     const url = `${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_CLIENT}/${enterpriseId}`;
-    return this.http.get<ApiResponse<IEnterpriseClientCounter[]>>(url);
+    return this.http.get<ApiResponse<ClienteApi[]>>(url);
+  }
+
+  // Método optimizado que aplica el mapper directamente y devuelve ClientRow[]
+  getAllCounterByIdEnterprise(enterpriseId: number): Observable<ApiResponse<ClientRow[]>> {
+    const url = `${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_CLIENT}/${enterpriseId}`;
+    return this.http.get<ApiResponse<ClienteApi[]>>(url).pipe(
+      map(response => ({
+        ...response,
+        response: response.response.map(client => toClientRow(client))
+      }))
+    );
   }
 
   getEntClientCounterById(id: number): Observable<ApiResponse<IEnterpriseClientCounter>> {

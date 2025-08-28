@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { SidenavComponent } from './sidenav/sidenav.component';
 import { BodyComponent } from './body';
 
@@ -20,9 +20,13 @@ interface SideNavToggle {
   `,
   styles: [],
 })
-export class AppShellComponent {
-  isSideNavCollapsed = false;
+export class AppShellComponent implements OnInit {
+  isSideNavCollapsed = false; // Debe coincidir con el estado inicial del sidebar
   screenWidth = 0;
+
+  ngOnInit(): void {
+    this.screenWidth = window.innerWidth;
+  }
 
   onToggleSideNav(data: SideNavToggle): void {
     this.screenWidth = data.screenWidth;

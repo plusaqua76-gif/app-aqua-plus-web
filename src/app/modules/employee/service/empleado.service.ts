@@ -79,6 +79,8 @@ export class EmpleadoService {
       telefonos: telefonos$
     });
   }
+
+  
   updateEstadoEmpleado(data: { id_persona: number, activo: boolean, usuario_cambio: string }): Observable<Map<string, any>> {
     const url = `${environment.apiUrl}/${END_POINT_SERVICE.GET_EMPLEADO}/${END_POINT_SERVICE.POST_UPD_ESTADO}`;
     return this.http.post<Map<string, any>>(url, data).pipe(

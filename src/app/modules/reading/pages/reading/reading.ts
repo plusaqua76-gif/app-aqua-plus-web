@@ -1,36 +1,38 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { ILectura } from '@interfaces/Ifactura';
 import { ReadingService } from '../../service/reading.service';
-import { ToastService } from '@services/toast.service';
-import { ApiResponse } from '@interfaces/Iresponse';
 import { TableComponent } from '@components/table';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { map, of } from 'rxjs';
+import { EnterpriseIdService } from '@services/enterpriceId.service';
+import { toReadingRow, type ReadingRow } from '@shared/index';
 
 @Component({
   selector: 'app-reading',
   imports: [CommonModule, TableComponent, RouterModule],
   template: `
-
     <ng-template #toggleTpl let-row>
-        <a (click)="edit(row)" class="text-green-600 hover:text-green-900 text-sm cursor-pointer">
-            <i class="fas fa-edit"></i>
-        </a>
+      <a (click)="edit(row)" class="text-green-600 hover:text-green-900 text-sm cursor-pointer">
+        <i class="fas fa-edit"></i>
+      </a>
     </ng-template>
 
     <app-table-dynamic
       [title]="title()"
-        [datasource]="readingData()"
-        [columns]="readingColumns()"
-        [actionTemplate]="toggleTpl"
+      [columns]="readingColumns()"
+      [datasource]="readingData()"
+      [actionTemplate]="toggleTpl"
     />
-      
-
   `
 })
 export class Reading {
+  private enterpriseIdService = inject(EnterpriseIdService);
+  private readingService = inject(ReadingService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
+  title = signal('Gestión de Lecturas');
 
   readingColumns = signal([
     { field: 'serial', header: 'Contador' },
@@ -40,54 +42,24 @@ export class Reading {
     { field: 'observacion', header: 'Observación' },
   ]);
 
-  readingData = computed(() => {
-    const arr = this.dataReading.value() ?? [];
-    return [...arr].sort((a, b) => a.id - b.id);
+  private enterpriseId = toSignal(this.enterpriseIdService.getEnterpriseId(), { initialValue: null });
+
+  private dataResource = rxResource({
+    params: () => this.enterpriseId(),
+    stream: ({ params: id }) => {
+      if (!id) return of([]);
+      return this.readingService.getAllReadingById(id).pipe(
+        map(response => response.response || []),
+        map(readings => readings.map(toReadingRow))
+      );
+    }
   });
 
-  title = signal('Gestión de Lecturas');
-
-  protected readonly readingService = inject(ReadingService);
-  protected readonly router = inject(Router);
-  protected readonly route = inject(ActivatedRoute);
-  protected readonly toastService = inject(ToastService);
-
-  constructor() {
-    effect(() => {
-      console.log('Data reading-------------->:', this.readingData());
-    })
-  }
-
-  dataReading = rxResource({
-    stream: () =>
-      this.readingService.getAllReading()
-      .pipe(
-        map((rawData) => {
-          const response = rawData as ApiResponse<ILectura[]>;
-          const arr = Array.isArray(response.response)
-            ? response.response
-            : [response.response];
-
-          return arr.map(item => ({
-            id: item.id,
-            serial: item.contador.serial,
-            lectura: item.lectura,
-            fechaLectura: new Date(item.fechaLectura)
-            .toLocaleString('es-CO', {
-              year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
-            }),
-            consumoAnormal: item.consumoAnormal ? 'Sí' : 'No',
-            observacion: item.descripcion ?? ''
-          }));
-        })
-      )
-  });
+  readingData = computed(() => this.dataResource.value() || []);
 
   edit(row: any) {
     this.router.navigate(['/reading/update-reading/', row.id], {
       relativeTo: this.route,
     });
-    console.log('Editar contador con ID:', row.id);
   }
-
 }

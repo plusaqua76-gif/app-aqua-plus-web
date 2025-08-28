@@ -7,6 +7,8 @@ import { provideClientHydration, withEventReplay, withIncrementalHydration } fro
 import { provideHttpClient, withFetch, withInterceptors} from '@angular/common/http';
 import { provideServerRendering } from '@angular/ssr';
 import { authorizationInterceptor } from './interceptors/token-interceptor';
+import { loaderInterceptor } from './interceptors/loader-interceptor';
+import { errorInterceptor } from './interceptors/error-interceptor';
 
 
 export const appConfig: ApplicationConfig = {
@@ -14,7 +16,7 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideHttpClient(
       withFetch(),
-      withInterceptors([authorizationInterceptor])
+      withInterceptors([authorizationInterceptor, loaderInterceptor, errorInterceptor])
     ),
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),

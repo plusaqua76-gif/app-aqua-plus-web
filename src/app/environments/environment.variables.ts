@@ -17,7 +17,7 @@ export const END_POINT_SERVICE = {
 
   GET_ALL_TELEFONO_PER: 'TelefonoGeneral/all',
 
-  GET_FACTURA: 'Factura',
+  GET_FACTURA: 'factura',
   GET_FACTURA_ALL: 'all',
 
   GET_DEUDA: 'DeudaCliente',
@@ -39,11 +39,11 @@ export const END_POINT_SERVICE = {
   GET_ALL_PLAZO_PAGO: 'PlazoPago/all',
 
   GET_ALL_LECTURA: 'all',
-  GET_LECTURA: 'Lectura',
+  GET_LECTURA: 'lectura',
 
-  GET_ENTERPRISE: 'Empresa/usuario',
-  GET_ALL_ENTERPRISE:'Empresa/all',
-  GET_ENTER:'Empresa',
+  GET_ENTERPRISE: 'empresa/usuario',
+  GET_ALL_ENTERPRISE:'empresa/all',
+  GET_ENTER:'empresa',
   UPDATE_EMPRESA:'updateEmpresa',
   UPDATE_ESTADO: 'update',
 

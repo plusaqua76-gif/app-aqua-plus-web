@@ -19,7 +19,7 @@ import { ToastService } from '@services/toast.service';
   imports: [FormsModule,ReactiveFormsModule,CommonModule],
   templateUrl: './create-client.html',
 })
-export class CreateClient implements OnInit {
+export class CreateClient  {
   registerForm!: FormGroup;
 
   departaments: IDepartament[] = [];

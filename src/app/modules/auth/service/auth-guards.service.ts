@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 
-export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'CLIENTE' | 'EMPLEADO' | 'EMPRESA' | 'FONTANERO';
+export type Role = 'SUPER ADMIN' | 'ADMIN' | 'CLIENTE' | 'EMPLEADO' | 'EMPRESA' | 'FONTANERO';
 
 @Injectable({ providedIn: 'root' })
 export class AuthServiceGuard {

@@ -3,6 +3,7 @@ import { Component, Output, EventEmitter, OnInit, HostListener } from '@angular/
 import { navbarData } from './nav-data';
 import { CommonModule, NgClass } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { HasRoleDirective } from '../../directives/has-role';
 
 
 interface SideNavToggle {
@@ -12,7 +13,7 @@ interface SideNavToggle {
 
 @Component({
   selector: 'app-sidenav',
-  imports: [CommonModule, NgClass, RouterLink, RouterLinkActive],
+  imports: [CommonModule, NgClass, RouterLink, RouterLinkActive, HasRoleDirective],
   templateUrl: './sidenav.component.html',
   styleUrls: ['./sidenav.component.scss'],
   animations: [
@@ -56,7 +57,7 @@ export class SidenavComponent implements OnInit {
       this.collapsed = false;
       this.onToggleSideNav.emit({collapsed: this.collapsed, screenWidth: this.screenWidth});
     } else {
-      this.collapsed = true;
+      this.collapsed = false;
       this.onToggleSideNav.emit({collapsed: this.collapsed, screenWidth: this.screenWidth});
     }
   }
@@ -66,8 +67,13 @@ export class SidenavComponent implements OnInit {
       if(this.screenWidth <= 768) {
         this.collapsed = false;
       } else {
-        this.collapsed = true;
+        this.collapsed = false;
       }
+
+      this.onToggleSideNav.emit({
+        collapsed: this.collapsed,
+        screenWidth: this.screenWidth
+      });
   }
 
   toggleCollapse(): void {

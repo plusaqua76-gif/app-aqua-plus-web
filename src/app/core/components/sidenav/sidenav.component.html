@@ -14,7 +14,7 @@
     <button class="logo" (click)="toggleCollapse()">A</button>
 
     @if (collapsed) {
-      <div class="logo-text" @fadeInOut>Angular</div>
+      <div class="logo-text" @fadeInOut>Empresa</div>
     }
 
     @if (collapsed) {
@@ -26,7 +26,7 @@
 
   <ul class="sidenav-nav">
     @for (data of navData; track $index) {
-      <li class="sidenav-nav-item">
+      <li class="sidenav-nav-item" *hasRole="data.allowedRoles">
         <a
           class="sidenav-nav-link"
           [routerLink]="[data.routeLink]"

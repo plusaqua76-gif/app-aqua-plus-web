@@ -89,19 +89,14 @@ export interface IfacturaResponse {
     segundoNombre: string;
     apellido: string;
     segundoApellido: string;
-
     tarifaId: number;
     tarifaValor: string;
-
     lecturaId: number;
     consumoAnormal: string;
-
     tipoPagoId: number;
     tipoPagoNombre: string;
-
     estadoId: number;
     estadoNombre: string;
-
     fechaEmision: Date;
     fechaFin: Date;
     consumo: number;

@@ -605,6 +605,7 @@ import { RouterLink } from '@angular/router';
     `,
   ],
   template: `
+  
     <div
       class="dark flex min-h-[100vh] flex-col bg-[#fcfcfc]
             text-black dark:bg-black  dark:text-white"

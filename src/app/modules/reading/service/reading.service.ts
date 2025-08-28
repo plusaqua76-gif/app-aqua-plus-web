@@ -2,10 +2,11 @@ import { inject, Injectable } from "@angular/core";
 import { environment } from "../../../environments/environment.local";
 import { END_POINT_SERVICE } from "../../../environments/environment.variables";
 import { HttpClient, HttpParams } from "@angular/common/http";
-import { catchError, Observable, throwError } from "rxjs";
+import { catchError, map, Observable, throwError } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";
 import { IEstado, ILectura } from "@interfaces/Ifactura";
 import { Router } from "@angular/router";
+import { LecturaResponse } from "@interfaces/reading/Ireading";
 
 @Injectable({
     providedIn: 'root',
@@ -14,14 +15,16 @@ export class ReadingService {
 
     private apiUrl = `${environment.apiUrl}/${END_POINT_SERVICE.GET_LECTURA}`;
 
-    protected readonly router = inject(Router)
     protected readonly http = inject(HttpClient)
 
-    getAllReading(): Observable<ApiResponse<ILectura[]>> {
-        return this.http.get<ApiResponse<ILectura[]>>(`${this.apiUrl}/${END_POINT_SERVICE.GET_ALL_LECTURA}`).pipe(
-            catchError(this.handleError)
-        );
+
+    getAllReadingById(id: number): Observable<ApiResponse<LecturaResponse[]>> {
+        return this.http.get<ApiResponse<LecturaResponse[]>>(`${this.apiUrl}/empresa/${id}`).pipe(map(response => response));
     }
+
+
+
+
 
     private handleError(error: any): Observable<never> {
         let errorMessage = 'An unknown error occurred while loading factura.';
@@ -49,5 +52,5 @@ export class ReadingService {
                 catchError(this.handleError)
             );
         }
-    
+
 }

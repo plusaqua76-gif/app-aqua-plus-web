@@ -7,28 +7,23 @@ import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment.local';
 import { END_POINT_SERVICE } from '../../environments/environment.variables';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class EnterpriseIdService {
-  private router = inject(Router);
+
   private platformId = inject(PLATFORM_ID);
   private http = inject(HttpClient);
   private isBrowser = isPlatformBrowser(this.platformId);
   private apiUrl = environment.apiUrl;
 
-  private getUserId(): string | null {
+  private getUserId(): number | null {
     if (!this.isBrowser) return null;
-
     try {
       const userData = sessionStorage.getItem('userData');
-      if (userData) {
-        const parsed = JSON.parse(userData);
-        return parsed.id || null;
-      }
-      return null;
-    } catch (error) {
-      console.error('Error parsing userData:', error);
+      if (!userData) return null;
+      const parsed = JSON.parse(userData);
+      return typeof parsed.id === 'number' ? parsed.id : Number(parsed.id) || null;
+    } catch (e) {
+      console.error('Error parsing userData:', e);
       return null;
     }
   }
@@ -37,16 +32,20 @@ export class EnterpriseIdService {
     const userId = this.getUserId();
 
     if (!userId) {
-      console.error('No user ID found');
+      console.warn('EnterpriseIdService: No user ID found in sessionStorage');
       return of(null);
     }
 
-    return this.http.get<any>(`${this.apiUrl}/${END_POINT_SERVICE.GET_ENTERPRISE}/${userId}`).pipe(
-      map((res) => res.response?.idEmpresa || null),
-      catchError((error) => {
-        console.error('Error fetching enterprise ID:', error);
-        return of(null);
-      })
-    );
+    return this.http
+      .get<any>(`${this.apiUrl}/${END_POINT_SERVICE.GET_ENTERPRISE}/${userId}`)
+      .pipe(
+        map(res => {
+          const enterpriseId = res?.response?.idEmpresa ?? null;
+          return enterpriseId;
+        }),
+        catchError(err => {
+          return of(null);
+        })
+      );
   }
 }

@@ -21,7 +21,7 @@ import { UserService } from '../../../auth/service/user.service';
   imports: [FormsModule, ReactiveFormsModule, CommonModule],
   templateUrl: './create-employee.html',
 })
-export class CreateEmployee implements OnInit {
+export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el codigo, el settimeOut afecta demasiado el performnace de la aplicacion, el consumo de servicios no en entendible, por uqe se genera un objeto empresa si tenemos la interfaz , por uqe se le hace una promise a los metodos es mejor utilizar un observable
   registerForm!: FormGroup;
 
   departaments: IDepartament[] = [];
