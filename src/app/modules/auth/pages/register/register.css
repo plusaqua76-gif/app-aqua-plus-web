@@ -1,0 +1,477 @@
+:root {
+  --color-primary: #8a79e2;
+  --color-muted: #ada5b4;
+}
+
+.register-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(#181624, #000000);
+  color: #ffffff;
+  position: relative;
+  padding: 20px;
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateX(-2px);
+}
+
+.back-button:active {
+  transform: translateX(-1px) scale(0.95);
+}
+
+.blob,
+.orbit {
+  position: fixed;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+}
+
+.blob {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: 85vw;
+  max-width: 800px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at center,
+              rgba(9, 48, 177, 0.25) 100%,
+              rgba(0, 0, 0, 0.432) 100%);
+  z-index: 1;
+  opacity: 0.5;
+}
+
+@keyframes spin {
+  100% { rotate: 1turn; }
+}
+
+.orbit {
+  width: 95vw;
+  aspect-ratio: 1 / 1;
+  border: 2px solid rgb(255 255 255 / 5%);
+  border-radius: 50%;
+  animation: spin 50s infinite linear;
+}
+
+.orbit::before,
+.orbit::after {
+  content: "";
+  position: absolute;
+  width: 24px;
+  aspect-ratio: 1 / 1;
+  border-radius: inherit;
+  background: #a0cac7;
+}
+
+.orbit::before {
+  top: 50%;
+  width: 18px;
+  left: -9px;
+}
+
+.orbit::after {
+  top: 50%;
+  right: -12px;
+}
+
+.register-layout {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  width: 100%;
+  max-width: 1400px;
+  height: auto;
+  min-height: 600px;
+  background: rgb(0 0 0 / 10%);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 2px solid rgb(255 255 255 / 10%);
+  overflow: hidden;
+}
+
+/* Sección Izquierda - 40% */
+.left-section {
+  width: 40%;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.main-illustration {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  margin-bottom: 30px;
+  filter: brightness(1.1);
+}
+
+.text-content h1 {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.text-content p {
+  font-size: 16px;
+  color: var(--color-muted);
+  line-height: 1.6;
+  max-width: 280px;
+}
+
+/* Sección Derecha - 60% */
+.right-section {
+  width: 60%;
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register-form {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.logo {
+  width: 80px;
+  margin: 0 0 30px;
+}
+
+.register-form h2 {
+  font-size: 24px;
+  margin: 0 0 6px;
+  color: #ffffff;
+}
+
+.register-form h3 {
+  color: var(--color-muted);
+  font-size: 14px;
+  margin: 0 0 30px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  margin: 0 0 20px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.textbox {
+  position: relative;
+}
+
+.textbox input,
+.textbox select {
+  width: 100%;
+  height: 48px;
+  padding: 16px 12px 4px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 4%);
+  outline: none;
+  color: inherit;
+  box-shadow: 0 0 0 2px transparent;
+  transition: 0.3s;
+  font-size: 14px;
+}
+
+.textbox input::placeholder {
+  color: transparent;
+}
+
+.textbox input:focus,
+.textbox select:focus {
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.textbox label {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  translate: 0 -50%;
+  transform-origin: 0 50%;
+  pointer-events: none;
+  color: var(--color-muted);
+  transition: all 0.3s ease;
+  font-size: 14px;
+  background: transparent;
+  padding: 0 4px;
+  z-index: 1;
+}
+
+/* Label flotante cuando el input está enfocado O tiene contenido */
+.textbox input:focus ~ label,
+.textbox input:not(:placeholder-shown) ~ label,
+.textbox select:focus ~ label,
+.textbox select:not([value=""]):not([value="0"]) ~ label {
+  scale: 0.75;
+  translate: 0 -125%;
+  color: var(--color-primary);
+}
+
+/* Label cuando el input pierde el foco pero tiene contenido */
+.textbox input:not(:focus):not(:placeholder-shown) ~ label,
+.textbox select:not(:focus):not([value=""]):not([value="0"]) ~ label {
+  scale: 0.75;
+  translate: 0 -125%;
+  color: var(--color-muted);
+}
+
+/* Select styling */
+.textbox select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ada5b4' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: 36px;
+}
+
+.textbox select option {
+  background: #2a2a2a;
+  color: #ffffff;
+}
+
+/* Password toggle */
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  translate: 0 -50%;
+  cursor: pointer;
+  color: var(--color-muted);
+  transition: 0.3s;
+}
+
+.password-toggle:hover {
+  color: #ffffff;
+}
+
+.eye-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* File upload */
+.file-upload {
+  position: relative;
+  height: 48px;
+}
+
+.file-input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.file-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  background: rgb(255 255 255 / 4%);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+  color: var(--color-muted);
+  font-size: 14px;
+  border: 2px solid transparent;
+}
+
+.file-input:focus + .file-label,
+.file-label:hover {
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.file-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Submit button */
+.submit-button {
+  width: 100%;
+  height: 52px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 6px;
+  color: #f9f9f9;
+  background: var(--color-primary);
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 16px;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+.submit-button:disabled {
+  background: #666;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #7a69d2;
+}
+
+/* Footer */
+.footer {
+  margin: 30px 0 0;
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+.footer a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.footer a:hover {
+  color: #ffffff;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .register-layout {
+    flex-direction: column;
+    max-width: 600px;
+  }
+
+  .left-section,
+  .right-section {
+    width: 100%;
+  }
+
+  .left-section {
+    padding: 30px;
+  }
+
+  .right-section {
+    padding: 30px;
+  }
+
+  .main-illustration {
+    max-width: 200px;
+    margin-bottom: 20px;
+  }
+
+  .text-content h1 {
+    font-size: 28px;
+  }
+
+  .text-content p {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .register-container {
+    padding: 10px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .register-layout {
+    margin-top: 60px;
+  }
+
+  .left-section {
+    padding: 20px;
+  }
+
+  .right-section {
+    padding: 20px;
+  }
+
+  .main-illustration {
+    max-width: 150px;
+  }
+
+  .text-content h1 {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .back-button {
+    top: 10px;
+    left: 10px;
+    width: 35px;
+    height: 35px;
+  }
+
+  .register-form {
+    max-width: 100%;
+  }
+
+  .logo {
+    width: 60px;
+    margin-bottom: 20px;
+  }
+
+  .register-form h2 {
+    font-size: 20px;
+  }
+
+  .textbox input,
+  .textbox select,
+  .submit-button {
+    height: 44px;
+  }
+}

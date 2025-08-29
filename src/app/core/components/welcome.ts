@@ -4,6 +4,7 @@ import {
   CUSTOM_ELEMENTS_SCHEMA,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { LogoCarouselComponent } from './logo-carousel';
 
 @Component({
   selector: 'app-Welcome',
@@ -260,31 +261,6 @@ import { RouterLink } from '@angular/router';
 
       .dropdown-menu li:hover {
         background-color: var(--dropdown-hover-bg);
-      }
-      .carousel-container {
-        overflow: hidden;
-        white-space: nowrap;
-        width: 100%;
-        max-width: 800px;
-      }
-
-      .carousel {
-        display: inline-block;
-        animation: scroll 10s linear infinite;
-      }
-
-      .carousel-img {
-        display: inline-block;
-        margin: 0 20px;
-      }
-
-      @keyframes scroll {
-        0% {
-          transform: translateX(0);
-        }
-        100% {
-          transform: translateX(-50%);
-        }
       }
 
       .animated-border {
@@ -605,7 +581,7 @@ import { RouterLink } from '@angular/router';
     `,
   ],
   template: `
-  
+
     <div
       class="dark flex min-h-[100vh] flex-col bg-[#fcfcfc]
             text-black dark:bg-black  dark:text-white"
@@ -655,7 +631,7 @@ import { RouterLink } from '@angular/router';
             class="w-10 h-10 lg:w-16 lg:h-16 transition-transform duration-300 hover:scale-110"
           >
             <img
-              src="/images/logoAquaplus.png"
+              src="/images/logoAquaplus.webp"
               alt="AquaPlus logo"
               class="object-contain h-full w-full"
             />
@@ -887,74 +863,14 @@ import { RouterLink } from '@angular/router';
             <img
               class="relative z-10 w-full max-w-4xl rounded-lg shadow-2xl"
               id="dashboard"
-              src="/images/dashboard.png"
+              src="/images/dashboard.webp"
               alt="dashboard"
             />
           </div>
         </div>
       </section>
 
-      <section
-        class="relative flex w-full max-w-[100vw] flex-col place-content-center place-items-center overflow-hidden p-8"
-      >
-        <h2 class="reveal-up text-3xl max-md:text-xl">
-          Elegido por acueductos que cuidan el agua y su gente
-        </h2>
-
-        <div class="reveal-up carousel-container">
-          <div
-            class="carousel lg:w-place-content-center mt-10 flex w-full gap-5 max-md:gap-2"
-          >
-            <div class="carousel-img h-[80px] w-[150px]">
-              <img
-                src="/images/salto.png"
-                alt="Bornodes SAS"
-                class="h-16 w-full object-contain grayscale transition-colors hover:grayscale-0"
-              />
-            </div>
-            <div class="carousel-img h-[80px] w-[150px]">
-              <img
-                src="/images/salto.png"
-                alt="Microsoft"
-                class="h-full w-full object-contain grayscale transition-colors hover:grayscale-0"
-                srcset=""
-              />
-            </div>
-            <div class="carousel-img h-[80px] w-[150px]">
-              <img
-                src="/images/salto.png"
-                alt="Adobe"
-                class="h-full w-full object-contain grayscale transition-colors hover:grayscale-0"
-                srcset=""
-              />
-            </div>
-            <div class="carousel-img h-[80px] w-[150px]">
-              <img
-                src="/images/salto.png"
-                alt="Airbnb"
-                class="h-full w-full object-contain grayscale transition-colors hover:grayscale-0"
-                srcset=""
-              />
-            </div>
-            <div class="carousel-img h-[80px] w-[150px]">
-              <img
-                src="/images/salto.png"
-                alt="Stripe"
-                class="h-full w-full object-contain grayscale transition-colors hover:grayscale-0"
-                srcset=""
-              />
-            </div>
-            <div class="carousel-img h-[80px] w-[150px]">
-              <img
-                src="/images/salto.png"
-                alt="Reddit"
-                class="h-full w-full object-contain grayscale transition-colors hover:grayscale-0"
-                srcset=""
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+      <app-logo-carousel></app-logo-carousel>
 
       <section
         class="relative flex  w-full min-h-[100vh] max-lg:min-h-[80vh] flex-col place-content-center place-items-center overflow-hidden"
@@ -1618,7 +1534,7 @@ import { RouterLink } from '@angular/router';
           >
             <a href="#" class="w-full place-items-center flex flex-col gap-6">
               <img
-                src="/images/logoAquaplus.png"
+                src="/images/logoAquaplus.webp"
                 alt="logo"
                 class="max-w-[120px]"
               />
@@ -1688,6 +1604,6 @@ import { RouterLink } from '@angular/router';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  imports: [RouterLink],
+  imports: [RouterLink, LogoCarouselComponent],
 })
 export class Welcome {}

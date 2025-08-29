@@ -139,7 +139,7 @@ export class Client {
           success: true,
           message: 'No enterprise ID available',
           code: 200,
-          response: [] as ClientRow[]
+          response: [] as ClientRow[] 
         });
       }
       return this.enterpriseClientCounterService.getAllCounterByIdEnterprise(id);

@@ -15,7 +15,7 @@ import { CommonModule } from '@angular/common';
     }">
       <div class="w-28 h-28 border-8 text-blue-400 text-4xl animate-spin border-gray-300 flex items-center justify-center border-t-blue-400 rounded-full">
         <img
-          src="/images/logoAquaplus.png"
+          src="/images/logoAquaplus.webp"
           alt="AquaPlus Logo"
           class="w-16 h-16 object-contain animate-pulse"
         />

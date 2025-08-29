@@ -6,7 +6,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { DepartamentService } from '../../service/departament.service';
 import { IDepartament } from '@interfaces/Idepartament';
 import { CityService } from '../../service/city.service';
@@ -21,7 +21,7 @@ import { ICorregimiento } from '@interfaces/icorregimiento';
 
 @Component({
   selector: 'app-register',
-  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, ReactiveFormsModule],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
