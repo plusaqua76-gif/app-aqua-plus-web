@@ -1,5 +1,5 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TableColumn } from '@interfaces/ItableColumn';
 import { IFactura, IfacturaResponse } from '@interfaces/Ifactura';
@@ -12,7 +12,6 @@ import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { EMPTY, map } from 'rxjs';
 import { TableComponent } from '@components/table';
 import { PopupComponent } from "@shared/components/popUp";
-import { EnterpriseIdService } from '@services/enterpriceId.service';
 
 @Component({
   selector: 'app-bill',
@@ -66,6 +65,23 @@ export class Bill {
   title = signal('Gestión de Facturas');
   showDeleteConfirm = signal(false);
   itemToDelete: number | null = null;
+    private platformId = inject(PLATFORM_ID);
+  private isBrowser = isPlatformBrowser(this.platformId);
+
+  readonly enterpriseId = computed(() => {
+    if (!this.isBrowser) return null;
+
+    try {
+      const userData = sessionStorage.getItem('userData');
+      if (!userData) return null;
+
+      const parsedUserData = JSON.parse(userData);
+      return parsedUserData.empresaId ? Number(parsedUserData.empresaId) : null;
+    } catch (error) {
+      console.error('Error parsing userData from sessionStorage:', error);
+      return null;
+    }
+  });
 
   billColumns = signal([
     { field: 'codigo', header: 'Código' },
@@ -77,23 +93,27 @@ export class Bill {
     { field: 'consumoAnormal', header: 'Consumo anormal' },
     { field: 'precio', header: 'Total' },
   ]);
-  private enterpriseIdService = inject(EnterpriseIdService);
+
   protected readonly facturaService = inject(FacturaService);
   protected readonly toastService = inject(ToastService);
   protected readonly router = inject(Router);
   protected readonly route = inject(ActivatedRoute);
 
-    readonly enterpriseId = toSignal<number | null>(
-    this.enterpriseIdService.getEnterpriseId(),
-    { initialValue: null }
-  );
+
 
 
   dataBills = rxResource({
-    params: () => this.enterpriseId(),
-    stream: ({ params: id }) => {
-      if (!id) { return EMPTY; }
-      return this.facturaService.getAllBillById(id);
+    params: () => ({ enterpriseId: this.enterpriseId() }),
+    stream: ({ params }) => {
+      const { enterpriseId } = params;
+
+      if (!enterpriseId) {
+        console.warn('No enterprise ID available for bills');
+        return EMPTY;
+      }
+
+      // console.log('Loading bills for enterprise ID:', enterpriseId);
+      return this.facturaService.getAllBillById(enterpriseId);
     }
   });
 

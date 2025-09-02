@@ -1,21 +1,23 @@
 import { IEnterprise } from "./Ienterprise";
 import { IPerson } from "./Iperson";
 import { IRol } from "./Irol";
+import { IEstado } from "./Ifactura";
 
 
 export interface Iuser {
-    id: string;
-    rol:IRol;
+    id: number;
+    rol: IRol;
     persona: IPerson;
+    estado: IEstado;
     nombre: string;
     contrasena: string;
-    imagen:string | null;
-    usuarioCreacion: string;
-    fechaCreacion: string;
-    usuarioModificacion: string | null;
-    fechaModificacion: string | null;
-    activo: boolean;
-    token: string;
+    imagen?: string | null;
+    usuarioCreacion?: string;
+    fechaCreacion?: string;
+    usuarioModificacion?: string | null;
+    fechaModificacion?: string | null;
+    activo?: boolean;
+    token?: string;
 }
 
 export interface IAuthResponse {

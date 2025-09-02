@@ -41,8 +41,8 @@ interface LoginParams {
 
     <app-login-form (sendLogin)="login($event)" [errorMessage]="errorMessage()" />
 
-    <a href="#">¿Olvidaste tu contraseña?</a>
-    <p class="footer">¿No tienes una cuenta? <a href="#">¡Regístrate!</a></p>
+    <a routerLink="/auth/forgot-password">¿Olvidaste tu contraseña?</a>
+    <p class="footer">¿No tienes una cuenta? <a routerLink="/auth/register">¡Regístrate!</a></p>
   </div>
 </div>
   `,

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -26,7 +26,7 @@ import { CommonModule } from '@angular/common';
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
-    padding: 3rem;
+    padding: 4rem 3rem 3rem 3rem;
 }
 
 .body-trimmed {
@@ -42,24 +42,25 @@ import { CommonModule } from '@angular/common';
 .body-mobile {
     width: 100%;
     margin-left: 0;
+    padding-top: 4rem; /* Padding-top para el header en móvil */
 }
     `
   ]
 })
 export class BodyComponent {
-  @Input() collapsed = false;
-  @Input() screenWidth = 0;
+  collapsed = input<boolean>(false);
+  screenWidth = input<number>(0);
 
   getBodyClass(): string {
     let styleClass = '';
 
-    if(this.screenWidth <= 768) {
+    if(this.screenWidth() <= 768) {
       styleClass = 'body-mobile';
-    } else if(this.collapsed && this.screenWidth > 768) {
-      // En desktop expandido
+    } else if(this.collapsed() && this.screenWidth() > 768) {
+      // En desktop colapsado (sidenav expandido)
       styleClass = 'body-trimmed';
-    } else if(!this.collapsed && this.screenWidth > 768) {
-      // En desktop colapsado
+    } else if(!this.collapsed() && this.screenWidth() > 768) {
+      // En desktop expandido (sidenav colapsado)
       styleClass = 'body-md-screen';
     }
 

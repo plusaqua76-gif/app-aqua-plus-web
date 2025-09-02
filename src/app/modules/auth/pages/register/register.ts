@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed, effect } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -7,15 +7,12 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { DepartamentService } from '../../service/departament.service';
-import { IDepartament } from '@interfaces/Idepartament';
-import { CityService } from '../../service/city.service';
-import { CorregimientoService } from '../../service/corregimiento.service';
 import { EnterpriseService } from '../../service/enterprise.service';
-import { ICity } from '../../../../../app/core/interfaces/Icity';
 import { CommonModule } from '@angular/common';
-import { ApiResponse } from '@interfaces/Iresponse';
 import { ToastService } from '@services/toast.service';
+import { LocationService } from '@shared/services/location.service';
+import { IDepartament } from '@interfaces/Idepartament';
+import { ICity } from '@interfaces/Icity';
 import { ICorregimiento } from '@interfaces/icorregimiento';
 
 
@@ -25,47 +22,82 @@ import { ICorregimiento } from '@interfaces/icorregimiento';
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
-export class Register implements OnInit {
+export class Register implements OnInit, OnDestroy {
   registerForm!: FormGroup;
   isLoading: boolean = false;
-
-  departaments: IDepartament[] = [];
-  cities: ICity[] = [];
-  corregimientos: ICorregimiento[] = [];
-
-  selectedDepartamentId: number | null = null;
-  selectCitiesId: number | null = null;
-  selectCorregimientoId: number | null = null;
-
-  filteredCities: ICity[] = [];
-  filteredCorregimientos: ICorregimiento[] = [];
-
+  selectedDepartmentId = signal<number | null>(null);
+  selectedCityId = signal<number | null>(null);
+  departaments = signal<IDepartament[]>([]);
+  cities = signal<ICity[]>([]);
+  corregimientos = signal<ICorregimiento[]>([]);
+  departmentsLoading = signal<boolean>(false);
+  citiesLoading = signal<boolean>(false);
+  corregimientosLoading = signal<boolean>(false);
   showPassword: boolean = false;
+  previewUrl = signal<string | null>(null);
+  previewName = signal<string | null>(null);
+  previewSizeKB = signal<number | null>(null);
+  private lastObjectUrl?: string;
+  selectedFile: File | null = null;
 
   protected readonly router = inject(Router);
   protected readonly fb = inject(FormBuilder);
-  protected readonly departamentService = inject(DepartamentService);
-  protected readonly cityService = inject(CityService);
-  protected readonly corregimientoService = inject(CorregimientoService);
+  protected readonly locationService = inject(LocationService);
   protected readonly enterpriseService = inject(EnterpriseService);
   protected readonly toast = inject(ToastService);
 
+  constructor() {
+
+    effect(() => {
+      const deptId = this.selectedDepartmentId();
+      if (deptId) {
+        this.loadCities(deptId);
+      } else {
+        this.cities.set([]);
+        this.corregimientos.set([]);
+      }
+    });
+
+    effect(() => {
+      const cityId = this.selectedCityId();
+      if (cityId) {
+        this.loadCorregimientos(cityId);
+      } else {
+        this.corregimientos.set([]);
+      }
+    });
+  }
+
   ngOnInit(): void {
     this.initializeForm();
-    this.loadDepartamentData();
-    this.loadAllCities();
-    this.loadAllCorregimiento();
+    this.loadDepartments();
 
     this.registerForm
       .get('idDepartamento')
       ?.valueChanges.subscribe((departamentoId) => {
-        console.log('valueChanges idDepartamento:', departamentoId);
-        this.selectedDepartamentId = departamentoId;
-        this.onDepartamentChange();
+        const numericDeptId = departamentoId ? Number(departamentoId) : null;
+
+        if (this.selectedDepartmentId() !== numericDeptId) {
+          this.selectedDepartmentId.set(numericDeptId);
+          this.registerForm.patchValue({
+            idCiudad: '',
+            idCorregimiento: ''
+          }, { emitEvent: false });
+
+          this.cities.set([]);
+          this.corregimientos.set([]);
+        }
       });
 
-    this.registerForm.get('idCiudad')?.valueChanges.subscribe(() => {
-      this.onCitiesChange();
+    this.registerForm.get('idCiudad')?.valueChanges.subscribe((cityId) => {
+      const numericCityId = cityId ? Number(cityId) : null;
+      if (this.selectedCityId() !== numericCityId) {
+        this.selectedCityId.set(numericCityId);
+        this.registerForm.patchValue({
+          idCorregimiento: ''
+        }, { emitEvent: false });
+        this.corregimientos.set([]);
+      }
     });
   }
 
@@ -79,10 +111,8 @@ export class Register implements OnInit {
       idCorregimiento: [''],
       descripcionDireccion: [''],
       nit: ['', [Validators.required]],
-      codigoEmpresa: ['', [Validators.required]],
       correo: ['', [Validators.required]],
       telefono: ['', [Validators.required]],
-      archivo: ['']
     });
   }
 
@@ -90,133 +120,188 @@ export class Register implements OnInit {
     this.showPassword = !this.showPassword;
   }
 
-  onFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      this.registerForm.patchValue({
-        archivo: file
-      });
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input?.files?.[0];
+
+    // Limpia preview anterior
+    if (this.lastObjectUrl) {
+      URL.revokeObjectURL(this.lastObjectUrl);
+      this.lastObjectUrl = undefined;
     }
+    this.previewUrl.set(null);
+    this.previewName.set(null);
+    this.previewSizeKB.set(null);
+    this.selectedFile = null;
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      this.toast.error('Archivo inválido', 'Por favor selecciona una imagen (png, jpg, webp, etc.)');
+      input.value = '';
+      return;
+    }
+
+    this.selectedFile = file;
+    const url = URL.createObjectURL(file);
+    this.lastObjectUrl = url;
+    this.previewUrl.set(url);
+    this.previewName.set(file.name);
+    this.previewSizeKB.set(Math.round(file.size / 1024));
   }
 
-  loadDepartamentData(): void {
-    this.departamentService.getAllDepartaments().subscribe((response) => {
-      this.departaments = response.response;
+  clearSelectedFile(inputEl?: HTMLInputElement) {
+    if (this.lastObjectUrl) {
+      URL.revokeObjectURL(this.lastObjectUrl);
+      this.lastObjectUrl = undefined;
+    }
+    this.previewUrl.set(null);
+    this.previewName.set(null);
+    this.previewSizeKB.set(null);
+    this.selectedFile = null;
+    if (inputEl) inputEl.value = '';
+  }
+
+  ngOnDestroy(): void {
+    if (this.lastObjectUrl) URL.revokeObjectURL(this.lastObjectUrl);
+  }
+
+  private fileToBase64(bytes: number[]): Promise<string> {
+    return new Promise<string>((resolve) => {
+      const blob = new Blob([new Uint8Array(bytes)], { type: 'image/jpeg' });
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        // Remover el prefijo "data:image/...;base64," para obtener solo el base64
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.readAsDataURL(blob);
     });
   }
 
-  loadAllCities(): void {
-    this.cityService.getAllCitys().subscribe({
-    next: (resp: ApiResponse<ICity[]>)  => {
-      if (resp.success) {
-        this.cities = resp.response;
-        console.log('Ciudades cargados:', this.cities);
-      } else {
-        console.error('Error al cargar ciudades:', resp.message);
+  // Método para convertir File a array de bytes
+  private async fileToBytes(file: File): Promise<number[]> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(file);
+      reader.onload = () => {
+        const arrayBuffer = reader.result as ArrayBuffer;
+        const bytes = Array.from(new Uint8Array(arrayBuffer));
+        resolve(bytes);
+      };
+      reader.onerror = error => reject(error);
+    });
+  }
+
+  loadDepartments(): void {
+    this.departmentsLoading.set(true);
+    this.locationService.getDepartamentos().subscribe({
+      next: (departaments) => {
+        this.departaments.set(departaments.response);
+        this.departmentsLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error al cargar departamentos:', err);
+        this.toast.error('Error', 'No se pudieron cargar los departamentos');
+        this.departmentsLoading.set(false);
       }
-    },
-    error: (err) => {
-      console.error('Error de red al cargar ciudades:', err);
-    }
     });
   }
 
-  loadAllCorregimiento(): void {
-    this.corregimientoService.getAllCorregimientos().subscribe({
-    next: (resp: ApiResponse<ICorregimiento[]>)  => {
-      if (resp.success) {
-        this.corregimientos = resp.response;
-        console.log('Corregimientos cargados:', this.corregimientos);
-      } else {
-        console.error('Error al cargar corregimientos:', resp.message);
+  loadCities(departmentId: number): void {
+    this.citiesLoading.set(true);
+    this.locationService.getCiudades(departmentId).subscribe({
+      next: (cities) => {
+        this.cities.set(cities.response);
+        this.citiesLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error al cargar ciudades:', err);
+        this.toast.error('Error', 'No se pudieron cargar las ciudades');
+        this.citiesLoading.set(false);
       }
-    },
-    error: (err) => {
-      console.error('Error de red al cargar corregimientos:', err);
-    }
     });
   }
 
-  onDepartamentChange(): void {
-    console.log('selectedDepartamentId:', this.selectedDepartamentId);
-    console.log(
-      'departamentoId de cada ciudad:',
-      this.cities.map((c) => c.departamento?.id)
-    );
-    this.selectCitiesId = null;
-    this.selectCorregimientoId = null;
-    this.filteredCorregimientos = [];
-
-    if (this.selectedDepartamentId) {
-      this.filteredCities = this.cities.filter(
-        (cyt) =>
-          cyt.departamento &&
-          Number(cyt.departamento.id) === Number(this.selectedDepartamentId)
-      );
-      console.log('filteredCities:', this.filteredCities);
-    } else {
-      this.filteredCities = [];
-    }
+  loadCorregimientos(cityId: number): void {
+    this.corregimientosLoading.set(true);
+    this.locationService.getCorregimientos(cityId).subscribe({
+      next: (corregimientos) => {
+        this.corregimientos.set(corregimientos.response);
+        this.corregimientosLoading.set(false);
+      },
+      error: (err) => {
+        this.toast.error('Error', 'No se pudieron cargar los corregimientos');
+        this.corregimientosLoading.set(false);
+      }
+    });
   }
 
-  onCitiesChange(): void {
-    const selectedCityId = this.registerForm.get('idCiudad')?.value;
-    this.selectCorregimientoId = null;
-
-    if (selectedCityId) {
-      this.filteredCorregimientos = this.corregimientos.filter(
-        (cor) => cor.ciudad && String(cor.ciudad.id) === String(selectedCityId)
-      );
-      console.log('filteredCorregimientos:', this.filteredCorregimientos);
-    } else {
-      this.filteredCorregimientos = [];
-      console.log('filteredCorregimientos: []');
-    }
-  }
-
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.registerForm.valid) {
       this.isLoading = true;
 
-      const formData = this.registerForm.value;
+      try {
+        const formData = this.registerForm.value;
 
-      const empresaData = {
-        usuario: formData.usuario,
-        password: formData.password,
-        nombreEmpresa: formData.nombreEmpresa,
-        nit: formData.nit,
-        codigoEmpresa: formData.codigoEmpresa,
-        correo: formData.correo,
-        telefono: formData.telefono,
-        idDepartamento: formData.idDepartamento,
-        idCiudad: formData.idCiudad,
-        idCorregimiento: formData.idCorregimiento || null,
-        descripcionDireccion: formData.descripcionDireccion || null,
-      };
+        // Preparar datos base
+        const empresaData: any = {
+          usuario: formData.usuario,
+          password: formData.password,
+          nombreEmpresa: formData.nombreEmpresa,
+          nit: formData.nit,
+          correo: formData.correo,
+          telefono: formData.telefono,
+          idDepartamento: formData.idDepartamento,
+          idCiudad: formData.idCiudad,
+          idCorregimiento: formData.idCorregimiento || null,
+          descripcionDireccion: formData.descripcionDireccion || null,
+        };
 
-      console.log('Datos a enviar para registrar empresa:', empresaData);
+        if (this.selectedFile) {
+          try {
+            const bytes = await this.fileToBytes(this.selectedFile);
+            const base64Image = await this.fileToBase64(bytes);
+            empresaData.imagen = base64Image;
+          } catch (error) {
+            console.error('Error al convertir imagen a base64:', error);
+            this.toast.error('Error', 'No se pudo procesar la imagen seleccionada');
+            this.isLoading = false;
+            return;
+          }
+        }
 
-      this.enterpriseService.registerEnterprise(empresaData).subscribe({
-      next: (response) => {
+        // console.log('Datos a enviar para registrar empresa:', empresaData);
+
+        this.enterpriseService.registerEnterprise(empresaData).subscribe({
+          next: (response) => {
+            this.isLoading = false;
+            // console.log('Registro de empresa exitoso:', response);
+
+            this.toast.success('Empresa registrada', 'Registro exitoso. Usuario por activar.');
+
+            setTimeout(() => {
+              this.router.navigate(['/auth/login']);
+            }, 1500);
+          },
+          error: (err) => {
+            this.isLoading = false;
+            console.error('Error al registrar empresa:', err);
+
+            this.toast.error(
+              'Error al registrar empresa',
+              err?.error?.message || err?.message || 'Ocurrió un error inesperado.'
+            );
+          },
+        });
+      } catch (error) {
         this.isLoading = false;
-        console.log('Registro de empresa exitoso:', response);
-
-        this.toast.success('Empresa registrada', 'Registro exitoso. Usuario por activar.');
-
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 1500);
-      },
-        error: (err) => {
-        this.isLoading = false;
-        console.error('Error al registrar empresa:', err);
-
-        this.toast.error(
-          'Error al registrar empresa',
-          err?.error?.message || err?.message || 'Ocurrió un error inesperado.'
-        );
-      },
-      });
+        console.error('Error inesperado:', error);
+        this.toast.error('Error', 'Ocurrió un error inesperado al procesar el formulario');
+      }
     }
   }
 

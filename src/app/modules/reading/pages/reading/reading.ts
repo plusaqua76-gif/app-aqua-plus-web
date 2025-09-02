@@ -1,11 +1,10 @@
-import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, computed, inject, signal, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ReadingService } from '../../service/reading.service';
 import { TableComponent } from '@components/table';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { map, of } from 'rxjs';
-import { EnterpriseIdService } from '@services/enterpriceId.service';
 import { toReadingRow, type ReadingRow } from '@shared/index';
 
 @Component({
@@ -27,12 +26,29 @@ import { toReadingRow, type ReadingRow } from '@shared/index';
   `
 })
 export class Reading {
-  private enterpriseIdService = inject(EnterpriseIdService);
+  private platformId = inject(PLATFORM_ID);
+  private isBrowser = isPlatformBrowser(this.platformId);
   private readingService = inject(ReadingService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
   title = signal('Gestión de Lecturas');
+
+  // Enterprise ID desde sessionStorage con manejo SSR
+  readonly enterpriseId = computed(() => {
+    if (!this.isBrowser) return null;
+
+    try {
+      const userData = sessionStorage.getItem('userData');
+      if (!userData) return null;
+
+      const parsedUserData = JSON.parse(userData);
+      return parsedUserData.empresaId ? Number(parsedUserData.empresaId) : null;
+    } catch (error) {
+      console.error('Error parsing userData from sessionStorage:', error);
+      return null;
+    }
+  });
 
   readingColumns = signal([
     { field: 'serial', header: 'Contador' },
@@ -42,13 +58,18 @@ export class Reading {
     { field: 'observacion', header: 'Observación' },
   ]);
 
-  private enterpriseId = toSignal(this.enterpriseIdService.getEnterpriseId(), { initialValue: null });
-
   private dataResource = rxResource({
-    params: () => this.enterpriseId(),
-    stream: ({ params: id }) => {
-      if (!id) return of([]);
-      return this.readingService.getAllReadingById(id).pipe(
+    params: () => ({ enterpriseId: this.enterpriseId() }),
+    stream: ({ params }) => {
+      const { enterpriseId } = params;
+
+      if (!enterpriseId) {
+        console.warn('No enterprise ID available for readings');
+        return of([]);
+      }
+
+      console.log('Loading readings for enterprise ID:', enterpriseId);
+      return this.readingService.getAllReadingById(enterpriseId).pipe(
         map(response => response.response || []),
         map(readings => readings.map(toReadingRow))
       );
