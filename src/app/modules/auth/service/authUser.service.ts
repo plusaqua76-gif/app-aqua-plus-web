@@ -23,16 +23,16 @@ export class AuthUserService {
 
   // implementacion de refreshToken por el lado de back
 
-  refreshToken() {
+  // refreshToken() {
 
-  }
+  // }
 
-  getAuthToken() {
-    return localStorage.getItem('authToken') || '';
-  }
+  // getAuthToken() {
+  //   return localStorage.getItem('authToken') || '';
+  // }
 
-  getRefreshToken() {
-    return localStorage.getItem('refreshToken') || '';
-  }
+  // getRefreshToken() {
+  //   return localStorage.getItem('refreshToken') || '';
+  // }
 
 }

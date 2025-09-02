@@ -6,16 +6,16 @@ export const END_POINT_SERVICE = {
   POST_UPD_PASS: 'update-password',
   PUT_UPD_PASS: 'Password',
   PUT_IMG_USER: 'imagen',
-  PUT_CORREGIMIENTO: 'Corregimiento',
+  PUT_CORREGIMIENTO: 'corregimiento',
 
-  GET_USER: 'Usuario',
+  GET_USER: 'usuario',
   POST_SEND_EMAIL: 'sendEmail',
 
-  GET_ALL_TIPO_DOCUMENTO: 'TipoDocumento/all',
+  GET_ALL_TIPO_DOCUMENTO: 'tipoDocumento/all',
 
-  GET_ALL_CORREO_PER: 'CorreoGeneral/all',
+  GET_ALL_CORREO_PER: 'correoGeneral/all',
 
-  GET_ALL_TELEFONO_PER: 'TelefonoGeneral/all',
+  GET_ALL_TELEFONO_PER: 'telefonoGeneral/all',
 
   GET_FACTURA: 'factura',
   GET_FACTURA_ALL: 'all',

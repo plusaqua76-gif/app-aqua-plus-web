@@ -3,9 +3,6 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { CommonModule } from '@angular/common';
 import { Auth } from '@interfaces/IAuth';
 
-
-
-
 @Component({
   selector: 'app-login-form',
   imports: [ReactiveFormsModule, CommonModule],
@@ -25,8 +22,16 @@ import { Auth } from '@interfaces/IAuth';
 
     .form :is(input, button) {
       height: 52px;
-      padding: 0 12px;
       border: 0;
+    }
+
+    .form input {
+      padding: 0 45px 0 45px;
+      border-radius: 12px;
+    }
+
+    .form button {
+      padding: 0 12px;
       border-radius: 6px;
     }
 
@@ -42,21 +47,28 @@ import { Auth } from '@interfaces/IAuth';
     /* Inputs y labels flotantes */
     .textbox input {
       width: 100%;
-      padding-top: 10px;
-      background: rgb(255 255 255 / 4%);
+      padding: 12px 16px 12px 45px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      color: #ffffff;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
       outline: none;
-      color: inherit;
-      box-shadow: 0 0 0 2px transparent;
     }
 
     .textbox input:focus {
-      box-shadow: 0 0 0 2px var(--color-primary);
+      outline: none;
+      border-color: #0062ff;
+      background: rgba(255, 255, 255, 0.15);
     }
 
     .textbox label {
       position: absolute;
       top: 50%;
-      left: 12px;
+      left: 45px;
       translate: 0 -50%;
       transform-origin: 0 50%;
       pointer-events: none;
@@ -66,6 +78,16 @@ import { Auth } from '@interfaces/IAuth';
     .textbox input:is(:focus, :not(:invalid)) ~ label {
       scale: 0.725;
       translate: 0 -112%;
+    }
+
+    /* Input icons */
+    .input-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-muted);
+      font-size: 16px;
     }
 
     /* Botón */
@@ -119,6 +141,7 @@ import { Auth } from '@interfaces/IAuth';
   template: `
     <form (ngSubmit)="login()" [formGroup]="loginForm" class="form">
       <div class="textbox">
+        <i class="fa fa-envelope input-icon"></i>
         <input
           type="text"
           formControlName="nombre"
@@ -128,6 +151,7 @@ import { Auth } from '@interfaces/IAuth';
       </div>
 
       <div class="textbox">
+        <i class="fa fa-lock input-icon"></i>
         <input
           [type]="showPassword() ? 'text' : 'password'"
           formControlName="contrasena"

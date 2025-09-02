@@ -18,6 +18,7 @@ export interface Iuser {
     fechaModificacion?: string | null;
     activo?: boolean;
     token?: string;
+    nombreEmpresa: string
 }
 
 export interface IAuthResponse {
@@ -41,4 +42,12 @@ export interface ITipoDocumento {
   usuarioModificacion: string | null;
   fechaModificacion: string | null;
   activo: boolean;
+}
+
+export interface IUserResponse {
+    id: number;
+    rol: IRol;
+    estado: IEstado;
+    nombre: string;
+    contrasena: string;
 }

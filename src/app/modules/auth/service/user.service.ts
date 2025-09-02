@@ -2,9 +2,9 @@ import { inject, Injectable } from "@angular/core";
 import { environment } from "../../../environments/environment.local";
 import { END_POINT_SERVICE } from "../../../environments/environment.variables";
 import { HttpClient, HttpParams } from "@angular/common/http";
-import { Observable } from "rxjs";
+import { map, Observable } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";
-import { IUpdatePassword, Iuser } from "@interfaces/Iuser";
+import { IUpdatePassword, Iuser, IUserResponse } from "@interfaces/Iuser";
 
 
 
@@ -15,6 +15,10 @@ export class UserService {
   private apiUrl = `${environment.apiUrl}/${END_POINT_SERVICE.GET_USER}`;
   protected readonly http = inject(HttpClient);
 
+  getUserSignal(id: number): Observable<ApiResponse<IUserResponse>> {
+    const url = `${this.apiUrl}/${id}`;
+    return this.http.get<ApiResponse<IUserResponse>>(url);
+  }
 
   recoverPassword(correo: string): Observable<ApiResponse<any>> {
     const params = new HttpParams().set('correo', correo);

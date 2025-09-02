@@ -6,6 +6,8 @@ import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment.local';
 import { END_POINT_SERVICE } from '../../environments/environment.variables';
+import { ApiResponse } from '../interfaces/Iresponse';
+import { IdEnterprice } from '@interfaces/IiEnterprice';
 
 @Injectable({ providedIn: 'root' })
 export class EnterpriseIdService {
@@ -15,7 +17,17 @@ export class EnterpriseIdService {
   private isBrowser = isPlatformBrowser(this.platformId);
   private apiUrl = environment.apiUrl;
 
-  private getUserId(): number | null {
+  getByIdEnterprice(id: number): Observable<number | null> {
+    return this.http.get<ApiResponse<IdEnterprice>>(`${this.apiUrl}/${END_POINT_SERVICE.GET_ENTERPRISE}/${id}`).pipe(
+      map(res => res?.response?.idEmpresa ?? null),
+      catchError(err => {
+        console.error('Error en getByIdEnterprice:', err);
+        return of(null);
+      })
+    )
+  }
+
+  getUserId(): number | null {
     if (!this.isBrowser) return null;
     try {
       const userData = sessionStorage.getItem('userData');
@@ -35,7 +47,6 @@ export class EnterpriseIdService {
       console.warn('EnterpriseIdService: No user ID found in sessionStorage');
       return of(null);
     }
-
     return this.http
       .get<any>(`${this.apiUrl}/${END_POINT_SERVICE.GET_ENTERPRISE}/${userId}`)
       .pipe(
