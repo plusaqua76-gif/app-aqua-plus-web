@@ -63,12 +63,12 @@ export class CreateDebt implements OnInit {
     this.loadPlazoPago();
 
     this.registerForm.get('empresaClienteContador')?.valueChanges.subscribe(selectedCliente => {
-        console.log('Cliente seleccionado:', selectedCliente);
+        // console.log('Cliente seleccionado:', selectedCliente);
       if (selectedCliente && selectedCliente.id) {
-        const clienteId = selectedCliente.id; 
+        const clienteId = selectedCliente.id;
         this.loadFacturasPorCliente(clienteId);
       } else {
-        this.facturas = []; 
+        this.facturas = [];
       }
     });
   }

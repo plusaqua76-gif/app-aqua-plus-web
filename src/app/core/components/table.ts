@@ -42,7 +42,7 @@ export interface Action<T = any> {
 
           <div class="flex items-center gap-4">
             <select
-              class="px-3 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600"
+              class="px-7 py-3 pl-4 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600"
               [value]="pageSize()"
               (change)="onPageSizeChange($event)"
             >
@@ -50,14 +50,11 @@ export interface Action<T = any> {
                 <option [value]="opt">{{ opt }}</option>
               }
             </select>
-            <span class="text-gray-700 dark:text-gray-300 text-sm"
-              >entries&nbsp;per&nbsp;page</span
-            >
           </div>
 
           @if (showAddButton()) {
             <button
-              class="bg-blue-200 hover:bg-blue-400 text-gray-700 font-bold py-3 px-6 rounded-lg shadow-lg shadow-neutral-400 hover:text-white transform transition-all duration-500 ease-in-out hover:scale-110 hover:brightness-110 hover:animate-pulse active:animate-bounce flex items-center gap-2 whitespace-nowrap cursor-pointer"
+              class="bg-blue-200 hover:bg-blue-400 text-gray-700 font-bold py-3 px-6 rounded-lg shadow-lg shadow-neutral-400 hover:text-white transform transition-all duration-500 ease-in-out hover:scale-110 hover:brightness-110 hover:animate-pulse active:animate-bounce flex items-center gap-4 whitespace-nowrap cursor-pointer"
               (click)="onAction('add', null)"
             >
               <svg

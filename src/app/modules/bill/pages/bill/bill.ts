@@ -1,5 +1,5 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TableColumn } from '@interfaces/ItableColumn';
 import { IFactura, IfacturaResponse } from '@interfaces/Ifactura';
@@ -8,8 +8,8 @@ import { ApiResponse } from '@interfaces/Iresponse';
 import { ToastService } from '@services/toast.service';
 import * as XLSX from 'xlsx';
 
-import { rxResource } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { EMPTY, map } from 'rxjs';
 import { TableComponent } from '@components/table';
 import { PopupComponent } from "@shared/components/popUp";
 
@@ -62,58 +62,97 @@ import { PopupComponent } from "@shared/components/popUp";
 })
 export class Bill {
 
+  title = signal('Gestión de Facturas');
   showDeleteConfirm = signal(false);
   itemToDelete: number | null = null;
+    private platformId = inject(PLATFORM_ID);
+  private isBrowser = isPlatformBrowser(this.platformId);
+
+  readonly enterpriseId = computed(() => {
+    if (!this.isBrowser) return null;
+
+    try {
+      const userData = sessionStorage.getItem('userData');
+      if (!userData) return null;
+
+      const parsedUserData = JSON.parse(userData);
+      return parsedUserData.empresaId ? Number(parsedUserData.empresaId) : null;
+    } catch (error) {
+      console.error('Error parsing userData from sessionStorage:', error);
+      return null;
+    }
+  });
 
   billColumns = signal([
     { field: 'codigo', header: 'Código' },
     { field: 'clienteNombreCompleto', header: 'Cliente' },
     { field: 'consumo', header: 'Consumo (m³)' },
-    { field: 'fechaEmisionTexto', header: 'Fecha emisión' },
-    { field: 'fechaFinTexto', header: 'Fecha Vencimiento' },
+    { field: 'fechaEmision', header: 'Fecha emisión' },
+    { field: 'fechaFin', header: 'Fecha Vencimiento' },
     { field: 'estadoNombre', header: 'Estado' },
     { field: 'consumoAnormal', header: 'Consumo anormal' },
-    { field: 'precioTexto', header: 'Total' },
+    { field: 'precio', header: 'Total' },
   ]);
 
-  protected readonly billService = inject(FacturaService);
+  protected readonly facturaService = inject(FacturaService);
   protected readonly toastService = inject(ToastService);
   protected readonly router = inject(Router);
   protected readonly route = inject(ActivatedRoute);
 
+
+
+
   dataBills = rxResource({
-    stream: () =>
-      this.billService.getAllBill().pipe(
-        map((apiRes: ApiResponse<IfacturaResponse[]>) =>
-          apiRes.response.map(factura => {
-            const fullName = [
-              factura.nombre || '',
-              factura.segundoNombre || '',
-              factura.apellido || '',
-              factura.segundoApellido || '',
-            ].filter(Boolean).join(' ');
+    params: () => ({ enterpriseId: this.enterpriseId() }),
+    stream: ({ params }) => {
+      const { enterpriseId } = params;
 
-            const fechaEmision = new Date(factura.fechaEmision);
-            const fechaFin = new Date(factura.fechaFin);
+      if (!enterpriseId) {
+        console.warn('No enterprise ID available for bills');
+        return EMPTY;
+      }
 
-            return {
-              id: factura.id,
-              codigo: factura.codigo,
-              clienteNombreCompleto: fullName,
-              consumo: factura.consumo,
-              fechaEmisionTexto: fechaEmision.toLocaleDateString('es-CO'),
-              fechaFinTexto: fechaFin.toLocaleDateString('es-CO'),
-              estadoNombre: factura.estadoNombre,
-              consumoAnormal: factura.consumoAnormal ? 'SI' : 'NO',
-              precioTexto: `$${Number(factura.precio).toLocaleString()}`,
-            };
-          })
-        )
-      )
+      // console.log('Loading bills for enterprise ID:', enterpriseId);
+      return this.facturaService.getAllBillById(enterpriseId);
+    }
   });
 
-  tableData = computed(() => this.dataBills.value() ?? []);
-  title = signal('Gestión de Facturas');
+  tableData = computed(() => this.dataBills.value()?.response || []);
+
+
+  // dataBills = rxResource({
+  //   stream: () =>
+  //     this.billService.getAllBill().pipe(
+  //       map((apiRes: ApiResponse<IfacturaResponse[]>) =>
+  //         apiRes.response.map(factura => {
+  //           const fullName = [
+  //             factura.nombre || '',
+  //             factura.segundoNombre || '',
+  //             factura.apellido || '',
+  //             factura.segundoApellido || '',
+  //           ].filter(Boolean).join(' ');
+
+  //           const fechaEmision = new Date(factura.fechaEmision);
+  //           const fechaFin = new Date(factura.fechaFin);
+
+  //           return {
+  //             id: factura.id,
+  //             codigo: factura.codigo,
+  //             clienteNombreCompleto: fullName,
+  //             consumo: factura.consumo,
+  //             fechaEmisionTexto: fechaEmision.toLocaleDateString('es-CO'),
+  //             fechaFinTexto: fechaFin.toLocaleDateString('es-CO'),
+  //             estadoNombre: factura.estadoNombre,
+  //             consumoAnormal: factura.consumoAnormal ? 'SI' : 'NO',
+  //             precioTexto: `$${Number(factura.precio).toLocaleString()}`,
+  //           };
+  //         })
+  //       )
+  //     )
+  // });
+
+
+
 
   goToCustomerDebt(): void {
     this.router.navigate(['/bill/customer-debt']);
@@ -140,7 +179,7 @@ export class Bill {
 
   confirmDelete(): void {
     if (this.itemToDelete !== null) {
-      this.billService.deleteFacturaById(this.itemToDelete).subscribe({
+      this.facturaService.deleteFacturaById(this.itemToDelete).subscribe({
         next: () => {
           this.toastService.success('Eliminado', 'Factura eliminada correctamente.');
           this.dataBills.reload?.();

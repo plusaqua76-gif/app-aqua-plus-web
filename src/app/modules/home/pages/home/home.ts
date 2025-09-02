@@ -1,25 +1,35 @@
 import { Component } from '@angular/core';
 import { Welcome } from '@components/welcome';
+import { SidenavComponent } from "@components/sidenav/sidenav.component";
+import { BodyComponent } from "@components/body";
 
+
+interface SideNavToggle {
+  screenWidth: number;
+  collapsed: boolean;
+}
 
 @Component({
   selector: 'app-home',
-  imports: [Welcome],
+  imports: [ SidenavComponent, BodyComponent],
   template: `
 
-
-
-  <div  class="content">
-    <app-Welcome></app-Welcome>
-  </div>
+<app-sidenav (onToggleSideNav)="onToggleSideNav($event)"></app-sidenav>
+<app-body
+    [collapsed]="isSideNavCollapsed"
+    [screenWidth]="screenWidth"
+></app-body>
   `,
-  styles:`
-  .content{
-    display: grid;
-    min-height: 100dvh;
-    grid-template-rows: auto 1fr auto;
-  }
-  `
+
 
 })
-export class Home {}
+export class Home {
+
+    isSideNavCollapsed = false;
+  screenWidth = 0;
+
+  onToggleSideNav(data: SideNavToggle): void {
+    this.screenWidth = data.screenWidth;
+    this.isSideNavCollapsed = data.collapsed;
+  }
+}

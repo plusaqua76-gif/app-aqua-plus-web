@@ -1,14 +1,14 @@
 import { Component, inject } from '@angular/core';
-import { Buttoon } from "../../../../shared/components/button";
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { UserService } from '../../service/user.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastService } from '@services/toast.service';
 
 @Component({
   selector: 'app-recover-password',
-  imports: [ReactiveFormsModule, Buttoon, CommonModule,],
+  imports: [ReactiveFormsModule, CommonModule, RouterModule],
   templateUrl: './recover-password.html',
   styleUrl: './recover-password.css'
 })

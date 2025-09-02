@@ -36,7 +36,7 @@ export class Inventory {
     nombre: '',
     descripcion: ''
   };
-  
+
   filteredProducts = computed(() => {
     const products = this.dataProductByEnterprise.value() ?? [];
     const term = this.searchTerm().toLowerCase();
@@ -68,13 +68,13 @@ export class Inventory {
 
   categories = signal([]);
 
-  constructor() {
-    const enterpriseId = Number(localStorage.getItem('enterpriseId'));
-    effect(() => {
-      console.log('InventarioData__________>', this.inventarioData());
-      console.log('ProductoData__________>', this.dataProductByEnterprise.value());
-    });
-  }
+  // constructor() {
+  //   const enterpriseId = Number(localStorage.getItem('enterpriseId'));
+  //   effect(() => {
+  //     console.log('InventarioData__________>', this.inventarioData());
+  //     console.log('ProductoData__________>', this.dataProductByEnterprise.value());
+  //   });
+  // }
 
   protected readonly inventarioService = inject(InventarioService);
   protected readonly productoService = inject(ProductoService);
@@ -98,7 +98,7 @@ export class Inventory {
         })
       ),
   });
-  
+
   dataProductByEnterprise = rxResource({
   stream: () => {
     const id = this.enterpriseId();
@@ -165,7 +165,7 @@ export class Inventory {
       descripcion: ''
     };
   }
-  
+
   createNewProduct() {
     console.log('Nuevo producto a crear:', this.newProductData);
     this.toastService.success('Éxito', 'Producto creado (simulado).');

@@ -12,7 +12,7 @@ import { ToastService } from '@services/toast.service';
 
 @Component({
   selector: 'app-employee',
-  imports: [CommonModule, TableComponent, RouterModule],
+  imports: [CommonModule, RouterModule],
   template: `
     <ng-template #toggleTpl let-row>
              <a (click)="editar(row)" class="text-green-600 hover:text-green-900 text-sm cursor-pointer">
@@ -43,7 +43,7 @@ import { ToastService } from '@services/toast.service';
     </div>
   </ng-template>
 
-    <app-table-dynamic
+    <!-- <app-table-dynamic
       [title]="title"
       [columns]="employeeColumns()"
       [datasource]="employeeData()"
@@ -52,10 +52,12 @@ import { ToastService } from '@services/toast.service';
       [showAddButton]="true"
       [addButtonText]="'Agregar Empleado'"
       (action)="handleTableAction($event)"
-    />
+    /> -->
   `,
 })
 export class Employee {
+
+  title = 'Gestion de empleados';
   employeeColumns = signal([
     { field: 'personaNombreCompleto', header: 'Nombre Completo' },
     { field: 'numeroCedula', header: 'Cédula' },
@@ -65,8 +67,8 @@ export class Employee {
     { field: 'estado', header: 'Estado', template: 'estadoTpl' },
   ]);
 
-  employeeData = computed(() => this.dataEmployeeCounter.value() ?? []);
-  title = 'Gestion de empleados';
+  // employeeData = computed(() => this.dataEmployeeCounter.value() ?? []);
+
 
 
   protected readonly empleadoService = inject(EmpleadoService);
@@ -74,27 +76,29 @@ export class Employee {
   protected readonly route = inject(ActivatedRoute);
   protected readonly toastService = inject(ToastService);
 
-  dataEmployeeCounter = rxResource({
-    stream: () => this.empleadoService.getAllDatosEmpleadoCompleto().pipe(
-      map(data => {
-        console.log('📦 Datos recibidos del servicio:', data);
-        return (data?.empleados?.response ?? []).map(emp => {
-          const correo = data?.correos?.response?.find(c => c?.persona?.id === emp.personaId)?.correo ?? '';
-          const telefono = data?.telefonos?.response?.find(t => t?.persona?.id === emp.personaId)?.numero ?? '';
-          return {
-            id: emp.id,
-            personaId: emp.personaId,
-            personaNombreCompleto: emp.personaNombreCompleto,
-            numeroCedula: emp.numeroCedula,
-            codigo: emp.codigo,
-            correoElectronico: correo,
-            telefono: telefono,     
-            estado: emp.activo ?? true,
-          };
-        });
-      })
-    ),
-  });
+
+
+  // dataEmployeeCounter = rxResource({
+  //   stream: () => this.empleadoService.getAllDatosEmpleadoCompleto().pipe(
+  //     map(data => {
+  //       console.log('📦 Datos recibidos del servicio:', data);
+  //       return (data?.empleados?.response ?? []).map(emp => {
+  //         const correo = data?.correos?.response?.find(c => c?.persona?.id === emp.personaId)?.correo ?? '';
+  //         const telefono = data?.telefonos?.response?.find(t => t?.persona?.id === emp.personaId)?.numero ?? '';
+  //         return {
+  //           id: emp.id,
+  //           personaId: emp.personaId,
+  //           personaNombreCompleto: emp.personaNombreCompleto,
+  //           numeroCedula: emp.numeroCedula,
+  //           codigo: emp.codigo,
+  //           correoElectronico: correo,
+  //           telefono: telefono,
+  //           estado: emp.activo ?? true,
+  //         };
+  //       });
+  //     })
+  //   ),
+  // });
 
 
   onToggle(row: any) {
@@ -105,7 +109,7 @@ export class Employee {
     activo: nuevoEstado,
     usuario_cambio: localStorage.getItem('nameUser') || 'admin'
   }).subscribe({
-    next: (response) => {      
+    next: (response) => {
       row.estado = nuevoEstado;
       this.toastService.success('Éxito', 'Estado actualizado correctamente');
     },

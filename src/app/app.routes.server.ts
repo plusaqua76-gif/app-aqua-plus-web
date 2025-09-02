@@ -9,14 +9,14 @@ const createUpdateRoute = (path: string): ServerRoute => ({
 
 export const serverRoutes: ServerRoute[] = [
   ...[
-    'client/update-client/:id',
-    'bill/update-bill/:id',
-    'bill/create-credit/:id',
-    'bill/update-debt/:id',
-    'reading/update-reading/:id',
-    'counter/actualizar-contador/:id',
-    'employee/update-employee/:id',
-    'enterprise/update-enterprise/:id',
+    'shell/client/update-client/:id',
+    'shell/bill/update-bill/:id',
+    'shell/bill/create-credit/:id',
+    'shell/bill/update-debt/:id',
+    'shell/reading/update-reading/:id',
+    'shell/counter/actualizar-contador/:id',
+    'shell/employee/update-employee/:id',
+    'shell/enterprise/update-enterprise/:id',
   ].map(createUpdateRoute),
 
   {

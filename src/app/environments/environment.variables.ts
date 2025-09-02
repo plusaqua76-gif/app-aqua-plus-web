@@ -6,18 +6,18 @@ export const END_POINT_SERVICE = {
   POST_UPD_PASS: 'update-password',
   PUT_UPD_PASS: 'Password',
   PUT_IMG_USER: 'imagen',
-  PUT_CORREGIMIENTO: 'Corregimiento',
+  PUT_CORREGIMIENTO: 'corregimiento',
 
-  GET_USER: 'Usuario',
+  GET_USER: 'usuario',
   POST_SEND_EMAIL: 'sendEmail',
 
-  GET_ALL_TIPO_DOCUMENTO: 'TipoDocumento/all',
+  GET_ALL_TIPO_DOCUMENTO: 'tipoDocumento/all',
 
-  GET_ALL_CORREO_PER: 'CorreoGeneral/all',
+  GET_ALL_CORREO_PER: 'correoGeneral/all',
 
-  GET_ALL_TELEFONO_PER: 'TelefonoGeneral/all',
+  GET_ALL_TELEFONO_PER: 'telefonoGeneral/all',
 
-  GET_FACTURA: 'Factura',
+  GET_FACTURA: 'factura',
   GET_FACTURA_ALL: 'all',
 
   GET_DEUDA: 'DeudaCliente',
@@ -39,11 +39,11 @@ export const END_POINT_SERVICE = {
   GET_ALL_PLAZO_PAGO: 'PlazoPago/all',
 
   GET_ALL_LECTURA: 'all',
-  GET_LECTURA: 'Lectura',
+  GET_LECTURA: 'lectura',
 
-  GET_ENTERPRISE: 'Empresa/usuario',
-  GET_ALL_ENTERPRISE:'Empresa/all',
-  GET_ENTER:'Empresa',
+  GET_ENTERPRISE: 'empresa/usuario',
+  GET_ALL_ENTERPRISE:'empresa/all',
+  GET_ENTER:'empresa',
   UPDATE_EMPRESA:'updateEmpresa',
   UPDATE_ESTADO: 'update',
 
@@ -55,7 +55,8 @@ export const END_POINT_SERVICE = {
 };
 
 export const ENTERPRISE_CLIENT_COUNT = {
-  ENT_CLI_COU: 'EmpresaClienteContador',
+  ENT_CLI_COU: 'empresa-cliente-contador',
+  GET_CLIENT: 'clientes',
   GET_ALL_CLI: 'all',
   GET_ENT_BY_ID: 'empresa',
   POST_SAVE_CLI: 'save',
@@ -65,7 +66,7 @@ export const ENTERPRISE_CLIENT_COUNT = {
 
 export const COUNTER = {
   COUNTER: 'Contador',
-  
+
 }
 
 export const TYPE_COUNTER = {

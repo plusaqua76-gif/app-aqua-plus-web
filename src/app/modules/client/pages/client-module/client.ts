@@ -1,96 +1,120 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, signal, computed, effect } from '@angular/core';
+import { EnterpriseClientCounterService } from './../../service/enterpriseClientCounter.service';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, inject, signal, computed, effect, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
-import {
-  Action,
-  TableComponent,
-} from '../../../../core/components/table';
-import { EnterpriseClientCounterService } from '../../service/enterpriseClientCounter.service';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { Action, TableComponent } from '../../../../core/components/table';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { ToastService } from '@services/toast.service';
-import { map } from 'rxjs';
-import { PopupComponent } from "@shared/components/popUp";
-
-
+import { EMPTY, map, of } from 'rxjs';
+import { PopupComponent } from '@shared/components/popUp';
+import { ClientRow } from '@interfaces/client/IclientRow';
 
 @Component({
   selector: 'app-client',
-  imports: [CommonModule, RouterModule, TableComponent, PopupComponent],
- template: `
-  <ng-template #actionsTemplate let-row>
-    <div class="flex items-center space-x-4">
+  imports: [CommonModule, RouterModule, PopupComponent, TableComponent],
+  template: `
+    <ng-template #actionsTemplate let-row>
+      <div class="flex items-center space-x-4">
+        <button
+          (click)="editar(row)"
+          class="text-green-600 hover:text-green-900 text-sm cursor-pointer"
+        >
+          <i class="fas fa-edit"></i>
+        </button>
 
-      <button (click)="editar(row)"
-        class="text-green-600 hover:text-green-900 text-sm cursor-pointer">
-        <i class="fas fa-edit"></i>
-      </button>
+        <button
+          (click)="onDelete(row.id)"
+          class="text-red-600 hover:text-red-900 text-sm cursor-pointer"
+        >
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    </ng-template>
 
-
-      <button (click)="onDelete(row.id)"
-        class="text-red-600 hover:text-red-900 text-sm cursor-pointer">
-        <i class="fas fa-trash"></i>
-      </button>
-    </div>
-  </ng-template>
-
-  <ng-template #estadoTpl let-row>
-    <div class="flex items-center gap-2">
-      <label class="inline-flex items-center cursor-pointer">
-        <input
-          type="checkbox"
-          class="sr-only peer"
-          [checked]="row.estado"
-          (change)="onToggle(row)"
-        />
-        <div
-          class="relative w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full
+    <ng-template #estadoTpl let-row>
+      <div class="flex items-center gap-2">
+        <label class="inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            class="sr-only peer"
+            [checked]="row.estado"
+            (change)="onToggle(row)"
+          />
+          <div
+            class="relative w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full
                 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full
                 after:content-[''] after:absolute after:top-[2px] after:start-[2px]
                 after:bg-white after:border-gray-300 after:border after:rounded-full
                 after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
-        ></div>
-      </label>
-      <span class="text-sm font-medium">
-        {{ row.estado ? 'Activo' : 'Inactivo' }}
-      </span>
-    </div>
-  </ng-template>
+          ></div>
+        </label>
+        <span class="text-sm font-medium">
+          {{ row.estado ? 'Activo' : 'Inactivo' }}
+        </span>
+      </div>
+    </ng-template>
 
+    <app-table-dynamic
+      [title]="title"
+      [columns]="clienteColumns()"
+      [datasource]="transformedData()"
+      [actionTemplate]="actionsTemplate"
+      [columnTemplates]="{ estado: estadoTpl }"
+      [showAddButton]="true"
+      [addButtonText]="'Agregar Cliente'"
+      (action)="onTableAction($event)"
+    >
+    </app-table-dynamic>
 
-  <app-table-dynamic
-    [title]="title"
-    [columns]="clienteColumns()"
-    [datasource]="clientData()"
-    [actionTemplate]="actionsTemplate"
-    [columnTemplates]="{ estado: estadoTpl }"
-    [showAddButton]="true"
-    [addButtonText]="'Agregar Cliente'"
-    (action)="onTableAction($event)">
-  </app-table-dynamic>
-
-
-  <app-pop-up
-    [open]="showDeleteConfirm"
-    [isConfirmation]="true"
-    [title]="'Eliminar Cliente'"
-    [message]="'¿Está seguro que desea eliminar este cliente? Esta acción no se puede deshacer.'"
-    [confirmText]="'Eliminar'"
-    [cancelText]="'Cancelar'"
-    (confirmAction)="confirmDelete()">
-  </app-pop-up>
-`
-,
+    <app-pop-up
+      [open]="showDeleteConfirm"
+      [isConfirmation]="true"
+      [title]="'Eliminar Cliente'"
+      [message]="
+        '¿Está seguro que desea eliminar este cliente? Esta acción no se puede deshacer.'
+      "
+      [confirmText]="'Eliminar'"
+      [cancelText]="'Cancelar'"
+      (confirmAction)="confirmDelete()"
+    >
+    </app-pop-up>
+  `,
 })
 export class Client {
-
   showDeleteConfirm = signal(false);
   itemToDelete: number | null = null;
+  title = 'Gestion de clientes';
+
+  private platformId = inject(PLATFORM_ID);
+  private isBrowser = isPlatformBrowser(this.platformId);
+
+  readonly enterpriseId = computed(() => {
+    if (!this.isBrowser) return null;
+
+    try {
+      const userData = sessionStorage.getItem('userData');
+      if (!userData) return null;
+
+      const parsedUserData = JSON.parse(userData);
+      return parsedUserData.empresaId ? Number(parsedUserData.empresaId) : null;
+    } catch (error) {
+      console.error('Error parsing userData from sessionStorage:', error);
+      return null;
+    }
+  });
+
+  private enterpriseClientCounterService = inject(
+    EnterpriseClientCounterService
+  );
+  protected readonly router = inject(Router);
+  protected readonly route = inject(ActivatedRoute);
+  protected readonly toastService = inject(ToastService);
 
   clienteColumns = signal([
     { field: 'idContador', header: 'ID Contador' },
     { field: 'codigoVereda', header: 'Vereda' },
     { field: 'numeroIdentificacion', header: 'Número Identificación' },
-    { field: 'razonSocial', header: 'Razón Social' },
+    // { field: 'razonSocial', header: 'Razón Social' },
     { field: 'nombreCliente', header: 'Nombre cliente' },
     { field: 'telefono', header: 'Teléfono' },
     { field: 'direccion', header: 'Dirección' },
@@ -98,108 +122,124 @@ export class Client {
     { field: 'estado', header: 'Estado', template: 'estadoTpl' },
   ]);
 
-  clientData = computed(() => this.dataClientCounter.value() ?? []);
-  title = 'Gestion de clientes';
 
-  constructor() {
-    effect(() => {
-      console.log('clientData__________>', this.clientData());
-    });
-  }  
+  // constructor() {
+  //   effect(() => {
+  //     const id = this.enterpriseId();
+  //     console.log('Enterprise ID changed:', id);
+  //     console.log('Enterprise ID from sessionStorage:', this.enterpriseId);
+  //     if (id === null) {
+  //       console.warn('Enterprise ID is null - checking sessionStorage userData');
+  //     }
+  //   });
 
-  protected readonly enterpriseClientCounterService = inject(EnterpriseClientCounterService);
-  protected readonly router = inject(Router);
-  protected readonly route = inject(ActivatedRoute);
-  protected readonly toastService = inject(ToastService);
+  //   effect(() => {
+  //     const resourceState = this.dataClientCounter.status();
+  //     console.log('Resource status:', resourceState);
+  //     console.log('esta es la data de mi pez', this.dataClientCounter.value());
+
+  //     if (resourceState === 'error') {
+  //       console.error('Resource error:', this.dataClientCounter.error());
+  //     }
+  //   });
+  // }
 
   dataClientCounter = rxResource({
-    stream: () => this.enterpriseClientCounterService.getAllClienteEnterprise().pipe(  // cambiar por el endpoint de getAllCounterByIdEnterprise , me trae las cleintesa asociados a ala empresa
-      map(data => {
-        return (data.clientes ?? []).map(clienteItem => {
-          const personaId = clienteItem.cliente?.id;
-          const correo = data.correos.find(c => c.persona?.id === personaId)?.correo ?? '';
-          const telefono = data.telefonos.find(t => t.persona?.id === personaId)?.numero ?? '';
+    params: () => ({ enterpriseId: this.enterpriseId() }),
+    stream: ({ params }) => {
+      const { enterpriseId } = params;
 
-          return {
-            idpersona: clienteItem.id,
-            id: clienteItem.cliente?.id,
-            idContador: clienteItem.contador?.serial ?? '',
-            codigoDepart: clienteItem.cliente?.direccion?.departamentoId?.nombre ?? '',
-            codigoMuni: clienteItem.cliente?.direccion?.ciudadId?.nombre ?? '',
-            codigoVereda: clienteItem.cliente?.direccion?.corregimientoId?.nombre ?? '',
-            numeroIdentificacion: clienteItem.cliente?.numeroCedula ?? '',
-            razonSocial: clienteItem.empresa?.nombre ?? '',
-            nombreCliente: `${clienteItem.cliente?.nombre ?? ''} ${clienteItem.cliente?.segundoNombre ?? ''} ${clienteItem.cliente?.apellido ?? ''} ${clienteItem.cliente?.segundoApellido ?? ''}`,
-            telefono,
-            direccion: clienteItem.cliente?.direccion?.descripcion ?? '',
-            correo,
-            estado: clienteItem.activo,
-          };
+      if (!enterpriseId) {
+        console.warn('No enterprise ID available');
+        return of({
+          success: true,
+          message: 'No enterprise ID available',
+          code: 200,
+          response: [] as ClientRow[]
         });
-      })
-    )
+      }
 
+      return this.enterpriseClientCounterService.getAllCounterByIdEnterprise(enterpriseId);
+    }
+  });
+
+  transformedData = computed(() => {
+    const apiResponse = this.dataClientCounter.value();
+    return apiResponse?.response || [];
   });
 
   onToggle(row: any) {
-  const nuevoEstado = !row.estado;
+    const nuevoEstado = !row.estado;
 
-  this.enterpriseClientCounterService.updateEstado({
-    id_persona: row.id,
-    activo: nuevoEstado,
-    usuario_cambio: localStorage.getItem('nameUser') || 'admin'
-  }).subscribe({
-    next: (response) => {
-      row.estado = nuevoEstado;
-      this.toastService.success('Éxito', 'Estado actualizado correctamente');
-    },
-    error: (err) => {
-      console.error('Error al cambiar estado del empleado:', err.message);
-      row.estado = !nuevoEstado;
-      this.toastService.error('Error', 'Ocurrió un error al actualizar el estado');
-    }
-  });
-}
+    this.enterpriseClientCounterService
+      .updateEstado({
+        id_persona: row.id,
+        activo: nuevoEstado,
+        usuario_cambio: localStorage.getItem('nameUser') || 'admin',
+      })
+      .subscribe({
+        next: (response) => {
+          row.estado = nuevoEstado;
+          this.toastService.success(
+            'Éxito',
+            'Estado actualizado correctamente'
+          );
+        },
+        error: (err) => {
+          console.error('Error al cambiar estado del empleado:', err.message);
+          row.estado = !nuevoEstado;
+          this.toastService.error(
+            'Error',
+            'Ocurrió un error al actualizar el estado'
+          );
+        },
+      });
+  }
 
   onDelete(id: number): void {
     this.itemToDelete = id;
     this.showDeleteConfirm.set(true);
   }
 
- editar(row: any) {
-  const id = row?.idpersona;
-  if (id) {
-    this.router.navigate(['/client/update-client/', id], { relativeTo: this.route });
-  } else {
-    this.toastService.error('Error', 'ID del cliente no válido.');
+  editar(row: any) {
+    const id = row?.id;
+    if (id) {
+      this.router.navigate(['/client/update-client/', id], {
+        relativeTo: this.route,
+      });
+    } else {
+      this.toastService.error('Error', 'ID del cliente no válido.');
+    }
   }
-}
 
- confirmDelete(): void {
-  if (this.itemToDelete !== null) {
-    this.enterpriseClientCounterService.deleteClient(this.itemToDelete).subscribe({
-      next: () => {
-        this.toastService.success('Eliminado', 'Cliente eliminado correctamente.');
-        this.dataClientCounter.reload?.();
-      },
-      error: () => {
-        this.toastService.error('Error', 'No se pudo eliminar el cliente.');
-      },
-      complete: () => {
-        this.showDeleteConfirm.set(false);
-        this.itemToDelete = null;
-      }
-    });
+  confirmDelete(): void {
+    if (this.itemToDelete !== null) {
+      this.enterpriseClientCounterService
+        .deleteClient(this.itemToDelete)
+        .subscribe({
+          next: () => {
+            this.toastService.success(
+              'Eliminado',
+              'Cliente eliminado correctamente.'
+            );
+            this.dataClientCounter.reload?.();
+          },
+          error: () => {
+            this.toastService.error('Error', 'No se pudo eliminar el cliente.');
+          },
+          complete: () => {
+            this.showDeleteConfirm.set(false);
+            this.itemToDelete = null;
+          },
+        });
+    }
   }
-}
 
-onTableAction(event: Action) {
-  if (event.action === 'add') {
-    this.router.navigate(['create-client'], { relativeTo: this.route });
-  } else if (event.action === 'edit' && event.row) {
-    this.editar(event.row);
+  onTableAction(event: Action) {
+    if (event.action === 'add') {
+      this.router.navigate(['create-client'], { relativeTo: this.route });
+    } else if (event.action === 'edit' && event.row) {
+      this.editar(event.row);
+    }
   }
-}
-
-
 }

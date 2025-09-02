@@ -9,8 +9,8 @@ import { Observable } from 'rxjs';
 @Injectable({ providedIn: 'root' })
 export class AuthUserService {
 
-    private readonly loginUrl = `${environment.apiUrl}/${END_POINT_SERVICE.POST_AUTH_USER}`;
-    private readonly http = inject(HttpClient);
+  private readonly loginUrl = `${environment.apiUrl}/${END_POINT_SERVICE.POST_AUTH_USER}`;
+  private readonly http = inject(HttpClient);
 
   login(user: Auth): Observable<AuthLoginResponse> {
     return this.http.post<AuthLoginResponse>(this.loginUrl, user);
@@ -19,5 +19,20 @@ export class AuthUserService {
   register(user: Auth): Observable<AuthLoginResponse> {
     return this.http.post<AuthLoginResponse>(this.loginUrl, user);
   }
+
+
+  // implementacion de refreshToken por el lado de back
+
+  // refreshToken() {
+
+  // }
+
+  // getAuthToken() {
+  //   return localStorage.getItem('authToken') || '';
+  // }
+
+  // getRefreshToken() {
+  //   return localStorage.getItem('refreshToken') || '';
+  // }
 
 }
