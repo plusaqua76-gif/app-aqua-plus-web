@@ -13,6 +13,8 @@ export class CityService {
   private apiUrl = `${environment.apiUrl}`;
   protected readonly http = inject(HttpClient);
 
+  // esto se debe eliminar 
+
   getAllCitys(): Observable<ApiResponse<ICity[]>> {
     return this.http.get<ApiResponse<ICity[]>>(`${this.apiUrl}/ciudad/all`)
   }

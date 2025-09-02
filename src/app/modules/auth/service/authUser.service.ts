@@ -20,4 +20,19 @@ export class AuthUserService {
     return this.http.post<AuthLoginResponse>(this.loginUrl, user);
   }
 
+
+  // implementacion de refreshToken por el lado de back
+
+  // refreshToken() {
+
+  // }
+
+  // getAuthToken() {
+  //   return localStorage.getItem('authToken') || '';
+  // }
+
+  // getRefreshToken() {
+  //   return localStorage.getItem('refreshToken') || '';
+  // }
+
 }

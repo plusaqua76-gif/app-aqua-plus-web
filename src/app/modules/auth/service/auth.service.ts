@@ -63,16 +63,16 @@ export class AuthService {
           }
           const { token, usuario } = res.response;
           if (this.isBrowser) {
-            localStorage.setItem('token', token);
-            console.log('Token almacenado:', token);
-            localStorage.setItem('userObject', JSON.stringify(usuario));
-            console.log('Usuario almacenado:', usuario);
-            localStorage.setItem('userId', usuario.id ? usuario.id.toString() : '');
-            console.log('User ID almacenado:', usuario.id);
-             localStorage.setItem('nameUser', usuario.nombre ? usuario.nombre.toString() : '');
-            console.log('Nombre de usuario almacenado:', usuario.nombre);
-           localStorage.setItem('idrol',usuario.rol.id ? usuario.rol.id.toString() : '');
-           console.log('Rol de usuario autenticado:', usuario.rol.id);
+          //   localStorage.setItem('token', token);
+          //   console.log('Token almacenado:', token);
+          //   localStorage.setItem('userObject', JSON.stringify(usuario));
+          //   console.log('Usuario almacenado:', usuario);
+          //   localStorage.setItem('userId', usuario.id ? usuario.id.toString() : '');
+          //   console.log('User ID almacenado:', usuario.id);
+          //    localStorage.setItem('nameUser', usuario.nombre ? usuario.nombre.toString() : '');
+          //   console.log('Nombre de usuario almacenado:', usuario.nombre);
+          //  localStorage.setItem('idrol',usuario.rol.id ? usuario.rol.id.toString() : '');
+          //  console.log('Rol de usuario autenticado:', usuario.rol.id);
           }
           this.tokenSig.set(token);
           this.userSig.set(usuario);

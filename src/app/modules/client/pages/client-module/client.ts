@@ -1,13 +1,12 @@
 import { EnterpriseClientCounterService } from './../../service/enterpriseClientCounter.service';
-import { CommonModule } from '@angular/common';
-import { Component, inject, signal, computed, effect } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, inject, signal, computed, effect, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { Action, TableComponent } from '../../../../core/components/table';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { ToastService } from '@services/toast.service';
 import { EMPTY, map, of } from 'rxjs';
 import { PopupComponent } from '@shared/components/popUp';
-import { EnterpriseIdService } from '@services/enterpriceId.service';
 import { ClientRow } from '@interfaces/client/IclientRow';
 
 @Component({
@@ -86,7 +85,24 @@ export class Client {
   itemToDelete: number | null = null;
   title = 'Gestion de clientes';
 
-  private enterpriseIdService = inject(EnterpriseIdService);
+  private platformId = inject(PLATFORM_ID);
+  private isBrowser = isPlatformBrowser(this.platformId);
+
+  readonly enterpriseId = computed(() => {
+    if (!this.isBrowser) return null;
+
+    try {
+      const userData = sessionStorage.getItem('userData');
+      if (!userData) return null;
+
+      const parsedUserData = JSON.parse(userData);
+      return parsedUserData.empresaId ? Number(parsedUserData.empresaId) : null;
+    } catch (error) {
+      console.error('Error parsing userData from sessionStorage:', error);
+      return null;
+    }
+  });
+
   private enterpriseClientCounterService = inject(
     EnterpriseClientCounterService
   );
@@ -98,7 +114,7 @@ export class Client {
     { field: 'idContador', header: 'ID Contador' },
     { field: 'codigoVereda', header: 'Vereda' },
     { field: 'numeroIdentificacion', header: 'Número Identificación' },
-    { field: 'razonSocial', header: 'Razón Social' },
+    // { field: 'razonSocial', header: 'Razón Social' },
     { field: 'nombreCliente', header: 'Nombre cliente' },
     { field: 'telefono', header: 'Teléfono' },
     { field: 'direccion', header: 'Dirección' },
@@ -106,16 +122,12 @@ export class Client {
     { field: 'estado', header: 'Estado', template: 'estadoTpl' },
   ]);
 
-  readonly enterpriseId = toSignal<number | null>(
-    this.enterpriseIdService.getEnterpriseId(),
-    { initialValue: null }
-  );
 
-  // // Agregar effect para debugging
   // constructor() {
   //   effect(() => {
   //     const id = this.enterpriseId();
   //     console.log('Enterprise ID changed:', id);
+  //     console.log('Enterprise ID from sessionStorage:', this.enterpriseId);
   //     if (id === null) {
   //       console.warn('Enterprise ID is null - checking sessionStorage userData');
   //     }
@@ -124,6 +136,7 @@ export class Client {
   //   effect(() => {
   //     const resourceState = this.dataClientCounter.status();
   //     console.log('Resource status:', resourceState);
+  //     console.log('esta es la data de mi pez', this.dataClientCounter.value());
 
   //     if (resourceState === 'error') {
   //       console.error('Resource error:', this.dataClientCounter.error());
@@ -132,9 +145,12 @@ export class Client {
   // }
 
   dataClientCounter = rxResource({
-    params: () => this.enterpriseId(),
-    stream: ({ params: id }) => {
-      if (!id) {
+    params: () => ({ enterpriseId: this.enterpriseId() }),
+    stream: ({ params }) => {
+      const { enterpriseId } = params;
+
+      if (!enterpriseId) {
+        console.warn('No enterprise ID available');
         return of({
           success: true,
           message: 'No enterprise ID available',
@@ -142,7 +158,8 @@ export class Client {
           response: [] as ClientRow[]
         });
       }
-      return this.enterpriseClientCounterService.getAllCounterByIdEnterprise(id);
+
+      return this.enterpriseClientCounterService.getAllCounterByIdEnterprise(enterpriseId);
     }
   });
 

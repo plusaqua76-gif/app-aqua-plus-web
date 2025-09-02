@@ -1,29 +1,28 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { IDepartament } from '@interfaces/Idepartament';
 import { ICity } from '@interfaces/Icity';
 import { ICorregimiento } from '@interfaces/icorregimiento';
+import { environment } from '../../environments/environment.local';
+import { ApiResponse } from '@interfaces/Iresponse';
 
 
 
 @Injectable({ providedIn: 'root' })
 export class LocationService {
+  private http = inject(HttpClient);
+  private apiUrl = `${environment.apiUrl}`;
 
-  //cambiar esto que es solo para una prueba pequeñita
-  private readonly base = 'https://app-aqua-plus-api.azurewebsites.net/api/v1';
-
-  constructor(private http: HttpClient) {}
-
-  getDepartamentos(): Observable<IDepartament[]> {
-    return this.http.get<IDepartament[]>(`${this.base}/departamento/all`);
+  getDepartamentos(): Observable<ApiResponse<IDepartament[]>> {
+    return this.http.get<ApiResponse<IDepartament[]>>(`${this.apiUrl}/departamento/all`).pipe(map((response) => response));
   }
 
-  getCiudades(depId: number): Observable<ICity[]> {
-    return this.http.get<ICity[]>(`${this.base}/ciudad/departamento/${depId}`);
+  getCiudades(depId: number): Observable<ApiResponse<ICity[]>> {
+    return this.http.get<ApiResponse<ICity[]>>(`${this.apiUrl}/ciudad/departamento/${depId}`).pipe(map((response) => response));
   }
 
-  getCorregimientos(cityId: number): Observable<ICorregimiento[]> {
-    return this.http.get<ICorregimiento[]>(`${this.base}/corregimiento/ciudad/${cityId}`);
+  getCorregimientos(cityId: number): Observable<ApiResponse<ICorregimiento[]>> {
+    return this.http.get<ApiResponse<ICorregimiento[]>>(`${this.apiUrl}/corregimiento/ciudad/${cityId}`).pipe(map((response) => response));
   }
 }

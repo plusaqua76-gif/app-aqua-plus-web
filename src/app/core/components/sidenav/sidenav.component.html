@@ -11,10 +11,23 @@
 
 <div class="sidenav" [ngClass]="collapsed ? 'sidenav-collapsed': ''">
   <div class="logo-container">
-    <button class="logo" (click)="toggleCollapse()">A</button>
+    @if (enterpriseInfo.value()?.imagenEmpresa) {
+      <img
+        [src]="enterpriseInfo.value()?.imagenEmpresa"
+        [alt]="enterpriseInfo.value()?.nombre || 'Logo empresa'"
+        class="logo-image"
+        (click)="toggleCollapse()"
+        (error)="onImageError($event)">
+    } @else {
+      <button class="logo" (click)="toggleCollapse()">
+        {{ enterpriseInfo.value()?.nombre?.charAt(0) || 'A' }}
+      </button>
+    }
 
     @if (collapsed) {
-      <div class="logo-text" @fadeInOut>Empresa</div>
+      <div class="logo-text" @fadeInOut>
+        {{ enterpriseInfo.value()?.nombre || 'Empresa' }}
+      </div>
     }
 
     @if (collapsed) {

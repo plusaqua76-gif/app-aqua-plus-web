@@ -3,7 +3,7 @@
   --color-muted: #ada5b4;
 }
 
-.recover-password-container {
+.login-container {
   display: grid;
   place-items: center;
   margin: 0;
@@ -72,6 +72,7 @@
   opacity: 0.5;
 }
 
+
 @keyframes spin {
   100% { rotate: 1turn; }
 }
@@ -105,14 +106,15 @@
   right: -12px;
 }
 
-.recover-password {
+
+.login {
   position: relative;
   z-index: 2;
   background: rgb(0 0 0 / 10%);
   backdrop-filter: blur(20px);
   border-radius: 24px;
   padding: 72px 32px 48px;
-  width: 380px;
+  width: 340px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -121,121 +123,39 @@
   border: 2px solid rgb(255 255 255 / 10%);
 }
 
-.recover-password img {
+.login img {
   width: 108px;
   margin: 0 0 42px;
 }
 
-.recover-password h2 {
+.login h2 {
   font-size: 18px;
   margin: 0 0 6px;
 }
 
-.recover-password h3 {
+.login h3 {
   color: var(--color-muted);
   font-size: 13px;
   margin: 0 0 42px;
-  line-height: 1.5;
 }
 
-.recover-password form {
+.login form {
   margin: 0 0 20px;
-  width: 100%;
 }
 
-.form-group {
-  position: relative;
-  margin-bottom: 20px;
-}
 
-.form-group input {
-  width: 100%;
-  padding: 12px 50px 12px 45px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  color: #ffffff;
-  font-size: 14px;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-}
-
-.form-group input::placeholder {
-  color: var(--color-muted);
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #0062ff;
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.form-group .icon {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-muted);
-  font-size: 16px;
-}
-
-.form-group .eye-icon {
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-muted);
-  font-size: 16px;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-.form-group .eye-icon:hover {
-  color: #ffffff;
-}
-
-.submit-button {
-  width: 100%;
-  padding: 12px 16px;
-  background: linear-gradient(45deg, #0062ff, #004acc);
-  border: none;
-  border-radius: 12px;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 10px;
-}
-
-.submit-button:hover {
-  background: linear-gradient(45deg, #0052e6, #003db3);
-  transform: translateY(-1px);
-}
-
-.submit-button:active {
-  transform: translateY(0);
-}
-
-.submit-button:disabled {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--color-muted);
-  cursor: not-allowed;
-  transform: none;
-}
-
-.recover-password a {
+.login a {
   font-size: 14px;
   color: #0062ffc0;
   text-decoration: none;
   transition: 0.3s;
 }
 
-.recover-password a:hover {
+.login a:hover {
   color: #ffffff;
 }
 
-.recover-password p {
+.login p {
   margin: 48px 0 0;
   font-size: 14px;
   color: var(--color-muted);

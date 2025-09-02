@@ -1,9 +1,12 @@
+import { EnterpriseIdService } from '@services/enterpriceId.service';
 import { animate, keyframes, style, transition, trigger } from '@angular/animations';
-import { Component, Output, EventEmitter, OnInit, HostListener } from '@angular/core';
+import { Component, Output, EventEmitter, OnInit, HostListener, inject, effect } from '@angular/core';
 import { navbarData } from './nav-data';
 import { CommonModule, NgClass } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { HasRoleDirective } from '../../directives/has-role';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { EMPTY } from 'rxjs';
 
 
 interface SideNavToggle {
@@ -45,6 +48,21 @@ interface SideNavToggle {
 })
 export class SidenavComponent implements OnInit {
 
+  private enterpriseIdService = inject(EnterpriseIdService);
+
+  enterpriseInfo = rxResource({
+    stream: () => this.enterpriseIdService.getEnterpriseInfo()
+  })
+
+  constructor() {
+    effect(() => {
+      const enterpriseData = this.enterpriseInfo.value();
+      if (enterpriseData) {
+        console.log('Información de la empresa:', enterpriseData);
+      }
+    });
+  }
+
   @Output() onToggleSideNav: EventEmitter<SideNavToggle> = new EventEmitter();
   collapsed = false;
   screenWidth = 0;
@@ -85,4 +103,11 @@ export class SidenavComponent implements OnInit {
     this.collapsed = false;
     this.onToggleSideNav.emit({collapsed: this.collapsed, screenWidth: this.screenWidth});
   }
+
+  onImageError(event: any): void {
+    console.error('Error al cargar la imagen de la empresa:', event);
+    event.target.style.display = 'none';
+  }
+
+
 }

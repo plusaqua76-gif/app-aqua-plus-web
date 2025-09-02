@@ -16,6 +16,8 @@ export class DepartamentService {
   protected readonly router= inject(Router)
   protected readonly http= inject(HttpClient)
 
+  // esto se debe eliminar
+
   getAllDepartaments(): Observable<ApiResponse<IDepartament[]>> {
     return this.http.get<ApiResponse<IDepartament[]>>(`${this.apiUrl}/departamento/all`)
   }
