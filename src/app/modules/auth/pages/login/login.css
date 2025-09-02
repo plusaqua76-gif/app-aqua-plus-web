@@ -1,5 +1,5 @@
 :root {
-  --color-primary: #8a79e2;
+  --color-primary: #0054d759;
   --color-muted: #ada5b4;
 }
 
@@ -146,7 +146,7 @@
 
 .login a {
   font-size: 14px;
-  color: #8a79e2;
+  color: #0062ffc0;
   text-decoration: none;
   transition: 0.3s;
 }

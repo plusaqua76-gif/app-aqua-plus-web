@@ -12,7 +12,7 @@ import { Auth } from '@interfaces/IAuth';
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [`
     :host {
-      --color-primary: #8a79e2;
+      --color-primary: #0054d759;
       --color-muted: #ada5b4;
     }
 
