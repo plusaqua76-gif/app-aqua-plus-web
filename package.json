@@ -5,6 +5,8 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:azure": "ng build --configuration=azure",
+    "build:ssr": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:aqua-plus": "node dist/aqua-plus/server/server.mjs"
