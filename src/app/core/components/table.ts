@@ -80,7 +80,7 @@ export interface Action<T = any> {
     </div>
 
     <div
-      class="relative overflow-x-auto shadow-md sm:rounded-lg mx-4 sm:mx-6 lg:mx-8 bg-white dark:bg-gray-900"
+      class="relative overflow-x-auto shadow-md sm:rounded-t-lg mx-4 sm:mx-6 lg:mx-8 bg-white dark:bg-gray-900"
     >
       <table
         class="w-full text-sm text-left rtl:text-right text-gray-700 dark:text-gray-500"
@@ -145,43 +145,45 @@ export interface Action<T = any> {
           }
         </tbody>
       </table>
-      <div
-        class="flex flex-col sm:flex-row items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400 text-sm"
-      >
-        <span>
-          Showing {{ startEntry() }} to {{ endEntry() }} of
-          {{ filtered().length }} entries
-        </span>
+    </div>
 
-        <nav class="mt-3 sm:mt-0 inline-flex items-center gap-1">
+    <!-- Footer de paginación separado del scroll -->
+    <div
+      class="flex flex-col sm:flex-row items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400 text-sm shadow-md sm:rounded-b-lg mx-4 sm:mx-6 lg:mx-8"
+    >
+      <span>
+        Showing {{ startEntry() }} to {{ endEntry() }} of
+        {{ filtered().length }} entries
+      </span>
+
+      <nav class="mt-3 sm:mt-0 inline-flex items-center gap-1">
+        <button
+          class="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700"
+          [disabled]="pageIndex() === 0"
+          (click)="prevPage()"
+        >
+          ‹
+        </button>
+
+        @for (i of createRange(totalPages()); track i) {
           <button
-            class="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700"
-            [disabled]="pageIndex() === 0"
-            (click)="prevPage()"
+            class="w-8 py-1 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700"
+            [class.bg-blue-600]="i === pageIndex()"
+            [class.text-white]="i === pageIndex()"
+            (click)="goToPage(i)"
           >
-            ‹
+            {{ i + 1 }}
           </button>
+        }
 
-          @for (i of createRange(totalPages()); track i) {
-            <button
-              class="w-8 py-1 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700"
-              [class.bg-blue-600]="i === pageIndex()"
-              [class.text-white]="i === pageIndex()"
-              (click)="goToPage(i)"
-            >
-              {{ i + 1 }}
-            </button>
-          }
-
-          <button
-            class="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700"
-            [disabled]="pageIndex() >= totalPages() - 1"
-            (click)="nextPage()"
-          >
-            ›
-          </button>
-        </nav>
-      </div>
+        <button
+          class="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700"
+          [disabled]="pageIndex() >= totalPages() - 1"
+          (click)="nextPage()"
+        >
+          ›
+        </button>
+      </nav>
     </div>
   `,
 })

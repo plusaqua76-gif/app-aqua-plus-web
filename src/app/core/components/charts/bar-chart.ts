@@ -5,7 +5,6 @@ import { ApexOptions } from 'apexcharts';
 
 declare var ApexCharts: any;
 
-/* Tipos mínimos para este bar chart */
 interface BarSeries {
   name: string;
   color?: string;
@@ -160,7 +159,7 @@ private chart: any;
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
-      this.initializeBarChart();        
+      this.initializeBarChart();
     }
   }
 

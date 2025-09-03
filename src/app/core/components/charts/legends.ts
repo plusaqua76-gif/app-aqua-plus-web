@@ -1,23 +1,24 @@
 import { isPlatformBrowser } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { FacturasDataService } from '@services/facturas-data.service';
+import { IFacturasData } from '@interfaces/IFacturasData';
+import { Subscription } from 'rxjs';
 
 
-// Declaración global (igual a tu donut)
-declare var ApexCharts: any;
+declare const ApexCharts: any;
 
-// Tipos mínimos para el área con ejes
-interface AreaSeries {
+interface ChartSeries {
   name: string;
   data: number[];
   color?: string;
 }
 
-interface AreaChartOptions {
-  series: AreaSeries[];
+interface ChartOptions {
+  series: ChartSeries[];
   chart: {
     height: number | string;
     maxWidth?: string;
-    type: 'area';
+    type: 'line' | 'area';
     fontFamily?: string;
     dropShadow?: { enabled: boolean };
     toolbar: { show: boolean };
@@ -27,7 +28,12 @@ interface AreaChartOptions {
     x: { show: boolean };
     y?: { formatter?: (value: number) => string };
   };
-  legend: { show: boolean };
+  legend: {
+    show: boolean;
+    position?: 'bottom' | 'top' | 'left' | 'right';
+    horizontalAlign?: 'center' | 'left' | 'right';
+    fontFamily?: string;
+  };
   fill: {
     type: 'gradient' | 'solid';
     gradient?: {
@@ -38,21 +44,40 @@ interface AreaChartOptions {
     };
   };
   dataLabels: { enabled: boolean };
-  stroke: { width: number };
+  stroke: {
+    width: number;
+    curve?: 'smooth' | 'straight' | 'stepline';
+  };
   grid: {
     show: boolean;
     strokeDashArray: number;
     padding: { left: number; right: number; top: number };
+    borderColor?: string;
   };
   xaxis: {
     categories: string[];
-    labels: { show: boolean };
+    labels: {
+      show: boolean;
+      style?: {
+        colors: string;
+        fontSize: string;
+        fontFamily: string;
+      };
+    };
     axisBorder: { show: boolean };
     axisTicks: { show: boolean };
   };
   yaxis: {
     show: boolean;
-    labels: { formatter: (v: number) => string };
+    labels: {
+      formatter: (v: number) => string;
+      offsetX?: number;
+      style?: {
+        colors: string;
+        fontSize: string;
+        fontFamily: string;
+      };
+    };
   };
 }
 
@@ -67,12 +92,12 @@ interface AreaChartOptions {
 <div class="w-full bg-white rounded-lg shadow-sm dark:bg-gray-800 p-4 md:p-6">
   <div class="flex justify-between mb-5">
     <div>
-      <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Ingresos vs Gastos</h5>
-      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Ventas este mes</p>
+      <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Facturas Pagadas vs Facturas Pendientes</h5>
+      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Estado de las facturas por mes</p>
     </div>
     <div
       class="flex items-center px-2.5 py-0.5 text-base font-semibold text-green-500 dark:text-green-500 text-center">
-      23%
+      76%
       <svg class="w-3 h-3 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 14">
         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13V1m0 0L1 5m4-4 4 4"/>
       </svg>
@@ -81,46 +106,52 @@ interface AreaChartOptions {
   <div id="legend-chart"></div>
   <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between mt-5">
     <div class="flex justify-between items-center pt-5">
-      <!-- Button -->
-      <button
-        id="dropdownDefaultButton"
-        data-dropdown-toggle="lastDaysdropdown"
-        data-dropdown-placement="bottom"
-        class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
-        type="button">
-        Últimos 30 días
-        <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
-        </svg>
-      </button>
-      <!-- Dropdown menu -->
-      <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700">
-          <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Ayer</a>
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Hoy</a>
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Últimos 7 días</a>
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Últimos 30 días</a>
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Últimos 90 días</a>
-            </li>
-          </ul>
+      <!-- Dropdown Container -->
+      <div class="dropdown-container relative">
+        <!-- Button -->
+        <button
+          (click)="toggleDropdown()"
+          class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
+          type="button">
+          {{ selectedPeriod }}
+          <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+          </svg>
+        </button>
+        <!-- Dropdown menu -->
+        <div [class.hidden]="!isDropdownOpen" class="absolute z-10 bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 mt-1">
+            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
+              <li>
+                <button (click)="selectPeriod('Último mes')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Último mes</button>
+              </li>
+              <li>
+                <button (click)="selectPeriod('Últimos 3 meses')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Últimos 3 meses</button>
+              </li>
+              <li>
+                <button (click)="selectPeriod('Últimos 6 meses')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Últimos 6 meses</button>
+              </li>
+              <li>
+                <button (click)="selectPeriod('Último año')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Último año</button>
+              </li>
+            </ul>
+        </div>
       </div>
-      <a
+      <!-- <a
         href="#"
         class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
         Ver más
         <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
         </svg>
-      </a>
+      </a> -->
+      <button
+        (click)="updateChartData()"
+        class="ml-2 uppercase text-sm font-semibold inline-flex items-center rounded-lg text-green-600 hover:text-green-700 dark:hover:text-green-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+        Actualizar
+        <svg class="w-2.5 h-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+        </svg>
+      </button>
     </div>
   </div>
 </div>
@@ -128,41 +159,222 @@ interface AreaChartOptions {
 
   `,
 })
-export class Legends {
- private chart: any;
+export class Legends implements AfterViewInit, OnDestroy {
+  private chart: any;
+  private subscription?: Subscription;
+  private facturasData: IFacturasData | null = null;
+
+  // Propiedades para el dropdown
+  public isDropdownOpen = false;
+  public selectedPeriod = 'Últimos 6 meses';
 
   private readonly platformId = inject(PLATFORM_ID);
-
+  private readonly facturasService = inject(FacturasDataService);
 
   constructor() {
+    // No inicializar en constructor para componentes standalone
+  }
+
+  ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.initializeAreaChart();
+      this.loadFacturasData();
+      // Agregar listener para cerrar dropdown al hacer clic fuera
+      document.addEventListener('click', this.closeDropdownOnOutsideClick.bind(this));
     }
   }
 
-
   ngOnDestroy(): void {
     this.chart?.destroy();
+    this.subscription?.unsubscribe();
+    // Remover listener
+    if (isPlatformBrowser(this.platformId)) {
+      document.removeEventListener('click', this.closeDropdownOnOutsideClick.bind(this));
+    }
   }
 
-  private getOptions(): AreaChartOptions {
+  /**
+   * Cerrar dropdown al hacer clic fuera
+   */
+  private closeDropdownOnOutsideClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    const dropdown = target.closest('.dropdown-container');
+    if (!dropdown) {
+      this.isDropdownOpen = false;
+    }
+  }
+
+  private loadFacturasData(): void {
+    this.subscription = this.facturasService.getFacturasData().subscribe({
+      next: (data: IFacturasData) => {
+        this.facturasData = data;
+        // Usar setTimeout para asegurar que ApexCharts esté completamente cargado
+        setTimeout(() => {
+          this.initializeAreaChart();
+        }, 0);
+      },
+      error: (error: any) => {
+        console.error('Error loading facturas data:', error);
+        // Fallback a datos por defecto
+        this.initializeAreaChart();
+      }
+    });
+  }
+
+  /**
+   * Método público para actualizar los datos del gráfico
+   */
+  updateChartData(): void {
+    if (this.facturasService) {
+      this.subscription?.unsubscribe();
+      this.subscription = this.facturasService.updateMockData().subscribe({
+        next: (data: IFacturasData) => {
+          this.facturasData = data;
+          if (this.chart) {
+            // Actualizar el gráfico existente con nuevos datos
+            const newSeries = [
+              {
+                name: 'Pagadas',
+                data: data.yAxis.facturasPagadas,
+              },
+              {
+                name: 'Pendientes',
+                data: data.yAxis.facturasPendientes,
+              }
+            ];
+            this.chart.updateSeries(newSeries);
+            this.chart.updateOptions({
+              xaxis: {
+                categories: data.xAxis
+              }
+            });
+          }
+        },
+        error: (error: any) => {
+          console.error('Error updating chart data:', error);
+        }
+      });
+    }
+  }
+
+  /**
+   * Toggle del dropdown
+   */
+  toggleDropdown(): void {
+    this.isDropdownOpen = !this.isDropdownOpen;
+  }
+
+  /**
+   * Seleccionar período y actualizar gráfico
+   */
+  selectPeriod(period: string): void {
+    this.selectedPeriod = period;
+    this.isDropdownOpen = false;
+    this.loadDataByPeriod(period);
+  }
+
+  /**
+   * Cargar datos filtrados por período
+   */
+  private loadDataByPeriod(period: string): void {
+    let mockData: IFacturasData;
+
+    switch(period) {
+      case 'Último mes':
+        mockData = {
+          xAxis: ['Junio'],
+          yAxis: {
+            facturasPagadas: [150],
+            facturasPendientes: [90]
+          }
+        };
+        break;
+      case 'Últimos 3 meses':
+        mockData = {
+          xAxis: ['Abril', 'Mayo', 'Junio'],
+          yAxis: {
+            facturasPagadas: [145, 130, 150],
+            facturasPendientes: [100, 110, 90]
+          }
+        };
+        break;
+      case 'Últimos 6 meses':
+        mockData = {
+          xAxis: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'],
+          yAxis: {
+            facturasPagadas: [120, 140, 135, 145, 130, 150],
+            facturasPendientes: [80, 95, 85, 100, 110, 90]
+          }
+        };
+        break;
+      case 'Último año':
+        mockData = {
+          xAxis: ['Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+          yAxis: {
+            facturasPagadas: [110, 125, 130, 120, 135, 140, 120, 140, 135, 145, 130, 150],
+            facturasPendientes: [70, 85, 80, 75, 90, 95, 80, 95, 85, 100, 110, 90]
+          }
+        };
+        break;
+      default:
+        return;
+    }
+
+    // Actualizar los datos y el gráfico
+    this.facturasData = mockData;
+    if (this.chart) {
+      this.chart.updateSeries([
+        {
+          name: 'Facturas Pagadas',
+          data: mockData.yAxis.facturasPagadas,
+        },
+        {
+          name: 'Facturas Pendientes',
+          data: mockData.yAxis.facturasPendientes,
+        }
+      ]);
+      this.chart.updateOptions({
+        xaxis: {
+          categories: mockData.xAxis
+        }
+      });
+    }
+  }
+
+  private getOptions(): ChartOptions {
+    // Si tenemos datos del servicio, los usamos; sino, datos por defecto
+    const series: ChartSeries[] = this.facturasData ? [
+      {
+        name: 'Pagadas',
+        data: this.facturasData.yAxis.facturasPagadas,
+        color: '#3B82F6', // Azul como en la imagen
+      },
+      {
+        name: 'Pendientes',
+        data: this.facturasData.yAxis.facturasPendientes,
+        color: '#8B5CF6', // Morado como en la imagen
+      },
+    ] : [
+      {
+        name: 'Ingresos',
+        data: [120, 140, 135, 145, 130, 150],
+        color: '#3B82F6',
+      },
+      {
+        name: 'Gastos',
+        data: [80, 95, 85, 100, 110, 90],
+        color: '#8B5CF6',
+      },
+    ];
+
+    const categories = this.facturasData ?
+      this.facturasData.xAxis :
+      ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'];
+
     return {
-      // series: array de objetos (bar/line/area)
-      series: [
-        {
-          name: 'Ingresos',
-          data: [1500, 1418, 1456, 1526, 1356, 1256],
-          color: '#1A56DB',
-        },
-        {
-          name: 'Gastos',
-          data: [643, 413, 765, 412, 1423, 1731],
-          color: '#7E3BF2',
-        },
-      ],
+      series,
       chart: {
-        height: 200,        // respeta tu ejemplo
-        maxWidth: '800px',
+        height: 280,
+        maxWidth: '100%',
         type: 'area',
         fontFamily: 'Inter, sans-serif',
         dropShadow: { enabled: false },
@@ -171,39 +383,58 @@ export class Legends {
       tooltip: {
         enabled: true,
         x: { show: false },
-        // si quieres formato de moneda en tooltip:
-        y: { formatter: (v: number) => `$${v}` },
+        y: {
+          formatter: (v: number) => `$${v}`
+        },
       },
-      legend: { show: true },
+      legend: {
+        show: true,
+        position: 'bottom',
+        horizontalAlign: 'center',
+        fontFamily: 'Inter, sans-serif'
+      },
       fill: {
         type: 'gradient',
         gradient: {
           opacityFrom: 0.55,
-          opacityTo: 0,
-          shade: '#1C64F2',
-          gradientToColors: ['#1C64F2'],
+          opacityTo: 0.1,
+          shade: 'light',
         },
       },
       dataLabels: { enabled: false },
-      stroke: { width: 6 },
+      stroke: {
+        width: 3,
+        curve: 'smooth'
+      },
       grid: {
-        show: false,
-        strokeDashArray: 4,
-        padding: { left: 2, right: 2, top: -26 },
+        show: true,
+        strokeDashArray: 3,
+        padding: { left: 20, right: 2, top: 0 }, // Aumentar padding izquierdo para más espacio
+        borderColor: '#374151'
       },
       xaxis: {
-        categories: [
-          'Enero','Febrero','Marzo',
-          'Abril','Mayo','Junio','Julio'
-        ],
-        labels: { show: false },
+        categories,
+        labels: {
+          show: true,
+          style: {
+            colors: '#9CA3AF',
+            fontSize: '12px',
+            fontFamily: 'Inter, sans-serif'
+          }
+        },
         axisBorder: { show: false },
         axisTicks: { show: false },
       },
       yaxis: {
-        show: false,
+        show: true,
         labels: {
+          style: {
+            colors: '#9CA3AF',
+            fontSize: '12px',
+            fontFamily: 'Inter, sans-serif'
+          },
           formatter: (value: number) => `$${value}`,
+          offsetX: -7, // Separa los números del eje Y hacia la izquierda
         },
       },
     };
@@ -213,7 +444,9 @@ export class Legends {
     const el = document.getElementById('legend-chart') as HTMLElement;
     if (el && typeof ApexCharts !== 'undefined') {
       this.chart = new ApexCharts(el, this.getOptions());
-      this.chart.render();
+      this.chart.render().catch((error: any) => {
+        console.error('Error rendering legend chart:', error);
+      });
     } else {
       console.error('ApexCharts no está cargado o falta el elemento #legend-chart');
     }
