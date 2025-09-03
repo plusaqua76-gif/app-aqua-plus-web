@@ -34,11 +34,11 @@ import { EMPTY, map } from 'rxjs';
             type="button"
           >
             <span class="sr-only">Open user menu</span>
-            <img
+            <!-- <img
               class="w-8 h-8 me-2 rounded-full object-cover"
               src=""
               alt="user photo"
-            />
+            /> -->
             <span>{{ user?.nombre || 'Usuario' }}</span>
             <svg
               class="w-2.5 h-2.5 ms-3"
