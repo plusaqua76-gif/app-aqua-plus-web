@@ -1,59 +1,84 @@
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex items-center justify-center py-4">
-    <div class="max-w-7xl w-full mx-auto p-6">
-        <form [formGroup]="registerForm" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg dark:shadow-gray-700/50 border border-gray-200 dark:border-gray-700">
-            <h2 class="text-2xl font-semibold text-center mb-6 text-gray-900 dark:text-white">Registrar Contador</h2>
+<div
+  class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex items-center justify-center py-4">
+  <div class="max-w-7xl w-full mx-auto p-6">
+    <form [formGroup]="registerForm"
+      class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg dark:shadow-gray-700/50 border border-gray-200 dark:border-gray-700">
+      <h2 class="text-2xl font-semibold text-center mb-6 text-gray-900 dark:text-white">Registrar Contador</h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-                <div>
-                    <select formControlName="tipoContador"
-                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
-                        <option [ngValue]="null" disabled>Tipo Contador...</option>
-                        <option *ngFor="let tipo of tipoContador" [ngValue]="tipo.id">{{ tipo.nombre }}</option>
-                    </select>
-                </div>
+        <div>
+          <select formControlName="tipoContador"
+            class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            required>
+            <option [ngValue]="null" disabled>Tipo Contador...</option>
+            <option *ngFor="let tipo of tipoContador" [ngValue]="tipo.id">{{ tipo.nombre }}</option>
+          </select>
+        </div>
 
-                <div>
-                    <input formControlName="serial" type="text" placeholder="Serial Contador..."
-                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
-                </div>
-                <div> <select formControlName="idDepartamento"
-                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
-                        <option [ngValue]="null" disabled selected>Departamento...</option>
-                        <option *ngFor="let item of departaments" [value]="item.id">
-                            {{ item.nombre }}
-                        </option>
-                    </select>
-                </div>
+        <div>
+          <input formControlName="serial" type="text" placeholder="Serial Contador..."
+            class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
+        </div>
+        <div> <select formControlName="idDepartamento"
+            class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            required>
+            <option value="" disabled>
+              @if (departmentsLoading()) { Cargando departamentos... } @else { Seleccione un departamento }
+            </option>
+            @for (item of departaments(); track $index) {
+            <option [value]="item.id">{{ item.nombre }}</option>
+            }
+          </select>
+        </div>
 
-                <div> <select formControlName="idCiudad" (change)="onCitiesChange()"
-                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
-                        <option [ngValue]="null" disabled selected>Ciudad...</option>
-                        <option *ngFor="let city of filteredCities" [value]="city.id">
-                            {{ city.nombre }}
-                        </option>
-                    </select>
-                </div>
+        <div> <select formControlName="idCiudad"
+            class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            required>
+            <option value="" disabled>
+              @if (citiesLoading()) { Cargando ciudades... } @else if (!selectedDepartmentId()) { Seleccione primero un
+              departamento } @else { Seleccione una ciudad }
+            </option>
+            @for (city of cities(); track $index) {
+            <option [value]="city.id">{{ city.nombre }}</option>
+            }
+          </select>
+        </div>
 
-                <div> <select formControlName="idCorregimiento"
-                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
-                        <option [ngValue]="null" disabled selected>Corregimiento...</option>
-                        <option *ngFor="let cor of filteredCorregimientos" [value]="cor.id">
-                            {{ cor.nombre }}
-                        </option>
-                    </select>
-                </div>
-                <div>
-                    <input formControlName="direccion" type="text" placeholder="Dirección..."
-                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
-                </div>
-            </div>
-            <div class="text-center mt-8">
-                <button (click)="saveClient()"
-                    class="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-md shadow-md dark:shadow-gray-700/50 cursor-pointer transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
-                    Guardar cliente
-                </button>
-            </div>
-        </form>
-    </div>
+        <div> <select formControlName="idCorregimiento"
+            class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200">
+            <option value="" disabled>
+              @if (corregimientosLoading()) { Cargando corregimientos... } @else if (!selectedCityId()) { Seleccione
+              primero una ciudad } @else { Seleccione un corregimiento }
+            </option>
+            @for (cor of corregimientos(); track $index) {
+            <option [value]="cor.id">{{ cor.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <input formControlName="direccion" type="text" placeholder="Dirección..."
+            class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
+        </div>
+        <div>
+          <select formControlName="idEmpleadoEmpresa"
+            class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
+            <option value="" disabled>
+              @if (dataEmployee.isLoading()) { Cargando empleados... }
+              @else { Seleccione un empleado }
+            </option>
+            @for (item of employeeData(); track $index) {
+              <option [value]="item.id">{{ item.personaNombreCompleto }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="text-center mt-8">
+        <button (click)="saveClient()"
+          class="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-md shadow-md dark:shadow-gray-700/50 cursor-pointer transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+          Guardar cliente
+        </button>
+      </div>
+    </form>
+  </div>
 </div>

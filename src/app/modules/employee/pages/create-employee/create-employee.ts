@@ -11,7 +11,6 @@ import { TypeDocumentService } from '../../../client/service/typeDocument.servic
 import { IDepartament } from '@interfaces/Idepartament';
 import { ITipoDocumento } from '@interfaces/Iuser';
 import { EmpleadoService } from '../../service/empleado.service';
-import { IEmpleadoEmpresaRequest, IEmpleadoResponse } from '@interfaces/Iemployee';
 import { ToastService } from '@services/toast.service';
 import { Router } from '@angular/router';
 import { UserService } from '../../../auth/service/user.service';
@@ -182,63 +181,6 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
 
     const formValue = this.registerForm.value;
 
-    const payload: IEmpleadoEmpresaRequest = {
-      id_tipo_documento: formValue.tipoDocumento,
-      numero_cedula: formValue.numeroDocumento,
-      codigo: formValue.codigo,
-      primer_nombre: formValue.primerNombre,
-      segundo_nombre: formValue.segundoNombre,
-      primer_apellido: formValue.primerApellido,
-      segundo_apellido: formValue.segundoApellido,
-      id_departamento: formValue.idDepartamento,
-      id_ciudad: formValue.idCiudad,
-      id_corregimiento: formValue.idCorregimiento,
-      descripcion_direccion: formValue.direccion,
-      correo: formValue.correo,
-      telefono: formValue.telefono,
-      usuario_creacion: formValue.usuario_creacion,
-      id_empresa: formValue.id_empresa
-    };
 
-    console.log('📤 Payload a enviar:', payload);
-
-    this.empleadoService.saveEmpleado(payload).subscribe({
-      next: (res) => {
-        console.log('✅ Empleado guardado correctamente:', res);
-        this.toast.success('Éxito', 'El empleado se registró correctamente.');
-
-        const personaDTO = {
-          id: (res as any).id_persona,
-          nombre: (res as any).primer_nombre,
-          segundoNombre: (res as any).segundo_nombre,
-          apellido: (res as any).primer_apellido,
-          segundoApellido: (res as any).segundo_apellido,
-          numeroCedula: (res as any).numero_cedula,
-          activo: true
-        };
-        this.userService.sendEmailUsuario(personaDTO).subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.toast.success('Correo enviado', 'Se ha enviado el correo al usuario.');
-            } else {
-              this.toast.warning('Advertencia', 'Empleado creado, pero el correo no se pudo enviar.');
-            }
-          },
-          error: (err) => {
-            console.error('Error al enviar correo:', err);
-            this.toast.error('Error al enviar el correo', 'Intente nuevamente o contacte a soporte.');
-          }
-        });
-
-        this.router.navigate(['/employee']);
-      },
-      error: (err) => {
-        console.error(' Error al guardar el empleado:', err);
-        this.toast.error('Error al guardar', 'No se pudo registrar el empleado. Intente más tarde.');
-      }
-    });
-  }
-
-
-}
+}}
 

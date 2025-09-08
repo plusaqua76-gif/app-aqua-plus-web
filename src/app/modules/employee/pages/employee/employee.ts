@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, signal, computed, effect } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, inject, signal, computed, effect, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
   Action,
@@ -7,12 +7,12 @@ import {
 } from '../../../../../app/core/components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EmpleadoService } from '../../service/empleado.service';
-import { map } from 'rxjs';
+import { EMPTY, map } from 'rxjs';
 import { ToastService } from '@services/toast.service';
 
 @Component({
   selector: 'app-employee',
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TableComponent],
   template: `
     <ng-template #toggleTpl let-row>
              <a (click)="editar(row)" class="text-green-600 hover:text-green-900 text-sm cursor-pointer">
@@ -43,8 +43,8 @@ import { ToastService } from '@services/toast.service';
     </div>
   </ng-template>
 
-    <!-- <app-table-dynamic
-      [title]="title"
+    <app-table-dynamic
+      [title]="title()"
       [columns]="employeeColumns()"
       [datasource]="employeeData()"
       [actionTemplate]="toggleTpl"
@@ -52,12 +52,21 @@ import { ToastService } from '@services/toast.service';
       [showAddButton]="true"
       [addButtonText]="'Agregar Empleado'"
       (action)="handleTableAction($event)"
-    /> -->
+    />
   `,
 })
 export class Employee {
 
-  title = 'Gestion de empleados';
+  title = signal('Gestión de Facturas');
+  showDeleteConfirm = signal(false);
+  itemToDelete: number | null = null;
+  readonly platformId = inject(PLATFORM_ID);
+  readonly isBrowser = isPlatformBrowser(this.platformId);
+  protected readonly empleadoService = inject(EmpleadoService);
+  protected readonly router = inject(Router);
+  protected readonly route = inject(ActivatedRoute);
+  protected readonly toastService = inject(ToastService);
+
   employeeColumns = signal([
     { field: 'personaNombreCompleto', header: 'Nombre Completo' },
     { field: 'numeroCedula', header: 'Cédula' },
@@ -67,38 +76,28 @@ export class Employee {
     { field: 'estado', header: 'Estado', template: 'estadoTpl' },
   ]);
 
-  // employeeData = computed(() => this.dataEmployeeCounter.value() ?? []);
+readonly enterpriseId = computed(() => {
+  if (!this.isBrowser) return null;
+  try {
+    return Number(JSON.parse(sessionStorage.getItem('userData')!)?.empresaId) || null;
+  } catch (e) {
+    console.error('Error parsing userData from sessionStorage:', e);
+    return null;
+  }
+});
+
+dataEmployee = rxResource({
+  params: () => ({ enterpriseId: this.enterpriseId() }),
+  stream: ({ params: { enterpriseId } }) =>
+    enterpriseId
+      ? this.empleadoService.getEmployeeByEnterprice(enterpriseId)
+      : EMPTY
+});
+
+employeeData = computed(() => this.dataEmployee.value()?.response ?? []);
 
 
 
-  protected readonly empleadoService = inject(EmpleadoService);
-  protected readonly router = inject(Router);
-  protected readonly route = inject(ActivatedRoute);
-  protected readonly toastService = inject(ToastService);
-
-
-
-  // dataEmployeeCounter = rxResource({
-  //   stream: () => this.empleadoService.getAllDatosEmpleadoCompleto().pipe(
-  //     map(data => {
-  //       console.log('📦 Datos recibidos del servicio:', data);
-  //       return (data?.empleados?.response ?? []).map(emp => {
-  //         const correo = data?.correos?.response?.find(c => c?.persona?.id === emp.personaId)?.correo ?? '';
-  //         const telefono = data?.telefonos?.response?.find(t => t?.persona?.id === emp.personaId)?.numero ?? '';
-  //         return {
-  //           id: emp.id,
-  //           personaId: emp.personaId,
-  //           personaNombreCompleto: emp.personaNombreCompleto,
-  //           numeroCedula: emp.numeroCedula,
-  //           codigo: emp.codigo,
-  //           correoElectronico: correo,
-  //           telefono: telefono,
-  //           estado: emp.activo ?? true,
-  //         };
-  //       });
-  //     })
-  //   ),
-  // });
 
 
   onToggle(row: any) {

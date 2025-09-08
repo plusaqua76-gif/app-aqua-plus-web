@@ -1,23 +1,31 @@
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment.local';
 import { HttpClient } from '@angular/common/http';
-import { COUNTER, TYPE_COUNTER } from '../../../environments/environment.variables';
-import { Observable } from 'rxjs';
+import { ENTERPRISE_CLIENT_COUNT } from '../../../environments/environment.variables';
+import { map, Observable } from 'rxjs';
 import { ApiResponse } from '@interfaces/Iresponse';
-import { ITypeCounter } from '@interfaces/ItypeCounter';
 import { Router } from '@angular/router';
-import { ICounter } from '@interfaces/Icounter';
+import { CounterApiResponse } from '@interfaces/counter/IcounterApi';
+import { CounterRow } from '@interfaces/counter/IcounterRow';
+import { toCounterRow } from '@shared/mappers/counterRow';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CounterService {
-  private apiUrl = `${environment.apiUrl}/${COUNTER.COUNTER}`;
+  private readonly apiUrl = `${environment.apiUrl}/${ENTERPRISE_CLIENT_COUNT.ENT_CLI_COU}`;
   protected readonly router = inject(Router);
   protected readonly http = inject(HttpClient);
 
-  updateCounter(counter: any): Observable<ApiResponse<ICounter>> {
+    getAllCounterByIdEnterprise(enterpriseId: number): Observable<CounterRow[]> {
+    const url = `${this.apiUrl}/contadores/${enterpriseId}`;
+    return this.http.get<ApiResponse<CounterApiResponse[]>>(url).pipe(
+      map(response => response.response?.map(counter => toCounterRow(counter)) ?? [])
+    );
+  }
+
+  updateCounter(counter: any): Observable<ApiResponse<CounterApiResponse>> {
     const url = `${this.apiUrl}`;
-    return this.http.post<ApiResponse<ICounter>>(url, counter);
+    return this.http.post<ApiResponse<CounterApiResponse>>(url, counter);
   }
 }

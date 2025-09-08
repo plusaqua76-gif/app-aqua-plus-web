@@ -45,6 +45,7 @@
           [routerLink]="[data.routeLink]"
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: true }"
+          [attr.data-tooltip]="data.label"
         >
           <div class="sidenav-link-icon">
             @switch (data.icon) {

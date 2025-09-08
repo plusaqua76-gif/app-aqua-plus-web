@@ -145,19 +145,22 @@ interface ColumnChartOptions {
         <div [class.hidden]="!isDropdownOpen" class="absolute z-10 bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 mt-1">
             <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
               <li>
-                <button (click)="selectPeriod('Último día')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Último día</button>
+                <button (click)="selectPeriod('Último mes')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Último mes</button>
               </li>
               <li>
-                <button (click)="selectPeriod('Últimos 3 días')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Últimos 3 días</button>
+                <button (click)="selectPeriod('Últimos 3 meses')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Últimos 3 meses</button>
               </li>
               <li>
-                <button (click)="selectPeriod('Últimos 7 días')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Últimos 7 días</button>
+                <button (click)="selectPeriod('Últimos 6 meses')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Últimos 6 meses</button>
               </li>
               <li>
-                <button (click)="selectPeriod('Últimos 30 días')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Últimos 30 días</button>
+                <button (click)="selectPeriod('Primer semestre')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Primer semestre</button>
               </li>
               <li>
-                <button (click)="selectPeriod('Últimos 90 días')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Últimos 90 días</button>
+                <button (click)="selectPeriod('Segundo semestre')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Segundo semestre</button>
+              </li>
+              <li>
+                <button (click)="selectPeriod('Año completo')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Año completo</button>
               </li>
             </ul>
         </div>
@@ -183,7 +186,7 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
 
   // Propiedades para el dropdown
   public isDropdownOpen = false;
-  public selectedPeriod = 'Últimos 7 días';
+  public selectedPeriod = 'Últimos 6 meses';
 
   // Propiedades calculadas
   public totalConsumo = 0;
@@ -348,26 +351,36 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
       {
         name: 'Consumo (m³)',
         data: [
-          { x: 'Lun', y: 150 },
-          { x: 'Mar', y: 180 },
-          { x: 'Mié', y: 165 },
-          { x: 'Jue', y: 195 },
-          { x: 'Vie', y: 220 },
-          { x: 'Sáb', y: 240 },
-          { x: 'Dom', y: 190 },
+          { x: 'Ene', y: 4500 },
+          { x: 'Feb', y: 4800 },
+          { x: 'Mar', y: 4200 },
+          { x: 'Abr', y: 5100 },
+          { x: 'May', y: 5400 },
+          { x: 'Jun', y: 5800 },
+          { x: 'Jul', y: 6200 },
+          { x: 'Ago', y: 5900 },
+          { x: 'Sep', y: 5300 },
+          { x: 'Oct', y: 4900 },
+          { x: 'Nov', y: 4600 },
+          { x: 'Dic', y: 4300 },
         ],
         color: '#1A56DB',
       },
       {
         name: 'Facturado (miles $)',
         data: [
-          { x: 'Lun', y: 230 },
-          { x: 'Mar', y: 280 },
-          { x: 'Mié', y: 255 },
-          { x: 'Jue', y: 305 },
-          { x: 'Vie', y: 340 },
-          { x: 'Sáb', y: 370 },
-          { x: 'Dom', y: 295 },
+          { x: 'Ene', y: 6750 },
+          { x: 'Feb', y: 7200 },
+          { x: 'Mar', y: 6300 },
+          { x: 'Abr', y: 7650 },
+          { x: 'May', y: 8100 },
+          { x: 'Jun', y: 8700 },
+          { x: 'Jul', y: 9300 },
+          { x: 'Ago', y: 8850 },
+          { x: 'Sep', y: 7950 },
+          { x: 'Oct', y: 7350 },
+          { x: 'Nov', y: 6900 },
+          { x: 'Dic', y: 6450 },
         ],
         color: '#FDBA8C',
       },
@@ -378,7 +391,7 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
       series,
       chart: {
         type: 'bar',
-        height: 280,
+        height: 350,
         maxWidth: '100%',
         fontFamily: 'Inter, sans-serif',
         toolbar: { show: false },
@@ -387,7 +400,7 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
       plotOptions: {
         bar: {
           horizontal: false,
-          columnWidth: '70%',
+          columnWidth: '60%',
           borderRadiusApplication: 'end',
           borderRadius: 8,
         },
@@ -401,9 +414,9 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
           formatter: (value: number, opts?: any) => {
             const seriesName = opts?.series?.[opts.seriesIndex]?.name || '';
             if (seriesName.includes('Facturado')) {
-              return `$${value}k`;
+              return `$${(value * 1000).toLocaleString('es-CO')}`;
             }
-            return `${value} m³`;
+            return `${value.toLocaleString('es-CO')} m³`;
           }
         },
       },
@@ -445,7 +458,12 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
             fontSize: '12px',
             fontFamily: 'Inter, sans-serif'
           },
-          formatter: (value: number) => `${value}`,
+          formatter: (value: number) => {
+            if (value >= 1000) {
+              return `${(value / 1000).toFixed(0)}k`;
+            }
+            return `${value}`;
+          },
           offsetX: -7,
         },
       },

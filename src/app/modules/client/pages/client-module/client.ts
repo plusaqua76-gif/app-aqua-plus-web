@@ -119,30 +119,22 @@ export class Client {
     { field: 'telefono', header: 'Teléfono' },
     { field: 'direccion', header: 'Dirección' },
     { field: 'correo', header: 'Correo' },
-    { field: 'estado', header: 'Estado', template: 'estadoTpl' },
+    // { field: 'estado', header: 'Estado', template: 'estadoTpl' },
   ]);
 
 
-  // constructor() {
-  //   effect(() => {
-  //     const id = this.enterpriseId();
-  //     console.log('Enterprise ID changed:', id);
-  //     console.log('Enterprise ID from sessionStorage:', this.enterpriseId);
-  //     if (id === null) {
-  //       console.warn('Enterprise ID is null - checking sessionStorage userData');
-  //     }
-  //   });
+  constructor() {
 
-  //   effect(() => {
-  //     const resourceState = this.dataClientCounter.status();
-  //     console.log('Resource status:', resourceState);
-  //     console.log('esta es la data de mi pez', this.dataClientCounter.value());
+    effect(() => {
+      const resourceState = this.dataClientCounter.status();
+      console.log('Resource status:', resourceState);
+      console.log('esta es la data de mi pez', this.dataClientCounter.value());
 
-  //     if (resourceState === 'error') {
-  //       console.error('Resource error:', this.dataClientCounter.error());
-  //     }
-  //   });
-  // }
+      if (resourceState === 'error') {
+        console.error('Resource error:', this.dataClientCounter.error());
+      }
+    });
+  }
 
   dataClientCounter = rxResource({
     params: () => ({ enterpriseId: this.enterpriseId() }),
@@ -159,7 +151,7 @@ export class Client {
         });
       }
 
-      return this.enterpriseClientCounterService.getAllCounterByIdEnterprise(enterpriseId);
+      return this.enterpriseClientCounterService.getAllClientsByIdEnterprise(enterpriseId);
     }
   });
 

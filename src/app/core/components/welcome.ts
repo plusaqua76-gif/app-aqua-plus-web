@@ -863,7 +863,7 @@ import { LogoCarouselComponent } from './logo-carousel';
             <img
               class="relative z-10 w-full max-w-4xl rounded-lg shadow-2xl"
               id="dashboard"
-              src="/images/dashboard.webp"
+              src="/images/welcomeimage.webp"
               alt="dashboard"
             />
           </div>

@@ -14,6 +14,9 @@ export class LoaderService {
     message: undefined
   });
 
+  // Contador para manejar múltiples peticiones simultáneas
+  private requestCount = 0;
+
   // Readonly accessor para el estado
   readonly state = this.loaderState.asReadonly();
 
@@ -22,9 +25,10 @@ export class LoaderService {
    * @param message Mensaje opcional a mostrar
    */
   show(message?: string): void {
+    this.requestCount++;
     this.loaderState.set({
       isLoading: true,
-      message
+      message: message || 'Cargando...'
     });
   }
 
@@ -32,6 +36,22 @@ export class LoaderService {
    * Oculta el loader
    */
   hide(): void {
+    this.requestCount = Math.max(0, this.requestCount - 1);
+
+    // Solo ocultar si no hay más peticiones pendientes
+    if (this.requestCount === 0) {
+      this.loaderState.set({
+        isLoading: false,
+        message: undefined
+      });
+    }
+  }
+
+  /**
+   * Fuerza el ocultamiento del loader (útil para casos excepcionales)
+   */
+  forceHide(): void {
+    this.requestCount = 0;
     this.loaderState.set({
       isLoading: false,
       message: undefined
@@ -43,10 +63,12 @@ export class LoaderService {
    * @param message Nuevo mensaje
    */
   updateMessage(message: string): void {
-    this.loaderState.update(current => ({
-      ...current,
-      message
-    }));
+    if (this.loaderState().isLoading) {
+      this.loaderState.update(current => ({
+        ...current,
+        message
+      }));
+    }
   }
 
   /**
@@ -65,5 +87,12 @@ export class LoaderService {
     } finally {
       this.hide();
     }
+  }
+
+  /**
+   * Obtiene el número de peticiones activas (útil para debugging)
+   */
+  getActiveRequestCount(): number {
+    return this.requestCount;
   }
 }

@@ -119,7 +119,7 @@ interface TarifaItem {
 
         <!-- Agregar estrato + botón Agregar -->
         <div class="flex flex-wrap items-center gap-3">
-          <button 
+          <button
             type="button"
             (click)="toggleTablaEstratos()"
             class="inline-flex items-center gap-2 rounded-xl border border-gray-600/70 bg-transparent px-5 py-3 text-sm text-gray-200 hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-gray-400/40">
@@ -147,23 +147,23 @@ interface TarifaItem {
               <div class="flex gap-3">
                 <div class="flex-1">
                   <label class="block mb-1 text-xs text-gray-400">Número de estrato</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     [(ngModel)]="nuevoEstratoNumero"
                     min="1"
                     class="block w-full rounded-lg border border-gray-600/70 bg-transparent px-3 py-2 text-sm text-gray-100 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-400/40" />
                 </div>
                 <div class="flex-1">
                   <label class="block mb-1 text-xs text-gray-400">Valor</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     [(ngModel)]="nuevoEstratoValor"
                     min="0"
                     placeholder="0"
                     class="block w-full rounded-lg border border-gray-600/70 bg-transparent px-3 py-2 text-sm text-gray-100 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-400/40" />
                 </div>
                 <div class="flex items-end">
-                  <button 
+                  <button
                     type="button"
                     (click)="agregarNuevoEstrato()"
                     [disabled]="!nuevoEstratoValor || nuevoEstratoValor <= 0"
@@ -196,15 +196,15 @@ interface TarifaItem {
                       <tr>
                         <td class="px-6 py-4 text-sm">{{ estrato.numero }}</td>
                         <td class="px-6 py-4 text-sm">
-                          <input 
-                            type="number" 
+                          <input
+                            type="number"
                             [value]="estrato.valor"
                             (input)="actualizarEstratoValor(estrato.id, +$any($event.target).value)"
                             min="0"
                             class="block w-full rounded border border-gray-600/70 bg-transparent px-2 py-1 text-sm text-gray-100 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-400/40" />
                         </td>
                         <td class="px-6 py-4 text-sm">
-                          <button 
+                          <button
                             type="button"
                             (click)="eliminarEstrato(estrato.id)"
                             class="inline-flex items-center justify-center rounded border border-red-600/70 px-2 py-1 text-xs text-red-400 hover:bg-red-500/10 focus:outline-none focus:ring-1 focus:ring-red-500/40">
@@ -272,7 +272,7 @@ interface TarifaItem {
                     </button>
                   </div>
                 </div>
-                
+
                 <!-- Estratos (si existen) -->
                 @if (tarifa.estratos && tarifa.estratos.length > 0) {
                   <div class="col-span-12 mt-4 pt-4 border-t border-gray-600/50">
@@ -367,12 +367,12 @@ export class FeeComponent {
       this.valorTarifa > 0
     );
 
-    console.log('canAddTarifa:', {
-      selectedTipoTarifa: this.selectedTipoTarifa,
-      selectedTipoConcepto: this.selectedTipoConcepto,
-      valorTarifa: this.valorTarifa,
-      canAdd
-    });
+    // console.log('canAddTarifa:', {
+    //   selectedTipoTarifa: this.selectedTipoTarifa,
+    //   selectedTipoConcepto: this.selectedTipoConcepto,
+    //   valorTarifa: this.valorTarifa,
+    //   canAdd
+    // });
 
     return canAdd;
   }  // Agregar una nueva tarifa
@@ -446,9 +446,9 @@ export class FeeComponent {
 
   agregarNuevoEstrato(): void {
     if (this.nuevoEstratoValor !== null && this.nuevoEstratoValor > 0) {
-      const maxId = this.estratosActuales.length > 0 ? 
+      const maxId = this.estratosActuales.length > 0 ?
         Math.max(...this.estratosActuales.map(e => e.id)) : 0;
-      
+
       const nuevoEstrato: Estrato = {
         id: maxId + 1,
         numero: this.nuevoEstratoNumero,
@@ -457,7 +457,7 @@ export class FeeComponent {
 
       this.estratosActuales.push(nuevoEstrato);
       this.estratosActuales.sort((a, b) => a.numero - b.numero);
-      
+
       // Limpiar campos
       this.nuevoEstratoNumero = Math.max(...this.estratosActuales.map(e => e.numero)) + 1;
       this.nuevoEstratoValor = null;
@@ -475,20 +475,14 @@ export class FeeComponent {
     }
   }
 
-  // Guardar todas las tarifas
   guardarTarifas(): void {
     if (this.tarifasAgregadas.length === 0) {
       return;
     }
 
     console.log('Guardando tarifas:', this.tarifasAgregadas);
-
-    // Aquí podrías hacer la llamada al servicio para guardar en el backend
-    // this.tarifaService.guardarTarifas(this.tarifasAgregadas).subscribe(...)
-
     alert(`Se han guardado ${this.tarifasAgregadas.length} tarifa(s) exitosamente`);
 
-    // Opcional: limpiar las tarifas después de guardar
-    // this.tarifasAgregadas = [];
+
   }
 }
