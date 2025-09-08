@@ -65,8 +65,25 @@ export class Bill {
   title = signal('Gestión de Facturas');
   showDeleteConfirm = signal(false);
   itemToDelete: number | null = null;
-    private platformId = inject(PLATFORM_ID);
-  private isBrowser = isPlatformBrowser(this.platformId);
+  readonly platformId = inject(PLATFORM_ID);
+  readonly isBrowser = isPlatformBrowser(this.platformId);
+
+  protected readonly facturaService = inject(FacturaService);
+  protected readonly toastService = inject(ToastService);
+  protected readonly router = inject(Router);
+  protected readonly route = inject(ActivatedRoute);
+
+    billColumns = signal([
+    { field: 'codigo', header: 'Código' },
+    { field: 'clienteNombreCompleto', header: 'Cliente' },
+    { field: 'consumo', header: 'Consumo (m³)' },
+    { field: 'fechaEmision', header: 'Fecha emisión' },
+    { field: 'fechaFin', header: 'Fecha Vencimiento' },
+    { field: 'estadoNombre', header: 'Estado' },
+    { field: 'consumoAnormal', header: 'Consumo anormal' },
+    { field: 'precio', header: 'Total' },
+  ]);
+
 
   readonly enterpriseId = computed(() => {
     if (!this.isBrowser) return null;
@@ -83,36 +100,15 @@ export class Bill {
     }
   });
 
-  billColumns = signal([
-    { field: 'codigo', header: 'Código' },
-    { field: 'clienteNombreCompleto', header: 'Cliente' },
-    { field: 'consumo', header: 'Consumo (m³)' },
-    { field: 'fechaEmision', header: 'Fecha emisión' },
-    { field: 'fechaFin', header: 'Fecha Vencimiento' },
-    { field: 'estadoNombre', header: 'Estado' },
-    { field: 'consumoAnormal', header: 'Consumo anormal' },
-    { field: 'precio', header: 'Total' },
-  ]);
-
-  protected readonly facturaService = inject(FacturaService);
-  protected readonly toastService = inject(ToastService);
-  protected readonly router = inject(Router);
-  protected readonly route = inject(ActivatedRoute);
-
-
-
 
   dataBills = rxResource({
     params: () => ({ enterpriseId: this.enterpriseId() }),
     stream: ({ params }) => {
       const { enterpriseId } = params;
-
       if (!enterpriseId) {
         console.warn('No enterprise ID available for bills');
         return EMPTY;
       }
-
-      // console.log('Loading bills for enterprise ID:', enterpriseId);
       return this.facturaService.getAllBillById(enterpriseId);
     }
   });

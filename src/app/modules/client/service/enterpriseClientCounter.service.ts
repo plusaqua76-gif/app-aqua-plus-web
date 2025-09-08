@@ -79,14 +79,8 @@ export class EnterpriseClientCounterService {
     return throwError(() => new Error(errorMessage));
   }
 
-  // Método original que devuelve ClienteApi[] (mantener para compatibilidad)
-  getAllCounterByIdEnterpriseRaw(enterpriseId: number): Observable<ApiResponse<ClienteApi[]>> {
-    const url = `${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_CLIENT}/${enterpriseId}`;
-    return this.http.get<ApiResponse<ClienteApi[]>>(url);
-  }
-
   // Método optimizado que aplica el mapper directamente y devuelve ClientRow[]
-  getAllCounterByIdEnterprise(enterpriseId: number): Observable<ApiResponse<ClientRow[]>> {
+  getAllClientsByIdEnterprise(enterpriseId: number): Observable<ApiResponse<ClientRow[]>> {
     const url = `${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_CLIENT}/${enterpriseId}`;
     return this.http.get<ApiResponse<ClienteApi[]>>(url).pipe(
       map(response => ({

@@ -5,8 +5,7 @@ import { navbarData } from './nav-data';
 import { CommonModule, NgClass } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { HasRoleDirective } from '../../directives/has-role';
-import { rxResource, toSignal } from '@angular/core/rxjs-interop';
-import { EMPTY } from 'rxjs';
+import { rxResource } from '@angular/core/rxjs-interop';
 
 
 interface SideNavToggle {
@@ -48,20 +47,20 @@ interface SideNavToggle {
 })
 export class SidenavComponent implements OnInit {
 
-  private enterpriseIdService = inject(EnterpriseIdService);
+  private readonly enterpriseIdService = inject(EnterpriseIdService);
 
   enterpriseInfo = rxResource({
     stream: () => this.enterpriseIdService.getEnterpriseInfo()
   })
 
-  constructor() {
-    effect(() => {
-      const enterpriseData = this.enterpriseInfo.value();
-      if (enterpriseData) {
-        console.log('Información de la empresa:', enterpriseData);
-      }
-    });
-  }
+  // constructor() {
+  //   effect(() => {
+  //     const enterpriseData = this.enterpriseInfo.value();
+  //     if (enterpriseData) {
+  //       console.log('Información de la empresa:', enterpriseData);
+  //     }
+  //   });
+  // }
 
   @Output() onToggleSideNav: EventEmitter<SideNavToggle> = new EventEmitter();
   collapsed = false;
@@ -71,22 +70,16 @@ export class SidenavComponent implements OnInit {
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
     this.screenWidth = window.innerWidth;
-    if(this.screenWidth <= 768 ) {
+    // En móvil, cerrar el sidebar al redimensionar
+    if(this.screenWidth <= 768) {
       this.collapsed = false;
-      this.onToggleSideNav.emit({collapsed: this.collapsed, screenWidth: this.screenWidth});
-    } else {
-      this.collapsed = false;
-      this.onToggleSideNav.emit({collapsed: this.collapsed, screenWidth: this.screenWidth});
     }
+    this.onToggleSideNav.emit({collapsed: this.collapsed, screenWidth: this.screenWidth});
   }
 
   ngOnInit(): void {
       this.screenWidth = window.innerWidth;
-      if(this.screenWidth <= 768) {
-        this.collapsed = false;
-      } else {
-        this.collapsed = false;
-      }
+      this.collapsed = false;
 
       this.onToggleSideNav.emit({
         collapsed: this.collapsed,

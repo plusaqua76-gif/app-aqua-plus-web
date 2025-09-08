@@ -3,7 +3,7 @@ import { environment } from "../../../environments/environment.local";
 import { END_POINT_SERVICE } from "../../../environments/environment.variables";
 import { Router } from "@angular/router";
 import { HttpClient, HttpParams } from "@angular/common/http";
-import { catchError, Observable, throwError } from "rxjs";
+import { catchError, map, Observable, throwError } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";
 import { IEmpleadoEmpresaResponse } from "@interfaces/Iemployee";
 import { ICorreoPerson } from '@interfaces/Iperson';
@@ -17,12 +17,32 @@ import { TelefonoGeneralService } from "../../client/service/telefonoPersona.ser
 })
 export class EmpleadoService {
 
-  private apiUrl = `${environment.apiUrl}/${END_POINT_SERVICE.GET_EMPLEADO}`;
+  readonly apiUrl = `${environment.apiUrl}`
 
   protected readonly correoService = inject(CorreoPersonaService)
   protected readonly telefonoService = inject(TelefonoGeneralService)
   protected readonly router = inject(Router)
   protected readonly http = inject(HttpClient)
+
+
+
+
+
+  getEmployeeByEnterprice(id: number): Observable<ApiResponse<IEmpleadoEmpresaResponse[]>> {
+      const url = `${this.apiUrl}/empleado-empresa/empresa/${id}`;
+      return this.http.get<ApiResponse<IEmpleadoEmpresaResponse[]>>(url).pipe(
+          map(response => response),
+      );
+  }
+
+
+
+
+
+
+
+
+  // esto de sebe modificar, lo lindo esta arriba omitiendo esto /empleado-empresa/empresa
 
 
   private handleError(error: any): Observable<never> {
@@ -80,7 +100,7 @@ export class EmpleadoService {
     });
   }
 
-  
+
   updateEstadoEmpleado(data: { id_persona: number, activo: boolean, usuario_cambio: string }): Observable<Map<string, any>> {
     const url = `${environment.apiUrl}/${END_POINT_SERVICE.GET_EMPLEADO}/${END_POINT_SERVICE.POST_UPD_ESTADO}`;
     return this.http.post<Map<string, any>>(url, data).pipe(

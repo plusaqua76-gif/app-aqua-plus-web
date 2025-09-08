@@ -11,7 +11,7 @@ export const END_POINT_SERVICE = {
   GET_USER: 'usuario',
   POST_SEND_EMAIL: 'sendEmail',
 
-  GET_ALL_TIPO_DOCUMENTO: 'tipoDocumento/all',
+  GET_ALL_TIPO_DOCUMENTO: 'tTipo-documento/all',
 
   GET_ALL_CORREO_PER: 'correoGeneral/all',
 
@@ -26,7 +26,7 @@ export const END_POINT_SERVICE = {
   GET_ABONO: 'Abono',
   GET_ABONO_ALL: 'all',
 
-  GET_EMPLEADO: 'EmpleadoEmpresa',
+  GET_EMPLEADO: 'empleado-empresa',
   PUT_UPD_EMPLEADO: 'update',
   GET_SAVE_EMPLEADO: 'save',
   GET_EMPLEADO_ALL: 'all',
@@ -57,6 +57,7 @@ export const END_POINT_SERVICE = {
 export const ENTERPRISE_CLIENT_COUNT = {
   ENT_CLI_COU: 'empresa-cliente-contador',
   GET_CLIENT: 'clientes',
+  GET_COUNTER: 'contador',
   GET_ALL_CLI: 'all',
   GET_ENT_BY_ID: 'empresa',
   POST_SAVE_CLI: 'save',
@@ -65,12 +66,12 @@ export const ENTERPRISE_CLIENT_COUNT = {
 };
 
 export const COUNTER = {
-  COUNTER: 'Contador',
+  COUNTER: 'contador',
 
 }
 
 export const TYPE_COUNTER = {
-  TYPE_COUNTER: 'TipoContador',
+  TYPE_COUNTER: 'tipo-contador',
   GET_ALL: 'all',
   GET_ENT_BY_ID: 'empresa',
 };

@@ -8,10 +8,10 @@ import { IConsumoFacturacion } from '@interfaces/IConsumoFacturacion';
 export class ConsumoFacturacionService {
 
   private mockData: IConsumoFacturacion = {
-    "xAxis": ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
+    "xAxis": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
     "yAxis": {
-      "consumoM3": [150, 180, 165, 195, 220, 240, 190],
-      "facturadoPesos": [230000, 280000, 255000, 305000, 340000, 370000, 295000]
+      "consumoM3": [4500, 4800, 4200, 5100, 5400, 5800, 6200, 5900, 5300, 4900, 4600, 4300],
+      "facturadoPesos": [6750000, 7200000, 6300000, 7650000, 8100000, 8700000, 9300000, 8850000, 7950000, 7350000, 6900000, 6450000]
     }
   };
 
@@ -31,52 +31,66 @@ export class ConsumoFacturacionService {
     let filteredData: IConsumoFacturacion;
 
     switch(period) {
-      case 'Último día': {
+      case 'Último mes': {
+        const currentMonth = new Date().getMonth();
+        const currentMonthName = this.mockData.xAxis[currentMonth];
         filteredData = {
-          xAxis: ['Hoy'],
+          xAxis: [currentMonthName],
           yAxis: {
-            consumoM3: [190],
-            facturadoPesos: [295000]
+            consumoM3: [this.mockData.yAxis.consumoM3[currentMonth]],
+            facturadoPesos: [this.mockData.yAxis.facturadoPesos[currentMonth]]
           }
         };
         break;
       }
-      case 'Últimos 3 días': {
+      case 'Últimos 3 meses': {
+        const currentMonth = new Date().getMonth();
+        const startMonth = Math.max(0, currentMonth - 2);
+        const endMonth = currentMonth;
+
         filteredData = {
-          xAxis: ['Vie', 'Sáb', 'Dom'],
+          xAxis: this.mockData.xAxis.slice(startMonth, endMonth + 1),
           yAxis: {
-            consumoM3: [220, 240, 190],
-            facturadoPesos: [340000, 370000, 295000]
+            consumoM3: this.mockData.yAxis.consumoM3.slice(startMonth, endMonth + 1),
+            facturadoPesos: this.mockData.yAxis.facturadoPesos.slice(startMonth, endMonth + 1)
           }
         };
         break;
       }
-      case 'Últimos 7 días': {
+      case 'Últimos 6 meses': {
+        const currentMonth = new Date().getMonth();
+        const startMonth = Math.max(0, currentMonth - 5);
+        const endMonth = currentMonth;
+
+        filteredData = {
+          xAxis: this.mockData.xAxis.slice(startMonth, endMonth + 1),
+          yAxis: {
+            consumoM3: this.mockData.yAxis.consumoM3.slice(startMonth, endMonth + 1),
+            facturadoPesos: this.mockData.yAxis.facturadoPesos.slice(startMonth, endMonth + 1)
+          }
+        };
+        break;
+      }
+      case 'Año completo': {
         filteredData = this.mockData;
         break;
       }
-      case 'Últimos 30 días': {
-        const dias30 = Array.from({length: 30}, (_, i) => `Día ${i + 1}`);
-        const consumo30 = Array.from({length: 30}, () => Math.floor(Math.random() * 100) + 150);
-        const facturado30 = consumo30.map(c => c * (Math.random() * 800 + 1200));
+      case 'Primer semestre': {
         filteredData = {
-          xAxis: dias30,
+          xAxis: this.mockData.xAxis.slice(0, 6),
           yAxis: {
-            consumoM3: consumo30,
-            facturadoPesos: facturado30
+            consumoM3: this.mockData.yAxis.consumoM3.slice(0, 6),
+            facturadoPesos: this.mockData.yAxis.facturadoPesos.slice(0, 6)
           }
         };
         break;
       }
-      case 'Últimos 90 días': {
-        const semanas = ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7', 'Sem 8', 'Sem 9', 'Sem 10', 'Sem 11', 'Sem 12'];
-        const consumoSem = semanas.map(() => Math.floor(Math.random() * 1000) + 1200);
-        const facturadoSem = consumoSem.map(c => c * (Math.random() * 800 + 1200));
+      case 'Segundo semestre': {
         filteredData = {
-          xAxis: semanas,
+          xAxis: this.mockData.xAxis.slice(6, 12),
           yAxis: {
-            consumoM3: consumoSem,
-            facturadoPesos: facturadoSem
+            consumoM3: this.mockData.yAxis.consumoM3.slice(6, 12),
+            facturadoPesos: this.mockData.yAxis.facturadoPesos.slice(6, 12)
           }
         };
         break;
@@ -94,16 +108,21 @@ export class ConsumoFacturacionService {
 
   updateMockData(): Observable<IConsumoFacturacion> {
     const newMockData: IConsumoFacturacion = {
-      xAxis: ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
+      xAxis: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
       yAxis: {
         consumoM3: [
-          Math.floor(Math.random() * 100) + 120,
-          Math.floor(Math.random() * 100) + 140,
-          Math.floor(Math.random() * 100) + 130,
-          Math.floor(Math.random() * 100) + 160,
-          Math.floor(Math.random() * 100) + 180,
-          Math.floor(Math.random() * 100) + 200,
-          Math.floor(Math.random() * 100) + 150
+          Math.floor(Math.random() * 1000) + 4000, // Enero
+          Math.floor(Math.random() * 1000) + 4200, // Febrero
+          Math.floor(Math.random() * 1000) + 3900, // Marzo
+          Math.floor(Math.random() * 1000) + 4800, // Abril
+          Math.floor(Math.random() * 1000) + 5100, // Mayo
+          Math.floor(Math.random() * 1000) + 5500, // Junio
+          Math.floor(Math.random() * 1000) + 5900, // Julio
+          Math.floor(Math.random() * 1000) + 5600, // Agosto
+          Math.floor(Math.random() * 1000) + 5000, // Septiembre
+          Math.floor(Math.random() * 1000) + 4600, // Octubre
+          Math.floor(Math.random() * 1000) + 4300, // Noviembre
+          Math.floor(Math.random() * 1000) + 4000  // Diciembre
         ],
         facturadoPesos: []
       }

@@ -105,11 +105,11 @@ export class Header {
   screenWidth = input<number>(0);
   isScrolled = false;
 
-  constructor(){
-    effect(() => {
-      console.log("la data de mi usuario mi pez", this.dataUser.value());
-    });
-  }
+  // constructor(){
+  //   effect(() => {
+  //     console.log("la data de mi usuario mi pez", this.dataUser.value());
+  //   });
+  // }
 
   private platformId = inject(PLATFORM_ID);
   private isBrowser = isPlatformBrowser(this.platformId);
