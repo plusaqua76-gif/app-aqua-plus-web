@@ -19,7 +19,8 @@ import {
       (click)="close()"
     >
       <div
-        class="relative w-full max-w-md p-4 pt-16"
+        class="relative w-full p-4 pt-16"
+        [class]="maxWidth()"
         (click)="$event.stopPropagation()"
       >
         <div class="relative bg-black/10 backdrop-blur-xl border-2 border-white/10 rounded-3xl shadow-xl">
@@ -98,6 +99,7 @@ export class PopupComponent {
   readonly confirmText = input<string>('Confirmar');
   readonly cancelText = input<string>('Cancelar');
   readonly isConfirmation = input<boolean>(false);
+  readonly maxWidth = input<string>('max-w-md');
   readonly confirmAction = output<void>();
   readonly cancelAction = output<void>();
 
