@@ -15,19 +15,20 @@ import {
     @if (isOpen()) {
     <div
       id="overlay"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      class="fixed inset-0 z-[900] flex items-center justify-center bg-black/50 backdrop-blur-sm"
       (click)="close()"
     >
       <div
-        class="relative w-full max-w-md p-4"
+        class="relative w-full p-4 pt-16"
+        [class]="maxWidth()"
         (click)="$event.stopPropagation()"
       >
-        <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+        <div class="relative bg-black/10 backdrop-blur-xl border-2 border-white/10 rounded-3xl shadow-xl">
           <button
             (click)="close()"
             aria-label="Close"
             class="absolute top-3 end-2.5 h-8 w-8 grid place-content-center
-                          text-gray-400 hover:bg-gray-200 rounded-lg"
+                          text-gray-400 hover:bg-white/10 rounded-lg backdrop-blur-sm"
           >
             <svg class="h-3 w-3" viewBox="0 0 14 14" fill="none">
               <path
@@ -64,7 +65,7 @@ import {
                   {{ confirmText() }}
                 </button>
                 <button
-                  (click)="close()"
+                  (click)="onCancel()"
                   class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white
                          rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700
                          focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700
@@ -77,7 +78,8 @@ import {
             </div>
           } @else {
             <!-- Modal genérico -->
-            <div class="p-5 text-center">
+            <div class="p-8 text-left">
+              <h3 class="text-xl font-semibold text-white mb-6 text-center">{{ title() }}</h3>
               <ng-content></ng-content>
             </div>
           }
@@ -92,14 +94,14 @@ export class PopupComponent {
   readonly open = input.required<WritableSignal<boolean>>();
   readonly openChange = output<WritableSignal<boolean>>();
   readonly isOpen = computed(() => this.open()());
-
-  // Nuevas propiedades para confirmación
   readonly title = input<string>('Confirmación');
   readonly message = input<string>('¿Está seguro de realizar esta acción?');
   readonly confirmText = input<string>('Confirmar');
   readonly cancelText = input<string>('Cancelar');
   readonly isConfirmation = input<boolean>(false);
+  readonly maxWidth = input<string>('max-w-md');
   readonly confirmAction = output<void>();
+  readonly cancelAction = output<void>();
 
   constructor() {
     effect(() => this.openChange.emit(this.open()));
@@ -109,6 +111,11 @@ export class PopupComponent {
 
   onConfirm = () => {
     this.confirmAction.emit();
+    this.close();
+  };
+
+  onCancel = () => {
+    this.cancelAction.emit();
     this.close();
   };
 }

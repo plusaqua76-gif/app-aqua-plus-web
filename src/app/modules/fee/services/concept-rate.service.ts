@@ -4,28 +4,24 @@ import { environment } from "../../../environments/environment.local";
 import { Observable } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";
 import { IrateTypes } from "@interfaces/IrateTypes";
+import { IConceptRate } from "@interfaces/IConceptRate";
 
 
 @Injectable({
   providedIn: 'root'
 })
-export class RateTypeService {
+export class  ConceptRateService {
 
   readonly http = inject(HttpClient);
   readonly platformId = inject(PLATFORM_ID);
   readonly apiUrl = `${environment.apiUrl}`;
 
-
-  getRateTypes(): Observable<ApiResponse<IrateTypes[]>>{
-    return this.http.get<ApiResponse<IrateTypes[]>>(`${this.apiUrl}/tipo-tarifa/all`)
+  saveFeeConceptRate(fee: IrateTypes): Observable<ApiResponse<IrateTypes>>{
+    return this.http.post<ApiResponse<IrateTypes>>(`${this.apiUrl}/tarifa-concepto/crear`, fee);
   }
 
-  saveRateType(rateType: IrateTypes): Observable<ApiResponse<IrateTypes>>{
-    return this.http.post<ApiResponse<IrateTypes>>(`${this.apiUrl}/tipo-tarifa`, rateType);
-  }
-
-  deleteRateType(id: number): Observable<ApiResponse<null>>{
-    return this.http.delete<ApiResponse<null>>(`${this.apiUrl}/tipo-tarifa/${id}`);
+  getConceptRateByEnterprise(enterpriseId: number): Observable<ApiResponse<IConceptRate[]>>{
+    return this.http.get<ApiResponse<IConceptRate[]>>(`${this.apiUrl}/tarifa-concepto/empresa/${enterpriseId}`)
   }
 
 }

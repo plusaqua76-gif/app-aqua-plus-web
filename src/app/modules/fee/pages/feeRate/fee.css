@@ -1,0 +1,59 @@
+.form-group {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 50px 12px 45px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #ada5b4;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #0062ff;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.form-group .icon {
+  position: absolute;
+  left: 16px;
+  top: 73%;
+  transform: translateY(-50%);
+  color: #ada5b4;
+  font-size: 16px;
+  z-index: 10;
+}
+
+.form-group.textarea-group .icon {
+  position: absolute;
+  left: 16px;
+  top: 47%;
+  transform: translateY(-50%);
+  color: #ada5b4;
+  font-size: 16px;
+  z-index: 10;
+}
+.form-group input {
+  height: 48px;
+  line-height: 24px;
+}
+
+.form-group textarea {
+  min-height: 88px;
+  padding-top: 16px;
+  line-height: 20px;
+}
