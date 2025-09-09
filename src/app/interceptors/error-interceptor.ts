@@ -26,7 +26,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         errorMessage = 'Sin conexión a internet. Verifica tu conexión.';
       } else if (error.status === 400) {
         console.error('Bad Request:', error.error?.message || errorMessage);
-        errorMessage = error.error?.message || 'Error de solicitud. Verifica los datos enviados.';
+        // Para errores 400, priorizar el mensaje del servidor
+        errorMessage = error.error?.message || error.error?.msg || 'Error de solicitud. Verifica los datos enviados.';
       } else if (error.status === 401) {
         console.error('Unauthorized:', error.error?.message || errorMessage);
         errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
@@ -50,25 +51,30 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         errorMessage = error.error?.message || errorMessage;
       }
 
-      // Crear un error enriquecido con información adicional
-      const enrichedError = new HttpErrorResponse({
-        error: {
-          ...error.error,
-          userMessage: errorMessage,
-          originalError: error.error,
-          timestamp: new Date().toISOString(),
-          requestInfo: {
-            url: req.url,
-            method: req.method
-          }
+      // Crear un error personalizado que preserve el error original
+      const customError = {
+        ...error.error,
+        userMessage: errorMessage,
+        originalError: error.error,
+        timestamp: new Date().toISOString(),
+        requestInfo: {
+          url: req.url,
+          method: req.method
         },
+        httpStatus: error.status,
+        httpStatusText: error.statusText
+      };
+
+      // Retornar el error original pero con información adicional
+      const modifiedError = new HttpErrorResponse({
+        error: customError,
         headers: error.headers,
         status: error.status,
         statusText: error.statusText,
         url: error.url || undefined
       });
 
-      return throwError(() => enrichedError);
+      return throwError(() => modifiedError);
     })
   );
 };
