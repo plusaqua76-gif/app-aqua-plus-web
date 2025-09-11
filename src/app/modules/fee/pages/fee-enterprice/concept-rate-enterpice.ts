@@ -10,10 +10,11 @@ import { EMPTY } from 'rxjs';
   imports: [CommonModule],
   template: `
     <section class="w-full bg-transparent text-gray-200">
-      <div class="w-full px-2 py-4">
-        <h2 class="text-xl md:text-2xl font-semibold tracking-tight mb-6">
-          Lista de Conceptos de Tarifa
-        </h2>
+      <div class="w-full px-2 pb-4">
+        <div class="">
+          <h2 class="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight mb-6">
+            Lista de Conceptos de Tarifa
+          </h2>
 
         <!-- Loading state -->
         @if (dataConceptRate.isLoading()) {
@@ -60,19 +61,19 @@ import { EMPTY } from 'rxjs';
             } @else {
               <!-- Summary card -->
               <div class="rounded-xl border border-blue-600/70 bg-blue-500/10 p-4 mb-6">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center space-x-3">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                  <div class="flex items-center space-x-3 mb-4 sm:mb-0">
                     <div class="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
                       <svg class="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                       </svg>
                     </div>
                     <div>
-                      <p class="text-blue-400 font-medium">Total de conceptos configurados</p>
-                      <p class="text-blue-300 text-sm">Para esta empresa</p>
+                      <p class="text-blue-400 font-medium text-sm sm:text-base">Total de conceptos configurados</p>
+                      <p class="text-blue-300 text-xs sm:text-sm">Para esta empresa</p>
                     </div>
                   </div>
-                  <div class="text-right">
+                  <div class="text-left sm:text-right">
                     <p class="text-2xl font-bold text-blue-400">{{ conceptRatesData().length }}</p>
                     <p class="text-blue-300 text-xs">conceptos</p>
                   </div>
@@ -80,125 +81,162 @@ import { EMPTY } from 'rxjs';
               </div>
 
               @for (conceptRate of conceptRatesData(); track conceptRate.id) {
-                <div class="rounded-xl border border-gray-600/70 bg-transparent p-5 hover:border-gray-500/70 transition-colors duration-200">
-                  <div class="grid grid-cols-12 items-center gap-4">
-                    <!-- Header labels -->
-                    <div class="col-span-12 grid grid-cols-12 text-xs text-gray-400 mb-2">
-                      <span class="col-span-4">Tipo de Tarifa</span>
-                      <span class="col-span-4">Tipo de Concepto</span>
-                      <span class="col-span-3">Valor</span>
-                      <span class="col-span-1 text-center">Calc. MC</span>
+                <div class="rounded-xl border border-gray-600/70 bg-transparent p-4 hover:border-gray-500/70 transition-colors duration-200">
+                  <!-- Mobile Layout -->
+                  <div class="block md:hidden">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between mb-4">
+                      <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-white mb-1">
+                          {{ conceptRate.tipoConcepto.descripcion }}
+                        </h3>
+                        <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded">
+                          {{ conceptRate.tipoConcepto.codigo }}
+                        </span>
+                      </div>
+                      <div class="flex items-center space-x-2">
+                        <button
+                          (click)="editConceptRate(conceptRate.id)"
+                          class="inline-flex items-center justify-center w-8 h-8 bg-blue-500/20 text-blue-400 rounded-full hover:bg-blue-500/30 transition-colors"
+                          title="Editar concepto">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                          </svg>
+                        </button>
+                        <button
+                          (click)="deleteConceptRate(conceptRate.id)"
+                          class="inline-flex items-center justify-center w-8 h-8 bg-red-500/20 text-red-400 rounded-full hover:bg-red-500/30 transition-colors"
+                          title="Eliminar concepto">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                        </button>
+                      </div>
                     </div>
 
-                    <!-- Data row -->
-                    <div class="col-span-12 grid grid-cols-12 items-center">
-                      <div class="col-span-4">
-                        <div class="space-y-1">
-                          <span class="text-lg font-semibold block text-white">
-                            {{ conceptRate.tarifa.tipoTarifa.nombre }}
-                          </span>
-                          <span class="text-sm text-gray-400 block">
+                    <!-- Mobile Content -->
+                    <div class="space-y-3">
+                      <!-- Tipo de Tarifa -->
+                      <div class="flex items-start gap-3">
+                        <div class="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+                        <div class="flex-1">
+                          <span class="text-xs text-gray-400 block mb-1">Tipo de Tarifa</span>
+                          <span class="text-sm text-gray-300 block">
                             {{ conceptRate.tarifa.tipoTarifa.descripcion }}
                           </span>
-                          <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded inline-block">
+                          <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded inline-block mt-1">
                             {{ conceptRate.tarifa.tipoTarifa.codigo }}
                           </span>
                         </div>
                       </div>
 
-                      <div class="col-span-4">
-                        <div class="space-y-1">
-                          <span class="text-lg font-semibold block text-white">
-                            {{ conceptRate.tipoConcepto.descripcion }}
-                          </span>
-                          <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded inline-block">
-                            {{ conceptRate.tipoConcepto.codigo }}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div class="col-span-3">
-                        <div class="flex flex-col">
-                          <span class="text-xl font-bold text-green-400">
-                            $ {{ conceptRate.valor | number:'1.2-2' }}
-                          </span>
-                          <span class="text-xs text-gray-500">
-                            COP
-                          </span>
-                        </div>
-                      </div>
-
-                      <div class="col-span-1">
-                        <div class="flex items-center justify-center">
-                          @if (conceptRate.indCalcularMc) {
-                            <span class="inline-flex items-center justify-center w-8 h-8 bg-green-500/20 text-green-400 rounded-full" title="Calcular MC habilitado">
-                              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                              </svg>
-                            </span>
+                      <!-- Valor -->
+                      <div class="flex items-start gap-3">
+                        <div class="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></div>
+                        <div class="flex-1">
+                          <span class="text-xs text-gray-400 block mb-1">Valor</span>
+                          @if (conceptRate.porEstrato && conceptRate.estratos && conceptRate.estratos.length > 0) {
+                            <div class="space-y-1">
+                              @for (estrato of conceptRate.estratos; track estrato.id) {
+                                <div class="flex justify-between items-center">
+                                  <span class="text-sm text-gray-300">Estrato {{estrato.estrato}}:</span>
+                                  <span class="text-green-400 font-bold">$ {{ estrato.valor | number:'1.2-2' }}</span>
+                                </div>
+                              }
+                            </div>
+                          } @else if (conceptRate.valor) {
+                            <div class="flex items-baseline gap-2">
+                              <span class="text-xl font-bold text-green-400">
+                                $ {{ conceptRate.valor | number:'1.2-2' }}
+                              </span>
+                              <span class="text-xs text-gray-500">COP</span>
+                            </div>
                           } @else {
-                            <span class="inline-flex items-center justify-center w-8 h-8 bg-red-500/20 text-red-400 rounded-full" title="Calcular MC deshabilitado">
-                              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                              </svg>
-                            </span>
+                            <span class="text-gray-500">Sin valor</span>
                           }
                         </div>
                       </div>
                     </div>
+                  </div>
 
-                    <!-- Enterprise info section -->
-                    <div class="col-span-12 mt-4 pt-4 border-t border-gray-600/50">
-                      <div class="mb-3">
-                        <span class="text-xs text-gray-400 uppercase tracking-wider">Información de la empresa</span>
+                  <!-- Desktop Layout -->
+                  <div class="hidden md:block">
+                    <div class="grid grid-cols-12 items-center gap-4">
+                      <!-- Header labels -->
+                      <div class="col-span-12 grid grid-cols-12 text-xs text-gray-400 mb-2">
+                        <span class="col-span-4">Tipo de Tarifa</span>
+                        <span class="col-span-4">Tipo de Concepto</span>
+                        <span class="col-span-3">Valor</span>
+                        <span class="col-span-1 text-center">Acciones</span>
                       </div>
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div class="space-y-3">
-                          <div class="flex items-start gap-3">
-                            <div class="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
-                            <div>
-                              <span class="text-gray-400 text-xs block">Empresa</span>
-                              <span class="text-gray-200 font-medium">{{ conceptRate.tarifa.empresa.nombre }}</span>
-                            </div>
-                          </div>
-                          <div class="flex items-start gap-3">
-                            <div class="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
-                            <div>
-                              <span class="text-gray-400 text-xs block">NIT</span>
-                              <span class="text-gray-200">{{ conceptRate.tarifa.empresa.nit }}</span>
-                            </div>
-                          </div>
-                          <div class="flex items-start gap-3">
-                            <div class="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
-                            <div>
-                              <span class="text-gray-400 text-xs block">Código</span>
-                              <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded">
-                                {{ conceptRate.tarifa.empresa.codigo }}
-                              </span>
-                            </div>
+
+                      <!-- Data row -->
+                      <div class="col-span-12 grid grid-cols-12 items-center">
+                        <div class="col-span-4">
+                          <div class="space-y-1">
+                            <span class="text-sm text-gray-400 block">
+                              {{ conceptRate.tarifa.tipoTarifa.descripcion }}
+                            </span>
+                            <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded inline-block">
+                              {{ conceptRate.tarifa.tipoTarifa.codigo }}
+                            </span>
                           </div>
                         </div>
-                        <div class="space-y-3">
-                          <div class="flex items-start gap-3">
-                            <div class="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></div>
-                            <div>
-                              <span class="text-gray-400 text-xs block">Departamento</span>
-                              <span class="text-gray-200">{{ conceptRate.tarifa.empresa.direccion.departamentoId.nombre }}</span>
-                            </div>
+
+                        <div class="col-span-4">
+                          <div class="space-y-1">
+                            <span class="text-lg font-semibold block text-white">
+                              {{ conceptRate.tipoConcepto.descripcion }}
+                            </span>
+                            <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded inline-block">
+                              {{ conceptRate.tipoConcepto.codigo }}
+                            </span>
                           </div>
-                          <div class="flex items-start gap-3">
-                            <div class="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></div>
-                            <div>
-                              <span class="text-gray-400 text-xs block">Ciudad</span>
-                              <span class="text-gray-200">{{ conceptRate.tarifa.empresa.direccion.ciudadId.nombre }}</span>
+                        </div>
+
+                        <div class="col-span-3">
+                          @if (conceptRate.porEstrato && conceptRate.estratos && conceptRate.estratos.length > 0) {
+                            <div class="flex flex-col space-y-1">
+                              <span class="text-xs text-gray-400">Por Estrato:</span>
+                              @for (estrato of conceptRate.estratos; track estrato.id) {
+                                <div class="flex justify-between items-center text-sm">
+                                  <span class="text-gray-300">Est. {{estrato.estrato}}:</span>
+                                  <span class="text-green-400 font-bold">$ {{ estrato.valor | number:'1.2-2' }}</span>
+                                </div>
+                              }
                             </div>
-                          </div>
-                          <div class="flex items-start gap-3">
-                            <div class="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></div>
-                            <div>
-                              <span class="text-gray-400 text-xs block">Corregimiento</span>
-                              <span class="text-gray-200">{{ conceptRate.tarifa.empresa.direccion.corregimientoId.nombre }}</span>
+                          } @else if (conceptRate.valor) {
+                            <div class="flex flex-col">
+                              <span class="text-xl font-bold text-green-400">
+                                $ {{ conceptRate.valor | number:'1.2-2' }}
+                              </span>
+                              <span class="text-xs text-gray-500">
+                                COP
+                              </span>
                             </div>
+                          } @else {
+                            <span class="text-gray-500">Sin valor</span>
+                          }
+                        </div>
+
+                        <div class="col-span-1">
+                          <div class="flex items-center justify-center space-x-1">
+                            <button
+                              (click)="editConceptRate(conceptRate.id)"
+                              class="inline-flex items-center justify-center w-8 h-8 bg-blue-500/20 text-blue-400 rounded-full hover:bg-blue-500/30 transition-colors"
+                              title="Editar concepto">
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                              </svg>
+                            </button>
+                            <button
+                              (click)="deleteConceptRate(conceptRate.id)"
+                              class="inline-flex items-center justify-center w-8 h-8 bg-red-500/20 text-red-400 rounded-full hover:bg-red-500/30 transition-colors"
+                              title="Eliminar concepto">
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                              </svg>
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -209,6 +247,7 @@ import { EMPTY } from 'rxjs';
             }
           </div>
         }
+        </div>
       </div>
     </section>
   `
@@ -252,7 +291,12 @@ export class ConceptRateEnterpice {
         : EMPTY
   })
 
-conceptRatesData = computed(() => this.dataConceptRate.value()?.response ?? []);
+conceptRatesData = computed(() => {
+  const data = this.dataConceptRate.value()?.response ?? [];
+  // Debug: verificar estructura de datos
+  console.log('Concept Rates Data:', data);
+  return data;
+});
 
   reloadData(): void {
     this.dataConceptRate.reload();
@@ -263,8 +307,18 @@ conceptRatesData = computed(() => this.dataConceptRate.value()?.response ?? []);
   averageValue = computed(() => {
     const data = this.conceptRatesData();
     if (data.length === 0) return 0;
-    const total = data.reduce((sum, item) => sum + item.valor, 0);
+    const total = data.reduce((sum, item) => sum + (item.valor || 0), 0);
     return total / data.length;
   });
+
+  editConceptRate(id: number): void {
+    console.log('Editando concepto de tarifa con ID:', id);
+  }
+
+  deleteConceptRate(id: number): void {
+    if (confirm('¿Está seguro de que desea eliminar este concepto de tarifa?')) {
+      console.log('Eliminando concepto de tarifa con ID:', id);
+    }
+  }
 
 }

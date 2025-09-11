@@ -31,14 +31,31 @@ export interface IEnterpriseSimple {
 
 export interface ITarifa {
   id: number;
-  empresa: IEnterpriseSimple;
+  empresa?: IEnterpriseSimple;
   tipoTarifa: IrateTypes;
+}
+
+export interface IConceptType {
+  id: number;
+  descripcion: string;
+  codigo: string;
 }
 
 export interface IConceptRate {
   id: number;
   tarifa: ITarifa;
-  tipoConcepto: IrateTypes;
-  valor: number;
+  tipoConcepto: IConceptType;
+  valor?: number;
   indCalcularMc: boolean;
+  porEstrato?: boolean;
+  estratos?: Istratum[];
 }
+
+export interface Istratum {
+  id: number;
+  estrato: number;
+  valor: number;
+}
+
+
+
