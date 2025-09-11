@@ -152,14 +152,20 @@ export class FeeComponent {
   }
 
   canAddTarifa(): boolean {
-    const canAdd = !!(
-      this.selectedTipoTarifa &&
-      this.selectedTipoConcepto &&
-      this.valorTarifa !== null &&
-      this.valorTarifa > 0
-    );
+    // Validar que se hayan seleccionado tipo de tarifa y tipo de concepto
+    const hasBasicFields = !!(this.selectedTipoTarifa && this.selectedTipoConcepto);
 
-    return canAdd;
+    if (!hasBasicFields) {
+      return false;
+    }
+
+    // Si se está mostrando la tabla de estratos, validar que haya al menos un estrato
+    if (this.mostrarTablaEstratos) {
+      return this.estratosActuales.length > 0;
+    }
+
+    // Si NO se está mostrando la tabla de estratos, validar que haya un valor
+    return !!(this.valorTarifa !== null && this.valorTarifa > 0);
   } // Agregar una nueva tarifa
   agregarTarifa(): void {
     if (!this.canAddTarifa()) {
@@ -207,17 +213,26 @@ export class FeeComponent {
     this.valorTarifa = null;
     this.estratosActuales = [];
     this.mostrarTablaEstratos = false;
+    this.nuevoEstratoNumero = 1;
+    this.nuevoEstratoValor = null;
   }
 
 
   toggleTablaEstratos(): void {
     this.mostrarTablaEstratos = !this.mostrarTablaEstratos;
-    if (this.mostrarTablaEstratos && this.estratosActuales.length === 0) {
-      this.estratosActuales = [
-        { id: 1, numero: 1, valor: 1000 },
-        { id: 2, numero: 2, valor: 2000 },
-        { id: 3, numero: 3, valor: 3000 },
-      ];
+
+    if (this.mostrarTablaEstratos) {
+      // Si se activa la tabla de estratos, limpiar el valor tarifa concepto
+      this.valorTarifa = null;
+
+      // Si no hay estratos, agregar algunos por defecto
+      if (this.estratosActuales.length === 0) {
+        this.estratosActuales = [
+          { id: 1, numero: 1, valor: 1000 },
+          { id: 2, numero: 2, valor: 2000 },
+          { id: 3, numero: 3, valor: 3000 },
+        ];
+      }
     }
   }
 
@@ -317,8 +332,7 @@ export class FeeComponent {
         if (exitosas.length === responses.length) {
           this.toastService.success('Éxito', `Se guardaron ${exitosas.length} tarifas exitosamente`);
           this.tarifasAgregadas = [];
-          if (this.showPopupConceptosTarifaEmpresa()) {
-          }
+          // Los datos del popup de conceptos empresa se actualizarán automáticamente
         } else if (exitosas.length > 0) {
           this.toastService.success('Parcial',
             `Se guardaron ${exitosas.length} de ${responses.length} tarifas. ${fallidas.length} fallaron.`);
