@@ -62,6 +62,9 @@ import { ClientRow } from '@interfaces/client/IclientRow';
       [columnTemplates]="{ estado: estadoTpl }"
       [showAddButton]="true"
       [addButtonText]="'Agregar Cliente'"
+      [showColumnFilters]="true"
+      [showExportButton]="true"
+      [exportFileName]="'mi_reporte_2025'"
       (action)="onTableAction($event)"
     >
     </app-table-dynamic>
