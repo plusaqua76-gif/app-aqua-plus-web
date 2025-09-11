@@ -15,11 +15,11 @@ import {
     @if (isOpen()) {
     <div
       id="overlay"
-      class="fixed inset-0 z-[900] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      class="fixed inset-0 z-[1000] flex items-start justify-center bg-black/50 backdrop-blur-sm pt-[75px] pb-4"
       (click)="close()"
     >
       <div
-        class="relative w-full p-4 pt-16"
+        class="relative w-full p-4 max-h-[calc(100vh-85px)] overflow-hidden"
         [class]="maxWidth()"
         (click)="$event.stopPropagation()"
       >

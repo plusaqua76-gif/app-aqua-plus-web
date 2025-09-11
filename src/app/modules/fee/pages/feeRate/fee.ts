@@ -17,6 +17,9 @@ import { ConceptRateEnterpice } from '../fee-enterprice/concept-rate-enterpice';
 import { IrateTypes } from '@interfaces/IrateTypes';
 import { ToastService } from '@services/toast.service';
 import { TypeConceptService } from '../../services/type-concept.service';
+import { ConceptRateService } from '../../services/concept-rate.service';
+import { IConceptRatePayload, IEstratoValue } from '@interfaces/IConceptRatePayload';
+import { forkJoin } from 'rxjs';
 
 // esto es mala practica, nosotros ya tenemos creado una interface IrateTypes en core/interfaces/IrateTypes.ts
 interface NuevoItem {
@@ -36,6 +39,9 @@ interface TarifaItem {
   tipoConcepto: string;
   valor: number;
   estratos: Estrato[];
+  // Agregar IDs originales para facilitar el guardado
+  tipoTarifaId: number;
+  tipoConceptoId: number;
 }
 
 @Component({
@@ -56,6 +62,7 @@ export class FeeComponent {
   protected readonly toastService = inject(ToastService);
   protected readonly router = inject(Router);
   protected typeConceptService = inject(TypeConceptService);
+  protected conceptRateService = inject(ConceptRateService);
   protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
 
@@ -127,6 +134,9 @@ export class FeeComponent {
 
   tarifasAgregadas: TarifaItem[] = [];
 
+  // Signal para controlar el estado de guardado de las tarifas
+  guardandoTarifas = signal(false);
+
   dataTypeConcepts = rxResource({
     stream: () => this.typeConceptService.getAllTypeConcepts(),
   });
@@ -178,6 +188,8 @@ export class FeeComponent {
       tipoConcepto: tipoConceptoNombre,
       valor: this.valorTarifa!,
       estratos: [...this.estratosActuales],
+      tipoTarifaId: tipoTarifaId,
+      tipoConceptoId: tipoConceptoId,
     };
     this.tarifasAgregadas.push(nuevaTarifa);
     this.limpiarFormulario();
@@ -247,10 +259,85 @@ export class FeeComponent {
 
   guardarTarifas(): void {
     if (this.tarifasAgregadas.length === 0) {
+      this.toastService.error('Error', 'No hay tarifas para guardar');
       return;
     }
 
-    this.toastService.success('Éxito', 'Estado actualizado correctamente');
+    const empresaId = this.empresaId();
+    const usuario = this.nombreUsuario();
+
+    if (!empresaId) {
+      this.toastService.error('Error', 'No se pudo obtener la empresa actual');
+      return;
+    }
+
+    if (!usuario) {
+      this.toastService.error('Error', 'No se pudo obtener el usuario actual');
+      return;
+    }
+
+    this.guardandoTarifas.set(true);
+
+    // Construir array de payloads
+    const payloads: IConceptRatePayload[] = this.tarifasAgregadas.map(tarifa => {
+      const payload: IConceptRatePayload = {
+        idEmpresa: empresaId,
+        idTipoTarifa: tarifa.tipoTarifaId,
+        usuarioCreacion: usuario,
+        concepto: {
+          idTipoConcepto: tarifa.tipoConceptoId,
+          indCalcularMc: true,
+        }
+      };
+
+
+      if (tarifa.estratos && tarifa.estratos.length > 0) {
+        payload.concepto.indCalcularMc = false;
+        payload.concepto.valoresEstrato = tarifa.estratos.map((estrato): IEstratoValue => ({
+          estrato: estrato.numero,
+          valor: estrato.valor
+        }));
+      } else {
+        payload.concepto.valor = tarifa.valor;
+      }
+
+      return payload;
+    });
+
+    // Enviar todas las tarifas usando forkJoin
+    const requests = payloads.map(payload =>
+      this.conceptRateService.saveFeeConceptRate(payload)
+    );
+
+    forkJoin(requests).subscribe({
+      next: (responses) => {
+        const exitosas = responses.filter(response => response.success);
+        const fallidas = responses.filter(response => !response.success);
+
+        if (exitosas.length === responses.length) {
+          this.toastService.success('Éxito', `Se guardaron ${exitosas.length} tarifas exitosamente`);
+          this.tarifasAgregadas = [];
+          if (this.showPopupConceptosTarifaEmpresa()) {
+          }
+        } else if (exitosas.length > 0) {
+          this.toastService.success('Parcial',
+            `Se guardaron ${exitosas.length} de ${responses.length} tarifas. ${fallidas.length} fallaron.`);
+          this.tarifasAgregadas = this.tarifasAgregadas.slice(exitosas.length);
+        } else {
+          this.toastService.error('Error', 'No se pudo guardar ninguna tarifa');
+        }
+
+        this.guardandoTarifas.set(false);
+      },
+      error: (error) => {
+        console.error('Error al guardar las tarifas:', error);
+        this.toastService.error('Error', 'Error al guardar las tarifas. Por favor, inténtelo de nuevo.');
+        this.guardandoTarifas.set(false);
+      },
+      complete: () => {
+        this.guardandoTarifas.set(false);
+      }
+    });
   }
 
   // Métodos para el popup de tipo de tarifa
