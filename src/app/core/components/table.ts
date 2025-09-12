@@ -116,6 +116,32 @@ export interface TableColumn {
                 }
               </div>
             }
+
+            @if (showColumnFilters()) {
+              <button
+                type="button"
+                class="flex items-center justify-center rounded-lg border px-4 py-3 text-sm font-medium transition-colors duration-200"
+                [class]="buttonFilter()
+                  ? 'border-green-500 bg-green-50 text-green-700 hover:bg-green-100 dark:border-green-600 dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800'
+                  : 'border-gray-200 bg-white text-gray-900 hover:bg-gray-100 hover:text-blue-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'"
+                (click)="toggleFilters()"
+                [title]="buttonFilter() ? 'Ocultar filtros' : 'Mostrar filtros'"
+              >
+                @if (buttonFilter()) {
+                  <!-- Icono de filtro activo -->
+                  <svg class="w-5 h-5 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M5.05 3C3.291 3 2.352 5.024 3.51 6.317l5.422 6.059v4.874c0 .472.227.917.613 1.2l3.069 2.25c1.01.742 2.454.036 2.454-1.2v-7.124l5.422-6.059C21.647 5.024 20.708 3 18.95 3H5.05Z"/>
+                  </svg>
+                  Filtros
+                } @else {
+                  <!-- Icono de filtro inactivo -->
+                  <svg class="w-5 h-5 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z"/>
+                  </svg>
+                  Filtros
+                }
+              </button>
+            }
           </div>
 
           @if (showAddButton()) {
@@ -174,7 +200,7 @@ export interface TableColumn {
           </tr>
 
           <!-- Fila de filtros separada -->
-          @if (showColumnFilters()) {
+          @if (showColumnFilters() && buttonFilter()) {
             <tr class="bg-slate-600 dark:bg-slate-800">
               @for (column of columns(); track column) {
                 <th scope="col" class="px-3 sm:px-6 py-3">
@@ -191,7 +217,7 @@ export interface TableColumn {
                       <app-datepicker
                         [value]="columnFilters()[column.field] || ''"
                         placeholder=""
-                        format="dd/mm/yyyy"
+                        format="yyyy-mm-dd"
                         [compact]="true"
                         (dateChange)="onColumnFilterChange(column.field, $event)"
                       />
@@ -306,6 +332,7 @@ export interface TableColumn {
   `,
 })
 export class TableComponent {
+  readonly buttonFilter = signal<boolean>(false);
   columns = input<TableColumn[]>([]);
   title = input<string>('');
   datasource = input<any[]>([]);
@@ -602,6 +629,10 @@ export class TableComponent {
 
   toggleExportDropdown() {
     this.showExportDropdown.update(show => !show);
+  }
+
+  toggleFilters() {
+    this.buttonFilter.update(show => !show);
   }
 
   private downloadFile(content: string, fileName: string, mimeType: string) {
