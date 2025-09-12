@@ -8,13 +8,17 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --primary-text-color: #000;
-  --bg-color: #ffffff;
-  color-scheme: light dark;
+  --primary-text-color: #fff;
+  --bg-color: #0f1115;
+  color-scheme: dark;
 }
 
 html {
   scroll-behavior: smooth;
+}
+
+body.modal-open {
+  overflow: hidden;
 }
 
 body.modal-open {

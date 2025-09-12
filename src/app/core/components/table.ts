@@ -40,15 +40,6 @@ export interface TableColumn {
         <div
           class="flex flex-col sm:flex-row sm:items-center gap-4 justify-between"
         >
-          <div class="w-full max-w-sm">
-            <input
-              type="text"
-              placeholder="Buscar..."
-              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-              (input)="onSearchInput($event)"
-            />
-          </div>
-
           <div class="flex items-center gap-4">
             <select
               class="px-7 py-3 pl-4 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600"
@@ -358,21 +349,6 @@ export class TableComponent {
     }
     return this.pageIndex();
   });
-  onSearchInput(event: Event) {
-    const value = (event.target as HTMLInputElement | null)?.value ?? '';
-    this.search.set(value);
-
-    if (this.serverMode()) {
-      const currentSize = this.serverData()?.pageSize || this.pageSize();
-      this.emitServerPaginationChange({
-        search: value,
-        page: 0,
-        size: currentSize
-      });
-    } else {
-      this.pageIndex.set(0);
-    }
-  }
 
   onColumnFilterInput(column: string, event: Event) {
     const value = (event.target as HTMLInputElement | null)?.value ?? '';

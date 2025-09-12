@@ -104,11 +104,6 @@ export class FacturaService {
         });
         return httpParams;
     }
-
-    /**
-     * Aplica un filtro específico a los parámetros HTTP
-     */
-    // esto es una pequeña implementacion, esto debera ser dinamico, es solo para verificar el funcionamiento real de filtros 
     private applyFilter(httpParams: HttpParams, key: string, value: string): HttpParams {
         switch (key) {
             case 'codigo':

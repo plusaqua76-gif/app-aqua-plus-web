@@ -21,17 +21,12 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
   template: `
     <ng-template #actionsTemplate let-row>
       <div class="flex items-center space-x-2">
+        <!-- poner el boton de tarifas  -->
         <button
           (click)="handleTableAction({ action: 'edit', row })"
           class="text-green-600 hover:text-green-900 text-sm cursor-pointer"
         >
           <i class="fas fa-edit"></i>
-        </button>
-        <button
-          (click)="onDelete(row.id)"
-          class="text-red-600 hover:text-red-900 text-sm cursor-pointer"
-        >
-          <i class="fas fa-trash"></i>
         </button>
       </div>
     </ng-template>
