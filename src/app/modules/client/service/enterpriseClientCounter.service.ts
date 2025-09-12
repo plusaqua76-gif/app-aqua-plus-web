@@ -31,54 +31,6 @@ export class EnterpriseClientCounterService {
     return this.http.get<ApiResponse<IEnterpriseClientCounter[]>>(url)
   }
 
-  getAllClienteEnterprises(): Observable<IEnterpriseClientCounter[]> {
-    const url = `${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_ALL_CLI}`;
-    return this.http.get<ApiResponse<IEnterpriseClientCounter[]>>(url).pipe(
-      map((response: ApiResponse<IEnterpriseClientCounter[]>) => {
-        return response.response;
-      })
-    );
-  }
-  getAllClienteEnterprise(): Observable<{
-    clientes: IEnterpriseClientCounter[],
-    correos: ICorreoPerson[],
-    telefonos: ITelefonoGeneral[]
-  }> {
-    const clientes$ = this.http
-      .get<ApiResponse<IEnterpriseClientCounter[]>>(`${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_ALL_CLI}`)
-      .pipe(map(resp => resp.response));
-
-    const correos$ = this.correoService.getAllCorreo().pipe(
-      map(resp => resp.response)
-    );
-
-    const telefonos$ = this.telefonoService.getAllTelefono().pipe(
-      map(resp => resp.response)
-    );
-
-    return forkJoin({
-      clientes: clientes$,
-      correos: correos$,
-      telefonos: telefonos$
-    });
-  }
-
-
-
-  private handleError(error: any): Observable<never> {
-    let errorMessage = 'An unknown error occurred while loading enterprise client counters.';
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = `Client Error: ${error.error.message}`;
-    } else {
-      errorMessage = `Server Error: ${error.status} - ${error.message || ''}`;
-      if (error.error && error.error.message) {
-        errorMessage = `${errorMessage} - ${error.error.message}`;
-      }
-    }
-    console.error('Error in EnterpriseClientCounterService:', errorMessage);
-    return throwError(() => new Error(errorMessage));
-  }
-
   // Método optimizado que aplica el mapper directamente y devuelve ClientRow[]
   getAllClientsByIdEnterprise(enterpriseId: number): Observable<ApiResponse<ClientRow[]>> {
     const url = `${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_CLIENT}/${enterpriseId}`;
@@ -92,50 +44,36 @@ export class EnterpriseClientCounterService {
 
   getEntClientCounterById(id: number): Observable<ApiResponse<IEnterpriseClientCounter>> {
     const url = `${this.apiUrl}/${id}`;
-    return this.http.get<ApiResponse<IEnterpriseClientCounter>>(url).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.get<ApiResponse<IEnterpriseClientCounter>>(url)
   }
   updateEstado(data: { id_persona: number, activo: boolean, usuario_cambio: string }): Observable<Map<string, any>> {
     const url = `${environment.apiUrl}/${ENTERPRISE_CLIENT_COUNT.ENT_CLI_COU}/${END_POINT_SERVICE.POST_UPD_ESTADO}`;
-    return this.http.post<Map<string, any>>(url, data).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.post<Map<string, any>>(url, data)
   }
 
   saveClient(data: any): Observable<any> {
     const url = `${environment.apiUrl}/${ENTERPRISE_CLIENT_COUNT.ENT_CLI_COU}/${ENTERPRISE_CLIENT_COUNT.POST_SAVE_CLI}`;
-    return this.http.post<any>(url, data).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.post<any>(url, data)
   }
 
   deleteClienteById(id: number): Observable<ApiResponse<any>> {
     const url = `${this.apiUrl}/${id}`;
-    return this.http.delete<ApiResponse<any>>(url).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.delete<ApiResponse<any>>(url)
   }
 
   deleteClient(idPersona: number): Observable<any> {
   const url = `${environment.apiUrl}/${ENTERPRISE_CLIENT_COUNT.ENT_CLI_COU}/${ENTERPRISE_CLIENT_COUNT.DELETE_CLI}/${idPersona}`;
-  return this.http.delete<any>(url).pipe(
-    catchError(this.handleError)
-  );
+  return this.http.delete<any>(url)
 }
 
   getClienteById(id: number): Observable<ApiResponse<IEnterpriseClientCounter>> {
     const url = `${this.apiUrl}/${id}`;
-    return this.http.get<ApiResponse<IEnterpriseClientCounter>>(url).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.get<ApiResponse<IEnterpriseClientCounter>>(url)
   }
 
    updateClient(data: any): Observable<any> {
     const url = `${environment.apiUrl}/${ENTERPRISE_CLIENT_COUNT.ENT_CLI_COU}/${ENTERPRISE_CLIENT_COUNT.UPDATE_CLI}`;
-    return this.http.post<any>(url, data).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.post<any>(url, data)
   }
 
 }
