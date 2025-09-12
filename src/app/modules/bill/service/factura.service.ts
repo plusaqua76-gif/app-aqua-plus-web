@@ -13,8 +13,8 @@ import { IPaginatedResponse, IPaginationParams } from "@interfaces/IpaginatedRes
 })
 export class FacturaService {
 
-    private apiUrl = `${environment.apiUrl}/${END_POINT_SERVICE.GET_FACTURA}`;
-    private Url = `${environment.apiUrl}/${END_POINT_SERVICE.GET_FACTURA}/${END_POINT_SERVICE.GET_FACTURA_ALL}`;
+    private readonly apiUrl = `${environment.apiUrl}/${END_POINT_SERVICE.GET_FACTURA}`;
+    private readonly Url = `${environment.apiUrl}/${END_POINT_SERVICE.GET_FACTURA}/${END_POINT_SERVICE.GET_FACTURA_ALL}`;
     protected readonly router = inject(Router)
     protected readonly http = inject(HttpClient)
 
@@ -52,7 +52,7 @@ export class FacturaService {
             errorMessage = `Client Error: ${error.error.message}`;
         } else {
             errorMessage = `Server Error: ${error.status} - ${error.message || ''}`;
-            if (error.error && error.error.message) {
+            if (error.error?.message) {
                 errorMessage = `${errorMessage} - ${error.error.message}`;
             }
         }
@@ -104,6 +104,10 @@ export class FacturaService {
         });
         return httpParams;
     }
+
+    /**
+     * Aplica filtros directos: una columna = un parámetro de la API
+     */
     private applyFilter(httpParams: HttpParams, key: string, value: string): HttpParams {
         switch (key) {
             case 'codigo':
@@ -112,16 +116,22 @@ export class FacturaService {
             case 'apellido':
                 return httpParams.set('clienteNombreCompleto', value);
             case 'consumo':
-                return this.handleNumericRangeFilter(httpParams, value, 'consumo', 'consumoMin', 'consumoMax');
+                return this.isValidNumber(value)
+                    ? httpParams.set('consumo', value)
+                    : httpParams;
             case 'fechaEmision':
-                return this.handleDateRangeFilter(httpParams, value, 'fechaEmisionDesde', 'fechaEmisionHasta');
+                return this.isValidDateFormat(value)
+                    ? httpParams.set('fechaEmision', value)
+                    : httpParams;
             case 'fechaFin':
-                return this.handleDateRangeFilter(httpParams, value, 'fechaFinDesde', 'fechaFinHasta');
+                return this.isValidDateFormat(value)
+                    ? httpParams.set('fechaFin', value)
+                    : httpParams;
             case 'estadoNombre':
                 return httpParams.set('estadoNombre', value);
             case 'tipoPagoNombre':
                 return httpParams.set('tipoPagoNombre', value);
-            case 'precio':
+           case 'precio':
                 return this.handleNumericRangeFilter(httpParams, value, null, 'precioMin', 'precioMax');
             default:
                 return httpParams.set(key, value);
@@ -130,6 +140,7 @@ export class FacturaService {
 
     /**
      * Maneja filtros numéricos que pueden ser valores exactos o rangos
+     * Ejemplos: "100", ">100", "<500", "100-500"
      */
     private handleNumericRangeFilter(
         httpParams: HttpParams,
@@ -138,38 +149,76 @@ export class FacturaService {
         minParam: string,
         maxParam: string
     ): HttpParams {
-        if (value.includes('-')) {
-            const [min, max] = value.split('-').map(p => p.trim());
-            if (min && !isNaN(Number(min))) httpParams = httpParams.set(minParam, min);
-            if (max && !isNaN(Number(max))) httpParams = httpParams.set(maxParam, max);
-        } else if (!isNaN(Number(value))) {
-            if (exactParam) {
-                httpParams = httpParams.set(exactParam, value);
-            } else {
-                httpParams = httpParams.set(minParam, value);
-                httpParams = httpParams.set(maxParam, value);
-            }
+        const trimmedValue = value.trim();
+
+        if (trimmedValue.startsWith('>')) {
+            return this.handleGreaterThan(httpParams, trimmedValue, minParam);
+        }
+
+        if (trimmedValue.startsWith('<')) {
+            return this.handleLessThan(httpParams, trimmedValue, maxParam);
+        }
+
+        if (trimmedValue.includes('-') && !trimmedValue.startsWith('-')) {
+            return this.handleRange(httpParams, trimmedValue, minParam, maxParam);
+        }
+
+        return this.handleExactValue(httpParams, trimmedValue, exactParam, minParam, maxParam);
+    }
+
+    private handleGreaterThan(httpParams: HttpParams, value: string, minParam: string): HttpParams {
+        const minValue = value.substring(1).trim();
+        return this.isValidNumber(minValue) ? httpParams.set(minParam, minValue) : httpParams;
+    }
+
+    private handleLessThan(httpParams: HttpParams, value: string, maxParam: string): HttpParams {
+        const maxValue = value.substring(1).trim();
+        return this.isValidNumber(maxValue) ? httpParams.set(maxParam, maxValue) : httpParams;
+    }
+
+    private handleRange(httpParams: HttpParams, value: string, minParam: string, maxParam: string): HttpParams {
+        const [min, max] = value.split('-').map(p => p.trim());
+        if (min && this.isValidNumber(min)) {
+            httpParams = httpParams.set(minParam, min);
+        }
+        if (max && this.isValidNumber(max)) {
+            httpParams = httpParams.set(maxParam, max);
         }
         return httpParams;
     }
 
-    /**
-     * Maneja filtros de fecha que pueden ser fechas exactas o rangos
-     */
-    private handleDateRangeFilter(
+    private handleExactValue(
         httpParams: HttpParams,
         value: string,
-        fromParam: string,
-        toParam: string
+        exactParam: string | null,
+        minParam: string,
+        maxParam: string
     ): HttpParams {
-        if (value.includes('-')) {
-            const [desde, hasta] = value.split('-').map(f => f.trim());
-            if (desde) httpParams = httpParams.set(fromParam, desde);
-            if (hasta) httpParams = httpParams.set(toParam, hasta);
-        } else {
-            httpParams = httpParams.set(fromParam, value);
-            httpParams = httpParams.set(toParam, value);
+        if (!this.isValidNumber(value)) return httpParams;
+
+        if (exactParam) {
+            return httpParams.set(exactParam, value);
         }
-        return httpParams;
+
+        return httpParams.set(minParam, value).set(maxParam, value);
+    }
+
+    /**
+     * Valida si el valor es una fecha válida en formato ISO (YYYY-MM-DD)
+     */
+    private isValidDateFormat(value: string): boolean {
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(value)) return false;
+
+        const date = new Date(value);
+        return date instanceof Date && !isNaN(date.getTime()) && date.toISOString().split('T')[0] === value;
+    }
+
+    /**
+     * Valida si el valor es un número válido
+     */
+    private isValidNumber(value: string): boolean {
+        const trimmed = value.trim();
+        return trimmed !== '' && !isNaN(Number(trimmed));
     }
 }
