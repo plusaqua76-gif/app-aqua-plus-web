@@ -10,16 +10,23 @@ import {
   HostListener,
 } from '@angular/core';
 import { IPaginatedResponse, IPaginationParams } from '../interfaces/IpaginatedResponse';
+import { Datepicker } from '../../shared/components/datepicker';
 
 export interface Action<T = any> {
   action: string;
   row?: T;
 }
 
+export interface TableColumn {
+  field: string;
+  header: string;
+  type?: 'text' | 'date' | 'number';
+}
+
 @Component({
   selector: 'app-table-dynamic',
   standalone: true,
-  imports: [NgTemplateOutlet],
+  imports: [NgTemplateOutlet, Datepicker],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="px-4 sm:px-6 lg:px-8 py-6 pb-0">
@@ -180,15 +187,43 @@ export interface Action<T = any> {
             <tr class="bg-slate-600 dark:bg-slate-800">
               @for (column of columns(); track column) {
                 <th scope="col" class="px-3 sm:px-6 py-3">
-                  <input
-                    type="text"
-                    class="w-full px-3 py-2 text-sm bg-slate-500 border border-slate-400 rounded-md text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:bg-slate-400"
-                    (input)="onColumnFilterInput(column.field, $event)"
-                  />
+                  <div class="relative">
+                    <!-- Icono de filtro -->
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <svg class="w-4 h-4 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z"/>
+                      </svg>
+                    </div>
+
+                    @if (column.type === 'date') {
+                      <!-- Usar el componente app-datepicker en modo compacto -->
+                      <app-datepicker
+                        [value]="columnFilters()[column.field] || ''"
+                        placeholder=""
+                        format="dd/mm/yyyy"
+                        [compact]="true"
+                        (dateChange)="onColumnFilterChange(column.field, $event)"
+                      />
+                    } @else {
+                      <!-- Input normal para otros tipos -->
+                      <input
+                        type="text"
+                        class="w-full pl-10 pr-3 py-2 text-sm bg-slate-700 border border-slate-400 rounded-md text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:bg-slate-600"
+                        (keydown.enter)="onColumnFilterInput(column.field, $event)"
+                        [value]="columnFilters()[column.field] || ''"
+                      />
+                    }
+                  </div>
                 </th>
               }
               <th scope="col" class="px-3 sm:px-6 py-3">
-                <!-- Espacio para la columna de acciones -->
+                <button
+                  class="px-2 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded transition-colors duration-200"
+                  (click)="clearAllFilters()"
+                  title="Limpiar todos los filtros"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
               </th>
             </tr>
           }
@@ -280,7 +315,7 @@ export interface Action<T = any> {
   `,
 })
 export class TableComponent {
-  columns = input<{ field: string; header: string }[]>([]);
+  columns = input<TableColumn[]>([]);
   title = input<string>('');
   datasource = input<any[]>([]);
   actionTemplate = input<TemplateRef<any> | null>(null);
@@ -303,7 +338,7 @@ export class TableComponent {
   readonly showExportDropdown = signal<boolean>(false);
 
   private readonly search = signal<string>('');
-  private readonly columnFilters = signal<Record<string, string>>({});
+  readonly columnFilters = signal<Record<string, string>>({});
 
   readonly pageSizeOptions = [5, 10, 25, 50];
   readonly pageSize = signal<number>(this.pageSizeOptions[0]);
@@ -341,6 +376,28 @@ export class TableComponent {
 
   onColumnFilterInput(column: string, event: Event) {
     const value = (event.target as HTMLInputElement | null)?.value ?? '';
+    this.columnFilters.update(filters => ({
+      ...filters,
+      [column]: value
+    }));
+
+    if (this.serverMode()) {
+      const currentFilters = this.columnFilters();
+      const currentSize = this.serverData()?.pageSize || this.pageSize();
+      const currentSearch = this.search();
+
+      this.emitServerPaginationChange({
+        filters: currentFilters,
+        page: 0,
+        size: currentSize,
+        search: currentSearch
+      });
+    } else {
+      this.pageIndex.set(0);
+    }
+  }
+
+  onColumnFilterChange(column: string, value: string) {
     this.columnFilters.update(filters => ({
       ...filters,
       [column]: value
@@ -428,21 +485,19 @@ export class TableComponent {
 
   goToPage(i: number) {
     if (this.serverMode()) {
-      // Keep current search, filters, and size
       const serverData = this.serverData();
       const currentSize = serverData?.pageSize || this.pageSize();
       const currentSearch = this.search();
       const currentFilters = this.columnFilters();
 
-      // i viene de createRange que es 0-based, y la API también espera 0-based
       this.emitServerPaginationChange({
-        page: i, // No necesita conversión, ambos son 0-based
+        page: i,
         size: currentSize,
         search: currentSearch,
         filters: currentFilters
       });
     } else {
-      this.pageIndex.set(i); // Cliente mantiene 0-based internamente
+      this.pageIndex.set(i);
     }
   }
 
@@ -537,6 +592,25 @@ export class TableComponent {
 
   onAction(type: string, row: any) {
     this.action.emit({ action: type, row });
+  }
+
+  clearAllFilters() {
+    this.columnFilters.set({});
+
+    if (this.serverMode()) {
+      const serverData = this.serverData();
+      const currentSize = serverData?.pageSize || this.pageSize();
+      const currentSearch = this.search();
+
+      this.emitServerPaginationChange({
+        page: 0,
+        size: currentSize,
+        search: currentSearch || undefined,
+        filters: undefined
+      });
+    } else {
+      this.pageIndex.set(0);
+    }
   }
 
   trackById = (_: number, row: any) => row.id ?? _;

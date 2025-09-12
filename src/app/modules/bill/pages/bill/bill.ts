@@ -7,11 +7,8 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { IfacturaResponse } from '@interfaces/Ifactura';
 import { FacturaService } from '../../service/factura.service';
 import { ToastService } from '@services/toast.service';
-import * as XLSX from 'xlsx';
-
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY } from 'rxjs';
 import { TableComponent } from '@components/table';
@@ -50,19 +47,11 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       [addButtonText]="'Deuda Clientes'"
       [showExportButton]="true"
       [exportFileName]="exportFileName()"
+      [showColumnFilters]="true"
       (action)="handleTableAction($event)"
       (serverPaginationChange)="onPaginationChange($event)"
     >
     </app-table-dynamic>
-
-    <div class="flex justify-end mt-6">
-      <button
-        (click)="downloadHistory()"
-        class="mr-3 md:mr-8 bg-green-600 text-white px-4 py-2 rounded-md cursor-pointer"
-      >
-        <i class="fas fa-file-excel"></i> Descargar historial
-      </button>
-    </div>
 
     <app-pop-up
       [open]="showDeleteConfirm"
@@ -91,15 +80,15 @@ export class Bill {
   protected readonly route = inject(ActivatedRoute);
 
   billColumns = signal([
-    { field: 'codigo', header: 'Código' },
-    { field: 'nombre', header: 'Nombre' },
-    { field: 'apellido', header: 'Apellido' },
-    { field: 'consumo', header: 'Consumo (m³)' },
-    { field: 'fechaEmision', header: 'Fecha emisión' },
-    { field: 'fechaFin', header: 'Fecha Vencimiento' },
-    { field: 'estadoNombre', header: 'Estado' },
-    { field: 'tipoPagoNombre', header: 'Tipo Pago' },
-    { field: 'precio', header: 'Precio' },
+    { field: 'codigo', header: 'Código', type: 'text' as const },
+    { field: 'nombre', header: 'Nombre', type: 'text' as const },
+    { field: 'apellido', header: 'Apellido', type: 'text' as const },
+    { field: 'consumo', header: 'Consumo (m³)', type: 'number' as const },
+    { field: 'fechaEmision', header: 'Fecha emisión', type: 'date' as const },
+    { field: 'fechaFin', header: 'Fecha Vencimiento', type: 'date' as const },
+    { field: 'estadoNombre', header: 'Estado', type: 'text' as const },
+    { field: 'tipoPagoNombre', header: 'Tipo Pago', type: 'text' as const },
+    { field: 'precio', header: 'Precio', type: 'number' as const },
   ]);
 
   readonly enterpriseId = computed(() => {
@@ -152,7 +141,7 @@ export class Bill {
     if (event.action === 'add') {
       this.goToCustomerDebt();
     } else if (event.action === 'edit' && event.row) {
-      this.router.navigate(['/bill/update-bill', event.row.id], {
+      this.router.navigate(['shell/bill/update-bill', event.row.id], {
         relativeTo: this.route,
       });
     } else if (event.action === 'delete' && event.row) {
@@ -185,62 +174,8 @@ export class Bill {
     this.showDeleteConfirm.set(false);
   }
 
-  /**
-   * Maneja los cambios de paginación del servidor
-   */
   onPaginationChange(params: IPaginationParams): void {
     this.paginationParams.set(params);
   }
 
-  downloadHistory(): void {
-    const serverData = this.serverBillData.value();
-    if (!serverData?.response) {
-      this.toastService.error(
-        'Error',
-        'No hay datos disponibles para descargar.'
-      );
-      return;
-    }
-
-    const data = serverData.response;
-    const cols = this.billColumns();
-
-    const exportData = data.map((factura: IfacturaResponse) => {
-      const row: Record<string, any> = {};
-      cols.forEach((col) => {
-        const value = factura[col.field as keyof IfacturaResponse];
-        row[col.header] = value ?? '';
-      });
-      return row;
-    });
-
-    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook: XLSX.WorkBook = {
-      Sheets: { 'Historial de Facturas': worksheet },
-      SheetNames: ['Historial de Facturas'],
-    };
-
-    const excelBuffer: any = XLSX.write(workbook, {
-      bookType: 'xlsx',
-      type: 'array',
-    });
-
-    const blob = new Blob([excelBuffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8',
-    });
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Historial_Facturas_${new Date().toISOString()}.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    this.toastService.success(
-      'Descarga completa',
-      'Historial de facturas descargado con éxito.'
-    );
-  }
 }
