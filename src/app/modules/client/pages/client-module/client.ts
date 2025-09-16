@@ -21,13 +21,6 @@ import { ClientRow } from '@interfaces/client/IclientRow';
         >
           <i class="fas fa-edit"></i>
         </button>
-
-        <button
-          (click)="onDelete(row.id)"
-          class="text-red-600 hover:text-red-900 text-sm cursor-pointer"
-        >
-          <i class="fas fa-trash"></i>
-        </button>
       </div>
     </ng-template>
 
@@ -88,25 +81,10 @@ export class Client {
   itemToDelete: number | null = null;
   title = 'Gestion de clientes';
 
-  private platformId = inject(PLATFORM_ID);
-  private isBrowser = isPlatformBrowser(this.platformId);
+  readonly platformId = inject(PLATFORM_ID);
+  readonly isBrowser = isPlatformBrowser(this.platformId);
 
-  readonly enterpriseId = computed(() => {
-    if (!this.isBrowser) return null;
-
-    try {
-      const userData = sessionStorage.getItem('userData');
-      if (!userData) return null;
-
-      const parsedUserData = JSON.parse(userData);
-      return parsedUserData.empresaId ? Number(parsedUserData.empresaId) : null;
-    } catch (error) {
-      console.error('Error parsing userData from sessionStorage:', error);
-      return null;
-    }
-  });
-
-  private enterpriseClientCounterService = inject(
+  readonly enterpriseClientCounterService = inject(
     EnterpriseClientCounterService
   );
   protected readonly router = inject(Router);
@@ -117,27 +95,37 @@ export class Client {
     { field: 'idContador', header: 'ID Contador' },
     { field: 'codigoVereda', header: 'Vereda' },
     { field: 'numeroIdentificacion', header: 'Número Identificación' },
-    // { field: 'razonSocial', header: 'Razón Social' },
     { field: 'nombreCliente', header: 'Nombre cliente' },
     { field: 'telefono', header: 'Teléfono' },
     { field: 'direccion', header: 'Dirección' },
     { field: 'correo', header: 'Correo' },
-    // { field: 'estado', header: 'Estado', template: 'estadoTpl' },
+    { field: 'estado', header: 'Estado', template: 'estadoTpl' },
   ]);
 
 
-  constructor() {
+      readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      console.error('Error parsing userData from sessionStorage:', e);
+      return null;
+    }
+  });
 
-    effect(() => {
-      const resourceState = this.dataClientCounter.status();
-      console.log('Resource status:', resourceState);
-      console.log('esta es la data de mi pez', this.dataClientCounter.value());
+    readonly enterpriseId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
+  });
 
-      if (resourceState === 'error') {
-        console.error('Resource error:', this.dataClientCounter.error());
-      }
-    });
-  }
+
+  readonly nombreUsuario = computed(() => {
+    const data = this.userData();
+    return data?.nombre || null;
+  });
+
 
   dataClientCounter = rxResource({
     params: () => ({ enterpriseId: this.enterpriseId() }),
@@ -170,7 +158,7 @@ export class Client {
       .updateEstado({
         id_persona: row.id,
         activo: nuevoEstado,
-        usuario_cambio: localStorage.getItem('nameUser') || 'admin',
+        usuario_cambio: this.nombreUsuario()
       })
       .subscribe({
         next: (response) => {
@@ -181,8 +169,7 @@ export class Client {
           );
         },
         error: (err) => {
-          console.error('Error al cambiar estado del empleado:', err.message);
-          row.estado = !nuevoEstado;
+          console.error('Error al cambiar estado del cliente:', err.message);
           this.toastService.error(
             'Error',
             'Ocurrió un error al actualizar el estado'
@@ -199,8 +186,10 @@ export class Client {
   editar(row: any) {
     const id = row?.id;
     if (id) {
-      this.router.navigate(['/client/update-client/', id], {
+      // Pasar toda la información del cliente como state en la navegación
+      this.router.navigate(['update-client/', id], {
         relativeTo: this.route,
+        state: { clienteData: row }
       });
     } else {
       this.toastService.error('Error', 'ID del cliente no válido.');

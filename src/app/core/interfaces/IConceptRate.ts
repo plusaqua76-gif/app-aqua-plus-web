@@ -43,7 +43,7 @@ export interface IConceptType {
 
 export interface IConceptRate {
   id: number;
-  tarifa: ITarifa;
+  tipoTarifa: IrateTypes;  
   tipoConcepto: IConceptType;
   valor?: number;
   indCalcularMc: boolean;

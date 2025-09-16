@@ -1,5 +1,5 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, computed, inject, PLATFORM_ID } from '@angular/core';
+import { Component, computed, effect, inject, PLATFORM_ID } from '@angular/core';
 import { ConceptRateService } from '../../services/concept-rate.service';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY } from 'rxjs';
@@ -88,7 +88,7 @@ import { EMPTY } from 'rxjs';
                     <div class="flex items-center justify-between mb-4">
                       <div class="flex-1">
                         <h3 class="text-lg font-semibold text-white mb-1">
-                          {{ conceptRate.tipoConcepto.descripcion }}
+                          {{ conceptRate.tipoTarifa.nombre }}
                         </h3>
                         <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded">
                           {{ conceptRate.tipoConcepto.codigo }}
@@ -122,10 +122,10 @@ import { EMPTY } from 'rxjs';
                         <div class="flex-1">
                           <span class="text-xs text-gray-400 block mb-1">Tipo de Tarifa</span>
                           <span class="text-sm text-gray-300 block">
-                            {{ conceptRate.tarifa.tipoTarifa.descripcion }}
+                            {{ conceptRate.tipoTarifa.nombre }}
                           </span>
                           <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded inline-block mt-1">
-                            {{ conceptRate.tarifa.tipoTarifa.codigo }}
+                            {{ conceptRate.tipoTarifa.codigo }}
                           </span>
                         </div>
                       </div>
@@ -174,18 +174,18 @@ import { EMPTY } from 'rxjs';
                       <div class="col-span-12 grid grid-cols-12 items-center">
                         <div class="col-span-4">
                           <div class="space-y-1">
-                            <span class="text-sm text-gray-400 block">
-                              {{ conceptRate.tarifa.tipoTarifa.descripcion }}
+                            <span class="text-lg font-semibold block text-white">
+                              {{ conceptRate.tipoTarifa.nombre }}
                             </span>
                             <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded inline-block">
-                              {{ conceptRate.tarifa.tipoTarifa.codigo }}
+                              {{ conceptRate.tipoTarifa.codigo }}
                             </span>
                           </div>
                         </div>
 
                         <div class="col-span-4">
                           <div class="space-y-1">
-                            <span class="text-lg font-semibold block text-white">
+                            <span class="text-sm text-gray-400 block">
                               {{ conceptRate.tipoConcepto.descripcion }}
                             </span>
                             <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded inline-block">
@@ -293,8 +293,6 @@ export class ConceptRateEnterpice {
 
 conceptRatesData = computed(() => {
   const data = this.dataConceptRate.value()?.response ?? [];
-  // Debug: verificar estructura de datos
-  console.log('Concept Rates Data:', data);
   return data;
 });
 

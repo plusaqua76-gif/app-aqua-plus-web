@@ -46,10 +46,10 @@ import { switchMap } from 'rxjs/operators';
 export class UserAccess {
   title = signal('Gestión Accesos');
 
-  private userAccessService = inject(UserAccessService);
-  private enterpriseIdService = inject(EnterpriseIdService);
-  private platformId = inject(PLATFORM_ID);
-  private isBrowser = isPlatformBrowser(this.platformId);
+  readonly userAccessService = inject(UserAccessService);
+  readonly enterpriseIdService = inject(EnterpriseIdService);
+  readonly platformId = inject(PLATFORM_ID);
+  readonly isBrowser = isPlatformBrowser(this.platformId);
   readonly idUserSelected = signal<number | null>(null);
 
 
@@ -125,13 +125,6 @@ export class UserAccess {
   toggleUserState(row: UserAccessRow, event: Event) {
     const checkbox = event.target as HTMLInputElement;
     const activo = checkbox.checked;
-
-    console.log(
-      `Cambiando estado del usuario ${row.nombre} a: ${
-        activo ? 'activo' : 'inactivo'
-      }`
-    );
-    console.log('Usuario ID:', row.id);
     this.idUserSelected.set(row.id);
 
     const users = this.usersInactives.value() || [];
@@ -143,9 +136,6 @@ export class UserAccess {
       return;
     }
 
-    console.log('Usuario completo encontrado:', userCompleto);
-
-    // Obtener el ID de empresa usando el ID del usuario
     this.enterpriseIdService.getByIdEnterprice(userCompleto.id).pipe(
       switchMap(enterpriseId => {
         if (!enterpriseId) {

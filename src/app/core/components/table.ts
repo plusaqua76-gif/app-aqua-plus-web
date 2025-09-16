@@ -256,7 +256,14 @@ export interface TableColumn {
                   <td
                     class="px-6 py-4 text-gray-900 dark:text-gray-300 font-medium"
                   >
-                    {{ row[col.field] }}
+                    @if (columnTemplates()[col.field]) {
+                      <ng-container
+                        [ngTemplateOutlet]="columnTemplates()[col.field]"
+                        [ngTemplateOutletContext]="{ $implicit: row, row }"
+                      />
+                    } @else {
+                      {{ row[col.field] }}
+                    }
                   </td>
                 }
                 <td class="px-6 py-4 text-right">
