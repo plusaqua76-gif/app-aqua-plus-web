@@ -16,8 +16,8 @@ export class  TypeConceptService {
   readonly platformId = inject(PLATFORM_ID);
   readonly apiUrl = `${environment.apiUrl}`;
 
-  getAllTypeConcepts(): Observable<ApiResponse<IrateTypes[]>>{
-    return this.http.get<ApiResponse<IrateTypes[]>>(`${this.apiUrl}/tipo-concepto/all`)
+  getAllTypeConcepts(id: number): Observable<ApiResponse<IrateTypes[]>>{
+    return this.http.get<ApiResponse<IrateTypes[]>>(`${this.apiUrl}/tipo-concepto/${id}`, )
   }
 
   saveTypeConcept(typeConcept: IrateTypes): Observable<ApiResponse<IrateTypes>>{

@@ -1,205 +1,278 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, inject, OnInit, signal, effect } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CorreoPersonaService } from '../../service/correoPersona.service';
-import { TelefonoGeneralService } from '../../service/telefonoPersona.service';
 import { ToastService } from '@services/toast.service';
-import { EnterpriseClientCounterService } from '../../service/enterpriseClientCounter.service';
+import { PersonService } from '../../service/person.service';
+import { TypeDocumentService } from '../../service/typeDocument.service';
 import { IDepartament } from '@interfaces/Idepartament';
 import { ICity } from '@interfaces/Icity';
 import { ICorregimiento } from '@interfaces/icorregimiento';
-import { DepartamentService } from '../../../auth/service/departament.service';
-import { CityService } from '../../../auth/service/city.service';
-import { CorregimientoService } from '../../../auth/service/corregimiento.service';
-import { firstValueFrom } from 'rxjs';
-import { AuthService } from '../../../auth/service/auth.service';
+import { ITipoDocumento } from '@interfaces/Iuser';
+import { IPerson } from '@interfaces/Iperson';
+import { LocationService } from '@shared/services/location.service';
 
 
 @Component({
   selector: 'app-update-client',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './update-client.html',
   providers: [DatePipe]
 })
 export class UpdateClient implements OnInit {
 
-  cliente: {
-    id: number | null;
-    idContador: string;
-    codigoDepart: number | null;
-    codigoMuni: number | null;
-    codigoVereda: number | null;
-    numeroIdentificacion: string;
-    razonSocial: string;
-    nombreCliente: string;
-    telefono: string;
-    direccion: string;
-    correo: string;
-  } = {
-      id: null,
-      idContador: '',
-      codigoDepart: 0,
-      codigoMuni: 0,
-      codigoVereda: 0,
-      numeroIdentificacion: '',
-      razonSocial: '',
-      nombreCliente: '',
-      telefono: '',
-      direccion: '',
-      correo: ''
-    };
-  departaments: IDepartament[] = [];
-  cities: ICity[] = [];
-  corregimientos: ICorregimiento[] = [];
-  filteredCities: ICity[] = [];
-  filteredCorregimientos: ICorregimiento[] = [];
+  updateForm!: FormGroup;
+
+  selectedDepartmentId = signal<number | null>(null);
+  selectedCityId = signal<number | null>(null);
+  selectedClient = signal<IPerson | null>(null);
+
+  departamentos = signal<IDepartament[]>([]);
+  ciudades = signal<ICity[]>([]);
+  corregimientos = signal<ICorregimiento[]>([]);
+  tiposDocumento = signal<ITipoDocumento[]>([]);
+
+  departmentsLoading = signal<boolean>(false);
+  citiesLoading = signal<boolean>(false);
+  corregimientosLoading = signal<boolean>(false);
 
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
-  private readonly clientService = inject(EnterpriseClientCounterService);
-  private readonly correoService = inject(CorreoPersonaService);
-  private readonly telefonoService = inject(TelefonoGeneralService);
-  private readonly departamentService = inject(DepartamentService);
-  private readonly cityService = inject(CityService);
-  private readonly corregimientoService = inject(CorregimientoService);
-  protected readonly authService = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
+  private readonly personService = inject(PersonService);
+  private readonly locationService = inject(LocationService);
+  private readonly typeDocumentService = inject(TypeDocumentService);
 
-  ngOnInit(): void {
-    Promise.all([
-      firstValueFrom(this.departamentService.getAllDepartaments()),
-      firstValueFrom(this.cityService.getAllCitys()),
-      firstValueFrom(this.corregimientoService.getAllCorregimientos())
-    ]).then(([departResp, cityResp, corResp]) => {
-      this.departaments = departResp.response;
-      this.cities = cityResp.response;
-      this.corregimientos = corResp.response;
-
-      const id = Number(this.route.snapshot.paramMap.get('id'));
-      if (id) this.loadCliente(id);
-    }).catch(err => {
-      console.error('❌ Error cargando datos iniciales:', err);
-      this.toast.error('Error', 'No se pudieron cargar los datos iniciales');
+  constructor() {
+    effect(() => {
+      const deptId = this.selectedDepartmentId();
+      if (deptId) {
+        this.loadCities(deptId);
+      } else {
+        this.ciudades.set([]);
+        this.corregimientos.set([]);
+      }
     });
-  }
 
-  loadCliente(id: number): void {
-    this.clientService.getClienteById(id).subscribe({
-      next: (res) => {
-        const data = res.response;
-        const personaId = data.cliente?.id;
-
-        this.correoService.getAllCorreo().subscribe(correosResp => {
-          const correo = correosResp.response.find(c => c.persona?.id === personaId)?.correo ?? '';
-
-          this.telefonoService.getAllTelefono().subscribe(telefonosResp => {
-            const telefono = telefonosResp.response.find(t => t.persona?.id === personaId)?.numero ?? '';
-
-            this.cliente = {
-              id: id,
-              idContador: data.contador?.serial ?? '',
-              codigoDepart: data.cliente?.direccion?.departamentoId?.id ?? '',
-              codigoMuni: data.cliente?.direccion?.ciudadId?.id ?? '',
-              codigoVereda: Number(data.cliente?.direccion?.corregimientoId?.id) || null,
-              numeroIdentificacion: data.cliente?.numeroCedula ?? '',
-              razonSocial: data.empresa?.nombre ?? '',
-              nombreCliente: `${data.cliente?.nombre ?? ''} ${data.cliente?.segundoNombre ?? ''} ${data.cliente?.apellido ?? ''} ${data.cliente?.segundoApellido ?? ''}`,
-              telefono,
-              direccion: data.cliente?.direccion?.descripcion ?? '',
-              correo
-            };
-
-            this.onDepartamentChange();
-            setTimeout(() => {
-              this.onCitiesChange();
-            }, 0);
-            setTimeout(() => this.onCitiesChange(), 0);
-          });
-        });
-      },
-      error: (err) => {
-        console.error('❌ Error al cargar el cliente:', err);
-        this.toast.error('Error', 'No se pudo cargar el cliente.');
+    effect(() => {
+      const cityId = this.selectedCityId();
+      if (cityId) {
+        this.loadCorregimientos(cityId);
+      } else {
+        this.corregimientos.set([]);
       }
     });
   }
 
-  loadDepartamentData(): void {
-    this.departamentService.getAllDepartaments().subscribe(resp => {
-      this.departaments = resp.response;
-    });
-  }
+  ngOnInit(): void {
+    this.initializeForm();
+    this.loadInitialData();
+    this.setupFormValueChanges();
 
-  loadAllCities(): void {
-    this.cityService.getAllCitys().subscribe(resp => {
-      this.cities = resp.response;
-    });
-  }
+    const navigation = this.router.getCurrentNavigation();
+    const clienteData = navigation?.extras?.state?.['clienteData'] || history.state?.clienteData;
 
-  loadAllCorregimientos(): void {
-    this.corregimientoService.getAllCorregimientos().subscribe(resp => {
-      this.corregimientos = resp.response;
-    });
-  }
-
-  onDepartamentChange(): void {
-    const idDept = this.cliente.codigoDepart;
-    this.filteredCities = this.cities.filter(city => city.departamento?.id === idDept);
-
-    if (!this.filteredCities.some(c => c.id === this.cliente.codigoMuni)) {
-      this.cliente.codigoMuni = null;
+    if (clienteData) {
+      this.selectedClient.set(clienteData);
+      this.loadClientFromData(clienteData);
+    } else {
+      this.toast.error('Error', 'No se pudo obtener la información del cliente');
+      this.router.navigate(['/client']);
     }
+  }  private initializeForm(): void {
+    this.updateForm = this.fb.group({
+      tipoDocumento: [null],
+      numeroDocumento: [''],
+      primerNombre: [''],
+      segundoNombre: [''],
+      primerApellido: [''],
+      segundoApellido: [''],
+      idDepartamento: [''],
+      idCiudad: [''],
+      idCorregimiento: [''],
+      direccion: [''],
+      telefono: [''],
+      correo: [''],
+    });
   }
 
-  onCitiesChange(): void {
-    const idCity = Number(this.cliente.codigoMuni);
-    this.filteredCorregimientos = this.corregimientos.filter(cor => cor.ciudad?.id === idCity);
-    const veredaId = Number(this.cliente.codigoVereda);
-    if (!this.filteredCorregimientos.some(v => v.id === veredaId)) {
-      this.cliente.codigoVereda = null;
+  private loadInitialData(): void {
+    this.loadDepartments();
+    this.loadTypeDocuments();
+  }
+
+  private loadDepartments(): void {
+    this.departmentsLoading.set(true);
+    this.locationService.getDepartamentos().subscribe({
+      next: (response) => {
+        this.departamentos.set(response.response);
+        this.departmentsLoading.set(false);
+      },
+      error: () => {
+        this.departmentsLoading.set(false);
+        this.toast.error('Error', 'No se pudieron cargar los departamentos');
+      }
+    });
+  }
+
+  private loadCities(departmentId: number): void {
+    this.citiesLoading.set(true);
+    this.locationService.getCiudades(departmentId).subscribe({
+      next: (response) => {
+        this.ciudades.set(response.response);
+        this.citiesLoading.set(false);
+      },
+      error: () => {
+        this.citiesLoading.set(false);
+        this.toast.error('Error', 'No se pudieron cargar las ciudades');
+      }
+    });
+  }
+
+  private loadCorregimientos(cityId: number): void {
+    this.corregimientosLoading.set(true);
+    this.locationService.getCorregimientos(cityId).subscribe({
+      next: (response) => {
+        this.corregimientos.set(response.response);
+        this.corregimientosLoading.set(false);
+      },
+      error: () => {
+        this.corregimientosLoading.set(false);
+        this.toast.error('Error', 'No se pudieron cargar los corregimientos');
+      }
+    });
+  }
+
+  private loadTypeDocuments(): void {
+    this.typeDocumentService.getAllTypeDocument().subscribe({
+      next: (response) => {
+        this.tiposDocumento.set(response.response);
+      },
+      error: () => {
+        this.toast.error('Error', 'No se pudieron cargar los tipos de documento');
+      }
+    });
+  }
+
+  private setupFormValueChanges(): void {
+    this.updateForm.get('idDepartamento')?.valueChanges.subscribe((departamentoId) => {
+      const numericDeptId = departamentoId ? Number(departamentoId) : null;
+
+      if (this.selectedDepartmentId() !== numericDeptId) {
+        this.selectedDepartmentId.set(numericDeptId);
+        this.updateForm.patchValue({
+          idCiudad: '',
+          idCorregimiento: ''
+        }, { emitEvent: false });
+      }
+    });
+
+    this.updateForm.get('idCiudad')?.valueChanges.subscribe((cityId) => {
+      const numericCityId = cityId ? Number(cityId) : null;
+      if (this.selectedCityId() !== numericCityId) {
+        this.selectedCityId.set(numericCityId);
+        this.updateForm.patchValue({
+          idCorregimiento: ''
+        }, { emitEvent: false });
+      }
+    });
+  }
+
+  private loadClientFromData(clienteData: any): void {
+    if (!clienteData) return;
+
+    const nombreCompleto = clienteData.nombreCliente || '';
+    const partesNombre = nombreCompleto.trim().split(' ');
+    const tipoDocumentoId = 1;
+
+    this.updateForm.patchValue({
+      tipoDocumento: tipoDocumentoId,
+      numeroDocumento: clienteData.numeroIdentificacion || '',
+      primerNombre: partesNombre[0] || '',
+      segundoNombre: partesNombre[1] || '',
+      primerApellido: partesNombre[2] || '',
+      segundoApellido: partesNombre[3] || '',
+      telefono: clienteData.telefono || '',
+      correo: clienteData.correo || '',
+      direccion: clienteData.direccion || '',
+      idDepartamento: '',
+      idCiudad: '',
+      idCorregimiento: ''
+    });
+
+    if (clienteData.codigoDepart) {
+      this.selectedDepartmentId.set(clienteData.codigoDepart);
+      this.updateForm.patchValue({ idDepartamento: clienteData.codigoDepart });
     }
-  }
 
-  onSubmit(): void {
-    if (!this.cliente.id) {
-      this.toast.error('Error', 'El ID del cliente no es válido');
+    if (clienteData.codigoMuni) {
+      setTimeout(() => {
+        this.selectedCityId.set(clienteData.codigoMuni);
+        this.updateForm.patchValue({ idCiudad: clienteData.codigoMuni });
+      }, 100);
+    }
+
+    if (clienteData.codigoVereda) {
+      setTimeout(() => {
+        this.updateForm.patchValue({ idCorregimiento: clienteData.codigoVereda });
+      }, 200);
+    }
+  }  onSubmit(): void {
+    const clienteSeleccionado = this.selectedClient();
+    if (!clienteSeleccionado?.id) {
+      this.toast.error('Error', 'No se pudo obtener la información del cliente');
       return;
     }
 
-     const usuario = this.authService.getUser();
-    const nombreUsuario = usuario?.nombre || 'sin_usuario';
-
-    const payload = {
-      id_empresa_cliente_contador: this.cliente.id,
-      primer_nombre: this.extraerNombre(0),
-      segundo_nombre: this.extraerNombre(1),
-      primer_apellido: this.extraerNombre(2),
-      segundo_apellido: this.extraerNombre(3),
-      id_departamento:this.cliente.codigoDepart,
-      id_ciudad:this.cliente.codigoMuni,
-      id_corregimiento:this.cliente.codigoVereda,
-      numero_cedula: this.cliente.numeroIdentificacion,
-      descripcion_direccion: this.cliente.direccion,
-      correo: this.cliente.correo,
-      telefono: this.cliente.telefono,
-      usuario_cambio: nombreUsuario
+    const formData = this.updateForm.value;
+    const updatePayload = {
+      id: clienteSeleccionado.id,
+      direccion: {
+        id: 0,
+        departamentoId: {
+          id: formData.idDepartamento ? Number(formData.idDepartamento) : 0,
+          nombre: this.departamentos().find(d => d.id === Number(formData.idDepartamento))?.nombre || ''
+        },
+        ciudadId: {
+          id: formData.idCiudad ? Number(formData.idCiudad) : 0,
+          nombre: this.ciudades().find(c => c.id === Number(formData.idCiudad))?.nombre || ''
+        },
+        corregimientoId: {
+          id: formData.idCorregimiento ? Number(formData.idCorregimiento) : 0,
+          nombre: this.corregimientos().find(c => c.id === Number(formData.idCorregimiento))?.nombre || ''
+        },
+        descripcion: formData.direccion || ''
+      },
+      tipoDocumento: {
+        id: formData.tipoDocumento ? Number(formData.tipoDocumento) : 1,
+        nombre: this.tiposDocumento().find(t => t.id === Number(formData.tipoDocumento))?.nombre || '',
+        codigo: ''
+      },
+      numeroCedula: formData.numeroDocumento || '',
+      nombre: formData.primerNombre || '',
+      segundoNombre: formData.segundoNombre || '',
+      apellido: formData.primerApellido || '',
+      segundoApellido: formData.segundoApellido || '',
+      codigo: formData.primerNombre && formData.primerApellido ?
+        `${formData.primerNombre}_${formData.primerApellido}`.toUpperCase() :
+        `CLIENTE_${clienteSeleccionado.id}`,
+      activo: true
     };
 
-    this.clientService.updateClient(payload).subscribe({
+    this.personService.savaOrUpdatePerson(updatePayload as any).subscribe({
       next: () => {
         this.toast.success('Éxito', 'Cliente actualizado correctamente');
         this.router.navigate(['/client']);
       },
       error: (err) => {
-        console.error('❌ Error al actualizar el cliente:', err);
-        this.toast.error('Error', 'No se pudo actualizar el cliente.');
+        if (err.status === 200 || err.status === 201 || err.status === 204) {
+          this.toast.success('Éxito', 'Cliente actualizado correctamente');
+          this.router.navigate(['shell/client']);
+        } else {
+          this.toast.error('Error', 'No se pudo actualizar el cliente');
+        }
       }
     });
-  }
-
-  extraerNombre(index: number): string {
-    const partes = this.cliente.nombreCliente.trim().split(' ');
-    return partes[index] ?? '';
   }
 }

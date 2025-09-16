@@ -21,7 +21,6 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
   template: `
     <ng-template #actionsTemplate let-row>
       <div class="flex items-center space-x-2">
-        <!-- poner el boton de tarifas  -->
         <button
           (click)="handleTableAction({ action: 'edit', row })"
           class="text-green-600 hover:text-green-900 text-sm cursor-pointer"
@@ -118,7 +117,6 @@ export class Bill {
     stream: ({ params }) => {
       const { enterpriseId, pagination } = params;
       if (!enterpriseId) {
-        console.warn('No enterprise ID available for bills');
         return EMPTY;
       }
       return this.facturaService.getAllBillByIdPaginated(

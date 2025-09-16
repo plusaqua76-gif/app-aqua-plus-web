@@ -1,60 +1,115 @@
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex items-center justify-center py-4">
-    <div class="max-w-4xl w-full mx-auto p-6">
-        <form (ngSubmit)="onSubmit()" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg dark:shadow-gray-700/50 border border-gray-200 dark:border-gray-700" *ngIf="cliente">
+    <div class="max-w-7xl w-full mx-auto p-6">
+        <form [formGroup]="updateForm" (ngSubmit)="onSubmit()" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg dark:shadow-gray-700/50 border border-gray-200 dark:border-gray-700" *ngIf="updateForm">
             <h2 class="text-2xl font-semibold text-center mb-6 text-gray-900 dark:text-white">Editar Cliente</h2>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-gray-700 dark:text-white">ID Contador:</label>
-                    <input type="text" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed transition-colors duration-200"
-                        [(ngModel)]="cliente.idContador" name="idContador" placeholder="ID del contador" readonly />
+                <!-- Tipo de documento -->
+                <div>
+                    <!-- <select formControlName="tipoDocumento"
+                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
+                        <option [ngValue]="null" disabled>Tipo de documento...</option>
+                        <option *ngFor="let tipo of tiposDocumento()" [ngValue]="tipo.id">{{ tipo.nombre }}</option>
+                    </select> -->
+                  <select formControlName="tipoDocumento" class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
+                      @for (tipo of tiposDocumento(); track $index) {
+                        <option [value]="tipo.id">{{ tipo.nombre }}</option>
+                      }
+                  </select>
                 </div>
 
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-gray-700 dark:text-white">Vereda:</label>
-                    <input type="text" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" [(ngModel)]="cliente.codigoVereda"
-                        name="codigoVereda" placeholder="Nombre de la vereda" required />
+                <!-- Número de documento -->
+                <div>
+                    <input formControlName="numeroDocumento" type="text" placeholder="Número de documento..."
+                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
                 </div>
 
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-gray-700 dark:text-white">N° Identificación:</label>
-                    <input type="text" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" [(ngModel)]="cliente.numeroIdentificacion"
-                        name="numeroIdentificacion" placeholder="Número de cédula" required />
+                <!-- Correo -->
+                <div>
+                    <input formControlName="correo" type="email" placeholder="Correo..."
+                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
                 </div>
 
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-gray-700 dark:text-white">Razón Social:</label>
-                    <input type="text" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed transition-colors duration-200"
-                        [(ngModel)]="cliente.razonSocial" name="razonSocial" placeholder="Nombre de la empresa" readonly />
+                <!-- Primer nombre -->
+                <div>
+                    <input formControlName="primerNombre" type="text" placeholder="Primer nombre..."
+                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
                 </div>
 
-                <div class="flex flex-col sm:col-span-2">
-                    <label class="mb-1 font-medium text-gray-700 dark:text-white">Nombre del Cliente:</label>
-                    <input type="text" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" [(ngModel)]="cliente.nombreCliente"
-                        name="nombreCliente" placeholder="Nombre completo del cliente" required />
+                <!-- Segundo nombre -->
+                <div>
+                    <input formControlName="segundoNombre" type="text" placeholder="Segundo nombre..."
+                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
                 </div>
 
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-gray-700 dark:text-white">Teléfono:</label>
-                    <input type="text" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" [(ngModel)]="cliente.telefono" name="telefono"
-                        placeholder="Teléfono de contacto" required />
+                <!-- Primer apellido -->
+                <div>
+                    <input formControlName="primerApellido" type="text" placeholder="Primer apellido..."
+                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
                 </div>
 
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-gray-700 dark:text-white">Dirección:</label>
-                    <input type="text" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" [(ngModel)]="cliente.direccion" name="direccion"
-                        placeholder="Dirección de residencia" required />
+                <!-- Segundo apellido -->
+                <div>
+                    <input formControlName="segundoApellido" type="text" placeholder="Segundo apellido..."
+                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
                 </div>
 
-                <div class="flex flex-col sm:col-span-2">
-                    <label class="mb-1 font-medium text-gray-700 dark:text-white">Correo:</label>
-                    <input type="email" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" [(ngModel)]="cliente.correo" name="correo"
-                        placeholder="Correo electrónico" required />
+                <!-- Teléfono -->
+                <div>
+                    <input formControlName="telefono" type="text" placeholder="Teléfono..."
+                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
                 </div>
 
-                <div class="col-span-1 sm:col-span-2 flex justify-center mt-4">
-                    <button type="submit"
+                <!-- Departamento -->
+                <div>
+                    <select formControlName="idDepartamento"
+                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
+                        <option value="" disabled>
+                          @if (departmentsLoading()) { Cargando departamentos... } @else { Seleccione un departamento }
+                        </option>
+                        @for (item of departamentos(); track $index) {
+                          <option [value]="item.id">{{ item.nombre }}</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Ciudad -->
+                <div>
+                    <select formControlName="idCiudad"
+                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
+                        <option value="" disabled>
+                          @if (citiesLoading()) { Cargando ciudades... } @else { Seleccione una ciudad }
+                        </option>
+                        @for (item of ciudades(); track $index) {
+                          <option [value]="item.id">{{ item.nombre }}</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Corregimiento/Vereda -->
+                <div>
+                    <select formControlName="idCorregimiento"
+                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200">
+                        <option value="" disabled>
+                          @if (corregimientosLoading()) { Cargando corregimientos... } @else { Seleccione un corregimiento }
+                        </option>
+                        @for (item of corregimientos(); track $index) {
+                          <option [value]="item.id">{{ item.nombre }}</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Dirección -->
+                <div class="md:col-span-3">
+                    <input formControlName="direccion" type="text" placeholder="Dirección..."
+                        class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
+                </div>
+
+                <!-- Botón de actualizar -->
+                <div class="md:col-span-3 flex justify-center mt-4">
+                    <button type="button"
+                        (click)="onSubmit()"
                         class="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-md shadow-md dark:shadow-gray-700/50 cursor-pointer transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                         Actualizar Cliente
                     </button>

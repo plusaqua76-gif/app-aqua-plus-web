@@ -19,30 +19,11 @@ import { ToastService } from '@services/toast.service';
 import { TypeConceptService } from '../../services/type-concept.service';
 import { ConceptRateService } from '../../services/concept-rate.service';
 import { IConceptRatePayload, IEstratoValue } from '@interfaces/IConceptRatePayload';
-import { forkJoin } from 'rxjs';
+import { EMPTY, forkJoin } from 'rxjs';
+import { Estrato, NuevoItem, TarifaItem } from '../../../../core/interfaces/tipo-tarifa/ITarifaItem';
 
 // esto es mala practica, nosotros ya tenemos creado una interface IrateTypes en core/interfaces/IrateTypes.ts
-interface NuevoItem {
-  nombre: string;
-  descripcion: string;
-}
 
-interface Estrato {
-  id: number;
-  numero: number;
-  valor: number;
-}
-
-interface TarifaItem {
-  id: number;
-  tipoTarifa: string;
-  tipoConcepto: string;
-  valor: number;
-  estratos: Estrato[];
-  // Agregar IDs originales para facilitar el guardado
-  tipoTarifaId: number;
-  tipoConceptoId: number;
-}
 
 @Component({
   selector: 'app-fee',
@@ -65,6 +46,16 @@ export class FeeComponent {
   protected conceptRateService = inject(ConceptRateService);
   protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
+
+    selectedTipoTarifa: any = null;
+  selectedTipoConcepto: any = null;
+  valorTarifa: number | null = null;
+  mostrarTablaEstratos: boolean = false;
+  estratosActuales: Estrato[] = [];
+  nuevoEstratoNumero: number = 1;
+  nuevoEstratoValor: number | null = null;
+  tarifasAgregadas: TarifaItem[] = [];
+  guardandoTarifas = signal(false);
 
   showPopupVisualizarTarifas = signal(false);
   showDeleteConfirm = signal(false);
@@ -117,29 +108,24 @@ export class FeeComponent {
     const data = this.userData();
     return data?.nombre || null;
   });
-
-  typeRates = rxResource({
-    stream: () => this.rateTypeService.getRateTypes(),
-  });
+    typeRates = rxResource({
+      params: () => ({ enterpriseId: this.empresaId() }),
+      stream: ({ params: { enterpriseId } }) =>
+        enterpriseId
+          ? this.rateTypeService.getRateTypes(enterpriseId)
+          : EMPTY
+    })
   typeRatesData = computed(() => this.typeRates.value()?.response ?? []);
 
-  selectedTipoTarifa: any = null;
-  selectedTipoConcepto: any = null;
-  valorTarifa: number | null = null;
 
-  mostrarTablaEstratos: boolean = false;
-  estratosActuales: Estrato[] = [];
-  nuevoEstratoNumero: number = 1;
-  nuevoEstratoValor: number | null = null;
 
-  tarifasAgregadas: TarifaItem[] = [];
-
-  // Signal para controlar el estado de guardado de las tarifas
-  guardandoTarifas = signal(false);
-
-  dataTypeConcepts = rxResource({
-    stream: () => this.typeConceptService.getAllTypeConcepts(),
-  });
+      dataTypeConcepts = rxResource({
+      params: () => ({ enterpriseId: this.empresaId() }),
+      stream: ({ params: { enterpriseId } }) =>
+        enterpriseId
+          ? this.typeConceptService.getAllTypeConcepts(enterpriseId)
+          : EMPTY
+    })
   typeConceptsData = computed(
     () => this.dataTypeConcepts.value()?.response ?? []
   );
@@ -152,7 +138,6 @@ export class FeeComponent {
   }
 
   canAddTarifa(): boolean {
-    // Validar que se hayan seleccionado tipo de tarifa y tipo de concepto
     const hasBasicFields = !!(this.selectedTipoTarifa && this.selectedTipoConcepto);
 
     if (!hasBasicFields) {

@@ -16,8 +16,8 @@ export class RateTypeService {
   readonly apiUrl = `${environment.apiUrl}`;
 
 
-  getRateTypes(): Observable<ApiResponse<IrateTypes[]>>{
-    return this.http.get<ApiResponse<IrateTypes[]>>(`${this.apiUrl}/tipo-tarifa/all`)
+  getRateTypes(id: number): Observable<ApiResponse<IrateTypes[]>>{
+    return this.http.get<ApiResponse<IrateTypes[]>>(`${this.apiUrl}/tipo-tarifa/${id}`, )
   }
 
   saveRateType(rateType: IrateTypes): Observable<ApiResponse<IrateTypes>>{
