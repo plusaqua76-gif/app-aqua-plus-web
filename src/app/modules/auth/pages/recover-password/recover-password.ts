@@ -28,8 +28,8 @@ export class RecoverPassword implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly passwordRecoveryService = inject(PasswordRecoveryService);
   private readonly toast = inject(ToastService);
-  private readonly service = inject(PasswordRecoveryService);
   readonly form: FormGroup = this.fb.group(
     {
       password: [
@@ -50,31 +50,10 @@ export class RecoverPassword implements OnInit {
   );
 
   ngOnInit(): void {
-    const qp = this.route.snapshot.queryParamMap;
+    const token = this.passwordRecoveryService.getTokenFromRoute(this.route);
 
-    const allKeys = qp.keys;
-    const keyAuth = allKeys.find((k) => k.toLowerCase() === 'authorization');
-    const keyToken = allKeys.find((k) => k.toLowerCase() === 'token');
-
-    const raw =
-      (keyAuth ? qp.get(keyAuth) : null) ??
-      (keyToken ? qp.get(keyToken) : null) ??
-      '';
-
-    if (!raw) {
-      this.toast.error(
-        'Error',
-        'Token de recuperación no encontrado en la URL'
-      );
-      this.router.navigate(['/auth/forgot-password']);
-      return;
-    }
-
-    this.recoveryToken = raw.replace(/^Bearer\s+/i, '').trim();
-
-    if (!this.recoveryToken) {
-      this.toast.error('Error', 'Token de recuperación inválido');
-      this.router.navigate(['/auth/forgot-password']);
+    if (token) {
+      this.recoveryToken = token.trim();
     }
   }
 
@@ -94,7 +73,7 @@ export class RecoverPassword implements OnInit {
     return this.form.get('confirmPassword');
   }
   get isFormValid() {
-    return this.form.valid && !!this.recoveryToken;
+    return this.form.valid;
   }
 
   get passwordErrors(): string[] {
@@ -126,34 +105,48 @@ export class RecoverPassword implements OnInit {
       this.isLoading = true;
       const password = this.passwordCtrl?.value as string;
 
+      // Si no hay token en la URL, mostrar error pero no redirigir
+      if (!this.recoveryToken) {
+        this.toast.error('Error', 'No se encontró el token de activación en la URL');
+        this.isLoading = false;
+        return;
+      }
+
       const res = await firstValueFrom(
-        this.service.updatePasswordWithToken(this.recoveryToken, password)
+        this.passwordRecoveryService.updatePasswordWithToken(this.recoveryToken, password)
       );
 
       this.isLoading = false;
 
       if (res?.success) {
         this.toast.success(
-          '¡Éxito!',
-          'Tu contraseña ha sido actualizada correctamente'
+          '¡Cuenta Activada!',
+          'Tu contraseña ha sido configurada. Ya puedes iniciar sesión.'
         );
-        this.router.navigate(['/auth/login']);
+        // Redirigir al login después del éxito
+        setTimeout(() => {
+          this.router.navigate(['/auth/login']);
+        }, 2000);
       } else {
         this.toast.error(
           'Error',
-          res?.message || 'Error al actualizar la contraseña'
+          res?.message || 'Error al configurar la contraseña'
         );
       }
     } catch (e: any) {
       this.isLoading = false;
       const status = e?.status;
-      const message =
-        e?.error?.message ??
-        (status === 401
-          ? 'El token de recuperación ha expirado o es inválido'
-          : status === 400
-          ? 'Los datos enviados no son válidos'
-          : 'Ocurrió un error al actualizar la contraseña');
+
+      let message = 'Ocurrió un error al configurar la contraseña';
+
+      if (status === 401) {
+        message = 'El enlace de activación ha expirado o es inválido. Contacta al administrador.';
+      } else if (status === 400) {
+        message = 'Los datos enviados no son válidos';
+      } else if (e?.error?.message) {
+        message = e.error.message;
+      }
+
       this.toast.error('Error', message);
     }
   }
