@@ -1,8 +1,8 @@
   
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex items-center justify-center py-4">
     <div class="max-w-3xl w-full mx-auto p-6">
-        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg dark:shadow-gray-700/50 border border-gray-200 dark:border-gray-700">
-            <h2 class="text-2xl font-semibold text-center mb-6 text-gray-900 dark:text-white">Agregar deuda de cliente</h2>
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="backdrop-blur-lg bg-gray-900/70 dark:bg-gray-900/80 p-8 rounded-xl shadow-2xl border border-gray-700/30">
+            <h2 class="text-2xl font-semibold text-center mb-6 text-white">Agregar deuda de cliente</h2>
 
             <div *ngIf="showSuccessMessage" class="bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 px-4 py-3 rounded relative mb-4 text-center transition-colors duration-200" role="alert">
                 <strong class="font-bold">¡Éxito!</strong>
@@ -12,48 +12,61 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                 <div class="flex flex-col">
-                    <select formControlName="empresaClienteContador" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
+                    <label class="mb-1 font-medium text-white">Cliente:</label>
+                    <select formControlName="empresaClienteContador" class="p-3 border border-gray-600 rounded-md w-full bg-gray-800/80 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
                         <option [ngValue]="null" disabled>Cliente...</option>
-                        <option *ngFor="let cliente of empresaClienteContador" [ngValue]="cliente">
-                            {{ cliente.cliente.nombre }} {{ cliente.cliente.segundoNombre || '' }} {{ cliente.cliente.apellido
-                            }} {{ cliente.cliente.segundoApellido || '' }}
-                        </option>
+                        @for (cliente of empresaClienteContador; track cliente.id) {
+                            <option [ngValue]="cliente">
+                                {{ cliente.cliente.nombre }} {{ cliente.cliente.segundoNombre || '' }} {{ cliente.cliente.apellido
+                                }} {{ cliente.cliente.segundoApellido || '' }}
+                            </option>
+                        }
                     </select>
                 </div>
 
                 <div class="flex flex-col">
-                    <select formControlName="tipoDeuda" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
+                    <label class="mb-1 font-medium text-white">Tipo Deuda:</label>
+                    <select formControlName="tipoDeuda" class="p-3 border border-gray-600 rounded-md w-full bg-gray-800/80 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
                         <option [ngValue]="null" disabled>Tipo Deuda...</option>
-                        <option *ngFor="let tip of tipoDeuda" [ngValue]="tip">{{ tip.nombre }}</option>
+                        @for (tip of tipoDeuda; track tip.id) {
+                            <option [ngValue]="tip">{{ tip.nombre }}</option>
+                        }
                     </select>
                 </div>
 
                 <div class="flex flex-col">
-                    <select formControlName="factura" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
+                    <label class="mb-1 font-medium text-white">Factura:</label>
+                    <select formControlName="factura" class="p-3 border border-gray-600 rounded-md w-full bg-gray-800/80 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
                         <option [ngValue]="null" disabled>Factura...</option>
-                        <option *ngFor="let fac of facturas" [ngValue]="fac">{{ fac.codigo }}</option>
+                        @for (fac of facturas; track fac.id) {
+                            <option [ngValue]="fac">{{ fac.codigo }}</option>
+                        }
                     </select>
                 </div>
 
                 <div class="flex flex-col">
-                    <select formControlName="plazoPago" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
+                    <label class="mb-1 font-medium text-white">N° de cuotas:</label>
+                    <select formControlName="plazoPago" class="p-3 border border-gray-600 rounded-md w-full bg-gray-800/80 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
                         <option [ngValue]="null" disabled>N° de cuotas...</option>
-                        <option *ngFor="let plazo of plazoPago" [ngValue]="plazo">{{ plazo.nombre }}</option>
+                        @for (plazo of plazoPago; track plazo.id) {
+                            <option [ngValue]="plazo">{{ plazo.nombre }}</option>
+                        }
                     </select>
                 </div>
 
                 <div class="flex flex-col">
-                    <input type="date" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" formControlName="fechaDeuda"
-                        placeholder="Fecha Deuda" />
+                    <label class="mb-1 font-medium text-white">Fecha Deuda:</label>
+                    <input type="date" class="p-3 border border-gray-600 rounded-md w-full bg-gray-800/80 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" formControlName="fechaDeuda" />
                 </div>
 
                 <div class="flex flex-col">
-                    <input type="text" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" formControlName="valor" placeholder="Valor" />
+                    <label class="mb-1 font-medium text-white">Valor:</label>
+                    <input type="text" class="p-3 border border-gray-600 rounded-md w-full bg-gray-800/80 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" formControlName="valor" placeholder="Valor" />
                 </div>
 
-                <div class="flex flex-col">
-                    <input type="text" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" formControlName="descripcion"
-                        placeholder="Descripción" />
+                <div class="flex flex-col sm:col-span-2">
+                    <label class="mb-1 font-medium text-white">Descripción:</label>
+                    <textarea class="p-3 border border-gray-600 rounded-md w-full bg-gray-800/80 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none" formControlName="descripcion" rows="3" placeholder="Descripción"></textarea>
                 </div>
 
                 <div class="col-span-1 sm:col-span-2 flex justify-center mt-4">

@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { IDeudaCliente } from '@interfaces/IdeudaFactura';
-import { TableColumn } from '@interfaces/ItableColumn';
 import { DeudaService } from '../../service/deuda.service';
 import { ApiResponse } from '@interfaces/Iresponse';
 import { ToastService } from '@services/toast.service';
@@ -94,7 +93,7 @@ export class CustomerDebt {
             deuda.empresaClienteContador?.cliente?.segundoApellido ?? ''
           ].filter(Boolean).join(' '),
           facturaCodigo: deuda.factura?.codigo ?? '',
-          fechaDeudaTexto: new Date(deuda.fechaDeuda!).toLocaleDateString('es-CO'),
+          fechaDeudaTexto: new Date(deuda.fechaDeuda).toLocaleDateString('es-CO'),
           descripcion: deuda.descripcion ?? '',
           tipoDeudaNombre: deuda.tipoDeuda?.nombre ?? '',
           valorTexto: `$${parseFloat(deuda.valor).toLocaleString('es-CO')}`,
@@ -112,7 +111,9 @@ export class CustomerDebt {
   handleTableAction(event: { action: string; row?: any }) {
   switch (event.action) {
     case 'edit':
-      this.router.navigate(['/bill/update-debt', event.row.id]);
+      this.router.navigate(['../update-debt', event.row.id], {
+        relativeTo: this.route,
+      });
       break;
     case 'delete':
       this.confirmDelete(event.row?.id);
@@ -136,9 +137,23 @@ export class CustomerDebt {
     }
   }
 
-  createdebt() { this.router.navigate(['/bill/create-debt']); }
-  irAbonoFactura() { this.router.navigate(['/bill/credit-customer']); }
-  redirigirCrearAbono(id: number) { this.router.navigate(['/bill/create-credit', id]); }
+  createdebt() {
+    this.router.navigate(['../create-debt'], {
+      relativeTo: this.route,
+    });
+  }
+
+  irAbonoFactura() {
+    this.router.navigate(['../credit-customer'], {
+      relativeTo: this.route,
+    });
+  }
+
+  redirigirCrearAbono(id: number) {
+    this.router.navigate(['../create-credit', id], {
+      relativeTo: this.route,
+    });
+  }
 
 
 }

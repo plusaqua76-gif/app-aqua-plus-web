@@ -1,18 +1,17 @@
 import {
   Component,
   computed,
-  effect,
   inject,
   PLATFORM_ID,
   signal,
 } from '@angular/core';
 import { UserAccessService } from '../services/users-access.service';
-import { EnterpriseIdService } from '../../../core/services/enterpriceId.service';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { TableComponent } from '@components/table';
-import { toUserAccessRow, type UserAccessRow } from '@shared/index';
+import { type UserAccessRow } from '@shared/index';
 import { isPlatformBrowser } from '@angular/common';
-import { switchMap } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
+import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
 @Component({
   selector: 'app-user-access',
@@ -22,32 +21,35 @@ import { switchMap } from 'rxjs/operators';
       <label class="inline-flex items-center cursor-pointer">
         <input
           type="checkbox"
-          [checked]="row.estado === 'activo'"
+          [checked]="row.estado?.nombre?.toLowerCase() === 'activo'"
           class="sr-only peer"
           (change)="toggleUserState(row, $event)"
         />
         <div
           class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"
         ></div>
-        <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-          {{ row.estado === 'activo' ? 'Activo' : 'Inactivo' }}
-        </span>
       </label>
     </ng-template>
-
-    <app-table-dynamic
+        <app-table-dynamic
       [title]="title()"
       [columns]="readingColumns()"
-      [datasource]="userAccess()"
+      [serverMode]="true"
+      [serverData]="userAccess() ?? null"
+      [loading]="usersInactives.isLoading()"
       [actionTemplate]="toggleTpl"
-    />
+      [showExportButton]="true"
+      [exportFileName]="exportFileName()"
+      [showColumnFilters]="true"
+      (action)="($event)"
+      (serverPaginationChange)="onPaginationChange($event)"
+    >
+    </app-table-dynamic>
   `,
 })
 export class UserAccess {
   title = signal('Gestión Accesos');
 
   readonly userAccessService = inject(UserAccessService);
-  readonly enterpriseIdService = inject(EnterpriseIdService);
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
   readonly idUserSelected = signal<number | null>(null);
@@ -82,31 +84,60 @@ export class UserAccess {
   });
 
   readingColumns = signal([
-    { field: 'nombre', header: 'Nombre de Usuario' },
-    { field: 'estado', header: 'Estado' },
+    { field: 'nombre', header: 'Nombre de Usuario', type: 'text' as const },
+    { field: 'estadoNombre', header: 'Estado', type: 'text' as const },
   ]);
 
-  constructor() {
-    effect(() => {
-      const data = this.usersInactives.value();
-      console.log('Data de usuarios:', data);
-      console.log('ID de empresa:', this.enterpriseId());
-      if (data && data.length > 0) {
-        console.log('Primer usuario completo:', JSON.stringify(data[0], null, 2));
-        console.log('Propiedades del primer usuario:', Object.keys(data[0]));
-        console.log('nombreEmpresa del primer usuario:', data[0].nombreEmpresa);
-      }
+    readonly paginationParams = signal<IPaginationParams>({
+      page: 0,
+      size: 5,
     });
+
+
+
+    usersInactives = rxResource({
+      params: () => ({
+        enterpriseId: this.enterpriseId(),
+        pagination: this.paginationParams(),
+      }),
+      stream: ({ params }) => {
+        const { enterpriseId, pagination } = params;
+        if (!enterpriseId) {
+          return EMPTY;
+        }
+        return this.userAccessService.getAllUsersAccess(
+          enterpriseId,
+          pagination
+        );
+      },
+    });
+
+    readonly exportFileName = computed(
+      () => `accesos_usuarios_${new Date().toISOString().split('T')[0]}`
+    );
+
+    // Transformar datos del servidor para campos anidados
+    readonly transformedServerData = computed(() => {
+      const rawData = this.usersInactives.value();
+      if (!rawData) return null;
+
+      const transformedResponse = rawData.response.map((user: any) => ({
+        ...user,
+        estadoNombre: user.estado?.nombre || 'Sin estado',
+      }));
+
+      return {
+        ...rawData,
+        response: transformedResponse
+      };
+    });
+
+    userAccess = computed(() => this.transformedServerData());
+
+      onPaginationChange(params: IPaginationParams): void {
+    this.paginationParams.set(params);
   }
 
-  usersInactives = rxResource({
-    stream: () => this.userAccessService.getAllUsersAccess(),
-  });
-
-  userAccess = computed(() => {
-    const users = this.usersInactives.value() || [];
-    return users.map(toUserAccessRow);
-  });
 
   private getCurrentUserFromSession(): string | null {
     if (!this.isBrowser) return null;
@@ -127,8 +158,14 @@ export class UserAccess {
     const activo = checkbox.checked;
     this.idUserSelected.set(row.id);
 
-    const users = this.usersInactives.value() || [];
-    const userCompleto = users.find((user) => user.id === row.id);
+    const usersResponse = this.usersInactives.value();
+    if (!usersResponse?.response) {
+      console.error('No se encontró la respuesta de usuarios');
+      checkbox.checked = !checkbox.checked;
+      return;
+    }
+
+    const userCompleto = usersResponse.response.find((user: any) => user.id === row.id);
 
     if (!userCompleto) {
       console.error('No se encontró el usuario completo');
@@ -136,37 +173,30 @@ export class UserAccess {
       return;
     }
 
-    this.enterpriseIdService.getByIdEnterprice(userCompleto.id).pipe(
-      switchMap(enterpriseId => {
-        if (!enterpriseId) {
-          throw new Error('No se pudo obtener el ID de empresa');
-        }
+    const currentUser = this.getCurrentUserFromSession();
+    const enterpriseId = this.enterpriseId(); // Usar el enterpriseId del sessionStorage
 
-        console.log('ID de empresa obtenido:', enterpriseId);
+    if (!enterpriseId) {
+      console.error('No se pudo obtener el ID de empresa del sessionStorage');
+      checkbox.checked = !checkbox.checked;
+      return;
+    }
 
-        // Obtener el usuario actual del sessionStorage
-        const currentUser = this.getCurrentUserFromSession();
+    const payload = {
+      idEmpresa: enterpriseId,
+      activo: activo,
+      usuarioCambio: currentUser || "AquaPlus",
+      nombreEmpresa: userCompleto.nombreEmpresa || '',
+      usuario: row.nombre
+    };
 
-        // Construir el payload con la estructura requerida
-        const payload = {
-          idEmpresa: enterpriseId,
-          activo: activo,
-          usuarioCambio: currentUser || "AquaPlus",
-          nombreEmpresa: userCompleto.nombreEmpresa || '',
-          usuario: row.nombre
-        };
-
-        console.log('Payload construido:', payload);
-
-        return this.userAccessService.updateUserStateWithPayload(payload);
-      })
-    ).subscribe({
+    this.userAccessService.updateUserStateWithPayload(payload).subscribe({
       next: (response) => {
-        console.log('Estado actualizado exitosamente:', response);
-        this.usersInactives.reload();
+        console.log('Estado actualizado correctamente:', response);
+        this.usersInactives.reload?.();
       },
       error: (error) => {
-        console.error('Error al actualizar el estado:', error);
+        console.error('Error al actualizar estado:', error);
         checkbox.checked = !checkbox.checked;
       },
     });
