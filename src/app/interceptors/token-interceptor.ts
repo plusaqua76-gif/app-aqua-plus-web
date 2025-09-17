@@ -10,6 +10,18 @@ export function authorizationInterceptor(req: HttpRequest<unknown>, next: HttpHa
     return next(req);
   }
 
+
+  if (req.headers.has('Authorization')) {
+    return next(req);
+  }
+
+  const excludedPaths = ['/update-password', '/reset-password', '/activate-account'];
+  const isExcludedPath = excludedPaths.some(path => req.url.includes(path));
+
+  if (isExcludedPath) {
+    return next(req);
+  }
+
   const token = sessionStorage.getItem('authToken');
 
   if (!token) return next(req);
