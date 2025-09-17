@@ -222,16 +222,13 @@ employeeData = computed(() => this.dataEmployee.value()?.response ?? []);
   saveClient() {
     if (this.registerForm.valid && this.personaData) {
       const contadorData = this.registerForm.value;
-
       const idEmpresa = this.empresaId();
       const nombreUsuario = this.nombreUsuario();
       const id_empleado_empresa = contadorData.idEmpleadoEmpresa;
-
       if (!idEmpresa || !nombreUsuario) {
         this.toast.error('No se pudo obtener la información del usuario logueado', 'Error');
         return;
       }
-
       if (!id_empleado_empresa) {
         this.toast.error('Debe seleccionar un empleado para continuar', 'Empleado requerido');
         return;

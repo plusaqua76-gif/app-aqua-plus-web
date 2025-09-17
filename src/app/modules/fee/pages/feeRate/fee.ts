@@ -132,9 +132,13 @@ export class FeeComponent {
 
   private nextId = 1;
 
-
   private resetFormularioItem(): NuevoItem {
     return { nombre: '', descripcion: '' };
+  }
+
+  private hasValidEstratos(): boolean {
+    return this.estratosActuales.length > 0 &&
+           this.estratosActuales.every(estrato => estrato.valor > 0);
   }
 
   canAddTarifa(): boolean {
@@ -144,20 +148,17 @@ export class FeeComponent {
       return false;
     }
 
-    // Si se está mostrando la tabla de estratos, validar que haya al menos un estrato
     if (this.mostrarTablaEstratos) {
-      return this.estratosActuales.length > 0;
+      return this.hasValidEstratos();
     }
 
-    // Si NO se está mostrando la tabla de estratos, validar que haya un valor
     return !!(this.valorTarifa !== null && this.valorTarifa > 0);
-  } // Agregar una nueva tarifa
+  }
   agregarTarifa(): void {
     if (!this.canAddTarifa()) {
       return;
     }
 
-    // Convertir a número si es string
     const tipoTarifaId =
       typeof this.selectedTipoTarifa === 'string'
         ? parseInt(this.selectedTipoTarifa)
@@ -170,14 +171,15 @@ export class FeeComponent {
     const tipoTarifaNombre =
       this.typeRatesData().find((t) => t.id === tipoTarifaId)?.nombre || '';
     const tipoConceptoNombre =
-      this.typeConceptsData().find((c) => c.id === tipoConceptoId)?.nombre ||
-      '';
+      this.typeConceptsData().find((c) => c.id === tipoConceptoId)?.descripcion ||
+      this.typeConceptsData().find((c) => c.id === tipoConceptoId)?.nombre || '';
+    const valorAMostrar = this.mostrarTablaEstratos ? 0 : (this.valorTarifa || 0);
 
     const nuevaTarifa: TarifaItem = {
       id: this.nextId++,
       tipoTarifa: tipoTarifaNombre,
       tipoConcepto: tipoConceptoNombre,
-      valor: this.valorTarifa!,
+      valor: valorAMostrar,
       estratos: [...this.estratosActuales],
       tipoTarifaId: tipoTarifaId,
       tipoConceptoId: tipoConceptoId,
@@ -207,10 +209,8 @@ export class FeeComponent {
     this.mostrarTablaEstratos = !this.mostrarTablaEstratos;
 
     if (this.mostrarTablaEstratos) {
-      // Si se activa la tabla de estratos, limpiar el valor tarifa concepto
       this.valorTarifa = null;
 
-      // Si no hay estratos, agregar algunos por defecto
       if (this.estratosActuales.length === 0) {
         this.estratosActuales = [
           { id: 1, numero: 1, valor: 1000 },
@@ -254,6 +254,8 @@ export class FeeComponent {
     const estrato = this.estratosActuales.find((e) => e.id === estratoId);
     if (estrato) {
       estrato.valor = nuevoValor;
+      // Forzar detección de cambios actualizando la referencia del array
+      this.estratosActuales = [...this.estratosActuales];
     }
   }
 

@@ -118,7 +118,6 @@ export class CreateClient implements OnInit {
 
   loadTypeDocument(): void {
     this.tipoDocumentoService.getAllTypeDocument().subscribe((response) => {
-      console.log('Tipos de documento:', response.response);
       this.typeDocument = response.response;
       this.typeDocumentName = response.response.map((tipoDocumento) => tipoDocumento.nombre);
     });
