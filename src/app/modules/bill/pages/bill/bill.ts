@@ -100,14 +100,16 @@ export class Bill {
     }
   });
 
+    readonly exportFileName = computed(
+    () => `facturas_${new Date().toISOString().split('T')[0]}`
+  );
+
   readonly paginationParams = signal<IPaginationParams>({
     page: 0,
     size: 5,
   });
 
-  readonly exportFileName = computed(
-    () => `facturas_${new Date().toISOString().split('T')[0]}`
-  );
+
 
   serverBillData = rxResource({
     params: () => ({
@@ -127,14 +129,16 @@ export class Bill {
   });
 
   goToCustomerDebt(): void {
-    this.router.navigate(['/bill/customer-debt']);
+    this.router.navigate(['customer-debt'], {
+      relativeTo: this.route,
+    });
   }
 
   handleTableAction(event: { action: string; row?: any }): void {
     if (event.action === 'add') {
       this.goToCustomerDebt();
     } else if (event.action === 'edit' && event.row) {
-      this.router.navigate(['shell/bill/update-bill', event.row.id], {
+      this.router.navigate(['update-bill', event.row.id], {
         relativeTo: this.route,
       });
     } else if (event.action === 'delete' && event.row) {

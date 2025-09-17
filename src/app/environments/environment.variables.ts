@@ -20,10 +20,10 @@ export const END_POINT_SERVICE = {
   GET_FACTURA: 'factura',
   GET_FACTURA_ALL: 'all',
 
-  GET_DEUDA: 'DeudaCliente',
+  GET_DEUDA: 'deudaCliente',
   GET_DEUDA_ALL: 'all',
 
-  GET_ABONO: 'Abono',
+  GET_ABONO: 'abono',
   GET_ABONO_ALL: 'all',
 
   GET_EMPLEADO: 'empleado-empresa',
@@ -32,11 +32,11 @@ export const END_POINT_SERVICE = {
   GET_EMPLEADO_ALL: 'all',
   POST_UPD_ESTADO: 'estado',
 
-  GET_ALL_ESTADO: 'Estado/all',
+  GET_ALL_ESTADO: 'estado/all',
 
-  GET_ALL_TIPO_DEUDA: 'TipoDeuda/all',
+  GET_ALL_TIPO_DEUDA: 'tipo-deuda/all',
 
-  GET_ALL_PLAZO_PAGO: 'PlazoPago/all',
+  GET_ALL_PLAZO_PAGO: 'plazo-pago/all',
 
   GET_ALL_LECTURA: 'all',
   GET_LECTURA: 'lectura',

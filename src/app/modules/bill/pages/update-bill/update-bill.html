@@ -31,9 +31,11 @@
                 <div class="flex flex-col">
                     <label class="mb-1 font-medium text-gray-700 dark:text-white">Estado:</label>
                     <select class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" [(ngModel)]="factura.estado.id" name="estadoId">
-                        <option *ngFor="let est of estado" [ngValue]="est.id">
-                            {{ est.nombre }}
-                        </option>
+                        @for (est of estado; track est.id) {
+                            <option [ngValue]="est.id">
+                                {{ est.nombre }}
+                            </option>
+                        }
                     </select>
                 </div>
 
