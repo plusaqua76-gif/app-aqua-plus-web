@@ -37,6 +37,7 @@ import { map } from 'rxjs';
   [actionTemplate]="actionsTemplate"
   [showAddButton]="true"
   [addButtonText]="'Abono factura'"
+  secondaryButtonText="Crear deuda"
   [showSecondaryButton]="true"
   (secondaryButtonAction)="createdebt()"
   (action)="handleTableAction($event)">
@@ -89,7 +90,7 @@ export class CustomerDebt {
           tipoDeudaNombre: deuda.tipoDeuda?.nombre ?? '',
           valorTexto: `$${parseFloat(deuda.valor).toLocaleString('es-CO')}`,
           activo: deuda.activo ? 'PENDIENTE' : 'PAGO',
-          plazoPagoNombre: deuda.plazoPago?.nombre ?? ''
+          plazoPagoNombre: deuda.plazoPago?.nombre || '0'
         }))
       )
     )

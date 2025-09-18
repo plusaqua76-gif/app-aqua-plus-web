@@ -21,4 +21,9 @@ export interface CounterApiResponse {
     descripcion: string;
   };
   serial: string;
+  cliente?: {
+    id: number;
+    nombre: string;
+    cedula: string;
+  };
 }

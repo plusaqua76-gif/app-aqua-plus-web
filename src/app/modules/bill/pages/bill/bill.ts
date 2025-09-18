@@ -43,6 +43,7 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       [exportFileName]="exportFileName()"
       [showColumnFilters]="true"
       (action)="handleTableAction($event)"
+      (secondaryButtonAction)="goToCreateDebt()"
       (serverPaginationChange)="onPaginationChange($event)"
     >
     </app-table-dynamic>
@@ -130,6 +131,12 @@ export class Bill {
 
   goToCustomerDebt(): void {
     this.router.navigate(['customer-debt'], {
+      relativeTo: this.route,
+    });
+  }
+
+  goToCreateDebt(): void {
+    this.router.navigate(['create-debt'], {
       relativeTo: this.route,
     });
   }

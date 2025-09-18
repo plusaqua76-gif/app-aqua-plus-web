@@ -1,5 +1,5 @@
-import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, inject, OnInit, OnDestroy } from '@angular/core';
+import { DecimalPipe, isPlatformBrowser } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, inject, OnInit, OnDestroy, computed, PLATFORM_ID } from '@angular/core';
 import { ClientesKpiService } from '@services/clientes-kpi.service';
 import { IClienteKPI } from '@interfaces/IClienteKPI';
 import { Subscription } from 'rxjs';
@@ -174,12 +174,15 @@ import { Subscription } from 'rxjs';
 })
 export class KpiCardComponent implements OnInit, OnDestroy {
   @Input() kpiId?: string;
+  @Input() rangoPor: 'emision' | 'vencimiento' = 'emision';
+  @Input() exclusivo: boolean = false;
 
   kpiData: IClienteKPI | null = null;
   isLoading = true;
   progressWidth = 0;
   private subscription?: Subscription;
-
+  protected platformId = inject(PLATFORM_ID);
+  protected isBrowser = isPlatformBrowser(this.platformId);
   private readonly clientesKpiService = inject(ClientesKpiService);
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -191,49 +194,98 @@ export class KpiCardComponent implements OnInit, OnDestroy {
     this.subscription?.unsubscribe();
   }
 
+    readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      console.error('Error parsing userData from sessionStorage:', e);
+      return null;
+    }
+  });
+
+  readonly empresaId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
+  });
+
+  readonly currentDate = computed(() => {
+    if (!this.isBrowser) return new Date();
+    return new Date();
+  });
+
+  readonly currentMonth = computed(() => {
+    return this.currentDate().getMonth() + 1; // getMonth() retorna 0-11, necesitamos 1-12
+  });
+
+  readonly currentYear = computed(() => {
+    return this.currentDate().getFullYear();
+  });
+
+
   private loadKpiData(): void {
     this.isLoading = true;
     this.progressWidth = 0;
     this.cdr.detectChanges();
 
+    const empresaId = this.empresaId();
+    const mes = this.currentMonth();
+    const anio = this.currentYear();
+
+    // Validar que tengamos los datos necesarios
+    if (!empresaId || !mes || !anio) {
+      console.warn('Datos incompletos para cargar KPIs:', { empresaId, mes, anio });
+      this.isLoading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
     if (this.kpiId) {
-      // Cargar KPI específico por ID
-      this.subscription = this.clientesKpiService.getClienteKPIById(this.kpiId).subscribe({
-        next: (data: IClienteKPI | undefined) => {
-          this.kpiData = data || null;
-          this.isLoading = false;
-          this.cdr.detectChanges();
+      // Cargar KPI específico por ID usando el servicio dinámico
+      this.subscription = this.clientesKpiService
+        .getClientesKPIDinamico(empresaId, anio, mes, this.rangoPor, this.exclusivo)
+        .subscribe({
+          next: (response) => {
+            const kpis = this.clientesKpiService.mapResponseToKPIs(response);
+            this.kpiData = kpis.find(kpi => kpi.id === this.kpiId) || null;
+            this.isLoading = false;
+            this.cdr.detectChanges();
 
-          // Animar la barra de progreso después de cargar los datos
-          setTimeout(() => {
-            this.animateProgressBar();
-          }, 100);
-        },
-        error: (error: any) => {
-          console.error('Error loading KPI data:', error);
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        }
-      });
+            // Animar la barra de progreso después de cargar los datos
+            setTimeout(() => {
+              this.animateProgressBar();
+            }, 100);
+          },
+          error: (error: any) => {
+            console.error('Error loading dynamic KPI data:', error);
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          }
+        });
     } else {
-      // Si no se especifica ID, cargar el primero disponible
-      this.subscription = this.clientesKpiService.getClientesKPI().subscribe({
-        next: (data: IClienteKPI[]) => {
-          this.kpiData = data.length > 0 ? data[0] : null;
-          this.isLoading = false;
-          this.cdr.detectChanges();
+      // Si no se especifica ID, cargar el primero disponible usando el servicio dinámico
+      this.subscription = this.clientesKpiService
+        .getClientesKPIDinamico(empresaId, anio, mes, this.rangoPor, this.exclusivo)
+        .subscribe({
+          next: (response) => {
+            const kpis = this.clientesKpiService.mapResponseToKPIs(response);
+            this.kpiData = kpis.length > 0 ? kpis[0] : null;
+            this.isLoading = false;
+            this.cdr.detectChanges();
 
-          // Animar la barra de progreso después de cargar los datos
-          setTimeout(() => {
-            this.animateProgressBar();
-          }, 100);
-        },
-        error: (error: any) => {
-          console.error('Error loading KPI data:', error);
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        }
-      });
+            // Animar la barra de progreso después de cargar los datos
+            setTimeout(() => {
+              this.animateProgressBar();
+            }, 100);
+          },
+          error: (error: any) => {
+            console.error('Error loading dynamic KPI data:', error);
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          }
+        });
     }
   }
 

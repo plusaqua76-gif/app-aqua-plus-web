@@ -1,11 +1,15 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, of, delay } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import { IClienteKPI } from '@interfaces/IClienteKPI';
+import { IClienteKPIResponse } from '@interfaces/IClienteKPIResponse';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ClientesKpiService {
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = 'https://app-aqua-plus-api.azurewebsites.net/api/v1';
 
   private mockData: IClienteKPI[] = [
     {
@@ -49,6 +53,91 @@ export class ClientesKpiService {
       descripcion: 'Total general'
     }
   ];
+
+  /**
+   * Obtiene los KPIs de clientes desde el API dinámico
+   * @param empresaId ID de la empresa
+   * @param anio Año actual
+   * @param mes Mes actual
+   * @param rangoPor Criterio de rango (emision o vencimiento)
+   * @param exclusivo Si debe ser exclusivo al día
+   * @returns Observable con la respuesta del API
+   */
+  getClientesKPIDinamico(
+    empresaId: number,
+    anio: number,
+    mes: number,
+    rangoPor: 'emision' | 'vencimiento' = 'emision',
+    exclusivo: boolean = false
+  ): Observable<IClienteKPIResponse> {
+    const params = {
+      empresaId: empresaId.toString(),
+      anio: anio.toString(),
+      mes: mes.toString(),
+      rangoPor,
+      exclusivo: exclusivo.toString()
+    };
+
+    return this.http.get<IClienteKPIResponse>(
+      `${this.baseUrl}/empresa-cliente-contador/clientes-empresa-mes`,
+      { params }
+    );
+  }
+
+  /**
+   * Convierte la respuesta del API a formato IClienteKPI[]
+   * @param response Respuesta del API
+   * @returns Array de KPIs en formato IClienteKPI
+   */
+  mapResponseToKPIs(response: IClienteKPIResponse): IClienteKPI[] {
+    const resumen = response.resumen;
+
+    return [
+      {
+        id: 'clientes-nuevos',
+        titulo: 'Clientes Nuevos',
+        valor: resumen.clientes_nuevos,
+        porcentajeCambio: resumen.clientes_nuevos > 0 ? 15.2 : 0, // Simulado por ahora
+        esPositivo: resumen.clientes_nuevos > 0,
+        progreso: resumen.clientes_activos > 0 ?
+          Math.min(100, (resumen.clientes_nuevos / resumen.clientes_activos) * 100 * 3) : 0,
+        icono: 'user-plus',
+        descripcion: 'Este mes'
+      },
+      {
+        id: 'clientes-al-dia',
+        titulo: 'Clientes al Día',
+        valor: resumen.clientes_al_dia,
+        porcentajeCambio: 3.2, // Simulado por ahora
+        esPositivo: true,
+        progreso: resumen.clientes_activos > 0 ?
+          Math.round((resumen.clientes_al_dia / resumen.clientes_activos) * 100) : 0,
+        icono: 'check-circle',
+        descripcion: 'Pagos actualizados'
+      },
+      {
+        id: 'clientes-mora',
+        titulo: 'Clientes en Mora',
+        valor: resumen.clientes_en_mora,
+        porcentajeCambio: -8.1, // Simulado por ahora
+        esPositivo: false,
+        progreso: resumen.clientes_activos > 0 ?
+          Math.round((resumen.clientes_en_mora / resumen.clientes_activos) * 100) : 0,
+        icono: 'exclamation-triangle',
+        descripcion: 'Requieren gestión'
+      },
+      {
+        id: 'clientes-activos',
+        titulo: 'Clientes Activos',
+        valor: resumen.clientes_activos,
+        porcentajeCambio: 2.8, // Simulado por ahora
+        esPositivo: true,
+        progreso: 100, // Los clientes activos representan el 100%
+        icono: 'users',
+        descripcion: 'Total general'
+      }
+    ];
+  }
 
   /**
    * Obtiene todos los KPIs de clientes
