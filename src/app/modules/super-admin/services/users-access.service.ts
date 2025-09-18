@@ -31,12 +31,6 @@ export class UserAccessService {
     return null;
   }
 
-  // getAllUsersAccess(): Observable<Iuser[]> {
-  //   return this.http.get<ApiResponse<Iuser[]>>(`${this.apiUrl}/usuario/inactivos`).pipe(
-  //     map(response => response.response)
-  //   );
-  // }
-
   updateUserState(user: Iuser, activo: boolean, usuario: string, nombreEmpresa: string): Observable<any> {
     const usuarioCambio = this.getUserFromSession();
 
@@ -163,22 +157,4 @@ export class UserAccessService {
     return throwError(() => new Error(errorMessage));
   }
 
-  /**
-   * Valida si el valor es un número válido
-   */
-  private isValidNumber(value: string): boolean {
-    const trimmed = value.trim();
-    return trimmed !== '' && !isNaN(Number(trimmed));
-  }
-
-  /**
-   * Valida si el valor es una fecha válida en formato ISO (YYYY-MM-DD)
-   */
-  private isValidDateFormat(value: string): boolean {
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(value)) return false;
-
-    const date = new Date(value);
-    return date instanceof Date && !isNaN(date.getTime()) && date.toISOString().split('T')[0] === value;
-  }
 }

@@ -17,7 +17,7 @@ export class UpdateBill implements OnInit {
   estado: IEstado[] = [];
   estadoName: string[] = [];
   selectedEstadoId: number | null = null;
-  
+
   factura: IFactura | null = null;
 
   private readonly route = inject(ActivatedRoute);
@@ -70,16 +70,12 @@ export class UpdateBill implements OnInit {
 
   loadAllEstados(): void {
     this.estadoService.getAllEstado().subscribe((response) => {
-      console.log('Tipos de estado:', response.response);
       this.estado = response.response;
       this.estadoName = response.response.map((tipoDocumento) => tipoDocumento.nombre)
     })
   }
 
   onSubmit(): void {
-  console.log('Submit ejecutado');
-  console.log('Factura antes de enviar:', this.factura);
-
   if (this.factura) {
     const estadoSeleccionado = this.estado.find(e => e.id === this.factura!.estado.id);
     if (estadoSeleccionado) {
