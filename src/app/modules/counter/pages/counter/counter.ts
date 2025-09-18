@@ -97,11 +97,6 @@ export class Counter {
     () => `contadores_${new Date().toISOString().split('T')[0]}`
   );
 
-  constructor() {
-    effect(() => {
-      console.log('info counterData ______>', this.serverCounterData.value())
-    });
-  }
 
   onPaginationChange(params: IPaginationParams): void {
     this.paginationParams.set(params);

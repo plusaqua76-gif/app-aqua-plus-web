@@ -1,65 +1,119 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { Observable, map } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import { IFacturasData } from '@interfaces/IFacturasData';
+import { IFacturasMesResponse, IFacturasAnualResponse } from '@interfaces/IFacturasMesResponse';
+import { environment } from '../../environments/environment.local';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FacturasDataService {
+  private readonly http = inject(HttpClient);
+  readonly baseUrl = environment.apiUrl;
 
-  private mockData: IFacturasData = {
-    "xAxis": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio"],
-    "yAxis": {
-      "facturasPagadas": [120, 140, 135, 145, 130, 150],
-      "facturasPendientes": [80, 95, 85, 100, 110, 90]
+  getFacturasMesDinamico(
+    empresaId: number,
+    anio: number,
+    mes?: number
+  ): Observable<IFacturasMesResponse | IFacturasAnualResponse> {
+    const params: any = {
+      empresaId: empresaId.toString(),
+      anio: anio.toString()
+    };
+
+    if (mes) {
+      params.mes = mes.toString();
     }
-  };
 
-
-  getFacturasData(): Observable<IFacturasData> {
-
-    return of(this.mockData).pipe(
-      delay(500) // latencia de red
+    return this.http.get<IFacturasMesResponse | IFacturasAnualResponse>(
+      `${this.baseUrl}/factura/factura-mes`,
+      { params }
     );
   }
 
   /**
-   * Obtiene datos específicos para un rango de fechas
-   * @param startMonth - mes de inicio (0-11)
-   * @param endMonth - mes de fin (0-11)
-   * @returns Observable con los datos filtrados
+   * Obtiene datos de facturas anuales y los convierte al formato del gráfico
+   * @param empresaId ID de la empresa
+   * @param anio Año
+   * @returns Observable con datos formateados para el gráfico
    */
-  getFacturasDataByRange(startMonth: number, endMonth: number): Observable<IFacturasData> {
-    const filteredData: IFacturasData = {
-      xAxis: this.mockData.xAxis.slice(startMonth, endMonth + 1),
-      yAxis: {
-        facturasPagadas: this.mockData.yAxis.facturasPagadas.slice(startMonth, endMonth + 1),
-        facturasPendientes: this.mockData.yAxis.facturasPendientes.slice(startMonth, endMonth + 1)
-      }
-    };
-
-    return of(filteredData).pipe(
-      delay(300)
+  getFacturasDataAnual(
+    empresaId: number,
+    anio: number
+  ): Observable<IFacturasData> {
+    return this.getFacturasMesDinamico(empresaId, anio).pipe(
+      map((response: IFacturasMesResponse | IFacturasAnualResponse) => {
+        // Si es respuesta anual (array de meses)
+        if ('meses' in response) {
+          return this.mapAnualResponseToChart(response as IFacturasAnualResponse);
+        }
+        // Si es respuesta de un solo mes
+        else {
+          return this.mapMensualResponseToChart([response as IFacturasMesResponse]);
+        }
+      })
     );
   }
 
+  /**
+   * Mapea la respuesta anual a formato del gráfico
+   */
+  private mapAnualResponseToChart(response: IFacturasAnualResponse): IFacturasData {
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-  updateMockData(): Observable<IFacturasData> {
-    const updatedData: IFacturasData = {
-      ...this.mockData,
+    const xAxis: string[] = [];
+    const facturasPagadas: number[] = [];
+    const facturasPendientes: number[] = [];
+    const facturasVencidas: number[] = [];
+
+    // Ordenar meses por número de mes
+    const mesesOrdenados = response.meses.sort((a, b) => a.periodo.mes - b.periodo.mes);
+
+    mesesOrdenados.forEach(mesData => {
+      xAxis.push(meses[mesData.periodo.mes - 1]);
+      facturasPagadas.push(mesData.facturasPagadas.total);
+      facturasPendientes.push(mesData.facturasPendientes.total);
+      facturasVencidas.push(mesData.facturasVencidas.total);
+    });
+
+    return {
+      xAxis,
       yAxis: {
-        facturasPagadas: this.mockData.yAxis.facturasPagadas.map(value =>
-          Math.max(0, value + Math.floor(Math.random() * 21) - 10) // +/- 10
-        ),
-        facturasPendientes: this.mockData.yAxis.facturasPendientes.map(value =>
-          Math.max(0, value + Math.floor(Math.random() * 11) - 5) // +/- 5
-        )
+        facturasPagadas,
+        facturasPendientes,
+        facturasVencidas
       }
     };
-
-    this.mockData = updatedData;
-    return of(updatedData).pipe(
-      delay(200)
-    );
   }
+
+  /**
+   * Mapea respuesta mensual a formato del gráfico
+   */
+  private mapMensualResponseToChart(meses: IFacturasMesResponse[]): IFacturasData {
+    const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+    const xAxis: string[] = [];
+    const facturasPagadas: number[] = [];
+    const facturasPendientes: number[] = [];
+    const facturasVencidas: number[] = [];
+
+    meses.forEach(mesData => {
+      xAxis.push(nombresMeses[mesData.periodo.mes - 1]);
+      facturasPagadas.push(mesData.facturasPagadas.total);
+      facturasPendientes.push(mesData.facturasPendientes.total);
+      facturasVencidas.push(mesData.facturasVencidas.total);
+    });
+
+    return {
+      xAxis,
+      yAxis: {
+        facturasPagadas,
+        facturasPendientes,
+        facturasVencidas
+      }
+    };
+}
 }

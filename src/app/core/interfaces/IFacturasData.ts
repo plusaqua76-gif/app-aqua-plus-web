@@ -3,6 +3,7 @@ export interface IFacturasData {
   yAxis: {
     facturasPagadas: number[];
     facturasPendientes: number[];
+    facturasVencidas: number[];
   };
 }
 

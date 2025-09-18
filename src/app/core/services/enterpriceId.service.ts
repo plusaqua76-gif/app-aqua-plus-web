@@ -12,10 +12,10 @@ import { IdEnterprice } from '@interfaces/IiEnterprice';
 @Injectable({ providedIn: 'root' })
 export class EnterpriseIdService {
 
-  private platformId = inject(PLATFORM_ID);
-  private http = inject(HttpClient);
-  private isBrowser = isPlatformBrowser(this.platformId);
-  private apiUrl = environment.apiUrl;
+  readonly platformId = inject(PLATFORM_ID);
+  readonly http = inject(HttpClient);
+  readonly isBrowser = isPlatformBrowser(this.platformId);
+  readonly apiUrl = environment.apiUrl;
 
   getByIdEnterprice(id: number): Observable<number | null> {
     return this.http.get<ApiResponse<IdEnterprice>>(`${this.apiUrl}/${END_POINT_SERVICE.GET_ENTERPRISE}/${id}`).pipe(

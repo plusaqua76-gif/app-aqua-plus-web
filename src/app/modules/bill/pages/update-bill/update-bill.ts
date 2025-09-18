@@ -5,6 +5,7 @@ import { IEstado, IFactura } from '@interfaces/Ifactura';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EstadoService } from '../../service/estado.service';
+import { ToastService } from '@services/toast.service';
 
 @Component({
   selector: 'app-update-bill',
@@ -19,10 +20,11 @@ export class UpdateBill implements OnInit {
   selectedEstadoId: number | null = null;
 
   factura: IFactura | null = null;
-
+    protected readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   private readonly facturaService = inject(FacturaService);
   private readonly estadoService = inject(EstadoService);
+
 
   ngOnInit(): void {
 
@@ -87,16 +89,14 @@ export class UpdateBill implements OnInit {
 
     this.facturaService.updateFactura(this.factura).subscribe({
       next: (res) => {
-        console.log('Respuesta del servidor:', res);
-        alert('Factura actualizada correctamente');
+        this.toast.success('Éxito','Factura actualizada correctamente');
       },
       error: (err) => {
-        console.error('Error al actualizar la factura:', err);
-        alert('Error al actualizar la factura');
+        this.toast.error('Error','No se pudo actualizar la factura');
       }
     });
   } else {
-    console.warn('No hay factura cargada');
+    this.toast.error('Error','No hay factura para actualizar');
   }
 }
   private formatDateToInput(fecha: string | Date): string {

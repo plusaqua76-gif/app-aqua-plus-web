@@ -109,7 +109,6 @@ export class CreateCounter implements OnInit {
     }
 
     if (!this.personaData) {
-      alert('No se encontraron datos del cliente. Regresando al formulario anterior.');
       this.router.navigate(['/shell/client/create-client']);
       return;
     }
