@@ -1,6 +1,7 @@
 import {
   Component,
   computed,
+  effect,
   inject,
   PLATFORM_ID,
   signal,
@@ -12,6 +13,7 @@ import { type UserAccessRow } from '@shared/index';
 import { isPlatformBrowser } from '@angular/common';
 import { EMPTY } from 'rxjs';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
+import { EnterpriseIdService } from '../../../core/services/enterpriceId.service';
 
 @Component({
   selector: 'app-user-access',
@@ -50,6 +52,7 @@ export class UserAccess {
   title = signal('Gestión Accesos');
 
   readonly userAccessService = inject(UserAccessService);
+  readonly enterpriseIdService = inject(EnterpriseIdService);
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
   readonly idUserSelected = signal<number | null>(null);
@@ -94,6 +97,13 @@ export class UserAccess {
     });
 
 
+    constructor() {
+      effect(() => {
+        console.log("la data mi pez: ", this.userAccess());
+      })
+    }
+
+
 
     usersInactives = rxResource({
       params: () => ({
@@ -116,7 +126,6 @@ export class UserAccess {
       () => `accesos_usuarios_${new Date().toISOString().split('T')[0]}`
     );
 
-    // Transformar datos del servidor para campos anidados
     readonly transformedServerData = computed(() => {
       const rawData = this.usersInactives.value();
       if (!rawData) return null;
@@ -174,31 +183,39 @@ export class UserAccess {
     }
 
     const currentUser = this.getCurrentUserFromSession();
-    const enterpriseId = this.enterpriseId(); // Usar el enterpriseId del sessionStorage
 
-    if (!enterpriseId) {
-      console.error('No se pudo obtener el ID de empresa del sessionStorage');
-      checkbox.checked = !checkbox.checked;
-      return;
-    }
+    // Obtener el ID de empresa usando el ID del usuario seleccionado
+    this.enterpriseIdService.getByIdEnterprice(row.id).subscribe({
+      next: (enterpriseId: number | null) => {
+        if (!enterpriseId) {
+          console.error('No se pudo obtener el ID de empresa para el usuario:', row.id);
+          checkbox.checked = !checkbox.checked;
+          return;
+        }
 
-    const payload = {
-      idEmpresa: enterpriseId,
-      activo: activo,
-      usuarioCambio: currentUser || "AquaPlus",
-      nombreEmpresa: userCompleto.nombreEmpresa || '',
-      usuario: row.nombre
-    };
+        const payload = {
+          idEmpresa: enterpriseId,
+          activo: activo,
+          usuarioCambio: currentUser || "AquaPlus",
+          nombreEmpresa: userCompleto.nombreEmpresa || '',
+          usuario: row.nombre
+        };
 
-    this.userAccessService.updateUserStateWithPayload(payload).subscribe({
-      next: (response) => {
-        console.log('Estado actualizado correctamente:', response);
-        this.usersInactives.reload?.();
+        this.userAccessService.updateUserStateWithPayload(payload).subscribe({
+          next: (response) => {
+            console.log('Estado actualizado correctamente:', response);
+            this.usersInactives.reload?.();
+          },
+          error: (error) => {
+            console.error('Error al actualizar estado:', error);
+            checkbox.checked = !checkbox.checked;
+          },
+        });
       },
-      error: (error) => {
-        console.error('Error al actualizar estado:', error);
+      error: (error: any) => {
+        console.error('Error al obtener ID de empresa:', error);
         checkbox.checked = !checkbox.checked;
-      },
+      }
     });
   }
 }

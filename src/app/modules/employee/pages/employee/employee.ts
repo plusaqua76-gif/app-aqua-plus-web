@@ -160,7 +160,7 @@ export class Employee {
   handleTableAction(event: Action): void {
     console.log('Action received:', event);
     if (event.action === 'add') {
-      this.router.navigate(['shell/employee/create-employee'], {
+      this.router.navigate(['create-employee'], {
         relativeTo: this.route
       });
     }

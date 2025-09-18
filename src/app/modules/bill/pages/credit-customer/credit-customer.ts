@@ -12,7 +12,7 @@ import { map } from 'rxjs';
   selector: 'app-credit-customer',
   imports: [ CommonModule, TableComponent, RouterModule],
   template: `
-  
+
     <app-table-dynamic
         [title]="title()"
         [datasource]="creditCustomerData()"
@@ -36,16 +36,6 @@ export class CreditCustomer {
 
   protected readonly abonoService = inject(AbonoService);
 
-
-  constructor() {
-    effect(() => {
-      console.log(
-        'Data loaded______:',
-        this.dataCreditCustomer.value()
-      );
-    });
-  }
-
   dataCreditCustomer = rxResource({
   stream: () =>
     this.abonoService.getAllAbono().pipe(
@@ -65,7 +55,7 @@ export class CreditCustomer {
           return {
             id: abono.id,
             nombreCliente: fullName,
-            codigoFactura: abono.deudaCliente.factura || 'Sin código',
+            codigoFactura: abono.deudaCliente.factura?.codigo || 'Sin código',
             fechaAbono: fechaAbono.toLocaleDateString('es-CO'),
             valorAbono: `$${Number(abono.valor).toLocaleString()}`
           };

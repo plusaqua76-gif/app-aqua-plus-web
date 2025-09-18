@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, computed, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { IDeudaCliente, IPlazoPago, ITipoDeuda } from '@interfaces/IdeudaFactura';
@@ -7,8 +7,7 @@ import { IEnterpriseClientCounter } from '@interfaces/IenterpriseClientCounter';
 import { EnterpriseClientCounterService } from '../../../client/service/enterpriseClientCounter.service';
 import { TipoDeudaService } from '../../service/tipoDeuda.service';
 import { DeudaService } from '../../service/deuda.service';
-import { Router } from '@angular/router';
-import { AuthService } from '../../../auth/service/auth.service';
+import { Router, ActivatedRoute } from '@angular/router';
 import { IFactura, IfacturaResponse } from '@interfaces/Ifactura';
 import { FacturaService } from '../../service/factura.service';
 import { PlazoPagoService } from '../../service/plazoPago.service';
@@ -51,10 +50,12 @@ export class CreateDebt implements OnInit {
   protected readonly tipoDeudaService = inject(TipoDeudaService);
   protected readonly deudaService = inject(DeudaService);
   protected readonly router = inject(Router);
-  protected readonly authService = inject(AuthService);
+  protected readonly route = inject(ActivatedRoute);
   protected readonly plazoPagoService = inject(PlazoPagoService);
   protected readonly facturaService = inject(FacturaService);
   protected readonly toast = inject(ToastService);
+  protected platformId = inject(PLATFORM_ID);
+  protected isBrowser = isPlatformBrowser(this.platformId);
 
  ngOnInit(): void {
     this.initializeForm();
@@ -63,7 +64,6 @@ export class CreateDebt implements OnInit {
     this.loadPlazoPago();
 
     this.registerForm.get('empresaClienteContador')?.valueChanges.subscribe(selectedCliente => {
-        // console.log('Cliente seleccionado:', selectedCliente);
       if (selectedCliente && selectedCliente.id) {
         const clienteId = selectedCliente.id;
         this.loadFacturasPorCliente(clienteId);
@@ -72,6 +72,31 @@ export class CreateDebt implements OnInit {
       }
     });
   }
+
+    readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      console.error('Error parsing userData from sessionStorage:', e);
+      return null;
+    }
+  });
+
+    readonly empresaId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
+  });
+
+
+  readonly nombreUsuario = computed(() => {
+    const data = this.userData();
+    return data?.nombre || null;
+  });
+
+
   private initializeForm(): void {
     this.registerForm = this.fb.group({
       empresaClienteContador: [null, Validators.required],
@@ -127,8 +152,7 @@ export class CreateDebt implements OnInit {
     }
 
     const rawForm = this.registerForm.value;
-    const currentUser = this.authService.getUser();
-    const nombreUsuario = currentUser?.nombre ?? 'desconocido';
+    const nombreUsuario = this.nombreUsuario()
     const fechaDeuda: string = rawForm.fechaDeuda;
 
     const deuda: IDeudaCliente = {
@@ -145,7 +169,9 @@ export class CreateDebt implements OnInit {
     this.deudaService.saveDeuda(deuda).subscribe({
       next: (res) => {
         this.toast.success('Deuda registrada correctamente.', 'Éxito');
-        this.router.navigate(['/bill/customer-debt']);
+        this.router.navigate(['../customer-debt'], {
+          relativeTo: this.route,
+        });
       },
       error: (err) => {
         console.error('Error al guardar deuda:', err);

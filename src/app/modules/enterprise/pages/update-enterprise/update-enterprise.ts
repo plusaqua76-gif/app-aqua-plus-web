@@ -1,5 +1,5 @@
-import { CommonModule, DatePipe } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule, DatePipe, isPlatformBrowser } from '@angular/common';
+import { Component, computed, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ICity } from '@interfaces/Icity';
@@ -8,7 +8,6 @@ import { ToastService } from '@services/toast.service';
 import { EmpresaService } from '../../service/empresa.service';
 import { DepartamentService } from '../../../auth/service/departament.service';
 import { CityService } from '../../../auth/service/city.service';
-import { AuthService } from '../../../auth/service/auth.service';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -51,7 +50,8 @@ export class UpdateEnterprise implements OnInit {
   private readonly empresaService = inject(EmpresaService);
   private readonly departamentService = inject(DepartamentService);
   private readonly cityService = inject(CityService);
-  protected readonly authService = inject(AuthService);
+  protected platformId = inject(PLATFORM_ID);
+  protected isBrowser = isPlatformBrowser(this.platformId);
 
   ngOnInit(): void {
     Promise.all([
@@ -126,14 +126,36 @@ export class UpdateEnterprise implements OnInit {
     const idCity = Number(this.empresa.ciudad);
   }
 
+    readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      console.error('Error parsing userData from sessionStorage:', e);
+      return null;
+    }
+  });
+
+    readonly empresaId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
+  });
+
+
+  readonly nombreUsuario = computed(() => {
+    const data = this.userData();
+    return data?.nombre || null;
+  });
+
   onSubmit(): void {
     if (!this.empresa.id) {
       this.toast.error('Error', 'El ID de la empresa no es válido');
       return;
     }
 
-    const usuario = this.authService.getUser();
-    const nombreUsuario = usuario?.nombre || 'sin_usuario';
+    const nombreUsuario = this.nombreUsuario();
 
     const payload = {
       id_empresa: this.empresa.id,

@@ -1,14 +1,13 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DeudaService } from '../../service/deuda.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService } from '../../../auth/service/auth.service';
 import { EnterpriseClientCounterService } from '../../../client/service/enterpriseClientCounter.service';
 import { TipoDeudaService } from '../../service/tipoDeuda.service';
 import { FacturaService } from '../../service/factura.service';
 import { PlazoPagoService } from '../../service/plazoPago.service';
 import { IDeudaCliente, IPlazoPago, ITipoDeuda } from '@interfaces/IdeudaFactura';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { IEnterpriseClientCounter } from '@interfaces/IenterpriseClientCounter';
 import { IFactura, IfacturaResponse } from '@interfaces/Ifactura';
 import { ToastService } from '@services/toast.service';
@@ -30,16 +29,17 @@ export class UpdateDebt implements OnInit {
   facturas: IfacturaResponse[] = [];
   plazoPago: IPlazoPago[] = [];
 
-  private fb = inject(FormBuilder);
-  private deudaService = inject(DeudaService);
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-  private authService = inject(AuthService);
-  private enterpriseClientCounterService = inject(EnterpriseClientCounterService);
-  private tipoDeudaService = inject(TipoDeudaService);
-  private facturaService = inject(FacturaService);
-  private plazoPagoService = inject(PlazoPagoService);
+  protected fb = inject(FormBuilder);
+  protected deudaService = inject(DeudaService);
+  protected route = inject(ActivatedRoute);
+  protected router = inject(Router);
+  protected enterpriseClientCounterService = inject(EnterpriseClientCounterService);
+  protected tipoDeudaService = inject(TipoDeudaService);
+  protected facturaService = inject(FacturaService);
+  protected plazoPagoService = inject(PlazoPagoService);
   protected readonly toast = inject(ToastService);
+    protected platformId = inject(PLATFORM_ID);
+  protected isBrowser = isPlatformBrowser(this.platformId);
 
   ngOnInit(): void {
     this.deudaId = +this.route.snapshot.paramMap.get('id')!;
@@ -49,7 +49,6 @@ export class UpdateDebt implements OnInit {
     this.loadPlazoPago();
 
     this.registerForm.get('empresaClienteContador')?.valueChanges.subscribe(selectedCliente => {
-      console.log('Cliente seleccionado (en valueChanges):', selectedCliente);
       const empresaClienteContadorId = selectedCliente?.id;
       if (empresaClienteContadorId) {
         this.loadFacturasPorCliente(empresaClienteContadorId);
@@ -59,7 +58,6 @@ export class UpdateDebt implements OnInit {
     });
     this.deudaService.getDeudaById(this.deudaId).subscribe({
       next: (data) => {
-        console.log('Datos recibidos de la deuda:', data);
         const deudaResponse = data.response;
         this.registerForm.patchValue({
           fechaDeuda: deudaResponse.fechaDeuda,
@@ -87,6 +85,23 @@ export class UpdateDebt implements OnInit {
     });
   }
 
+    readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      console.error('Error parsing userData from sessionStorage:', e);
+      return null;
+    }
+  });
+
+  readonly nombreUsuario = computed(() => {
+    const data = this.userData();
+    return data?.nombre || null;
+  });
+
   initializeForm(): void {
     this.registerForm = this.fb.group({
       empresaClienteContador: [null, Validators.required],
@@ -103,7 +118,6 @@ export class UpdateDebt implements OnInit {
   loadFacturasPorCliente(empresaClienteContadorId: number, facturaIdToSelect?: number): void {
     this.facturaService.getFacturAll().subscribe((response: ApiResponse<IfacturaResponse[]>) => {
       this.facturas = response.response.filter(fac => fac.empresaClienteContadorId === empresaClienteContadorId);
-      console.log('Facturas filtradas por cliente (loadFacturasPorCliente):', this.facturas);
 
       if (facturaIdToSelect) {
         const facturaSeleccionada = this.facturas.find(f => f.id === facturaIdToSelect);
@@ -117,21 +131,18 @@ export class UpdateDebt implements OnInit {
   loadTipoDeuda(): void {
     this.tipoDeudaService.getAllTipoDeuda().subscribe(response => {
       this.tipoDeuda = response.response;
-      console.log('Tipos de deuda cargados:', this.tipoDeuda);
     });
   }
 
   loadPlazoPago(): void {
     this.plazoPagoService.getAllPlazoPago().subscribe(response => {
       this.plazoPago = response.response;
-      console.log('Plazos de pago cargados:', this.plazoPago);
     });
   }
 
   loadAllClientes(): void {
     this.enterpriseClientCounterService.getAllCLiente().subscribe(response => {
       this.empresaClienteContador = response.response;
-      console.log('Clientes cargados:', this.empresaClienteContador);
     });
   }
 
@@ -142,31 +153,26 @@ export class UpdateDebt implements OnInit {
     }
 
     const rawForm = this.registerForm.value;
-    const currentUser = this.authService.getUser();
-
-    if (!currentUser) {
-      console.error('Usuario no autenticado');
-      this.toast.error('Error', 'Debe iniciar sesión para actualizar la deuda.');
-      return;
-    }
 
     const deuda: IDeudaCliente = {
       ...rawForm,
       id: this.deudaId,
       empresaClienteContador: rawForm.empresaClienteContador,
-      tipoDeuda: rawForm.tipoDeuda, 
-      factura: rawForm.factura, 
-      plazoPago: rawForm.plazoPago, 
+      tipoDeuda: rawForm.tipoDeuda,
+      factura: rawForm.factura,
+      plazoPago: rawForm.plazoPago,
 
       valor: parseFloat(rawForm.valor),
-      usuarioModificacion: currentUser?.nombre ?? 'desconocido',
+      usuarioModificacion: this.nombreUsuario(),
       fechaModificacion: new Date()
     };
 
     this.deudaService.updateDeuda(deuda).subscribe({
       next: () => {
         this.toast.success('Éxito', 'La deuda se actualizó correctamente.');
-        this.router.navigate(['/bill/customer-debt']);
+        this.router.navigate(['../customer-debt'], {
+          relativeTo: this.route,
+        });
       },
       error: (err) => {
         console.error('Error al actualizar deuda:', err);

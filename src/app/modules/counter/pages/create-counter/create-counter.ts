@@ -11,7 +11,6 @@ import { CorregimientoService } from '../../../auth/service/corregimiento.servic
 import { TypeCounterService } from '../../service/typeCounter.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EnterpriseClientCounterService } from '../../../client/service/enterpriseClientCounter.service';
-import { AuthService } from '../../../auth/service/auth.service';
 import { ToastService } from '@services/toast.service';
 import { UserService } from '../../../auth/service/user.service';
 import { LocationService } from '@shared/services/location.service';
@@ -49,7 +48,6 @@ export class CreateCounter implements OnInit {
   protected readonly router = inject(Router);
   protected readonly route = inject(ActivatedRoute);
   protected readonly enterpriseClientCounterService = inject(EnterpriseClientCounterService);
-  protected readonly authService = inject(AuthService);
   protected readonly toast = inject(ToastService);
   protected readonly userService = inject(UserService);
   protected readonly empleadoService = inject(EmpleadoService);

@@ -62,15 +62,6 @@ export class CustomerDebt {
   protected readonly router = inject(Router);
   protected readonly route = inject(ActivatedRoute);
 
-  constructor() {
-    effect(() => {
-      console.log(
-        'Data loaded______:',
-        this.dataDebts.value()
-      );
-    });
-  }
-
 
   /** commentNg
  * @author [PipeChavarro]

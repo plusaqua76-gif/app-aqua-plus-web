@@ -18,12 +18,18 @@ import { IrateTypes } from '@interfaces/IrateTypes';
 import { ToastService } from '@services/toast.service';
 import { TypeConceptService } from '../../services/type-concept.service';
 import { ConceptRateService } from '../../services/concept-rate.service';
-import { IConceptRatePayload, IEstratoValue } from '@interfaces/IConceptRatePayload';
+import {
+  IConceptRatePayload,
+  IEstratoValue,
+} from '@interfaces/IConceptRatePayload';
 import { EMPTY, forkJoin } from 'rxjs';
-import { Estrato, NuevoItem, TarifaItem } from '../../../../core/interfaces/tipo-tarifa/ITarifaItem';
+import {
+  Estrato,
+  NuevoItem,
+  TarifaItem,
+} from '../../../../core/interfaces/tipo-tarifa/ITarifaItem';
 
 // esto es mala practica, nosotros ya tenemos creado una interface IrateTypes en core/interfaces/IrateTypes.ts
-
 
 @Component({
   selector: 'app-fee',
@@ -47,7 +53,7 @@ export class FeeComponent {
   protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
 
-    selectedTipoTarifa: any = null;
+  selectedTipoTarifa: any = null;
   selectedTipoConcepto: any = null;
   valorTarifa: number | null = null;
   mostrarTablaEstratos: boolean = false;
@@ -98,34 +104,30 @@ export class FeeComponent {
     }
   });
 
-    readonly empresaId = computed(() => {
+  readonly empresaId = computed(() => {
     const data = this.userData();
     return data?.empresaId || null;
   });
-
 
   readonly nombreUsuario = computed(() => {
     const data = this.userData();
     return data?.nombre || null;
   });
-    typeRates = rxResource({
-      params: () => ({ enterpriseId: this.empresaId() }),
-      stream: ({ params: { enterpriseId } }) =>
-        enterpriseId
-          ? this.rateTypeService.getRateTypes(enterpriseId)
-          : EMPTY
-    })
+
+  typeRates = rxResource({
+    params: () => ({ enterpriseId: this.empresaId() }),
+    stream: ({ params: { enterpriseId } }) =>
+      enterpriseId ? this.rateTypeService.getRateTypes(enterpriseId) : EMPTY,
+  });
   typeRatesData = computed(() => this.typeRates.value()?.response ?? []);
 
-
-
-      dataTypeConcepts = rxResource({
-      params: () => ({ enterpriseId: this.empresaId() }),
-      stream: ({ params: { enterpriseId } }) =>
-        enterpriseId
-          ? this.typeConceptService.getAllTypeConcepts(enterpriseId)
-          : EMPTY
-    })
+  dataTypeConcepts = rxResource({
+    params: () => ({ enterpriseId: this.empresaId() }),
+    stream: ({ params: { enterpriseId } }) =>
+      enterpriseId
+        ? this.typeConceptService.getAllTypeConcepts(enterpriseId)
+        : EMPTY,
+  });
   typeConceptsData = computed(
     () => this.dataTypeConcepts.value()?.response ?? []
   );
@@ -137,12 +139,16 @@ export class FeeComponent {
   }
 
   private hasValidEstratos(): boolean {
-    return this.estratosActuales.length > 0 &&
-           this.estratosActuales.every(estrato => estrato.valor > 0);
+    return (
+      this.estratosActuales.length > 0 &&
+      this.estratosActuales.every((estrato) => estrato.valor > 0)
+    );
   }
 
   canAddTarifa(): boolean {
-    const hasBasicFields = !!(this.selectedTipoTarifa && this.selectedTipoConcepto);
+    const hasBasicFields = !!(
+      this.selectedTipoTarifa && this.selectedTipoConcepto
+    );
 
     if (!hasBasicFields) {
       return false;
@@ -171,9 +177,11 @@ export class FeeComponent {
     const tipoTarifaNombre =
       this.typeRatesData().find((t) => t.id === tipoTarifaId)?.nombre || '';
     const tipoConceptoNombre =
-      this.typeConceptsData().find((c) => c.id === tipoConceptoId)?.descripcion ||
-      this.typeConceptsData().find((c) => c.id === tipoConceptoId)?.nombre || '';
-    const valorAMostrar = this.mostrarTablaEstratos ? 0 : (this.valorTarifa || 0);
+      this.typeConceptsData().find((c) => c.id === tipoConceptoId)
+        ?.descripcion ||
+      this.typeConceptsData().find((c) => c.id === tipoConceptoId)?.nombre ||
+      '';
+    const valorAMostrar = this.mostrarTablaEstratos ? 0 : this.valorTarifa || 0;
 
     const nuevaTarifa: TarifaItem = {
       id: this.nextId++,
@@ -203,7 +211,6 @@ export class FeeComponent {
     this.nuevoEstratoNumero = 1;
     this.nuevoEstratoValor = null;
   }
-
 
   toggleTablaEstratos(): void {
     this.mostrarTablaEstratos = !this.mostrarTablaEstratos;
@@ -281,48 +288,56 @@ export class FeeComponent {
     this.guardandoTarifas.set(true);
 
     // Construir array de payloads
-    const payloads: IConceptRatePayload[] = this.tarifasAgregadas.map(tarifa => {
-      const payload: IConceptRatePayload = {
-        idEmpresa: empresaId,
-        idTipoTarifa: tarifa.tipoTarifaId,
-        usuarioCreacion: usuario,
-        concepto: {
-          idTipoConcepto: tarifa.tipoConceptoId,
-          indCalcularMc: true,
+    const payloads: IConceptRatePayload[] = this.tarifasAgregadas.map(
+      (tarifa) => {
+        const payload: IConceptRatePayload = {
+          idEmpresa: empresaId,
+          idTipoTarifa: tarifa.tipoTarifaId,
+          usuarioCreacion: usuario,
+          concepto: {
+            idTipoConcepto: tarifa.tipoConceptoId,
+            indCalcularMc: true,
+          },
+        };
+
+        if (tarifa.estratos && tarifa.estratos.length > 0) {
+          payload.concepto.indCalcularMc = false;
+          payload.concepto.valoresEstrato = tarifa.estratos.map(
+            (estrato): IEstratoValue => ({
+              estrato: estrato.numero,
+              valor: estrato.valor,
+            })
+          );
+        } else {
+          payload.concepto.valor = tarifa.valor;
         }
-      };
 
-
-      if (tarifa.estratos && tarifa.estratos.length > 0) {
-        payload.concepto.indCalcularMc = false;
-        payload.concepto.valoresEstrato = tarifa.estratos.map((estrato): IEstratoValue => ({
-          estrato: estrato.numero,
-          valor: estrato.valor
-        }));
-      } else {
-        payload.concepto.valor = tarifa.valor;
+        return payload;
       }
-
-      return payload;
-    });
+    );
 
     // Enviar todas las tarifas usando forkJoin
-    const requests = payloads.map(payload =>
+    const requests = payloads.map((payload) =>
       this.conceptRateService.saveFeeConceptRate(payload)
     );
 
     forkJoin(requests).subscribe({
       next: (responses) => {
-        const exitosas = responses.filter(response => response.success);
-        const fallidas = responses.filter(response => !response.success);
+        const exitosas = responses.filter((response) => response.success);
+        const fallidas = responses.filter((response) => !response.success);
 
         if (exitosas.length === responses.length) {
-          this.toastService.success('Éxito', `Se guardaron ${exitosas.length} tarifas exitosamente`);
+          this.toastService.success(
+            'Éxito',
+            `Se guardaron ${exitosas.length} tarifas exitosamente`
+          );
           this.tarifasAgregadas = [];
           // Los datos del popup de conceptos empresa se actualizarán automáticamente
         } else if (exitosas.length > 0) {
-          this.toastService.success('Parcial',
-            `Se guardaron ${exitosas.length} de ${responses.length} tarifas. ${fallidas.length} fallaron.`);
+          this.toastService.success(
+            'Parcial',
+            `Se guardaron ${exitosas.length} de ${responses.length} tarifas. ${fallidas.length} fallaron.`
+          );
           this.tarifasAgregadas = this.tarifasAgregadas.slice(exitosas.length);
         } else {
           this.toastService.error('Error', 'No se pudo guardar ninguna tarifa');
@@ -332,12 +347,15 @@ export class FeeComponent {
       },
       error: (error) => {
         console.error('Error al guardar las tarifas:', error);
-        this.toastService.error('Error', 'Error al guardar las tarifas. Por favor, inténtelo de nuevo.');
+        this.toastService.error(
+          'Error',
+          'Error al guardar las tarifas. Por favor, inténtelo de nuevo.'
+        );
         this.guardandoTarifas.set(false);
       },
       complete: () => {
         this.guardandoTarifas.set(false);
-      }
+      },
     });
   }
 
@@ -364,7 +382,10 @@ export class FeeComponent {
 
     const usuario = this.nombreUsuario();
     if (!usuario) {
-      this.toastService.error('error','Error: No se pudo obtener el usuario actual');
+      this.toastService.error(
+        'error',
+        'Error: No se pudo obtener el usuario actual'
+      );
       return;
     }
 
@@ -403,18 +424,18 @@ export class FeeComponent {
           this.cerrarPopupTipoTarifa();
           this.typeRates.reload();
         } else {
-           this.toastService.error(
-                'error',
-                'El tipo de concepto no se pudo eliminar'
-              );
+          this.toastService.error(
+            'error',
+            'El tipo de concepto no se pudo eliminar'
+          );
         }
         this.guardandoTipoTarifa.set(false);
       },
       error: (error) => {
-             this.toastService.error(
-                'error',
-                'El tipo de concepto no se pudo eliminar'
-              );
+        this.toastService.error(
+          'error',
+          'El tipo de concepto no se pudo eliminar'
+        );
 
         this.guardandoTipoTarifa.set(false);
       },
@@ -518,7 +539,10 @@ export class FeeComponent {
 
     const usuario = this.nombreUsuario();
     if (!usuario) {
-      this.toastService.error('error','Error: No se pudo obtener el usuario actual');
+      this.toastService.error(
+        'error',
+        'Error: No se pudo obtener el usuario actual'
+      );
       return;
     }
     this.guardandoTipoConcepto.set(true);
@@ -546,7 +570,6 @@ export class FeeComponent {
 
     operation.subscribe({
       next: (response) => {
-
         if (response.success) {
           const mensaje = this.editandoTipoConcepto()
             ? 'Tipo de concepto actualizado exitosamente'
@@ -559,10 +582,7 @@ export class FeeComponent {
           const errorMsg = this.editandoTipoConcepto()
             ? 'Error al actualizar el tipo de concepto: '
             : 'Error al guardar el tipo de concepto: ';
-           this.toastService.success(
-               'error',
-                errorMsg
-              );
+          this.toastService.success('error', errorMsg);
         }
 
         this.guardandoTipoConcepto.set(false);
@@ -572,10 +592,7 @@ export class FeeComponent {
         const errorMsg = this.editandoTipoConcepto()
           ? 'Error al actualizar el tipo de concepto. Por favor, inténtelo de nuevo.'
           : 'Error al guardar el tipo de concepto. Por favor, inténtelo de nuevo.';
-         this.toastService.success(
-                'error',
-                errorMsg
-              );
+        this.toastService.success('error', errorMsg);
 
         this.guardandoTipoConcepto.set(false);
       },
@@ -643,10 +660,10 @@ export class FeeComponent {
             }
           },
           error: (error) => {
-           this.toastService.success(
-                'error',
-                'El tipo de concepto no se pudo eliminar intente nuevamente'
-              );
+            this.toastService.success(
+              'error',
+              'El tipo de concepto no se pudo eliminar intente nuevamente'
+            );
           },
           complete: () => {
             this.showDeleteConfirmConcept.set(false);
