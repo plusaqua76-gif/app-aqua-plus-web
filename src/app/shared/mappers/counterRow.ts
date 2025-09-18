@@ -15,7 +15,9 @@ export function toCounterRow(counter: CounterApiResponse): CounterRow {
   return {
     id: counter.id ?? 0,
     serial: counter.serial ?? '',
-    tipoContador: counter.tipoContador?.nombre ?? 'Tipo no especificado',
-    direccion: direccionCompleta || 'Dirección no disponible',
+    tipoContadorNombre: counter.tipoContador?.nombre ?? 'Tipo no especificado',
+    direccionDescripcion: direccionCompleta || 'Dirección no disponible',
+    nombre: counter.cliente?.nombre ?? 'No asignado',
+    cedula: counter.cliente?.cedula ?? 'No disponible',
   };
 }

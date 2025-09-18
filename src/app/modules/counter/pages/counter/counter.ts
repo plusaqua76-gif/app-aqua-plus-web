@@ -1,3 +1,4 @@
+import { Action } from './../../../../core/components/table';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -6,12 +7,12 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY } from 'rxjs';
 import { ToastService } from '@services/toast.service';
 import { CounterService } from '../../service/counter.service';
+import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
 @Component({
   selector: 'app-counter',
   imports: [CommonModule, RouterModule, TableComponent],
   template: `
-
       <ng-template #toggleTpl let-row>
         <a
           (click)="edit(row)"
@@ -23,9 +24,18 @@ import { CounterService } from '../../service/counter.service';
 
       <app-table-dynamic
         [title]="title()"
-        [datasource]="counterData()"
         [columns]="counterColumns()"
+        [serverMode]="true"
+        [serverData]="serverCounterData.value() ?? null"
+        [loading]="serverCounterData.isLoading()"
         [actionTemplate]="toggleTpl"
+        [showAddButton]="true"
+        [addButtonText]="'Agregar Contador'"
+        [showExportButton]="true"
+        [exportFileName]="exportFileName()"
+        [showColumnFilters]="true"
+        (action)="onTableAction($event)"
+        (serverPaginationChange)="onPaginationChange($event)"
       />
   `,
 })
@@ -43,9 +53,9 @@ export class Counter {
   protected readonly route = inject(ActivatedRoute);
 
   counterColumns = signal([
-    { field: 'serial', header: 'Serial' },
-    { field: 'tipoContador', header: 'Tipo Contador' },
-    { field: 'direccion', header: 'Direccion' },
+    { field: 'serial', header: 'Serial', type: 'text' as const },
+    { field: 'tipoContadorNombre', header: 'Tipo Contador', type: 'text' as const },
+    { field: 'direccionDescripcion', header: 'Dirección', type: 'text' as const },
   ]);
 
   readonly enterpriseId = computed(() => {
@@ -58,27 +68,54 @@ export class Counter {
     }
   });
 
-    constructor() {
+  // Signal para parámetros de paginación
+  readonly paginationParams = signal<IPaginationParams>({
+    page: 0,
+    size: 5,
+  });
+
+  // Resource para datos paginados del servidor
+  serverCounterData = rxResource({
+    params: () => ({
+      enterpriseId: this.enterpriseId(),
+      pagination: this.paginationParams(),
+    }),
+    stream: ({ params }) => {
+      const { enterpriseId, pagination } = params;
+      if (!enterpriseId) {
+        return EMPTY;
+      }
+      return this.counterService.getAllCounterByIdEnterprisePaginated(
+        enterpriseId,
+        pagination
+      );
+    },
+  });
+
+  // Computed para el nombre del archivo de exportación
+  readonly exportFileName = computed(
+    () => `contadores_${new Date().toISOString().split('T')[0]}`
+  );
+
+  constructor() {
     effect(() => {
-    console.log('info counterData ______>z<>', this.counterData())
+      console.log('info counterData ______>', this.serverCounterData.value())
     });
   }
 
-
-  dataEmployee = rxResource({
-    params: () => ({ enterpriseId: this.enterpriseId() }),
-    stream: ({ params: { enterpriseId } }) =>
-      enterpriseId
-        ? this.counterService.getAllCounterByIdEnterprise(enterpriseId)
-        : EMPTY
-  });
-
-  counterData = computed(() => this.dataEmployee.value() ?? []);
+  onPaginationChange(params: IPaginationParams): void {
+    this.paginationParams.set(params);
+  }
 
   edit(row: any) {
-    this.router.navigate(['/counter/actualizar-contador', row.id], {
+    this.router.navigate(['actualizar-contador', row.id], {
       relativeTo: this.route,
     });
-    console.log('Editar contador con ID:', row.id);
+  }
+
+  onTableAction(event: Action) {
+    if (event.action === 'add') {
+      this.router.navigate(['create-counter'], { relativeTo: this.route });
+    }
   }
 }
