@@ -653,7 +653,7 @@ export class FeeComponent {
                 'Tipo de concepto eliminado exitosamente'
               );
             } else {
-              this.toastService.success(
+              this.toastService.error(
                 'error',
                 'El tipo de concepto no se pudo eliminar'
               );

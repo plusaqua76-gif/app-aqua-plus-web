@@ -60,61 +60,53 @@ export class EnterpriseIdService {
       );
   }
 
-  getEnterpriseInfo(): Observable<any | null> {
-    const userId = this.getUserId();
+getEnterpriseInfo(): Observable<any | null> {
+  const userId = this.getUserId();
 
-    if (!userId) {
-      console.warn('EnterpriseIdService: No user ID found in sessionStorage');
-      return of(null);
-    }
-
-    return this.http
-      .get<any>(`${this.apiUrl}/${END_POINT_SERVICE.GET_ENTERPRISE}/${userId}`)
-      .pipe(
-        map(res => {
-          // console.log('Respuesta completa del backend:', res);
-          // console.log('res.response:', res?.response);
-          const enterpriseInfo = res?.response ?? null;
-          if (enterpriseInfo && enterpriseInfo.imagenEmpresa) {
-            const base64Image = enterpriseInfo.imagenEmpresa;
-            if (base64Image && !base64Image.startsWith('data:image/')) {
-              let imageType = 'png';
-              try {
-                const binaryString = atob(base64Image.substring(0, 20));
-                const firstBytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                  firstBytes[i] = binaryString.charCodeAt(i);
-                }
-                if (firstBytes[0] === 0xFF && firstBytes[1] === 0xD8) {
-                  imageType = 'jpeg';
-                } else if (firstBytes[0] === 0x89 && firstBytes[1] === 0x50) {
-                  imageType = 'png';
-                } else if (firstBytes[0] === 0x47 && firstBytes[1] === 0x49) {
-                  imageType = 'gif';
-                } else if (firstBytes[0] === 0x42 && firstBytes[1] === 0x4D) {
-                  imageType = 'bmp';
-                }
-              } catch (e) {
-                console.warn('No se pudo detectar el tipo de imagen, usando PNG por defecto');
-              }
-
-              enterpriseInfo.imagenEmpresa = `data:image/${imageType};base64,${base64Image}`;
-            }
-
-            // console.log('Imagen procesada:', enterpriseInfo.imagenEmpresa.substring(0, 50) + '...');
-          }
-
-          if (enterpriseInfo) {
-            // console.log('Datos de enterprise después del mapeo:', enterpriseInfo);
-            // console.log('¿Tiene imagenEmpresa?', !!enterpriseInfo.imagenEmpresa);
-          }
-
-          return enterpriseInfo;
-        }),
-        catchError(err => {
-          console.error('Error en getEnterpriseInfo:', err);
-          return of(null);
-        })
-      );
+  if (!userId) {
+    console.warn('EnterpriseIdService: No user ID found in sessionStorage');
+    return of(null);
   }
+
+  return this.http
+    .get<any>(`${this.apiUrl}/${END_POINT_SERVICE.GET_ENTERPRISE}/${userId}`)
+    .pipe(
+      map(res => {
+        const enterpriseInfo = res?.response ?? null;
+        if (!enterpriseInfo) return null;
+
+        // Caso: backend devuelve "imagen" como array [{ imagen: "<base64>", contentType: "image/png", ... }, ...]
+        if (Array.isArray(enterpriseInfo.imagen) && enterpriseInfo.imagen.length > 0) {
+          const first = enterpriseInfo.imagen[0];
+          const base64 = first?.imagen;
+          const contentType = first?.contentType || first?.extension ? `image/${first.extension}` : 'image/png';
+
+          if (base64) {
+            // Construir data URI usando el contentType que provee el backend (más fiable)
+            enterpriseInfo.imagenEmpresa = `data:${contentType};base64,${base64}`;
+          } else {
+            enterpriseInfo.imagenEmpresa = null;
+          }
+        } else if (enterpriseInfo.imagenEmpresa && typeof enterpriseInfo.imagenEmpresa === 'string') {
+          // Si alguna vez viene ya como cadena base64 plana o data URI
+          const img = enterpriseInfo.imagenEmpresa;
+          if (img.startsWith('data:image/')) {
+            // ya está bien
+          } else {
+            // si es base64 "pura" y no empieza con data:, intentar construir con PNG por defecto
+            enterpriseInfo.imagenEmpresa = `data:image/png;base64,${img}`;
+          }
+        } else {
+          enterpriseInfo.imagenEmpresa = null;
+        }
+
+        return enterpriseInfo;
+      }),
+      catchError(err => {
+        console.error('Error en getEnterpriseInfo:', err);
+        return of(null);
+      })
+    );
+}
+
 }
