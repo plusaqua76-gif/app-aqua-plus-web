@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, computed, inject, OnDestroy, PLATFORM_ID, signal, effect } from '@angular/core';
 import { FacturasDataService } from '@services/facturas-data.service';
 import { IFacturasData } from '@interfaces/IFacturasData';
 import { Subscription } from 'rxjs';
@@ -87,13 +87,11 @@ interface ChartOptions {
   imports: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-
-
 <div class="w-full bg-white rounded-lg shadow-sm dark:bg-gray-800 p-4 md:p-6">
   <div class="flex justify-between mb-5">
     <div>
-      <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Facturas Pagadas vs Facturas Pendientes</h5>
-      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Estado de las facturas por mes</p>
+      <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Estado de Facturas por Mes</h5>
+      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Facturas pagadas, pendientes y vencidas</p>
     </div>
     <div
       class="flex items-center px-2.5 py-0.5 text-base font-semibold text-green-500 dark:text-green-500 text-center">
@@ -113,7 +111,7 @@ interface ChartOptions {
           (click)="toggleDropdown()"
           class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
           type="button">
-          {{ selectedPeriod }}
+          {{ selectedMonth }}
           <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
           </svg>
@@ -122,16 +120,43 @@ interface ChartOptions {
         <div [class.hidden]="!isDropdownOpen" class="absolute z-10 bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 mt-1">
             <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
               <li>
-                <button (click)="selectPeriod('Último mes')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Último mes</button>
+                <button (click)="selectMonth('Todos los meses')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Todos los meses</button>
               </li>
               <li>
-                <button (click)="selectPeriod('Últimos 3 meses')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Últimos 3 meses</button>
+                <button (click)="selectMonth('Enero')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Enero</button>
               </li>
               <li>
-                <button (click)="selectPeriod('Últimos 6 meses')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Últimos 6 meses</button>
+                <button (click)="selectMonth('Febrero')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Febrero</button>
               </li>
               <li>
-                <button (click)="selectPeriod('Último año')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Último año</button>
+                <button (click)="selectMonth('Marzo')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Marzo</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Abril')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Abril</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Mayo')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Mayo</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Junio')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Junio</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Julio')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Julio</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Agosto')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Agosto</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Septiembre')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Septiembre</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Octubre')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Octubre</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Noviembre')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Noviembre</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Diciembre')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Diciembre</button>
               </li>
             </ul>
         </div>
@@ -162,18 +187,51 @@ interface ChartOptions {
 export class Legends implements AfterViewInit, OnDestroy {
   private chart: any;
   private subscription?: Subscription;
-  private facturasData: IFacturasData | null = null;
-
-  // Propiedades para el dropdown
-  public isDropdownOpen = false;
-  public selectedPeriod = 'Últimos 6 meses';
-
-  private readonly platformId = inject(PLATFORM_ID);
+  protected platformId = inject(PLATFORM_ID);
+  protected isBrowser = isPlatformBrowser(this.platformId);
   private readonly facturasService = inject(FacturasDataService);
 
-  constructor() {
-    // No inicializar en constructor para componentes standalone
-  }
+  // Signals para manejo reactivo de datos
+  private chartData = signal<IFacturasData | null>(null);
+  public isLoading = signal<boolean>(true);
+  public hasError = signal<boolean>(false);
+
+  // Propiedades para el dropdown de meses
+  public isDropdownOpen = false;
+  public selectedMonth = 'Todos los meses';
+
+  readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      console.error('Error parsing userData from sessionStorage:', e);
+      return null;
+    }
+  });
+
+  readonly empresaId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
+  });
+
+  readonly currentDate = computed(() => {
+    if (!this.isBrowser) return new Date();
+    return new Date();
+  });
+
+  readonly currentYear = computed(() => {
+    return this.currentDate().getFullYear();
+  });
+
+  // Signal computed que se actualiza cuando cambian empresaId o año
+  readonly shouldRefreshData = computed(() => {
+    const empresaId = this.empresaId();
+    const anio = this.currentYear();
+    return { empresaId, anio };
+  });
 
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -192,6 +250,8 @@ export class Legends implements AfterViewInit, OnDestroy {
     }
   }
 
+
+
   /**
    * Cerrar dropdown al hacer clic fuera
    */
@@ -204,9 +264,21 @@ export class Legends implements AfterViewInit, OnDestroy {
   }
 
   private loadFacturasData(): void {
-    this.subscription = this.facturasService.getFacturasData().subscribe({
+    const empresaId = this.empresaId();
+    const anio = this.currentYear();
+
+    // Validar que tengamos los datos necesarios
+    if (!empresaId || !anio) {
+      console.warn('Datos incompletos para cargar facturas:', { empresaId, anio });
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.subscription = this.facturasService.getFacturasDataAnual(empresaId, anio).subscribe({
       next: (data: IFacturasData) => {
-        this.facturasData = data;
+        this.chartData.set(data);
+        this.isLoading.set(false);
+        this.hasError.set(false);
         // Usar setTimeout para asegurar que ApexCharts esté completamente cargado
         setTimeout(() => {
           this.initializeAreaChart();
@@ -214,7 +286,9 @@ export class Legends implements AfterViewInit, OnDestroy {
       },
       error: (error: any) => {
         console.error('Error loading facturas data:', error);
-        // Fallback a datos por defecto
+        this.isLoading.set(false);
+        this.hasError.set(true);
+        // Fallback: inicializar con datos vacíos si falla
         this.initializeAreaChart();
       }
     });
@@ -224,33 +298,31 @@ export class Legends implements AfterViewInit, OnDestroy {
    * Método público para actualizar los datos del gráfico
    */
   updateChartData(): void {
+    const empresaId = this.empresaId();
+    const anio = this.currentYear();
+
+    if (!empresaId || !anio) {
+      console.warn('Datos incompletos para actualizar facturas:', { empresaId, anio });
+      return;
+    }
+
     if (this.facturasService) {
       this.subscription?.unsubscribe();
-      this.subscription = this.facturasService.updateMockData().subscribe({
+      this.isLoading.set(true);
+
+      this.subscription = this.facturasService.getFacturasDataAnual(empresaId, anio).subscribe({
         next: (data: IFacturasData) => {
-          this.facturasData = data;
-          if (this.chart) {
-            // Actualizar el gráfico existente con nuevos datos
-            const newSeries = [
-              {
-                name: 'Pagadas',
-                data: data.yAxis.facturasPagadas,
-              },
-              {
-                name: 'Pendientes',
-                data: data.yAxis.facturasPendientes,
-              }
-            ];
-            this.chart.updateSeries(newSeries);
-            this.chart.updateOptions({
-              xaxis: {
-                categories: data.xAxis
-              }
-            });
-          }
+          this.chartData.set(data);
+          this.isLoading.set(false);
+          this.hasError.set(false);
+
+          // Actualizar el gráfico si existe
+          this.updateChart(data);
         },
         error: (error: any) => {
           console.error('Error updating chart data:', error);
+          this.isLoading.set(false);
+          this.hasError.set(true);
         }
       });
     }
@@ -264,111 +336,152 @@ export class Legends implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Seleccionar período y actualizar gráfico
+   * Seleccionar mes y actualizar gráfico
    */
-  selectPeriod(period: string): void {
-    this.selectedPeriod = period;
+  selectMonth(monthName: string): void {
+    this.selectedMonth = monthName;
     this.isDropdownOpen = false;
-    this.loadDataByPeriod(period);
-  }
 
-  /**
-   * Cargar datos filtrados por período
-   */
-  private loadDataByPeriod(period: string): void {
-    let mockData: IFacturasData;
+    const empresaId = this.empresaId();
+    const anio = this.currentYear();
 
-    switch(period) {
-      case 'Último mes':
-        mockData = {
-          xAxis: ['Junio'],
-          yAxis: {
-            facturasPagadas: [150],
-            facturasPendientes: [90]
-          }
-        };
-        break;
-      case 'Últimos 3 meses':
-        mockData = {
-          xAxis: ['Abril', 'Mayo', 'Junio'],
-          yAxis: {
-            facturasPagadas: [145, 130, 150],
-            facturasPendientes: [100, 110, 90]
-          }
-        };
-        break;
-      case 'Últimos 6 meses':
-        mockData = {
-          xAxis: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'],
-          yAxis: {
-            facturasPagadas: [120, 140, 135, 145, 130, 150],
-            facturasPendientes: [80, 95, 85, 100, 110, 90]
-          }
-        };
-        break;
-      case 'Último año':
-        mockData = {
-          xAxis: ['Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
-          yAxis: {
-            facturasPagadas: [110, 125, 130, 120, 135, 140, 120, 140, 135, 145, 130, 150],
-            facturasPendientes: [70, 85, 80, 75, 90, 95, 80, 95, 85, 100, 110, 90]
-          }
-        };
-        break;
-      default:
-        return;
+    if (!empresaId || !anio) {
+      console.warn('Datos incompletos para filtrar por mes:', { empresaId, anio });
+      return;
     }
 
-    // Actualizar los datos y el gráfico
-    this.facturasData = mockData;
+    // Convertir nombre del mes a número (1-12) o undefined para "Todos los meses"
+    const monthNumber = this.getMonthNumber(monthName);
+
+    // Llamar al servicio con o sin el parámetro mes
+    this.subscription?.unsubscribe();
+    this.isLoading.set(true);
+
+    this.subscription = this.facturasService.getFacturasDataAnual(empresaId, anio).subscribe({
+      next: (data: IFacturasData) => {
+        // Si se seleccionó un mes específico, filtrar los datos
+        const filteredData = monthNumber ? this.filterDataByMonth(data, monthNumber) : data;
+
+        this.chartData.set(filteredData);
+        this.isLoading.set(false);
+        this.hasError.set(false);
+
+        // Actualizar gráfico
+        this.updateChart(filteredData);
+      },
+      error: (error: any) => {
+        console.error('Error loading month data:', error);
+        this.isLoading.set(false);
+        this.hasError.set(true);
+      }
+    });
+  }
+
+  private getMonthNumber(monthName: string): number | undefined {
+    const months: { [key: string]: number } = {
+      'Enero': 1, 'Febrero': 2, 'Marzo': 3, 'Abril': 4,
+      'Mayo': 5, 'Junio': 6, 'Julio': 7, 'Agosto': 8,
+      'Septiembre': 9, 'Octubre': 10, 'Noviembre': 11, 'Diciembre': 12
+    };
+
+    return months[monthName];
+  }
+
+  private filterDataByMonth(data: IFacturasData, monthNumber: number): IFacturasData {
+    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+    const monthIndex = monthNumber - 1;
+
+    if (monthIndex >= 0 && monthIndex < data.xAxis.length) {
+      return {
+        xAxis: [data.xAxis[monthIndex]],
+        yAxis: {
+          facturasPagadas: [data.yAxis.facturasPagadas[monthIndex] || 0],
+          facturasPendientes: [data.yAxis.facturasPendientes[monthIndex] || 0],
+          facturasVencidas: [data.yAxis.facturasVencidas[monthIndex] || 0]
+        }
+      };
+    }
+
+    return {
+      xAxis: [monthNames[monthIndex]],
+      yAxis: {
+        facturasPagadas: [0],
+        facturasPendientes: [0],
+        facturasVencidas: [0]
+      }
+    };
+  }
+
+
+  private updateChart(data: IFacturasData): void {
     if (this.chart) {
-      this.chart.updateSeries([
+      const newSeries = [
         {
           name: 'Facturas Pagadas',
-          data: mockData.yAxis.facturasPagadas,
+          data: data.yAxis.facturasPagadas,
         },
         {
           name: 'Facturas Pendientes',
-          data: mockData.yAxis.facturasPendientes,
+          data: data.yAxis.facturasPendientes,
+        },
+        {
+          name: 'Facturas Vencidas',
+          data: data.yAxis.facturasVencidas,
         }
-      ]);
+      ];
+
+      this.chart.updateSeries(newSeries);
       this.chart.updateOptions({
         xaxis: {
-          categories: mockData.xAxis
+          categories: data.xAxis
         }
       });
     }
   }
 
   private getOptions(): ChartOptions {
-    // Si tenemos datos del servicio, los usamos; sino, datos por defecto
-    const series: ChartSeries[] = this.facturasData ? [
+    // signal
+    const currentData = this.chartData();
+
+    const series: ChartSeries[] = currentData ? [
       {
-        name: 'Pagadas',
-        data: this.facturasData.yAxis.facturasPagadas,
-        color: '#3B82F6', // Azul como en la imagen
+        name: 'Facturas Pagadas',
+        data: currentData.yAxis.facturasPagadas,
+        color: '#10B981', // Verde para pagadas
       },
       {
-        name: 'Pendientes',
-        data: this.facturasData.yAxis.facturasPendientes,
-        color: '#8B5CF6', // Morado como en la imagen
+        name: 'Facturas Pendientes',
+        data: currentData.yAxis.facturasPendientes,
+        color: '#3B82F6', // Azul para pendientes
+      },
+      {
+        name: 'Facturas Vencidas',
+        data: currentData.yAxis.facturasVencidas,
+        color: '#EF4444', // Rojo para vencidas
       },
     ] : [
       {
-        name: 'Ingresos',
-        data: [120, 140, 135, 145, 130, 150],
+        name: 'Facturas Pagadas',
+        data: [],
+        color: '#10B981',
+      },
+      {
+        name: 'Facturas Pendientes',
+        data: [],
         color: '#3B82F6',
       },
       {
-        name: 'Gastos',
-        data: [80, 95, 85, 100, 110, 90],
-        color: '#8B5CF6',
+        name: 'Facturas Vencidas',
+        data: [],
+        color: '#EF4444',
       },
     ];
 
-    const categories = this.facturasData ?
-      this.facturasData.xAxis :
-      ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'];
+    const categories = currentData ?
+      currentData.xAxis :
+      [];
 
     return {
       series,
