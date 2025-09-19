@@ -20,7 +20,7 @@ export const END_POINT_SERVICE = {
   GET_FACTURA: 'factura',
   GET_FACTURA_ALL: 'all',
 
-  GET_DEUDA: 'deudaCliente',
+  GET_DEUDA: 'deuda-cliente',
   GET_DEUDA_ALL: 'all',
 
   GET_ABONO: 'abono',

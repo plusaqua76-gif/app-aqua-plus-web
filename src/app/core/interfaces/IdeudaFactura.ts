@@ -16,6 +16,30 @@ export interface IDeudaCliente {
     usuarioActualizacion: string;
     fechaModificacion: Date;
 }
+
+export interface IDeudaClienteResponse {
+    id: number;
+    fechaDeuda: string;
+    valor: number;
+    descripcion: string;
+    activo: boolean;
+    facturaId: number;
+    facturaCodigo: string;
+    eccId: number;
+    empresaId: number;
+    clienteNombre: string;
+    tipoDeuda: {
+        id: number;
+        nombre: string;
+        descripcion: string;
+        codigo: string;
+    };
+    plazoPago: {
+        id: number;
+        nombre: string;
+        descripcion: string;
+    } | null;
+}
 export interface IPlazoPago {
     id: number;
     nombre: string;
@@ -44,5 +68,16 @@ export interface IAbonoFactura{
     usuarioCreacion: string;
     fechaCreacion: Date;
     usuarioActualizacion: string;
-    fechaModificacion: Date;    
+    fechaModificacion: Date;
+}
+
+/**
+ * Interfaz para la respuesta paginada de abono factura del backend
+ * Esta estructura corresponde exactamente a la API de abono/empresa/{id}
+ */
+export interface IAbonoFacturaResponse {
+    cliente: string;
+    codigoFactura: string;
+    fechaAbono: string;
+    valorAbono: number;
 }

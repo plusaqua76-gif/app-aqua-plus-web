@@ -55,4 +55,10 @@ export const navbarData: NavItem[] = [
     label: 'Acceso de Usuarios',
     allowedRoles: ['SUPER ADMIN'],
   },
+    {
+    routeLink: 'user-access',
+    icon: 'heroicon-shield-check',
+    label: 'Contabilidad',
+    allowedRoles: ['ADMIN'],
+  },
 ];
