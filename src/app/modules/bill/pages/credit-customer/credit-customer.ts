@@ -1,67 +1,105 @@
-import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { AbonoService } from '../../service/abono.service';
-import { ApiResponse } from '@interfaces/Iresponse';
-import { IAbonoFactura } from '@interfaces/IdeudaFactura';
 import { TableComponent } from '@components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { map, EMPTY } from 'rxjs';
+import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
 @Component({
   selector: 'app-credit-customer',
   imports: [ CommonModule, TableComponent, RouterModule],
   template: `
-
     <app-table-dynamic
-        [title]="title()"
-        [datasource]="creditCustomerData()"
-        [columns]="creditCustomerColumns()"
-      />
+      [title]="title()"
+      [columns]="creditCustomerColumns()"
+      [serverMode]="true"
+      [serverData]="serverCreditCustomerData.value() ?? null"
+      [loading]="serverCreditCustomerData.isLoading()"
+      [showExportButton]="true"
+      [exportFileName]="exportFileName()"
+      [showColumnFilters]="true"
+      (serverPaginationChange)="onPaginationChange($event)"
+    />
   `,
 
 })
 export class CreditCustomer {
 
   creditCustomerColumns = signal([
-    { field: 'nombreCliente', header: 'Cliente' },
-    { field: 'codigoFactura', header: 'Código Factura' },
-    { field: 'fechaAbono', header: 'Fecha Abono' },
-    { field: 'valorAbono', header: 'Valor Abono' },
+    { field: 'nombreCliente', header: 'Cliente', type: 'text' as const },
+    { field: 'codigoFactura', header: 'Código Factura', type: 'text' as const },
+    { field: 'fechaAbono', header: 'Fecha Abono', type: 'date' as const },
+    { field: 'valorAbono', header: 'Valor Abono', type: 'text' as const },
   ]);
-  creditCustomerData = computed(() => this.dataCreditCustomer.value() ?? []);
+
   title = signal('Abono Facturas');
-
-  tableData: any[] = [];
-
+  readonly platformId = inject(PLATFORM_ID);
+  readonly isBrowser = isPlatformBrowser(this.platformId);
   protected readonly abonoService = inject(AbonoService);
 
-  dataCreditCustomer = rxResource({
-  stream: () =>
-    this.abonoService.getAllAbono().pipe(
-      map((apiRes: ApiResponse<IAbonoFactura[]>) =>
-        apiRes.response.map(abono => {
-          const cliente = abono.deudaCliente.empresaClienteContador.cliente;
+  readonly empresaId = computed(() => {
+    if (!this.isBrowser) return null;
 
-          const fullName = [
-            cliente.nombre || '',
-            cliente.segundoNombre || '',
-            cliente.apellido || '',
-            cliente.segundoApellido || ''
-          ].filter(Boolean).join(' ');
+    try {
+      const userData = sessionStorage.getItem('userData');
+      if (!userData) return null;
 
-          const fechaAbono = new Date(abono.fechaCreacion);
+      const parsedUserData = JSON.parse(userData);
+      return parsedUserData.empresaId ? Number(parsedUserData.empresaId) : null;
+    } catch (error) {
+      console.error('Error parsing userData from sessionStorage:', error);
+      return null;
+    }
+  });
 
-          return {
-            id: abono.id,
-            nombreCliente: fullName,
-            codigoFactura: abono.deudaCliente.factura?.codigo || 'Sin código',
-            fechaAbono: fechaAbono.toLocaleDateString('es-CO'),
-            valorAbono: `$${Number(abono.valor).toLocaleString()}`
-          };
-        })
-      )
-    )
-});
+  readonly exportFileName = computed(
+    () => `abonos_facturas_${new Date().toISOString().split('T')[0]}`
+  );
+
+  readonly paginationParams = signal<IPaginationParams>({
+    page: 0,
+    size: 5,
+  });
+
+  constructor() {
+    effect(() => {
+      console.log("la data mi pez", this.creditCustomerData())
+    })
+  }
+
+  serverCreditCustomerData = rxResource({
+    params: () => ({
+      empresaId: this.empresaId(),
+      pagination: this.paginationParams(),
+    }),
+    stream: ({ params }) => {
+      const { empresaId, pagination } = params;
+      if (!empresaId) {
+        return EMPTY;
+      }
+      return this.abonoService.getAllAbonoPaginated(
+        empresaId,
+        pagination
+      ).pipe(
+        map((response) => ({
+          ...response,
+          response: response.response.map(abono => ({
+            nombreCliente: abono.cliente,
+            codigoFactura: abono.codigoFactura,
+            fechaAbono: new Date(abono.fechaAbono).toLocaleDateString('es-CO'),
+            valorAbono: `$${abono.valorAbono.toLocaleString('es-CO')}`
+          }))
+        }))
+      );
+    },
+  });
+
+  creditCustomerData = computed(() => this.serverCreditCustomerData.value() ?? null);
+
+  onPaginationChange(params: IPaginationParams): void {
+    this.paginationParams.set(params);
+  }
 
 }

@@ -64,7 +64,7 @@ export class UpdateReading implements OnInit {
           'Éxito',
           'La lectura se actualizó correctamente.'
         );
-        this.router.navigate(['/reading']);
+        this.router.navigate(['reading']);
       }
     },
     error: (err) => {

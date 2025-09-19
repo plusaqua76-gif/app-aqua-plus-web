@@ -8,9 +8,5 @@ export default [
   {
     path: 'update-reading/:id',
     loadComponent: () => import('./pages/update-reading/update-reading').then(m => m.UpdateReading)
-  },
-  {
-    path: 'create-reading',
-    loadComponent: () => import('./pages/create-reading/create-reading').then(m => m.CreateReading)
   }
 ] as Routes;

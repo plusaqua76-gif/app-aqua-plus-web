@@ -1,5 +1,5 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, computed, inject, signal, PLATFORM_ID, effect } from '@angular/core';
+import { Component, computed, inject, signal, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ReadingService } from '../../service/reading.service';
 import { TableComponent } from '@components/table';

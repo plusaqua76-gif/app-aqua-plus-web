@@ -1,13 +1,13 @@
-import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { IDeudaCliente } from '@interfaces/IdeudaFactura';
 import { DeudaService } from '../../service/deuda.service';
 import { ApiResponse } from '@interfaces/Iresponse';
 import { ToastService } from '@services/toast.service';
 import { TableComponent } from '@components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { map, EMPTY } from 'rxjs';
+import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
 @Component({
   selector: 'app-customer-debt',
@@ -33,70 +33,119 @@ import { map } from 'rxjs';
   <app-table-dynamic
   [title]="title()"
   [columns]="debtColumns()"
-  [datasource]="debtData()"
+  [serverMode]="true"
+  [serverData]="debtData()"
+  [loading]="serverDebtData.isLoading()"
   [actionTemplate]="actionsTemplate"
   [showAddButton]="true"
   [addButtonText]="'Abono factura'"
   secondaryButtonText="Crear deuda"
   [showSecondaryButton]="true"
+  [showExportButton]="true"
+  [exportFileName]="exportFileName()"
+  [showColumnFilters]="true"
   (secondaryButtonAction)="createdebt()"
-  (action)="handleTableAction($event)">
+  (action)="handleTableAction($event)"
+  (serverPaginationChange)="onPaginationChange($event)">
   </app-table-dynamic>
 
   `
 })
 export class CustomerDebt {
 
-  debtColumns = signal<{ field: string; header: string }[]>([
-    { field: 'clienteNombreCompleto', header: 'Cliente' },
-    { field: 'facturaCodigo', header: 'Factura' },
-    { field: 'fechaDeudaTexto', header: 'Fecha deuda' },
-    { field: 'descripcion', header: 'Descripción' },
-    { field: 'tipoDeudaNombre', header: 'Tipo deuda' },
-    { field: 'valorTexto', header: 'Valor' },
-    { field: 'activo', header: 'Estado' },
-    { field: 'plazoPagoNombre', header: 'N° de cuotas' }
+  debtColumns = signal([
+    { field: 'clienteNombreCompleto', header: 'Cliente', type: 'text' as const },
+    { field: 'facturaCodigo', header: 'Factura', type: 'text' as const },
+    { field: 'fechaDeudaTexto', header: 'Fecha deuda', type: 'date' as const },
+    { field: 'descripcion', header: 'Descripción', type: 'text' as const },
+    { field: 'tipoDeudaNombre', header: 'Tipo deuda', type: 'text' as const },
+    { field: 'valorTexto', header: 'Valor', type: 'text' as const },
+    { field: 'activo', header: 'Estado', type: 'text' as const },
+    { field: 'plazoPagoNombre', header: 'N° de cuotas', type: 'text' as const }
   ]);
 
   protected readonly deudaService = inject(DeudaService);
   protected readonly toastService = inject(ToastService);
   protected readonly router = inject(Router);
   protected readonly route = inject(ActivatedRoute);
+    protected platformId = inject(PLATFORM_ID);
+  protected isBrowser = isPlatformBrowser(this.platformId);
+
+    readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      console.error('Error parsing userData from sessionStorage:', e);
+      return null;
+    }
+  });
+
+  readonly empresaId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
+  });
+
+  readonly exportFileName = computed(
+    () => `deudas_clientes_${new Date().toISOString().split('T')[0]}`
+  );
+
+  readonly paginationParams = signal<IPaginationParams>({
+    page: 0,
+    size: 5,
+  });
+
+  constructor() {
+    effect(() => {
+      console.log("la data mi pez", this.debtData())
+    })
+  }
+
 
 
   /** commentNg
- * @author [PipeChavarro]
- *
- * @remarks
- * El componente no debería realizar ninguna lógica para mostrar la data; toda la lógica de transformación debe hacerse en el backend.
- * Si existe alguna lógica que no se pueda realizar desde el backend, debe implementarse en el service de Angular, no en el componente.
- */
+   * @author [PipeChavarro]
+   *
+   * @remarks
+   * El componente no debería realizar ninguna lógica para mostrar la data; toda la lógica de transformación debe hacerse en el backend.
+   * Si existe alguna lógica que no se pueda realizar desde el backend, debe implementarse en el service de Angular, no en el componente.
+   */
 
-  dataDebts = rxResource({
-    stream: () => this.deudaService.getAllDeuda(
-    ).pipe(
-      map((apiRes: ApiResponse<IDeudaCliente[]>) =>
-        apiRes.response.map(deuda => ({
-          id: deuda.id,
-          clienteNombreCompleto: [
-            deuda.empresaClienteContador?.cliente?.nombre ?? '',
-            deuda.empresaClienteContador?.cliente?.segundoNombre ?? '',
-            deuda.empresaClienteContador?.cliente?.apellido ?? '',
-            deuda.empresaClienteContador?.cliente?.segundoApellido ?? ''
-          ].filter(Boolean).join(' '),
-          facturaCodigo: deuda.factura?.codigo ?? '',
-          fechaDeudaTexto: new Date(deuda.fechaDeuda).toLocaleDateString('es-CO'),
-          descripcion: deuda.descripcion ?? '',
-          tipoDeudaNombre: deuda.tipoDeuda?.nombre ?? '',
-          valorTexto: `$${parseFloat(deuda.valor).toLocaleString('es-CO')}`,
-          activo: deuda.activo ? 'PENDIENTE' : 'PAGO',
-          plazoPagoNombre: deuda.plazoPago?.nombre || '0'
+  serverDebtData = rxResource({
+    params: () => ({
+      empresaId: this.empresaId(),
+      pagination: this.paginationParams(),
+    }),
+    stream: ({ params }) => {
+      const { empresaId, pagination } = params;
+      if (!empresaId) {
+        return EMPTY;
+      }
+      return this.deudaService.getAllDeudaPaginated(
+        empresaId,
+        pagination
+      ).pipe(
+        map((response) => ({
+          ...response,
+          response: response.response.map(deuda => ({
+            id: deuda.id,
+            clienteNombreCompleto: deuda.clienteNombre,
+            facturaCodigo: deuda.facturaCodigo,
+            fechaDeudaTexto: new Date(deuda.fechaDeuda).toLocaleDateString('es-CO'),
+            descripcion: deuda.descripcion,
+            tipoDeudaNombre: deuda.tipoDeuda?.nombre ?? '',
+            valorTexto: `$${deuda.valor.toLocaleString('es-CO')}`,
+            activo: deuda.activo ? 'PENDIENTE' : 'PAGO',
+            plazoPagoNombre: deuda.plazoPago?.nombre || '0'
+          }))
         }))
-      )
-    )
+      );
+    },
   });
 
-  debtData = computed(() => this.dataDebts.value() ?? []);
+  debtData = computed(() => this.serverDebtData.value() ?? null);
   title = signal('Deuda de clientes');
 
 
@@ -122,11 +171,15 @@ export class CustomerDebt {
       this.deudaService.deleteDeudaById(id).subscribe({
         next: () => {
           this.toastService.success('Éxito', 'Deuda eliminada');
-          this.dataDebts.reload?.();
+          this.serverDebtData.reload?.();
         },
         error: () => this.toastService.error('Error', 'No se pudo eliminar')
       });
     }
+  }
+
+  onPaginationChange(params: IPaginationParams): void {
+    this.paginationParams.set(params);
   }
 
   createdebt() {
