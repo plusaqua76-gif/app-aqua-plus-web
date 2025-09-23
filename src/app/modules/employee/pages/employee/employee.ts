@@ -129,7 +129,11 @@ export class Employee {
 
 
   onToggle(row: any): void {
+    const estadoAnterior = row.estado;
     const nuevoEstado = !row.estado;
+
+
+    row.estado = nuevoEstado;
 
     this.empleadoService.updateEstadoEmpleado({
       id_persona: row.personaId,
@@ -137,12 +141,13 @@ export class Employee {
       usuario_cambio: localStorage.getItem('nameUser') || 'admin'
     }).subscribe({
       next: () => {
-        row.estado = nuevoEstado;
         this.toastService.success('Éxito', 'Estado actualizado correctamente');
-        // Recargar datos para mantener consistencia
-        this.serverEmployeeData.reload?.();
+        // Opcional: recargar datos para mantener consistencia
+        // this.serverEmployeeData.reload?.();
       },
       error: (err) => {
+ 
+        row.estado = estadoAnterior;
         console.error('Error al cambiar estado del empleado:', err.message);
         this.toastService.error('Error', 'Ocurrió un error al actualizar el estado');
       }
@@ -151,9 +156,7 @@ export class Employee {
 
 
   editar(row: any): void {
-    this.router.navigate(['shell/employee/update-employee', row.id], {
-      relativeTo: this.route,
-    });
+    this.router.navigate(['shell/employee/update-employee', row.id]);
   }
 
 

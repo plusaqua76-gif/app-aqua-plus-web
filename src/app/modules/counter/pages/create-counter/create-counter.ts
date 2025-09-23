@@ -258,45 +258,17 @@ employeeData = computed(() => this.dataEmployee.value()?.response ?? []);
         }
       };
 
-      console.log('Payload que se enviará al backend:', finalPayload);
-
       this.enterpriseClientCounterService.saveClient(finalPayload).subscribe({
         next: (resp) => {
           if (resp.statusCode === 200 || resp.statusCode === 201) {
             sessionStorage.removeItem('personaData');
             this.toast.success('Cliente y contador guardados correctamente', 'Éxito');
-
-            const personaDTO = {
-              id: resp.id_persona || null,
-              nombre: this.personaData.primerNombre,
-              segundoNombre: this.personaData.segundoNombre,
-              apellido: this.personaData.primerApellido,
-              segundoApellido: this.personaData.segundoApellido,
-              numeroCedula: this.personaData.numeroDocumento,
-              activo: true
-            };
-
-            this.userService.sendEmailUsuario(personaDTO).subscribe({
-              next: (response) => {
-                if (response.success) {
-                  this.toast.success('Correo enviado', 'Se ha enviado el correo al usuario.');
-                } else {
-                  this.toast.warning('Advertencia', 'Cliente creado, pero el correo no se pudo enviar.');
-                }
-              },
-              error: (err) => {
-                console.error('Error al enviar correo:', err);
-                this.toast.error('Error al enviar el correo', 'Intente nuevamente o contacte a soporte.');
-              }
-            });
-
-            this.router.navigate(['/shell/client']);
+            this.router.navigate(['client']);
           } else {
             this.toast.warning(`Error al guardar: ${resp.message || 'Desconocido'}`, 'Advertencia');
           }
         },
         error: (err) => {
-          console.error('Error en la petición', err);
           this.toast.error('Ocurrió un error al guardar los datos', 'Error');
         }
       });

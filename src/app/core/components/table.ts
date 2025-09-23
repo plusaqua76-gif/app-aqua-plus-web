@@ -41,16 +41,6 @@ export interface TableColumn {
           class="flex flex-col sm:flex-row sm:items-center gap-4 justify-between"
         >
           <div class="flex items-center gap-4">
-            <select
-              class="px-7 py-3 pl-4 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600"
-              [value]="currentPageSize()"
-              (change)="onPageSizeChange($event)"
-            >
-              @for (opt of pageSizeOptions; track opt) {
-                <option [value]="opt">{{ opt }}</option>
-              }
-            </select>
-
             @if (showExportButton()) {
               <div class="relative" data-export-dropdown>
                 <button
@@ -327,40 +317,61 @@ export interface TableColumn {
     <div
       class="flex flex-col sm:flex-row items-center justify-between p-4 bg-slate-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 text-sm shadow-lg sm:rounded-b-lg mx-4 sm:mx-6 lg:mx-8"
     >
-      <span class="font-medium">
+      <span class="font-medium mb-3 sm:mb-0">
         Mostrando {{ startEntry() }} en {{ endEntry() }} de
         {{ totalCount() }} registros
       </span>
 
-      <nav class="mt-3 sm:mt-0 inline-flex items-center gap-0 bg-slate-800 dark:bg-slate-8  00 rounded-lg overflow-hidden border border-slate-600">
-        <button
-          class="px-3 py-2 text-white hover:bg-slate-700 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 border-r border-slate-600"
-          [disabled]="currentPageIndex() === 0"
-          (click)="prevPage()"
-        >
-          ‹
-        </button>
-
-        @for (i of createRange(totalPages()); track i) {
+      <!-- Paginación simple -->
+      <div class="flex items-center gap-4">
+        <nav class="inline-flex items-center gap-0 bg-slate-800 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-600">          <!-- Botón Anterior -->
           <button
-            class="px-3 py-2 min-w-[40px] text-center transition-colors duration-200 border-r border-slate-600 last:border-r-0"
-            [class]="i === currentPageIndex()
-              ? 'bg-blue-600 text-white hover:bg-blue-700'
-              : 'text-white hover:bg-slate-700 dark:hover:bg-slate-600'"
-            (click)="goToPage(i)"
+            class="px-3 py-2 text-white hover:bg-slate-700 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 border-r border-slate-600"
+            [disabled]="currentPageIndex() === 0"
+            (click)="prevPage()"
           >
-            {{ i + 1 }}
+            ‹
           </button>
-        }
 
-        <button
-          class="px-3 py-2 text-white hover:bg-slate-700 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-          [disabled]="currentPageIndex() >= totalPages() - 1"
-          (click)="nextPage()"
-        >
-          ›
-        </button>
-      </nav>
+          <!-- Páginas numeradas (responsive) -->
+          @for (i of getVisiblePages(); track i) {
+            <button
+              class="px-3 py-2 min-w-[40px] text-center transition-colors duration-200 border-r border-slate-600 last:border-r-0"
+              [class]="i === currentPageIndex()
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'text-white hover:bg-slate-700 dark:hover:bg-slate-600'"
+              (click)="goToPage(i)"
+            >
+              {{ i + 1 }}
+            </button>
+          }
+
+          <!-- Botón Siguiente -->
+          <button
+            class="px-3 py-2 text-white hover:bg-slate-700 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            [disabled]="currentPageIndex() >= totalPages() - 1"
+            (click)="nextPage()"
+          >
+            ›
+          </button>
+        </nav>
+
+        <!-- Selector de filas por página -->
+        <div class="flex items-center gap-2 text-sm">
+          <span class="text-gray-600 dark:text-gray-300 whitespace-nowrap">
+            Filas:
+          </span>
+          <select
+            class="px-3 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 text-sm min-w-[70px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            [value]="currentPageSize()"
+            (change)="onPageSizeChange($event)"
+          >
+            @for (opt of pageSizeOptions; track opt) {
+              <option [value]="opt">{{ opt }}</option>
+            }
+          </select>
+        </div>
+      </div>
     </div>
   `,
 })
@@ -591,6 +602,30 @@ export class TableComponent {
 
   createRange = (n: number) =>
     Array.from({ length: n }, (_, i) => i);
+
+  // Método para obtener las páginas visibles (siempre mínimo 5)
+  getVisiblePages(): number[] {
+    const totalPages = this.totalPages();
+    const currentPage = this.currentPageIndex();
+    const maxVisible = 5;
+
+    // Si hay 5 o menos páginas, mostrar todas
+    if (totalPages <= maxVisible) {
+      return this.createRange(totalPages);
+    }
+
+    // Calcular el rango de 5 páginas centrado en la página actual
+    const half = Math.floor(maxVisible / 2); // 2
+    let start = Math.max(0, currentPage - half);
+    let end = Math.min(totalPages, start + maxVisible);
+
+    // Ajustar si estamos cerca del final
+    if (end === totalPages) {
+      start = Math.max(0, end - maxVisible);
+    }
+
+    return Array.from({ length: end - start }, (_, i) => start + i);
+  }
 
   readonly startEntry = computed(() => {
     if (this.serverMode()) {

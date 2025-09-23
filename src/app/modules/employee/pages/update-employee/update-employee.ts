@@ -16,6 +16,7 @@ import { ToastService } from '@services/toast.service';
 export class UpdateEmployee implements OnInit {
   empleado: any = {
     id: null,
+    personaId: null,
     nombreCompleto: '',
     numeroIdentificacion: '',
     codigo: '',
@@ -42,25 +43,21 @@ export class UpdateEmployee implements OnInit {
     this.empleadoService.getEmpleadoById(id).subscribe({
       next: (res) => {
         const data = res.response;
-        const personaId = data.personaId;
-        this.correoService.getAllCorreo().subscribe(correosResp => {
-          const correo = correosResp.response.find(c => c.persona && c.persona.id === personaId)?.correo || 'Sin correo';
-          this.telefonoService.getAllTelefono().subscribe(telefonosResp => {
-            const telefono = telefonosResp.response.find(t => t.persona && t.persona.id === personaId)?.numero || 'Sin teléfono';
-            this.empleado = {
-              id: data.id,
-              nombreCompleto: data.personaNombreCompleto,
-              numeroIdentificacion: data.numeroCedula,
-              codigo: data.codigo,
-              correo,
-              telefono,
-              activo: data.activo
-            };
-          });
-        });
+        console.log('📋 Datos del empleado cargados:', data);
+
+        this.empleado = {
+          id: data.id,
+          personaId: data.personaId, // Agregamos personaId para futuras referencias
+          nombreCompleto: data.personaNombreCompleto || '',
+          numeroIdentificacion: data.numeroCedula || '',
+          codigo: data.codigo || '',
+          correo: data.correo || 'Sin correo',
+          telefono: data.telefono || 'Sin teléfono',
+          activo: data.activo || false
+        };
       },
       error: (err) => {
-        console.error('Error al cargar el empleado:', err);
+        this.toast.error('Error', 'No se pudo cargar la información del empleado');
       }
     });
   }
@@ -70,6 +67,7 @@ export class UpdateEmployee implements OnInit {
 
     const payload = {
       id_empleado: this.empleado.id,
+      id_persona: this.empleado.personaId,
       numero_cedula: this.empleado.numeroIdentificacion,
       codigo: this.empleado.codigo,
       primer_nombre: partes[0] || '',
@@ -78,25 +76,20 @@ export class UpdateEmployee implements OnInit {
       segundo_apellido: partes[3] || '',
       correo: this.empleado.correo,
       telefono: this.empleado.telefono,
-      estado: this.empleado.activo ? 'Activo' : 'Inactivo',
+      activo: this.empleado.activo,
       usuario_cambio: localStorage.getItem('nameUser') || 'admin'
     };
-
-    console.log('📤 Payload a enviar:', payload);
 
     this.empleadoService.updateEmpleado(payload).subscribe({
       next: (res) => {
         if (res['error']) {
-          console.error('❌ Error en la actualización:', res['error']);
           this.toast.error('Error al actualizar', res['error'] || 'No se pudo actualizar el empleado.');
         } else {
-          console.log('✅ Empleado actualizado correctamente:', res);
           this.toast.success('Éxito', 'El empleado se actualizó correctamente.');
-          this.router.navigate(['/employee']);
+          this.router.navigate(['/shell/employee']);
         }
       },
       error: (err) => {
-        console.error('❌ Error inesperado al actualizar:', err);
         this.toast.error('Error inesperado', 'No se pudo actualizar el empleado. Intente más tarde.');
       }
     });

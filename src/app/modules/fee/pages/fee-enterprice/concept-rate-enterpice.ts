@@ -1,13 +1,24 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, computed, effect, inject, PLATFORM_ID } from '@angular/core';
+import { Component, computed, inject, PLATFORM_ID, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ConceptRateService } from '../../services/concept-rate.service';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY } from 'rxjs';
+import { PopupComponent } from '../../../../shared/components/popUp';
+import { ToastService } from '@services/toast.service';
 
 
 @Component({
   selector: 'app-concept-rate-enterpice',
-  imports: [CommonModule],
+  imports: [CommonModule, PopupComponent, FormsModule],
+  styles: [`
+    :host ::ng-deep app-pop-up #overlay {
+      background: rgba(0, 0, 0, 0.8) !important;
+      --tw-backdrop-blur: blur(var(--blur-sm));
+      -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);
+      backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );
+    }
+  `],
   template: `
     <section class="w-full bg-transparent text-gray-200">
       <div class="w-full px-2 pb-4">
@@ -250,15 +261,234 @@ import { EMPTY } from 'rxjs';
         </div>
       </div>
     </section>
+
+    <!-- Popup de confirmación de eliminación -->
+    @if (showDeleteConfirm()) {
+      <app-pop-up
+        [open]="showDeleteConfirm"
+        [isConfirmation]="true"
+        title="Eliminar Concepto de Tarifa"
+        [message]="getDeleteConfirmMessage()"
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        (confirmAction)="confirmDeleteConceptRate()"
+        (cancelAction)="cancelDeleteConceptRate()"
+      >
+      </app-pop-up>
+    }
+
+    <!-- Popup de edición de concepto de tarifa -->
+    @if (showEditPopup()) {
+      <app-pop-up
+        [open]="showEditPopup"
+        [isConfirmation]="false"
+        title="Editar Concepto de Tarifa"
+        maxWidth="w-50 sm:max-w-2xl"
+        paddingTop="pt-[20px]"
+      >
+        <!-- Contenido scrolleable -->
+        <div class="overflow-y-auto overflow-x-hidden" style="max-height: calc(100vh - 330px); padding: 0;">
+          <div class="space-y-6 px-6">
+            @if (editingConceptRate) {
+              <!-- Información del concepto -->
+              <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-600/50">
+                <h4 class="text-sm font-medium text-gray-300 mb-2">Información del Concepto</h4>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span class="text-gray-400">Tipo de Tarifa:</span>
+                    <p class="text-white font-medium">{{ editingConceptRate.tipoTarifa.nombre }}</p>
+                  </div>
+                  <div>
+                    <span class="text-gray-400">Tipo de Concepto:</span>
+                    <p class="text-white font-medium">{{ editingConceptRate.tipoConcepto.descripcion }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Toggle para tipo de tarifa -->
+              <div class="flex items-center space-x-3">
+                <label class="flex items-center">
+                  <input
+                    type="radio"
+                    [(ngModel)]="editForm.porEstrato"
+                    [value]="false"
+                    name="tipoTarifa"
+                    class="form-radio text-blue-600"
+                  >
+                  <span class="ml-2 text-gray-300">Valor único</span>
+                </label>
+                <label class="flex items-center">
+                  <input
+                    type="radio"
+                    [(ngModel)]="editForm.porEstrato"
+                    [value]="true"
+                    name="tipoTarifa"
+                    class="form-radio text-blue-600"
+                  >
+                  <span class="ml-2 text-gray-300">Por estratos</span>
+                </label>
+              </div>
+
+              <!-- Campo valor único -->
+              @if (!editForm.porEstrato) {
+                <div>
+                  <label class="block mb-2 text-sm font-medium text-gray-300">Valor</label>
+                  <input
+                    type="number"
+                    [(ngModel)]="editForm.valor"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    class="block w-full rounded-lg border border-gray-600/70 bg-transparent px-3 py-2 text-sm text-gray-100 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-400/40"
+                  >
+                </div>
+              }
+
+              <!-- Estratos -->
+              @if (editForm.porEstrato) {
+                <div class="space-y-4">
+                  <h4 class="text-sm font-medium text-gray-300">Estratos</h4>
+
+                  <!-- Lista de estratos -->
+                  @if (editForm.estratos.length > 0) {
+                    <div class="space-y-2">
+                      @for (estrato of editForm.estratos; track estrato.estrato) {
+                        <div class="flex items-center space-x-3 p-2 bg-gray-800/30 rounded">
+                          <span class="text-sm text-gray-400 w-16">Estrato {{ estrato.estrato }}:</span>
+                          <input
+                            type="number"
+                            [value]="estrato.valor"
+                            (input)="updateEstratoInEdit(estrato.estrato, +$any($event.target).value)"
+                            min="0"
+                            step="0.01"
+                            class="w-20 sm:flex-1 rounded border border-gray-600/70 bg-transparent px-2 py-1 text-sm text-gray-100 outline-none focus:border-gray-300"
+                          >
+                          <button
+                            type="button"
+                            (click)="removeEstratoFromEdit(estrato.estrato)"
+                            class="text-red-400 hover:text-red-300"
+                            title="Eliminar estrato"
+                          >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <p class="text-gray-400 text-sm">No hay estratos configurados</p>
+                  }
+
+                  <!-- Agregar nuevo estrato -->
+                  <div class="flex items-end space-x-2">
+                    <div class="w-20 sm:flex-1">
+                      <label class="block text-xs text-gray-400 mb-1">Estrato</label>
+                      <input
+                        type="number"
+                        #nuevoEstrato
+                        min="1"
+                        max="6"
+                        placeholder="1"
+                        class="block w-full rounded border border-gray-600/70 bg-transparent px-2 py-1 text-sm text-gray-100"
+                      >
+                    </div>
+                    <div class="w-20 sm:flex-1">
+                      <label class="block text-xs text-gray-400 mb-1">Valor</label>
+                      <input
+                        type="number"
+                        #nuevoValor
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        class="block w-full rounded border border-gray-600/70 bg-transparent px-2 py-1 text-sm text-gray-100"
+                      >
+                    </div>
+                    <button
+                      type="button"
+                      (click)="addEstratoToEdit(+nuevoEstrato.value, +nuevoValor.value); nuevoEstrato.value = ''; nuevoValor.value = ''"
+                      class="w-50 sm:px-3 px-2 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                    >
+                      Agregar
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <!-- Botones de acción fijos -->
+        <div class="flex justify-end space-x-3 pt-4 mt-4 border-t border-gray-600/50 px-6">
+          <button
+            type="button"
+            (click)="closeEditPopup()"
+            class="px-4 py-2 text-sm font-medium text-gray-300 bg-transparent border border-gray-600 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="updateConceptRate()"
+            [disabled]="updatingConceptRate() || (!editForm.porEstrato && !editForm.valor) || (editForm.porEstrato && editForm.estratos.length === 0)"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            @if (updatingConceptRate()) {
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Actualizando...
+            } @else {
+              Actualizar
+            }
+          </button>
+        </div>
+        </app-pop-up>
+    }
+
+    <!-- Popup de confirmación de eliminación de estrato -->
+    @if (showDeleteConfirmEstrato()) {
+      <app-pop-up
+        [open]="showDeleteConfirmEstrato"
+        [isConfirmation]="true"
+        title="Eliminar Estrato"
+        [message]="getDeleteConfirmMessageEstrato()"
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        (confirmAction)="confirmDeleteEstrato()"
+        (cancelAction)="cancelDeleteEstrato()"
+      >
+      </app-pop-up>
+    }
   `
   ,
 })
 export class ConceptRateEnterpice {
 
   readonly conceptRateService = inject(ConceptRateService);
+  protected readonly toastService = inject(ToastService);
 
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
+
+
+  showDeleteConfirm = signal(false);
+  conceptRateToDelete: any = null;
+
+
+  showEditPopup = signal(false);
+  editingConceptRate: any = null;
+  updatingConceptRate = signal(false);
+
+  showDeleteConfirmEstrato = signal(false);
+  estratoToDelete: { estrato: number; valor: number } | null = null;
+
+  editForm = {
+    valor: null as number | null,
+    estratos: [] as any[],
+    porEstrato: false
+  };
 
     readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -310,13 +540,243 @@ conceptRatesData = computed(() => {
   });
 
   editConceptRate(id: number): void {
-    console.log('Editando concepto de tarifa con ID:', id);
+    const conceptRate = this.conceptRatesData().find(cr => cr.id === id);
+    if (conceptRate) {
+      this.editingConceptRate = conceptRate;
+
+      // Copiar datos al formulario
+      this.editForm = {
+        valor: conceptRate.valor || null,
+        estratos: conceptRate.estratos ? [...conceptRate.estratos] : [],
+        porEstrato: conceptRate.porEstrato || false
+      };
+
+      this.showEditPopup.set(true);
+    }
   }
 
   deleteConceptRate(id: number): void {
-    if (confirm('¿Está seguro de que desea eliminar este concepto de tarifa?')) {
-      console.log('Eliminando concepto de tarifa con ID:', id);
+    // Buscar el concepto de tarifa para mostrar su información en el popup
+    const conceptRate = this.conceptRatesData().find(cr => cr.id === id);
+    this.conceptRateToDelete = conceptRate;
+    this.showDeleteConfirm.set(true);
+  }
+
+  getDeleteConfirmMessage(): string {
+    if (!this.conceptRateToDelete) {
+      return '¿Está seguro que desea eliminar este concepto de tarifa?';
     }
+
+    const tipoTarifa = this.conceptRateToDelete.tipoTarifa?.nombre || 'Sin nombre';
+    const tipoConcepto = this.conceptRateToDelete.tipoConcepto?.descripcion || 'Sin descripción';
+
+    return `¿Está seguro que desea eliminar el concepto de tarifa "${tipoTarifa} - ${tipoConcepto}"? Esta acción no se puede deshacer.`;
+  }
+
+  confirmDeleteConceptRate(): void {
+    if (this.conceptRateToDelete?.id) {
+      this.conceptRateService.deleteConceptRate(this.conceptRateToDelete.id).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.dataConceptRate.reload();
+            this.toastService.success(
+              'Éxito',
+              'Concepto de tarifa eliminado exitosamente'
+            );
+          } else {
+            this.toastService.error(
+              'Error',
+              'El concepto de tarifa no se pudo eliminar'
+            );
+          }
+        },
+        error: (error) => {
+          console.error('Error al eliminar el concepto de tarifa:', error);
+          this.toastService.error(
+            'Error',
+            'El concepto de tarifa no se pudo eliminar. Inténtelo de nuevo.'
+          );
+        },
+        complete: () => {
+          this.showDeleteConfirm.set(false);
+          this.conceptRateToDelete = null;
+        },
+      });
+    }
+  }
+
+  cancelDeleteConceptRate(): void {
+    this.showDeleteConfirm.set(false);
+    this.conceptRateToDelete = null;
+  }
+
+  // Métodos para el popup de edición
+  closeEditPopup(): void {
+    this.showEditPopup.set(false);
+    this.editingConceptRate = null;
+    this.updatingConceptRate.set(false);
+    this.resetEditForm();
+  }
+
+  resetEditForm(): void {
+    this.editForm = {
+      valor: null,
+      estratos: [],
+      porEstrato: false
+    };
+  }
+
+  updateConceptRate(): void {
+    if (!this.editingConceptRate) return;
+
+    const empresaId = this.empresaId();
+    const usuario = this.nombreUsuario();
+
+    if (!empresaId || !usuario) {
+      this.toastService.error('Error', 'No se pudo obtener la información del usuario o empresa');
+      return;
+    }
+
+    // Validaciones
+    if (!this.editForm.porEstrato && !this.editForm.valor) {
+      this.toastService.error('Error', 'Por favor, ingrese un valor para el concepto');
+      return;
+    }
+
+    if (this.editForm.porEstrato && this.editForm.estratos.length === 0) {
+      this.toastService.error('Error', 'Por favor, agregue al menos un estrato');
+      return;
+    }
+
+    this.updatingConceptRate.set(true);
+
+    // Construir payload según el tipo seleccionado
+    let payload: any = {
+      idTarifaConcepto: this.editingConceptRate.id,
+      usuarioModificacion: usuario,
+      indCalcularMc: false
+    };
+
+    if (this.editForm.porEstrato) {
+      // Payload para actualización por estratos
+      payload.estratos = this.editForm.estratos.map(estrato => ({
+        estrato: estrato.estrato,
+        valor: estrato.valor
+      }));
+    } else {
+      // Payload para valor único
+      payload.valor = this.editForm.valor;
+    }
+
+    // Llamar al servicio con el nuevo endpoint
+    this.conceptRateService.updateConcepRateStratum(payload).subscribe({
+      next: (response) => {
+        this.updatingConceptRate.set(false); // Resetear loading state aquí
+        if (response.success) {
+          this.toastService.success('Éxito', 'Concepto de tarifa actualizado correctamente');
+          this.closeEditPopup();
+          this.reloadData();
+        } else {
+          this.toastService.error('Error', response.message || 'Error al actualizar el concepto de tarifa');
+        }
+      },
+      error: (error) => {
+        this.updatingConceptRate.set(false); // Resetear loading state aquí también
+        console.error('Error al actualizar concepto de tarifa:', error);
+        this.toastService.error('Error', 'Error al actualizar el concepto de tarifa');
+      }
+    });
+  }
+
+  // Métodos para manejar estratos en edición
+  addEstratoToEdit(estrato: number, valor: number): void {
+    const existe = this.editForm.estratos.find(e => e.estrato === estrato);
+    if (!existe && valor > 0) {
+      this.editForm.estratos.push({ estrato, valor });
+      this.editForm.estratos.sort((a, b) => a.estrato - b.estrato);
+    }
+  }
+
+  removeEstratoFromEdit(estrato: number): void {
+    const estratoObj = this.editForm.estratos.find(e => e.estrato === estrato);
+    if (estratoObj) {
+      this.estratoToDelete = { estrato: estratoObj.estrato, valor: estratoObj.valor };
+      this.showDeleteConfirmEstrato.set(true);
+    }
+  }
+
+  updateEstratoInEdit(estrato: number, valor: number): void {
+    const estratoObj = this.editForm.estratos.find(e => e.estrato === estrato);
+    if (estratoObj) {
+      estratoObj.valor = valor;
+    }
+  }
+
+  // Métodos para confirmación de eliminación de estrato
+  getDeleteConfirmMessageEstrato(): string {
+    return this.estratoToDelete
+      ? `¿Está seguro que desea eliminar el estrato ${this.estratoToDelete.estrato} con valor $${this.estratoToDelete.valor.toLocaleString()}? Esta acción no se puede deshacer.`
+      : '¿Está seguro que desea eliminar este estrato?';
+  }
+
+  confirmDeleteEstrato(): void {
+    if (!this.estratoToDelete) {
+      this.cancelDeleteEstrato();
+      return;
+    }
+
+    const estratoNumero = this.estratoToDelete.estrato;
+    const estratoInfo = `${this.estratoToDelete.estrato} (Valor: $${this.estratoToDelete.valor.toLocaleString()})`;
+
+    // Buscar el estrato en la base de datos (si tiene ID)
+    const estratoEnBD = this.editingConceptRate?.estratos?.find((e: any) => e.estrato === estratoNumero);
+
+    if (estratoEnBD?.id) {
+      // Si el estrato existe en BD, eliminarlo usando el endpoint
+      this.conceptRateService.deleteConceptStratum(estratoEnBD.id).subscribe({
+        next: (response) => {
+          if (response?.success !== false) {
+            // Eliminar del array local solo si la petición fue exitosa
+            this.editForm.estratos = this.editForm.estratos.filter(e => e.estrato !== estratoNumero);
+            this.toastService.success(
+              'Éxito',
+              `Se eliminó exitosamente el estrato ${estratoInfo}`
+            );
+            // Recargar la lista de tarifas conceptos para reflejar los cambios
+            this.dataConceptRate.reload();
+          } else {
+            this.toastService.error(
+              'Error',
+              response?.message || 'No se pudo eliminar el estrato'
+            );
+          }
+        },
+        error: (error) => {
+          console.error('Error al eliminar estrato:', error);
+          const errorMessage = error?.error?.message || error?.message || 'Error de conexión';
+          this.toastService.error(
+            'Error',
+            `No se pudo eliminar el estrato ${estratoInfo}: ${errorMessage}`
+          );
+        },
+        complete: () => {
+          this.cancelDeleteEstrato();
+        }
+      });
+    } else {
+      // Si es un estrato nuevo (solo local), eliminarlo directamente
+      this.editForm.estratos = this.editForm.estratos.filter(e => e.estrato !== estratoNumero);
+      this.toastService.success(
+        'Éxito',
+        `Se eliminó el estrato ${estratoInfo}`
+      );
+      this.cancelDeleteEstrato();
+    }
+  }
+
+  cancelDeleteEstrato(): void {
+    this.showDeleteConfirmEstrato.set(false);
+    this.estratoToDelete = null;
   }
 
 }

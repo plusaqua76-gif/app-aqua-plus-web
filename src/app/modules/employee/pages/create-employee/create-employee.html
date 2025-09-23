@@ -1,45 +1,51 @@
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex items-center justify-center py-4">
     <div class="max-w-7xl w-full mx-auto p-6">
-        <form [formGroup]="registerForm" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg dark:shadow-gray-700/50 border border-gray-200 dark:border-gray-700">
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg dark:shadow-gray-700/50 border border-gray-200 dark:border-gray-700">
             <h2 class="text-2xl font-semibold text-center mb-6 text-gray-900 dark:text-white">Registrar Empleado</h2>
-
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
                 <div>
-                    <select formControlName="tipoDocumento"
+                    <label for="tipoDocumento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de Documento <span class="text-red-500">*</span></label>
+                    <select id="tipoDocumento" formControlName="tipoDocumento"
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
                         <option [ngValue]="null" disabled>Tipo de documento...</option>
                         <option *ngFor="let tipo of typeDocument" [ngValue]="tipo.id">{{ tipo.nombre }}</option>
                     </select>
                 </div>
                 <div>
-                    <input formControlName="numeroDocumento" type="number" placeholder="Número de documento..."
+                    <label for="numeroDocumento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número de Documento</label>
+                    <input id="numeroDocumento" formControlName="numeroDocumento" type="number" placeholder="Número de documento..."
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
                 </div>
                 <div>
-                    <input formControlName="correo" type="email" placeholder="Correo..."
+                    <label for="correo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Correo Electrónico</label>
+                    <input id="correo" formControlName="correo" type="email" placeholder="Correo..."
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
                 </div>
                 <div>
-                    <input formControlName="primerNombre" type="text" placeholder="Primer nombre..."
+                    <label for="primerNombre" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Primer Nombre</label>
+                    <input id="primerNombre" formControlName="primerNombre" type="text" placeholder="Primer nombre..."
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
                 </div>
 
                 <div>
-                    <input formControlName="segundoNombre" type="text" placeholder="Segundo nombre..."
+                    <label for="segundoNombre" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Segundo Nombre</label>
+                    <input id="segundoNombre" formControlName="segundoNombre" type="text" placeholder="Segundo nombre..."
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
                 </div>
                 <div>
-                    <input formControlName="primerApellido" type="text" placeholder="Primer apellido..."
+                    <label for="primerApellido" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Primer Apellido</label>
+                    <input id="primerApellido" formControlName="primerApellido" type="text" placeholder="Primer apellido..."
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
                 </div>
 
                 <div>
-                    <input formControlName="segundoApellido" type="text" placeholder="Segundo apellido..."
+                    <label for="segundoApellido" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Segundo Apellido</label>
+                    <input id="segundoApellido" formControlName="segundoApellido" type="text" placeholder="Segundo apellido..."
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
                 </div>
-
-            <div> <select formControlName="idDepartamento"
+            <div>
+                <label for="idDepartamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Departamento <span class="text-red-500">*</span></label>
+                <select id="idDepartamento" formControlName="idDepartamento"
                     class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
                     <option [ngValue]="null" disabled>
                       @if (departmentsLoading()) { Cargando departamentos... } @else { Seleccione un departamento }
@@ -49,8 +55,9 @@
                     }
                 </select>
             </div>
-
-                <div> <select formControlName="idCiudad"
+                <div>
+                    <label for="idCiudad" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ciudad <span class="text-red-500">*</span></label>
+                    <select id="idCiudad" formControlName="idCiudad"
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
                       <option [ngValue]="null" disabled>
                           @if (citiesLoading()) { Cargando ciudades... } @else if (!selectedDepartmentId()) { Seleccione primero un departamento } @else { Seleccione una ciudad }
@@ -60,8 +67,9 @@
                         }
                     </select>
                 </div>
-
-                <div> <select formControlName="idCorregimiento"
+                <div>
+                    <label for="idCorregimiento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Corregimiento <span class="text-red-500">*</span></label>
+                    <select id="idCorregimiento" formControlName="idCorregimiento"
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
                       <option [ngValue]="null" disabled>
                           @if (corregimientosLoading()) { Cargando corregimientos... } @else if (!selectedCityId()) { Seleccione primero una ciudad } @else { Seleccione un corregimiento }
@@ -72,21 +80,25 @@
                     </select>
                 </div>
                 <div>
-                    <input formControlName="telefono" type="number" placeholder="Telefono..."
+                    <label for="telefono" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teléfono</label>
+                    <input id="telefono" formControlName="telefono" type="number" placeholder="Telefono..."
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
                 </div>
                 <div>
-                    <input formControlName="direccion" type="text" placeholder="Dirección..."
+                    <label for="direccion" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dirección</label>
+                    <input id="direccion" formControlName="direccion" type="text" placeholder="Dirección..."
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
                 </div>
                 <div>
-                    <input formControlName="codigo" type="text" placeholder="Codigo empleado..."
+                    <label for="codigo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Código de Empleado</label>
+                    <input id="codigo" formControlName="codigo" type="text" placeholder="Codigo empleado..."
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
                 </div>
             </div>
             <div class="text-center mt-8">
-                <button (click)="onSubmit()"
-                    class="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-md shadow-md dark:shadow-gray-700/50 cursor-pointer transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                <button type="submit"
+                    [disabled]="registerForm.invalid"
+                    class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-blue-500 dark:hover:bg-blue-600 dark:disabled:bg-gray-600 text-white font-bold py-2 px-6 rounded-md shadow-md dark:shadow-gray-700/50 cursor-pointer transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                     Registrar
                 </button>
             </div>

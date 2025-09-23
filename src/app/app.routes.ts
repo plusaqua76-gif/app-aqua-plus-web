@@ -92,6 +92,16 @@ export const routes: Routes = [
         path: 'fee',
         loadChildren: () =>
           import('./modules/fee/fee.routes').then((m) => m.default),
+      },
+      {
+        path: 'Inventory',
+        loadChildren: () =>
+          import('./modules/accounting/accounting.route').then((m) => m.default),
+      },
+            {
+        path: 'pqr-client',
+        loadChildren: () =>
+          import('./modules/pqr-client/pqr.route').then((m) => m.default)
       }
     ],
   },

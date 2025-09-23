@@ -8,7 +8,8 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
         <div>
-          <select formControlName="tipoContador"
+          <label for="tipoContador" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de Contador <span class="text-red-500">*</span></label>
+          <select id="tipoContador" formControlName="tipoContador"
             class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
             required>
             <option [ngValue]="null" disabled>Tipo Contador...</option>
@@ -17,10 +18,13 @@
         </div>
 
         <div>
-          <input formControlName="serial" type="text" placeholder="Serial Contador..."
+          <label for="serial" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serial del Contador <span class="text-red-500">*</span></label>
+          <input id="serial" formControlName="serial" type="text" placeholder="Serial Contador..."
             class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
         </div>
-        <div> <select formControlName="idDepartamento"
+        <div>
+          <label for="idDepartamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Departamento <span class="text-red-500">*</span></label>
+          <select id="idDepartamento" formControlName="idDepartamento"
             class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
             required>
             <option value="" disabled>
@@ -32,7 +36,9 @@
           </select>
         </div>
 
-        <div> <select formControlName="idCiudad"
+        <div>
+          <label for="idCiudad" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ciudad <span class="text-red-500">*</span></label>
+          <select id="idCiudad" formControlName="idCiudad"
             class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
             required>
             <option value="" disabled>
@@ -45,7 +51,9 @@
           </select>
         </div>
 
-        <div> <select formControlName="idCorregimiento"
+        <div>
+          <label for="idCorregimiento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Corregimiento</label>
+          <select id="idCorregimiento" formControlName="idCorregimiento"
             class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200">
             <option value="" disabled>
               @if (corregimientosLoading()) { Cargando corregimientos... } @else if (!selectedCityId()) { Seleccione
@@ -57,11 +65,13 @@
           </select>
         </div>
         <div>
-          <input formControlName="direccion" type="text" placeholder="Dirección..."
+          <label for="direccion" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dirección</label>
+          <input id="direccion" formControlName="direccion" type="text" placeholder="Dirección..."
             class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
         </div>
         <div>
-          <select formControlName="idEmpleadoEmpresa"
+          <label for="idEmpleadoEmpresa" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Empleado Asignado <span class="text-red-500">*</span></label>
+          <select id="idEmpleadoEmpresa" formControlName="idEmpleadoEmpresa"
             class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
             <option value="" disabled>
               @if (dataEmployee.isLoading()) { Cargando empleados... }

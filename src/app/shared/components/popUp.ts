@@ -6,6 +6,8 @@ import {
   output,
   computed,
   effect,
+  HostListener,
+  signal,
 } from '@angular/core';
 
 @Component({
@@ -15,7 +17,10 @@ import {
     @if (isOpen()) {
     <div
       id="overlay"
-      class="fixed inset-0 z-[1000] flex items-start justify-center bg-black/50 backdrop-blur-sm pt-[75px] pb-4"
+      class="fixed inset-0 z-[1002] flex items-start justify-center bg-black/50 backdrop-blur-sm pb-4"
+      [class]="paddingTop()"
+      [style.margin-left]="getLeftMargin()"
+      [style.width]="getOverlayWidth()"
       (click)="close()"
     >
       <div
@@ -100,11 +105,50 @@ export class PopupComponent {
   readonly cancelText = input<string>('Cancelar');
   readonly isConfirmation = input<boolean>(false);
   readonly maxWidth = input<string>('max-w-md');
+  readonly paddingTop = input<string>('pt-[75px]');
   readonly confirmAction = output<void>();
   readonly cancelAction = output<void>();
 
+  // Señales para manejar el estado del sidenav
+  screenWidth = signal(0);
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.screenWidth.set(window.innerWidth);
+  }
+
   constructor() {
     effect(() => this.openChange.emit(this.open()));
+    // Inicializar el ancho de pantalla
+    if (typeof window !== 'undefined') {
+      this.screenWidth.set(window.innerWidth);
+    }
+  }
+
+  // Calcular el margen izquierdo basado en la lógica del sidenav
+  getLeftMargin(): string {
+    const width = this.screenWidth();
+
+    if (width <= 768) {
+      // En móvil, sin margen
+      return '0px';
+    } else {
+      // En desktop, margen del sidenav (5rem = 80px)
+      return '5rem';
+    }
+  }
+
+  // Calcular el ancho del overlay
+  getOverlayWidth(): string {
+    const width = this.screenWidth();
+
+    if (width <= 768) {
+      // En móvil, ancho completo
+      return '100%';
+    } else {
+      // En desktop, ancho menos el sidenav
+      return 'calc(100% - 5rem)';
+    }
   }
 
   close = () => this.open().set(false);
