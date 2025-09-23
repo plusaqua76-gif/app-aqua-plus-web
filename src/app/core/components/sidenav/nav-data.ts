@@ -65,6 +65,6 @@ export const navbarData: NavItem[] = [
     routeLink: 'pqr-client',
     icon: 'heroicon-shield-check',
     label: 'Contabilidad',
-    allowedRoles: ['CLIENTE'],
+    allowedRoles: ['ADMIN'],
   },
 ];

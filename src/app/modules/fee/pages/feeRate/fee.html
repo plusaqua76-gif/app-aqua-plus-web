@@ -322,9 +322,22 @@
                     <button
                       type="button"
                       (click)="eliminarEstrato(estrato.id)"
-                      class="inline-flex items-center justify-center rounded border border-red-600/70 px-2 py-1 text-xs text-red-400 hover:bg-red-500/10 focus:outline-none focus:ring-1 focus:ring-red-500/40"
+                      class="inline-flex items-center justify-center rounded border border-red-600/70 p-2 text-xs text-red-400 hover:bg-red-500/10 focus:outline-none focus:ring-1 focus:ring-red-500/40"
+                      title="Eliminar estrato"
                     >
-                      Eliminar
+                      <svg
+                        class="h-4 w-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0a2 2 0 012-2h4a2 2 0 012 2m-8 0H5"
+                        />
+                      </svg>
                     </button>
                   </td>
                 </tr>
@@ -360,44 +373,66 @@
         </div>
         } @else { @for (tarifa of tarifasAgregadas; track tarifa.id) {
         <div class="rounded-xl border border-gray-600/70 bg-transparent p-5">
-          <div class="grid grid-cols-12 items-center gap-4">
-            <div class="col-span-12 grid grid-cols-12 text-xs text-gray-400">
+          <div class="space-y-4">
+            <!-- Headers para escritorio -->
+            <div class="hidden md:grid grid-cols-12 text-xs text-gray-400 gap-4">
               <span class="col-span-3">Tipo de tarifa</span>
               <span class="col-span-3">Tipo concepto</span>
               <span class="col-span-3">Valor tarifa concepto</span>
               <span class="col-span-1">Estratos</span>
               <span class="col-span-2"></span>
             </div>
-            <div class="col-span-12 grid grid-cols-12 items-center">
-              <div class="col-span-3">
-                <span class="text-lg font-semibold"
-                  >{{ tarifa.tipoTarifa }}</span
-                >
+
+            <!-- Contenido responsive -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:items-center">
+              <!-- Tipo de tarifa -->
+              <div class="md:col-span-3">
+                <div class="md:hidden text-xs text-gray-400 mb-1">Tipo de tarifa</div>
+                <div class="break-words">
+                  <span class="text-sm md:text-lg font-semibold text-gray-200 leading-tight">
+                    {{ tarifa.tipoTarifa }}
+                  </span>
+                </div>
               </div>
-              <div class="col-span-3">
-                <span class="text-lg font-semibold"
-                  >{{ tarifa.tipoConcepto }}</span
-                >
+
+              <!-- Tipo concepto -->
+              <div class="md:col-span-3">
+                <div class="md:hidden text-xs text-gray-400 mb-1">Tipo concepto</div>
+                <div class="break-words">
+                  <span class="text-sm md:text-lg font-semibold text-gray-200 leading-tight">
+                    {{ tarifa.tipoConcepto }}
+                  </span>
+                </div>
               </div>
-              <div class="col-span-3">
-                <span class="text-lg font-bold">
-                  @if (tarifa.estratos && tarifa.estratos.length > 0) {
-                    <span class="text-sm text-gray-400">Por estratos</span>
-                  } @else {
-                    $ {{ tarifa.valor | number:'1.0-0' }}
-                  }
+
+              <!-- Valor -->
+              <div class="md:col-span-3">
+                <div class="md:hidden text-xs text-gray-400 mb-1">Valor tarifa concepto</div>
+                <div class="break-words">
+                  <span class="text-sm md:text-lg font-bold text-gray-100 leading-tight">
+                    @if (tarifa.estratos && tarifa.estratos.length > 0) {
+                      <span class="text-sm text-gray-400">Por estratos</span>
+                    } @else {
+                      $ {{ tarifa.valor | number:'1.0-0' }}
+                    }
+                  </span>
+                </div>
+              </div>
+
+              <!-- Estratos -->
+              <div class="md:col-span-1">
+                <div class="md:hidden text-xs text-gray-400 mb-1">Estratos</div>
+                <span class="text-sm text-gray-300">
+                  {{ tarifa.estratos.length }}
                 </span>
               </div>
-              <div class="col-span-1">
-                <span class="text-sm text-gray-300"
-                  >{{ tarifa.estratos.length }}</span
-                >
-              </div>
-              <div class="col-span-2 flex justify-end">
+
+              <!-- Botón eliminar -->
+              <div class="md:col-span-2 flex justify-start md:justify-end">
                 <button
                   type="button"
                   (click)="eliminarTarifa(tarifa.id)"
-                  class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-600/70 hover:bg-red-500/10 focus:outline-none focus:ring-2 focus:ring-red-500/40"
+                  class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-600/70 hover:bg-red-500/10 focus:outline-none focus:ring-2 focus:ring-red-500/40 transition-colors"
                   aria-label="Eliminar"
                 >
                   <svg
@@ -417,23 +452,21 @@
               </div>
             </div>
             @if (tarifa.estratos && tarifa.estratos.length > 0) {
-            <div class="col-span-12 mt-4 pt-4 border-t border-gray-600/50">
-              <div class="mb-2">
-                <span class="text-xs text-gray-400"
-                  >Estratos configurados:</span
-                >
+            <div class="mt-4 pt-4 border-t border-gray-600/50">
+              <div class="mb-3">
+                <span class="text-xs text-gray-400">
+                  Estratos configurados:
+                </span>
               </div>
-              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 @for (estrato of tarifa.estratos; track estrato.id) {
-                <div
-                  class="flex items-center justify-between rounded border border-gray-600/50 px-2 py-1 text-xs"
-                >
-                  <span class="text-gray-300"
-                    >Estrato {{ estrato.numero }}</span
-                  >
-                  <span class="font-medium text-gray-200"
-                    >$ {{ estrato.valor | number:'1.0-0' }}</span
-                  >
+                <div class="flex items-center justify-between rounded-lg border border-gray-600/50 px-3 py-2 text-sm bg-gray-800/30">
+                  <span class="text-gray-300 font-medium min-w-0 truncate pr-2">
+                    Estrato {{ estrato.numero }}
+                  </span>
+                  <span class="font-semibold text-gray-200 whitespace-nowrap">
+                    $ {{ estrato.valor | number:'1.0-0' }}
+                  </span>
                 </div>
                 }
               </div>
@@ -505,11 +538,12 @@
     <div class="space-y-6">
       <!-- Campo Nombre -->
       <div class="form-group">
-        <label class="block mb-3 text-sm font-medium text-gray-300">
+        <label for="nombre-tipo-tarifa" class="block mb-3 text-sm font-medium text-gray-300">
           Nombre
         </label>
         <i class="fa fa-tag icon"></i>
         <input
+          id="nombre-tipo-tarifa"
           type="text"
           [(ngModel)]="nuevoTipoTarifa.nombre"
           placeholder="Ingrese el nombre"
@@ -519,11 +553,12 @@
       </div>
 
       <div class="form-group textarea-group">
-        <label class="block mb-3 text-sm font-medium text-gray-300">
+        <label for="descripcion-tipo-tarifa" class="block mb-3 text-sm font-medium text-gray-300">
           Descripción
         </label>
         <i class="fa fa-align-left icon"></i>
         <textarea
+          id="descripcion-tipo-tarifa"
           [(ngModel)]="nuevoTipoTarifa.descripcion"
           placeholder="Descripción opcional del tipo de tarifa"
           rows="3"
@@ -542,7 +577,7 @@
           type="button"
           (click)="guardarNuevoTipoTarifa()"
           [disabled]="!nuevoTipoTarifa.nombre.trim() || guardandoTipoTarifa()"
-          class="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:-translate-y-px active:translate-y-0"
+          class="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-green-600 to-green-700 rounded-xl hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:-translate-y-px active:translate-y-0"
         >
           @if (guardandoTipoTarifa()) {
           <i class="fa fa-spinner fa-spin mr-2"></i>
@@ -605,11 +640,12 @@
     <div class="space-y-6">
       <!-- Campo Descripcion -->
       <div class="form-group">
-        <label class="block mb-3 text-sm font-medium text-gray-300">
+        <label for="descripcion-tipo-concepto" class="block mb-3 text-sm font-medium text-gray-300">
           Descripción
         </label>
         <i class="fa fa-tag icon"></i>
         <input
+          id="descripcion-tipo-concepto"
           type="text"
           [(ngModel)]="nuevoTipoConcepto.descripcion"
           placeholder="Ingrese la descripción"
@@ -618,16 +654,7 @@
         />
       </div>
 
-      <!-- <div class="form-group textarea-group">
-        <label class="block mb-3 text-sm font-medium text-gray-300">
-          Descripción
-        </label>
-        <i class="fa fa-align-left icon"></i>
-        <textarea
-          [(ngModel)]="nuevoTipoConcepto.descripcion"
-          placeholder="Descripción opcional del tipo de concepto"
-          rows="3"></textarea>
-      </div> -->
+
 
       <div class="flex justify-end gap-3 pt-4">
         <button
