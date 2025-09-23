@@ -81,6 +81,6 @@ export const ADDRESS = {
 };
 
 export const PRODUCT_CATEGORY = {
-  PRODUCT_CATEGORY: 'CategoriaProducto',
+  PRODUCT_CATEGORY: 'categoria-producto',
   GET_ALL: 'all',
 }

@@ -1,13 +1,14 @@
 import { EnterpriseClientCounterService } from './../../service/enterpriseClientCounter.service';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, inject, signal, computed, effect, PLATFORM_ID } from '@angular/core';
+import { Component, inject, signal, computed, PLATFORM_ID, effect } from '@angular/core';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { Action, TableComponent } from '../../../../core/components/table';
-import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { ToastService } from '@services/toast.service';
-import { EMPTY, map, of } from 'rxjs';
+import { EMPTY, of } from 'rxjs';
 import { PopupComponent } from '@shared/components/popUp';
 import { ClientRow } from '@interfaces/client/IclientRow';
+import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
 @Component({
   selector: 'app-client',
@@ -50,15 +51,18 @@ import { ClientRow } from '@interfaces/client/IclientRow';
     <app-table-dynamic
       [title]="title"
       [columns]="clienteColumns()"
-      [datasource]="transformedData()"
+      [serverMode]="true"
+      [serverData]="serverClientData.value() ?? null"
+      [loading]="serverClientData.isLoading()"
       [actionTemplate]="actionsTemplate"
       [columnTemplates]="{ estado: estadoTpl }"
       [showAddButton]="true"
       [addButtonText]="'Agregar Cliente'"
       [showColumnFilters]="true"
       [showExportButton]="true"
-      [exportFileName]="'mi_reporte_2025'"
+      [exportFileName]="exportFileName()"
       (action)="onTableAction($event)"
+      (serverPaginationChange)="onPaginationChange($event)"
     >
     </app-table-dynamic>
 
@@ -92,15 +96,24 @@ export class Client {
   protected readonly toastService = inject(ToastService);
 
   clienteColumns = signal([
-    { field: 'idContador', header: 'ID Contador' },
-    { field: 'codigoVereda', header: 'Vereda' },
-    { field: 'numeroIdentificacion', header: 'Número Identificación' },
-    { field: 'nombreCliente', header: 'Nombre cliente' },
-    { field: 'telefono', header: 'Teléfono' },
-    { field: 'direccion', header: 'Dirección' },
-    { field: 'correo', header: 'Correo' },
-    { field: 'estado', header: 'Estado', template: 'estadoTpl' },
+    { field: 'numeroIdentificacion', header: 'Número Identificación', type: 'text' as const },
+    { field: 'nombreCliente', header: 'Nombre cliente', type: 'text' as const },
+    { field: 'telefono', header: 'Teléfono', type: 'text' as const },
+    { field: 'corregimientoNombre', header: 'Corregimiento', type: 'text' as const },
+    { field: 'direccionDescripcion', header: 'Dirección', type: 'text' as const },
+    { field: 'correo', header: 'Correo', type: 'text' as const },
+    { field: 'estado', header: 'Estado', template: 'estadoTpl', type: 'text' as const },
   ]);
+
+  readonly exportFileName = computed(
+    () => `clientes_${new Date().toISOString().split('T')[0]}`
+  );
+
+  readonly paginationParams = signal<IPaginationParams>({
+    page: 0,
+    size: 5,
+  });
+
 
 
       readonly userData = computed(() => {
@@ -126,7 +139,33 @@ export class Client {
     return data?.nombre || null;
   });
 
+  serverClientData = rxResource({
+    params: () => ({
+      enterpriseId: this.enterpriseId(),
+      pagination: this.paginationParams(),
+    }),
+    stream: ({ params }) => {
+      const { enterpriseId, pagination } = params;
 
+      if (!enterpriseId) {
+        console.warn('No enterprise ID available');
+        return EMPTY;
+      }
+
+      return this.enterpriseClientCounterService.getAllClientsByIdEnterprisePaginated(
+        enterpriseId,
+        pagination
+      );
+    }
+  });
+
+  constructor() {
+    effect(() => {
+      console.log("la data mi pez", this.dataClientCounter.value())
+    })
+  }
+
+  // Método legacy para compatibilidad con el toggle de estado
   dataClientCounter = rxResource({
     params: () => ({ enterpriseId: this.enterpriseId() }),
     stream: ({ params }) => {
@@ -146,10 +185,7 @@ export class Client {
     }
   });
 
-  transformedData = computed(() => {
-    const apiResponse = this.dataClientCounter.value();
-    return apiResponse?.response || [];
-  });
+  transformedData = computed(() => this.serverClientData.value() ?? null);
 
   onToggle(row: any) {
     const nuevoEstado = !row.estado;
@@ -186,7 +222,6 @@ export class Client {
   editar(row: any) {
     const id = row?.id;
     if (id) {
-      // Pasar toda la información del cliente como state en la navegación
       this.router.navigate(['update-client/', id], {
         relativeTo: this.route,
         state: { clienteData: row }
@@ -206,7 +241,7 @@ export class Client {
               'Eliminado',
               'Cliente eliminado correctamente.'
             );
-            this.dataClientCounter.reload?.();
+            this.serverClientData.reload?.();
           },
           error: () => {
             this.toastService.error('Error', 'No se pudo eliminar el cliente.');
@@ -225,5 +260,9 @@ export class Client {
     } else if (event.action === 'edit' && event.row) {
       this.editar(event.row);
     }
+  }
+
+  onPaginationChange(params: IPaginationParams): void {
+    this.paginationParams.set(params);
   }
 }

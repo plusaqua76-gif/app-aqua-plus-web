@@ -55,10 +55,16 @@ export const navbarData: NavItem[] = [
     label: 'Acceso de Usuarios',
     allowedRoles: ['SUPER ADMIN'],
   },
-    {
-    routeLink: 'user-access',
+  {
+    routeLink: 'Inventory',
     icon: 'heroicon-shield-check',
     label: 'Contabilidad',
     allowedRoles: ['ADMIN'],
+  },
+    {
+    routeLink: 'pqr-client',
+    icon: 'heroicon-shield-check',
+    label: 'Contabilidad',
+    allowedRoles: ['CLIENTE'],
   },
 ];

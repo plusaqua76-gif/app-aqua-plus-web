@@ -1,5 +1,5 @@
-import { CommonModule, DatePipe } from '@angular/common';
-import { Component, inject, OnInit, signal, effect } from '@angular/core';
+import { CommonModule, DatePipe, isPlatformBrowser } from '@angular/common';
+import { Component, inject, OnInit, signal, effect, PLATFORM_ID, computed } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastService } from '@services/toast.service';
@@ -43,6 +43,25 @@ export class UpdateClient implements OnInit {
   private readonly personService = inject(PersonService);
   private readonly locationService = inject(LocationService);
   private readonly typeDocumentService = inject(TypeDocumentService);
+  readonly platformId = inject(PLATFORM_ID);
+  readonly isBrowser = isPlatformBrowser(this.platformId);
+
+  readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      console.error('Error parsing userData from sessionStorage:', e);
+      return null;
+    }
+  });
+
+  readonly usuarioModificacion = computed(() => {
+    const data = this.userData();
+    return data?.nombre || 'admin';
+  });
 
   constructor() {
     effect(() => {
@@ -186,6 +205,7 @@ export class UpdateClient implements OnInit {
     const partesNombre = nombreCompleto.trim().split(' ');
     const tipoDocumentoId = 1;
 
+    // Cargar datos básicos del cliente
     this.updateForm.patchValue({
       tipoDocumento: tipoDocumentoId,
       numeroDocumento: clienteData.numeroIdentificacion || '',
@@ -195,28 +215,32 @@ export class UpdateClient implements OnInit {
       segundoApellido: partesNombre[3] || '',
       telefono: clienteData.telefono || '',
       correo: clienteData.correo || '',
-      direccion: clienteData.direccion || '',
-      idDepartamento: '',
-      idCiudad: '',
-      idCorregimiento: ''
+      direccion: clienteData.direccion || ''
     });
 
+
+    this.loadClientLocation(clienteData);
+  }
+
+  private loadClientLocation(clienteData: any): void {
+
     if (clienteData.codigoDepart) {
-      this.selectedDepartmentId.set(clienteData.codigoDepart);
+      this.selectedDepartmentId.set(Number(clienteData.codigoDepart));
       this.updateForm.patchValue({ idDepartamento: clienteData.codigoDepart });
-    }
 
-    if (clienteData.codigoMuni) {
-      setTimeout(() => {
-        this.selectedCityId.set(clienteData.codigoMuni);
-        this.updateForm.patchValue({ idCiudad: clienteData.codigoMuni });
-      }, 100);
-    }
 
-    if (clienteData.codigoVereda) {
-      setTimeout(() => {
-        this.updateForm.patchValue({ idCorregimiento: clienteData.codigoVereda });
-      }, 200);
+      if (clienteData.codigoMuni) {
+        setTimeout(() => {
+          this.selectedCityId.set(Number(clienteData.codigoMuni));
+          this.updateForm.patchValue({ idCiudad: clienteData.codigoMuni });
+
+          if (clienteData.codigoVereda) {
+            setTimeout(() => {
+              this.updateForm.patchValue({ idCorregimiento: clienteData.codigoVereda });
+            }, 300);
+          }
+        }, 200);
+      }
     }
   }  onSubmit(): void {
     const clienteSeleccionado = this.selectedClient();
@@ -226,49 +250,41 @@ export class UpdateClient implements OnInit {
     }
 
     const formData = this.updateForm.value;
+    const usuarioModificacion = this.usuarioModificacion();
+
+
     const updatePayload = {
       id: clienteSeleccionado.id,
-      direccion: {
-        id: 0,
-        departamentoId: {
-          id: formData.idDepartamento ? Number(formData.idDepartamento) : 0,
-          nombre: this.departamentos().find(d => d.id === Number(formData.idDepartamento))?.nombre || ''
-        },
-        ciudadId: {
-          id: formData.idCiudad ? Number(formData.idCiudad) : 0,
-          nombre: this.ciudades().find(c => c.id === Number(formData.idCiudad))?.nombre || ''
-        },
-        corregimientoId: {
-          id: formData.idCorregimiento ? Number(formData.idCorregimiento) : 0,
-          nombre: this.corregimientos().find(c => c.id === Number(formData.idCorregimiento))?.nombre || ''
-        },
-        descripcion: formData.direccion || ''
-      },
-      tipoDocumento: {
-        id: formData.tipoDocumento ? Number(formData.tipoDocumento) : 1,
-        nombre: this.tiposDocumento().find(t => t.id === Number(formData.tipoDocumento))?.nombre || '',
-        codigo: ''
-      },
+      tipoDocumento: { id: formData.tipoDocumento ? Number(formData.tipoDocumento) : 1 },
       numeroCedula: formData.numeroDocumento || '',
       nombre: formData.primerNombre || '',
       segundoNombre: formData.segundoNombre || '',
       apellido: formData.primerApellido || '',
       segundoApellido: formData.segundoApellido || '',
-      codigo: formData.primerNombre && formData.primerApellido ?
-        `${formData.primerNombre}_${formData.primerApellido}`.toUpperCase() :
-        `CLIENTE_${clienteSeleccionado.id}`,
-      activo: true
+      telefono: formData.telefono || '',
+      correo: formData.correo || '',
+      direccion: {
+        id: clienteSeleccionado.direccion?.id || 0, // Usar ID de dirección existente
+        ciudad: { id: formData.idCiudad ? Number(formData.idCiudad) : 0 },
+        corregimiento: formData.idCorregimiento ? { id: Number(formData.idCorregimiento) } : null,
+        descripcion: formData.direccion || ''
+      },
+      usuarioModificacion: usuarioModificacion
     };
 
+    console.log('🔄 Payload de actualización:', updatePayload);
+
     this.personService.savaOrUpdatePerson(updatePayload as any).subscribe({
-      next: () => {
+      next: (response: any) => {
         this.toast.success('Éxito', 'Cliente actualizado correctamente');
-        this.router.navigate(['/client']);
+        this.router.navigate(['/shell/client']);
       },
-      error: (err) => {
+      error: (err: any) => {
+        console.error('Error al actualizar cliente:', err);
+        // Manejar casos donde el backend devuelve 200 pero con error HTTP
         if (err.status === 200 || err.status === 201 || err.status === 204) {
           this.toast.success('Éxito', 'Cliente actualizado correctamente');
-          this.router.navigate(['shell/client']);
+          this.router.navigate(['/shell/client']);
         } else {
           this.toast.error('Error', 'No se pudo actualizar el cliente');
         }

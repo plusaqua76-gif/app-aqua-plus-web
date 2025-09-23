@@ -48,7 +48,6 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
         consumoAnormal: consumoAnormalTpl,
         fechaLectura: fechaTpl
       }"
-      [showAddButton]="true"
       [showExportButton]="true"
       [exportFileName]="exportFileName()"
       [showColumnFilters]="true"

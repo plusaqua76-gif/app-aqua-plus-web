@@ -18,16 +18,15 @@ import { IrateTypes } from '@interfaces/IrateTypes';
 import { ToastService } from '@services/toast.service';
 import { TypeConceptService } from '../../services/type-concept.service';
 import { ConceptRateService } from '../../services/concept-rate.service';
-import {
-  IConceptRatePayload,
-  IEstratoValue,
-} from '@interfaces/IConceptRatePayload';
-import { EMPTY, forkJoin } from 'rxjs';
+import { EMPTY } from 'rxjs';
 import {
   Estrato,
   NuevoItem,
   TarifaItem,
 } from '../../../../core/interfaces/tipo-tarifa/ITarifaItem';
+import {
+  EstratoConcepto
+} from '../../../../core/interfaces/IConceptoEstrato';
 
 // esto es mala practica, nosotros ya tenemos creado una interface IrateTypes en core/interfaces/IrateTypes.ts
 
@@ -62,6 +61,8 @@ export class FeeComponent {
   nuevoEstratoValor: number | null = null;
   tarifasAgregadas: TarifaItem[] = [];
   guardandoTarifas = signal(false);
+  cargandoEstratos = signal(false);
+  indCalcularMc = signal(false);
 
   showPopupVisualizarTarifas = signal(false);
   showDeleteConfirm = signal(false);
@@ -91,6 +92,9 @@ export class FeeComponent {
 
   showDeleteConfirmConcept = signal(false);
   typeConceptToDelete: IrateTypes | null = null;
+
+  showDeleteConfirmEstrato = signal(false);
+  estratoToDelete: Estrato | null = null;
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -136,6 +140,14 @@ export class FeeComponent {
 
   private resetFormularioItem(): NuevoItem {
     return { nombre: '', descripcion: '' };
+  }
+
+  private convertirEstratoApiALocal(estratoApi: EstratoConcepto): Estrato {
+    return {
+      id: estratoApi.id,
+      numero: estratoApi.estrato,
+      valor: estratoApi.valor
+    };
   }
 
   private hasValidEstratos(): boolean {
@@ -210,20 +222,113 @@ export class FeeComponent {
     this.mostrarTablaEstratos = false;
     this.nuevoEstratoNumero = 1;
     this.nuevoEstratoValor = null;
+    this.indCalcularMc.set(true);
+  }
+
+  onTipoTarifaChange(): void {
+    if (this.selectedTipoConcepto) {
+      this.verificarEstratos();
+    }
+  }
+
+  onTipoConceptoChange(): void {
+    if (this.selectedTipoTarifa) {
+      this.verificarEstratos();
+    }
+  }
+
+  private verificarEstratos(): void {
+    const empresaId = this.empresaId();
+    const tipoTarifaId = typeof this.selectedTipoTarifa === 'string'
+      ? parseInt(this.selectedTipoTarifa)
+      : this.selectedTipoTarifa;
+    const tipoConceptoId = typeof this.selectedTipoConcepto === 'string'
+      ? parseInt(this.selectedTipoConcepto)
+      : this.selectedTipoConcepto;
+
+    if (!empresaId || !tipoTarifaId || !tipoConceptoId) {
+      return;
+    }
+
+
+    this.cargandoEstratos.set(true);
+    this.conceptRateService.getConceptRateByEnterprise(empresaId)
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.response) {
+
+            const conceptRateExistente = response.response.find(cr =>
+              cr.tipoTarifa.id === tipoTarifaId &&
+              cr.tipoConcepto.id === tipoConceptoId
+            );
+
+            if (conceptRateExistente) {
+
+              if (conceptRateExistente.porEstrato && conceptRateExistente.estratos && conceptRateExistente.estratos.length > 0) {
+
+                this.mostrarTablaEstratos = true;
+                this.valorTarifa = null;
+                this.estratosActuales = conceptRateExistente.estratos.map(estrato => ({
+                  id: estrato.id,
+                  numero: estrato.estrato,
+                  valor: estrato.valor
+                }));
+              }
+              // Verificar si tiene un valor único (sin estratos)
+              else if (conceptRateExistente.valor !== null && conceptRateExistente.valor !== undefined) {
+                // Existe un valor único, cargarlo en el input
+                this.mostrarTablaEstratos = false;
+                this.estratosActuales = [];
+                this.valorTarifa = conceptRateExistente.valor;
+              }
+              // Cargar el estado del checkbox
+              this.indCalcularMc.set(conceptRateExistente.indCalcularMc);
+            } else {
+              // No existen datos, resetear el estado y permitir al usuario decidir
+              this.mostrarTablaEstratos = false;
+              this.estratosActuales = [];
+              this.valorTarifa = null;
+              this.indCalcularMc.set(true);
+            }
+          } else {
+            // No existen datos, resetear el estado
+            this.mostrarTablaEstratos = false;
+            this.estratosActuales = [];
+            this.valorTarifa = null;
+            this.indCalcularMc.set(true);
+          }
+        },
+        error: (error) => {
+          console.error('Error al verificar estratos:', error);
+
+          // Verificar si es un error 404
+          if (error.status === 404) {
+            // No mostrar toast de error para 404, es normal que no existan datos
+            // El usuario puede crear nuevos si lo desea
+          } else {
+            this.toastService.error('Error', 'Error al verificar datos existentes');
+          }
+
+          // En caso de error, permitir al usuario decidir y agregar los datos
+          this.mostrarTablaEstratos = false;
+          this.estratosActuales = [];
+          this.valorTarifa = null;
+          this.indCalcularMc.set(true);
+        },
+        complete: () => {
+          this.cargandoEstratos.set(false);
+        }
+      });
   }
 
   toggleTablaEstratos(): void {
     this.mostrarTablaEstratos = !this.mostrarTablaEstratos;
 
     if (this.mostrarTablaEstratos) {
-      this.valorTarifa = null;
-
+      // this.valorTarifa = null;
       if (this.estratosActuales.length === 0) {
-        this.estratosActuales = [
-          { id: 1, numero: 1, valor: 1000 },
-          { id: 2, numero: 2, valor: 2000 },
-          { id: 3, numero: 3, valor: 3000 },
-        ];
+        this.estratosActuales = [];
+        this.nuevoEstratoNumero = 1;
       }
     }
   }
@@ -252,9 +357,11 @@ export class FeeComponent {
   }
 
   eliminarEstrato(id: number): void {
-    this.estratosActuales = this.estratosActuales.filter(
-      (estrato) => estrato.id !== id
-    );
+    const estrato = this.estratosActuales.find(e => e.id === id);
+    if (estrato) {
+      this.estratoToDelete = estrato;
+      this.showDeleteConfirmEstrato.set(true);
+    }
   }
 
   actualizarEstratoValor(estratoId: number, nuevoValor: number): void {
@@ -287,62 +394,50 @@ export class FeeComponent {
 
     this.guardandoTarifas.set(true);
 
-    // Construir array de payloads
-    const payloads: IConceptRatePayload[] = this.tarifasAgregadas.map(
-      (tarifa) => {
-        const payload: IConceptRatePayload = {
-          idEmpresa: empresaId,
-          idTipoTarifa: tarifa.tipoTarifaId,
-          usuarioCreacion: usuario,
-          concepto: {
-            idTipoConcepto: tarifa.tipoConceptoId,
-            indCalcularMc: true,
-          },
-        };
+    // Construir array de items individuales
+    const items = this.tarifasAgregadas.map(tarifa => {
+      const item = {
+        idEmpresa: empresaId,
+        idTipoTarifa: tarifa.tipoTarifaId,
+        usuarioCreacion: usuario,
+        activo: true,
+        concepto: {
+          idTipoConcepto: tarifa.tipoConceptoId,
+          indCalcularMc: this.indCalcularMc()
+        } as any
+      };
 
-        if (tarifa.estratos && tarifa.estratos.length > 0) {
-          payload.concepto.indCalcularMc = false;
-          payload.concepto.valoresEstrato = tarifa.estratos.map(
-            (estrato): IEstratoValue => ({
-              estrato: estrato.numero,
-              valor: estrato.valor,
-            })
-          );
-        } else {
-          payload.concepto.valor = tarifa.valor;
-        }
-
-        return payload;
+      // Agregar valores según el tipo (con o sin estratos)
+      if (tarifa.estratos && tarifa.estratos.length > 0) {
+        item.concepto.valoresEstrato = tarifa.estratos.map(estrato => ({
+          estrato: estrato.numero,
+          valor: estrato.valor
+        }));
+      } else {
+        item.concepto.valor = tarifa.valor;
       }
-    );
 
-    // Enviar todas las tarifas usando forkJoin
-    const requests = payloads.map((payload) =>
-      this.conceptRateService.saveFeeConceptRate(payload)
-    );
+      return item;
+    });
 
-    forkJoin(requests).subscribe({
-      next: (responses) => {
-        const exitosas = responses.filter((response) => response.success);
-        const fallidas = responses.filter((response) => !response.success);
+    // Construir el payload final
+    const payloadEstructurado = {
+      items: items
+    };
 
-        if (exitosas.length === responses.length) {
+    // Enviar payload estructurado
+    this.conceptRateService.saveFeeConceptRate(payloadEstructurado).subscribe({
+      next: (response) => {
+        if (response.success) {
           this.toastService.success(
             'Éxito',
-            `Se guardaron ${exitosas.length} tarifas exitosamente`
+            `Se guardaron ${this.tarifasAgregadas.length} tarifas exitosamente`
           );
           this.tarifasAgregadas = [];
-          // Los datos del popup de conceptos empresa se actualizarán automáticamente
-        } else if (exitosas.length > 0) {
-          this.toastService.success(
-            'Parcial',
-            `Se guardaron ${exitosas.length} de ${responses.length} tarifas. ${fallidas.length} fallaron.`
-          );
-          this.tarifasAgregadas = this.tarifasAgregadas.slice(exitosas.length);
+          this.dataTypeConcepts.reload();
         } else {
-          this.toastService.error('Error', 'No se pudo guardar ninguna tarifa');
+          this.toastService.error('Error', 'No se pudo guardar las tarifas');
         }
-
         this.guardandoTarifas.set(false);
       },
       error: (error) => {
@@ -660,7 +755,7 @@ export class FeeComponent {
             }
           },
           error: (error) => {
-            this.toastService.success(
+            this.toastService.error(
               'error',
               'El tipo de concepto no se pudo eliminar intente nuevamente'
             );
@@ -676,5 +771,58 @@ export class FeeComponent {
   cancelDeleteTypeConcept(): void {
     this.showDeleteConfirmConcept.set(false);
     this.typeConceptToDelete = null;
+  }
+
+  // Métodos para confirmación de eliminación de estrato
+  getDeleteConfirmMessageEstrato(): string {
+    return this.estratoToDelete
+      ? `¿Está seguro que desea eliminar el estrato ${this.estratoToDelete.numero} con valor $${this.estratoToDelete.valor.toLocaleString()}? Esta acción no se puede deshacer.`
+      : '¿Está seguro que desea eliminar este estrato?';
+  }
+
+  confirmDeleteEstrato(): void {
+    if (!this.estratoToDelete?.id) {
+      this.cancelDeleteEstrato();
+      return;
+    }
+
+    const estratoId = this.estratoToDelete.id;
+    const estratoInfo = `${this.estratoToDelete.numero} (Valor: $${this.estratoToDelete.valor.toLocaleString()})`;
+
+    this.conceptRateService.deleteConceptStratum(estratoId).subscribe({
+      next: (response) => {
+        if (response?.success !== false) {
+          // Eliminar del array local solo si la petición fue exitosa
+          this.estratosActuales = this.estratosActuales.filter(
+            (estrato) => estrato.id !== estratoId
+          );
+          this.toastService.success(
+            'Éxito',
+            `Se eliminó exitosamente el estrato ${estratoInfo}`
+          );
+        } else {
+          this.toastService.error(
+            'Error',
+            response?.message || 'No se pudo eliminar el estrato'
+          );
+        }
+      },
+      error: (error) => {
+        console.error('Error al eliminar estrato:', error);
+        const errorMessage = error?.error?.message || error?.message || 'Error de conexión';
+        this.toastService.error(
+          'Error',
+          `No se pudo eliminar el estrato ${estratoInfo}: ${errorMessage}`
+        );
+      },
+      complete: () => {
+        this.cancelDeleteEstrato();
+      }
+    });
+  }
+
+  cancelDeleteEstrato(): void {
+    this.showDeleteConfirmEstrato.set(false);
+    this.estratoToDelete = null;
   }
 }

@@ -14,7 +14,7 @@ import { IrateTypes } from '@interfaces/IrateTypes';
         </div>
       } @else {
         @for (typeConcept of typeConcepts(); track typeConcept.id) {
-          <div class="flex items-center justify-between p-4 bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl hover:bg-white/10 transition-all duration-300">
+          <div class="flex items-center justify-between p-4 border-gray-600/70 bg-transparent border rounded-xl hover:bg-white/5 transition-all duration-200">
             <div class="flex-1">
               <h4 class="text-white font-medium text-sm mb-1">{{ typeConcept.nombre }}</h4>
               @if (typeConcept.descripcion) {
@@ -30,7 +30,7 @@ import { IrateTypes } from '@interfaces/IrateTypes';
               <button
                 type="button"
                 (click)="edit.emit(typeConcept)"
-                class="inline-flex items-center justify-center w-8 h-8 bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 rounded-lg transition-all duration-200"
+                class="inline-flex items-center justify-center w-8 h-8 border border-blue-600/50 text-blue-300 hover:bg-blue-500/30 rounded-lg transition-all duration-200"
                 title="Editar tipo de concepto">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -39,7 +39,7 @@ import { IrateTypes } from '@interfaces/IrateTypes';
               <button
                 type="button"
                 (click)="delete.emit(typeConcept)"
-                class="inline-flex items-center justify-center w-8 h-8 bg-red-500/20 text-red-300 hover:bg-red-500/30 rounded-lg transition-all duration-200"
+                class="inline-flex items-center justify-center w-8 h-8 border border-red-600/50  text-red-300 hover:bg-red-500/30 rounded-lg transition-all duration-200"
                 title="Eliminar tipo de concepto">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0a2 2 0 012-2h4a2 2 0 012 2m-8 0H5" />

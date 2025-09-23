@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, effect, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, inject, OnInit, effect, signal, PLATFORM_ID, computed } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ICity } from '@interfaces/Icity';
 import { ICorregimiento } from '@interfaces/icorregimiento';
@@ -45,6 +45,8 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
   protected readonly router = inject(Router);
   protected readonly userService = inject(UserService);
   protected readonly locationService = inject(LocationService);
+    protected platformId = inject(PLATFORM_ID);
+  protected isBrowser = isPlatformBrowser(this.platformId);
 
   constructor() {
     effect(() => {
@@ -100,11 +102,33 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
       }
     });
   }
+
+    readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      console.error('Error parsing userData from sessionStorage:', e);
+      return null;
+    }
+  });
+
+  readonly empresaId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
+  });
+
+  readonly nombreUsuario = computed(() => {
+    const data = this.userData();
+    return data?.nombre || null;
+  });
+
+
   private initializeForm(): void {
-  const usuarioCreacion = localStorage.getItem('nameUser') || 'admin';
-  const idEmpresa = localStorage.getItem('enterpriseId')
-    ? +localStorage.getItem('enterpriseId')!
-    : null;
+
+
 
   this.registerForm = this.fb.group({
     tipoDocumento: [null, Validators.required],
@@ -120,8 +144,8 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
     direccion: [''],
     telefono: ['', Validators.required],
     codigo: ['', Validators.required],
-    usuario_creacion: [usuarioCreacion],
-    id_empresa: [idEmpresa]
+    usuario_creacion: [this.nombreUsuario()],
+    id_empresa: [this.empresaId()]
   });
 }
   loadTypeDocument(): void {
@@ -181,7 +205,23 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
       return;
     }
 
-  
+    const formData = this.registerForm.value;
+    console.log('Datos del formulario:', formData);
+
+    this.empleadoService.saveEmpleado(formData).subscribe({
+      next: (response: any) => {
+        console.log('Empleado creado exitosamente:', response);
+        this.toast.success('Éxito', 'Empleado registrado correctamente');
+        this.registerForm.reset();
+        this.initializeForm(); 
+        // this.router.navigate(['/employee']);
+      },
+      error: (error: any) => {
+        console.error('Error al crear empleado:', error);
+        const errorMessage = error?.error?.message || error?.message || 'No se pudo registrar el empleado. Inténtelo nuevamente.';
+        this.toast.error('Error', errorMessage);
+      }
+    });
   }
 
 }

@@ -1,13 +1,13 @@
 import { UserService } from './../../modules/auth/service/user.service';
 import { Component, inject, HostListener, input, PLATFORM_ID, computed, effect } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY, map } from 'rxjs';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   template: `
     <nav
       [ngClass]="{
@@ -34,11 +34,6 @@ import { EMPTY, map } from 'rxjs';
             type="button"
           >
             <span class="sr-only">Open user menu</span>
-            <!-- <img
-              class="w-8 h-8 me-2 rounded-full object-cover"
-              src=""
-              alt="user photo"
-            /> -->
             <span>{{ user?.nombre || 'Usuario' }}</span>
             <svg
               class="w-2.5 h-2.5 ms-3"
@@ -62,7 +57,6 @@ import { EMPTY, map } from 'rxjs';
           >
             <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
               <div class="font-medium">{{ user?.nombre || 'Usuario' }}</div>
-              <!-- <div class="truncate">{{ user?.correo || 'email@example.com' }}</div> -->
             </div>
             <ul
               class="py-2 text-sm text-gray-700 dark:text-gray-200"
@@ -70,7 +64,7 @@ import { EMPTY, map } from 'rxjs';
             >
               <li>
                 <a
-                  href="/profile"
+                  [routerLink]="['profile']"
                   class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                 >
                   Mi Perfil
@@ -98,21 +92,17 @@ export class Header {
   onWindowScroll(): void {
     this.isScrolled = window.scrollY > 0;
   }
-  private router = inject(Router);
-  private userService = inject(UserService);
+  readonly router = inject(Router);
+  readonly userService = inject(UserService);
+  readonly platformId = inject(PLATFORM_ID);
+  readonly isBrowser = isPlatformBrowser(this.platformId);
+
 
   collapsed = input<boolean>(false);
   screenWidth = input<number>(0);
   isScrolled = false;
 
-  // constructor(){
-  //   effect(() => {
-  //     console.log("la data de mi usuario mi pez", this.dataUser.value());
-  //   });
-  // }
 
-  private platformId = inject(PLATFORM_ID);
-  private isBrowser = isPlatformBrowser(this.platformId);
 
   readonly userId = computed(() => {
     if (!this.isBrowser) return null;
