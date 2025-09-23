@@ -433,8 +433,8 @@ export class FeeComponent {
             'Éxito',
             `Se guardaron ${this.tarifasAgregadas.length} tarifas exitosamente`
           );
-          this.tarifasAgregadas = [];
           this.dataTypeConcepts.reload();
+          this.tarifasAgregadas = [];
         } else {
           this.toastService.error('Error', 'No se pudo guardar las tarifas');
         }
@@ -450,6 +450,7 @@ export class FeeComponent {
       },
       complete: () => {
         this.guardandoTarifas.set(false);
+        this.dataTypeConcepts.reload();
       },
     });
   }
@@ -496,6 +497,7 @@ export class FeeComponent {
             .padEnd(3, 'X'); // Si tiene menos de 3 letras, completa con 'X'
 
     const tipoTarifaData: IrateTypes = {
+      empresa: { id: this.empresaId() },
       nombre: this.nuevoTipoTarifa.nombre.trim(),
       descripcion: this.nuevoTipoTarifa.descripcion.trim() || '',
       codigo: codigo,
@@ -521,7 +523,7 @@ export class FeeComponent {
         } else {
           this.toastService.error(
             'error',
-            'El tipo de concepto no se pudo eliminar'
+            'El tipo de Tarifa no se pudo Guardar'
           );
         }
         this.guardandoTipoTarifa.set(false);
@@ -529,7 +531,7 @@ export class FeeComponent {
       error: (error) => {
         this.toastService.error(
           'error',
-          'El tipo de concepto no se pudo eliminar'
+          'El tipo de Tarifa no se pudo Guardar'
         );
 
         this.guardandoTipoTarifa.set(false);
@@ -651,6 +653,7 @@ export class FeeComponent {
             .padEnd(3, 'X');
 
     const tipoConceptoData: IrateTypes = {
+      empresa: { id: this.empresaId() },
       nombre: this.nuevoTipoConcepto.descripcion.trim(), // Usar descripción como nombre, por el momento , solo tantico
       descripcion: this.nuevoTipoConcepto.descripcion.trim() || '',
       codigo: codigo,
@@ -708,6 +711,8 @@ export class FeeComponent {
   // Métodos para el popup de conceptos de tarifa por empresa
   abrirPopupConceptosTarifaEmpresa(): void {
     this.showPopupConceptosTarifaEmpresa.set(true);
+        this.conceptRateService.getConceptRateByEnterprise(this.empresaId()).subscribe();
+
   }
 
   cerrarPopupConceptosTarifaEmpresa(): void {
