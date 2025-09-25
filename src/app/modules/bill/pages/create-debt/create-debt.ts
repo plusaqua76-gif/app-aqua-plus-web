@@ -111,35 +111,30 @@ export class CreateDebt implements OnInit {
 
   loadFacturasPorCliente(empresaClienteContadorId: number): void {
     this.facturaService.getFacturAll().subscribe((response: ApiResponse<IfacturaResponse[]>) => {
-      console.log('Facturas totales:', response.response);
 
       const facturasFiltradas = response.response.filter(fac =>
         fac.empresaClienteContadorId === empresaClienteContadorId
       );
 
       this.facturas = [...facturasFiltradas];
-      console.log('Facturas filtradas por cliente:', facturasFiltradas);
     });
   }
 
 
   loadPlazoPago(): void {
     this.plazoPagoService.getAllPlazoPago().subscribe((response) => {
-      console.log('Plazo pago:', response.response);
       this.plazoPago = response.response;
       this.plazoPagoName = response.response.map((plazoPago) => plazoPago.nombre)
     })
   }
   loadTipoDeuda(): void {
     this.tipoDeudaService.getAllTipoDeuda().subscribe((response) => {
-      console.log('Tipos de deuda:', response.response);
       this.tipoDeuda = response.response;
       this.tipoDeudaName = response.response.map((tipoDeuda) => tipoDeuda.nombre)
     })
   }
   loadAllClientes(): void {
     this.enterpriseClientCounterService.getAllCLiente().subscribe((response) => {
-      console.log('Tipos de deuda:', response.response);
       this.empresaClienteContador = response.response;
       this.empresaClienteContadorName = response.response.map((empresaClienteContador) => empresaClienteContador.cliente.nombre)
     })
@@ -163,8 +158,6 @@ export class CreateDebt implements OnInit {
       usuarioCreacion: nombreUsuario,
       fechaCreacion: new Date(),
     };
-
-    console.log('Deuda a guardar:', deuda);
 
     this.deudaService.saveDeuda(deuda).subscribe({
       next: (res) => {

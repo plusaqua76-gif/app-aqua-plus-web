@@ -22,10 +22,26 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
     <ng-template #actionsTemplate let-row>
       <div class="flex items-center space-x-2">
         <button
+          type="button"
           (click)="handleTableAction({ action: 'edit', row })"
-          class="text-green-600 hover:text-green-900 text-sm cursor-pointer"
+          class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-blue-600/50 text-blue-400 hover:bg-blue-600/10 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors duration-200 cursor-pointer"
+          title="Editar factura"
         >
-          <i class="fas fa-edit"></i>
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          (click)="handleTableAction({ action: 'print', row })"
+          class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-yellow-600/50 text-yellow-500 hover:bg-yellow-600/10 focus:outline-none focus:ring-2 focus:ring-yellow-500/40 transition-colors duration-200 cursor-pointer"
+          title="Imprimir factura"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
         </button>
       </div>
     </ng-template>
@@ -146,6 +162,10 @@ export class Bill {
       this.goToCustomerDebt();
     } else if (event.action === 'edit' && event.row) {
       this.router.navigate(['update-bill', event.row.id], {
+        relativeTo: this.route,
+      });
+    } else if (event.action === 'print' && event.row) {
+      this.router.navigate(['print-bill', event.row.id], {
         relativeTo: this.route,
       });
     } else if (event.action === 'delete' && event.row) {

@@ -78,8 +78,6 @@ export class Datepicker implements AfterViewInit, OnDestroy {
         this.dateChange.emit(event.target.value);
       });
 
-      console.log('Datepicker initialized successfully');
-
     } catch (error) {
       console.error('Error loading Datepicker:', error);
     }

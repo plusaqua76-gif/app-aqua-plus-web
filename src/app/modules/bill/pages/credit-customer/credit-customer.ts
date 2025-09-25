@@ -63,12 +63,6 @@ export class CreditCustomer {
     size: 5,
   });
 
-  constructor() {
-    effect(() => {
-      console.log("la data mi pez", this.creditCustomerData())
-    })
-  }
-
   serverCreditCustomerData = rxResource({
     params: () => ({
       empresaId: this.empresaId(),

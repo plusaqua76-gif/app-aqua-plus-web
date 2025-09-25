@@ -206,14 +206,11 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
     }
 
     const formData = this.registerForm.value;
-    console.log('Datos del formulario:', formData);
-
     this.empleadoService.saveEmpleado(formData).subscribe({
       next: (response: any) => {
-        console.log('Empleado creado exitosamente:', response);
         this.toast.success('Éxito', 'Empleado registrado correctamente');
         this.registerForm.reset();
-        this.initializeForm(); 
+        this.initializeForm();
         // this.router.navigate(['/employee']);
       },
       error: (error: any) => {

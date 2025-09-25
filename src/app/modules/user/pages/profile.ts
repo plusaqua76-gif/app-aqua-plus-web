@@ -19,12 +19,6 @@ export class Profile{
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
 
-  constructor() {
-    effect(() => {
-      console.log('empresaInfo changed:', this.dataProfile.value());
-    })
-  }
-
   dataProfile = rxResource({
     stream: () => this.enterpriseService.getEnterpriseInfo()
   })

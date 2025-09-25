@@ -205,7 +205,7 @@ import { ToastService } from '@services/toast.service';
                           </div>
                         </div>
 
-                        <div class="col-span-3">
+                        <div class="col-span-3 px-4">
                           @if (conceptRate.porEstrato && conceptRate.estratos && conceptRate.estratos.length > 0) {
                             <div class="flex flex-col space-y-1">
                               <span class="text-xs text-gray-400">Por Estrato:</span>
@@ -230,11 +230,11 @@ import { ToastService } from '@services/toast.service';
                           }
                         </div>
 
-                        <div class="col-span-1">
+                        <div class="col-span-1 px-0.5">
                           <div class="flex items-center justify-center space-x-1">
                             <button
                               (click)="editConceptRate(conceptRate.id)"
-                              class="inline-flex items-center justify-center w-8 h-8 bg-blue-500/20 text-blue-400 rounded-full hover:bg-blue-500/30 transition-colors"
+                              class="inline-flex items-center justify-center w-14 h-8 bg-blue-500/20 text-blue-400 rounded-full hover:bg-blue-500/30 transition-colors"
                               title="Editar concepto">
                               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -242,7 +242,7 @@ import { ToastService } from '@services/toast.service';
                             </button>
                             <button
                               (click)="deleteConceptRate(conceptRate.id)"
-                              class="inline-flex items-center justify-center w-8 h-8 bg-red-500/20 text-red-400 rounded-full hover:bg-red-500/30 transition-colors"
+                              class="inline-flex items-center justify-center w-14 h-8 bg-red-500/20 text-red-400 rounded-full hover:bg-red-500/30 transition-colors"
                               title="Eliminar concepto">
                               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -331,16 +331,30 @@ import { ToastService } from '@services/toast.service';
 
               <!-- Campo valor único -->
               @if (!editForm.porEstrato) {
-                <div>
-                  <label class="block mb-2 text-sm font-medium text-gray-300">Valor</label>
-                  <input
-                    type="number"
-                    [(ngModel)]="editForm.valor"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                    class="block w-full rounded-lg border border-gray-600/70 bg-transparent px-3 py-2 text-sm text-gray-100 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-400/40"
-                  >
+                <div class="space-y-4">
+                  <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-300">Valor</label>
+                    <input
+                      type="number"
+                      [(ngModel)]="editForm.valor"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      class="block w-full rounded-lg border border-gray-600/70 bg-transparent px-3 py-2 text-sm text-gray-100 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-400/40"
+                    >
+                  </div>
+
+                  <!-- Checkbox para indCalcularMc -->
+                  <div>
+                    <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        [(ngModel)]="editForm.indCalcularMc"
+                        class="w-4 h-4 text-blue-600 bg-transparent border border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                      />
+                      <span>Calcular MC automáticamente</span>
+                    </label>
+                  </div>
                 </div>
               }
 
@@ -389,6 +403,7 @@ import { ToastService } from '@services/toast.service';
                         #nuevoEstrato
                         min="1"
                         max="6"
+                        [value]="getSiguienteEstratoDisponible()"
                         placeholder="1"
                         class="block w-full rounded border border-gray-600/70 bg-transparent px-2 py-1 text-sm text-gray-100"
                       >
@@ -406,11 +421,23 @@ import { ToastService } from '@services/toast.service';
                     </div>
                     <button
                       type="button"
-                      (click)="addEstratoToEdit(+nuevoEstrato.value, +nuevoValor.value); nuevoEstrato.value = ''; nuevoValor.value = ''"
+                      (click)="addEstratoToEdit(+nuevoEstrato.value, +nuevoValor.value); nuevoEstrato.value = getSiguienteEstratoDisponible().toString(); nuevoValor.value = ''"
                       class="w-50 sm:px-3 px-2 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
                     >
                       Agregar
                     </button>
+                  </div>
+
+                  <!-- Checkbox para indCalcularMc en estratos -->
+                  <div class="mt-4">
+                    <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        [(ngModel)]="editForm.indCalcularMc"
+                        class="w-4 h-4 text-blue-600 bg-transparent border border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                      />
+                      <span>Calcular MC automáticamente</span>
+                    </label>
                   </div>
                 </div>
               }
@@ -487,7 +514,8 @@ export class ConceptRateEnterpice {
   editForm = {
     valor: null as number | null,
     estratos: [] as any[],
-    porEstrato: false
+    porEstrato: false,
+    indCalcularMc: true
   };
 
     readonly userData = computed(() => {
@@ -548,7 +576,8 @@ conceptRatesData = computed(() => {
       this.editForm = {
         valor: conceptRate.valor || null,
         estratos: conceptRate.estratos ? [...conceptRate.estratos] : [],
-        porEstrato: conceptRate.porEstrato || false
+        porEstrato: conceptRate.porEstrato || false,
+        indCalcularMc: conceptRate.indCalcularMc ?? true
       };
 
       this.showEditPopup.set(true);
@@ -622,7 +651,8 @@ conceptRatesData = computed(() => {
     this.editForm = {
       valor: null,
       estratos: [],
-      porEstrato: false
+      porEstrato: false,
+      indCalcularMc: true
     };
   }
 
@@ -654,7 +684,7 @@ conceptRatesData = computed(() => {
     let payload: any = {
       idTarifaConcepto: this.editingConceptRate.id,
       usuarioModificacion: usuario,
-      indCalcularMc: false
+      indCalcularMc: this.editForm.indCalcularMc
     };
 
     if (this.editForm.porEstrato) {
@@ -689,11 +719,37 @@ conceptRatesData = computed(() => {
   }
 
   // Métodos para manejar estratos en edición
+  getSiguienteEstratoDisponible(): number {
+    const estratosExistentes = this.editForm.estratos.map(e => e.estrato).sort((a, b) => a - b);
+    for (let i = 1; i <= 6; i++) {
+      if (!estratosExistentes.includes(i)) {
+        return i;
+      }
+    }
+    return 1; // Si todos están ocupados, devolver 1
+  }
+
   addEstratoToEdit(estrato: number, valor: number): void {
+    if (!estrato || estrato < 1 || estrato > 6) {
+      this.toastService.error('Error', 'El estrato debe ser un número entre 1 y 6');
+      return;
+    }
+    if (valor < 0) {
+      this.toastService.error('Error', 'El valor no puede ser negativo');
+      return;
+    }
+
     const existe = this.editForm.estratos.find(e => e.estrato === estrato);
-    if (!existe && valor > 0) {
+    if (existe) {
+      this.toastService.error('Error', `El estrato ${estrato} ya existe`);
+      return;
+    }
+
+    if (valor > 0) {
       this.editForm.estratos.push({ estrato, valor });
       this.editForm.estratos.sort((a, b) => a.estrato - b.estrato);
+    } else {
+      this.toastService.error('Error', 'El valor debe ser mayor que 0');
     }
   }
 

@@ -5,35 +5,54 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-             
+
                 <div>
                     <label for="tipoDocumento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de Documento <span class="text-red-500">*</span></label>
                     <select id="tipoDocumento" formControlName="tipoDocumento" class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
+                        <option value="" disabled>Seleccione tipo de documento</option>
                         @for (tipo of tiposDocumento(); track $index) {
                           <option [value]="tipo.id">{{ tipo.nombre }}</option>
                         }
                     </select>
+                    @if (updateForm.get('tipoDocumento')?.invalid && updateForm.get('tipoDocumento')?.touched) {
+                        <p class="text-red-500 text-sm mt-1">El tipo de documento es requerido</p>
+                    }
                 </div>
 
 
                 <div>
-                    <label for="numeroDocumento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número de Documento</label>
+                    <label for="numeroDocumento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número de Documento <span class="text-red-500">*</span></label>
                     <input id="numeroDocumento" formControlName="numeroDocumento" type="text" placeholder="Número de documento..."
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
+                    @if (updateForm.get('numeroDocumento')?.invalid && updateForm.get('numeroDocumento')?.touched) {
+                        <p class="text-red-500 text-sm mt-1">El número de documento es requerido</p>
+                    }
                 </div>
 
 
                 <div>
-                    <label for="correo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Correo Electrónico</label>
+                    <label for="correo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Correo Electrónico <span class="text-red-500">*</span></label>
                     <input id="correo" formControlName="correo" type="email" placeholder="Correo..."
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
+                    @if (updateForm.get('correo')?.invalid && updateForm.get('correo')?.touched) {
+                        <p class="text-red-500 text-sm mt-1">
+                            @if (updateForm.get('correo')?.errors?.['required']) {
+                                El correo es requerido
+                            } @else if (updateForm.get('correo')?.errors?.['email']) {
+                                El correo debe tener un formato válido
+                            }
+                        </p>
+                    }
                 </div>
 
 
                 <div>
-                    <label for="primerNombre" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Primer Nombre</label>
+                    <label for="primerNombre" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Primer Nombre <span class="text-red-500">*</span></label>
                     <input id="primerNombre" formControlName="primerNombre" type="text" placeholder="Primer nombre..."
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
+                    @if (updateForm.get('primerNombre')?.invalid && updateForm.get('primerNombre')?.touched) {
+                        <p class="text-red-500 text-sm mt-1">El primer nombre es requerido</p>
+                    }
                 </div>
 
 
@@ -45,9 +64,12 @@
 
 
                 <div>
-                    <label for="primerApellido" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Primer Apellido</label>
+                    <label for="primerApellido" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Primer Apellido <span class="text-red-500">*</span></label>
                     <input id="primerApellido" formControlName="primerApellido" type="text" placeholder="Primer apellido..."
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
+                    @if (updateForm.get('primerApellido')?.invalid && updateForm.get('primerApellido')?.touched) {
+                        <p class="text-red-500 text-sm mt-1">El primer apellido es requerido</p>
+                    }
                 </div>
 
 
@@ -58,9 +80,12 @@
                 </div>
 
                 <div>
-                    <label for="telefono" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teléfono</label>
+                    <label for="telefono" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teléfono <span class="text-red-500">*</span></label>
                     <input id="telefono" formControlName="telefono" type="text" placeholder="Teléfono..."
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
+                    @if (updateForm.get('telefono')?.invalid && updateForm.get('telefono')?.touched) {
+                        <p class="text-red-500 text-sm mt-1">El teléfono es requerido</p>
+                    }
                 </div>
 
                 <div>
@@ -103,9 +128,12 @@
                 </div>
 
                 <div class="md:col-span-3">
-                    <label for="direccion" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dirección</label>
+                    <label for="direccion" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dirección <span class="text-red-500">*</span></label>
                     <input id="direccion" formControlName="direccion" type="text" placeholder="Dirección..."
                         class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
+                    @if (updateForm.get('direccion')?.invalid && updateForm.get('direccion')?.touched) {
+                        <p class="text-red-500 text-sm mt-1">La dirección es requerida</p>
+                    }
                 </div>
 
                 <div class="md:col-span-3 flex justify-center mt-4">

@@ -22,7 +22,6 @@ import { EMPTY } from 'rxjs';
 import {
   Estrato,
   NuevoItem,
-  TarifaItem,
 } from '../../../../core/interfaces/tipo-tarifa/ITarifaItem';
 import {
   EstratoConcepto
@@ -59,8 +58,7 @@ export class FeeComponent {
   estratosActuales: Estrato[] = [];
   nuevoEstratoNumero: number = 1;
   nuevoEstratoValor: number | null = null;
-  tarifasAgregadas: TarifaItem[] = [];
-  guardandoTarifas = signal(false);
+  guardandoTarifa = signal(false);
   cargandoEstratos = signal(false);
   indCalcularMc = signal(false);
 
@@ -95,6 +93,8 @@ export class FeeComponent {
 
   showDeleteConfirmEstrato = signal(false);
   estratoToDelete: Estrato | null = null;
+
+  showSaveConfirm = signal(false);
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -136,8 +136,6 @@ export class FeeComponent {
     () => this.dataTypeConcepts.value()?.response ?? []
   );
 
-  private nextId = 1;
-
   private resetFormularioItem(): NuevoItem {
     return { nombre: '', descripcion: '' };
   }
@@ -157,7 +155,16 @@ export class FeeComponent {
     );
   }
 
-  canAddTarifa(): boolean {
+  private actualizarAutoincrementalEstrato(): void {
+    if (this.estratosActuales.length > 0) {
+      const maxNumero = Math.max(...this.estratosActuales.map((e) => e.numero));
+      this.nuevoEstratoNumero = maxNumero + 1;
+    } else {
+      this.nuevoEstratoNumero = 1;
+    }
+  }
+
+  canGuardarTarifa(): boolean {
     const hasBasicFields = !!(
       this.selectedTipoTarifa && this.selectedTipoConcepto
     );
@@ -172,8 +179,21 @@ export class FeeComponent {
 
     return !!(this.valorTarifa !== null && this.valorTarifa > 0);
   }
-  agregarTarifa(): void {
-    if (!this.canAddTarifa()) {
+  guardarTarifa(): void {
+    if (!this.canGuardarTarifa()) {
+      return;
+    }
+
+    const empresaId = this.empresaId();
+    const usuario = this.nombreUsuario();
+
+    if (!empresaId) {
+      this.toastService.error('Error', 'No se pudo obtener la empresa actual');
+      return;
+    }
+
+    if (!usuario) {
+      this.toastService.error('Error', 'No se pudo obtener el usuario actual');
       return;
     }
 
@@ -186,32 +206,54 @@ export class FeeComponent {
         ? parseInt(this.selectedTipoConcepto)
         : this.selectedTipoConcepto;
 
-    const tipoTarifaNombre =
-      this.typeRatesData().find((t) => t.id === tipoTarifaId)?.nombre || '';
-    const tipoConceptoNombre =
-      this.typeConceptsData().find((c) => c.id === tipoConceptoId)
-        ?.descripcion ||
-      this.typeConceptsData().find((c) => c.id === tipoConceptoId)?.nombre ||
-      '';
-    const valorAMostrar = this.mostrarTablaEstratos ? 0 : this.valorTarifa || 0;
+    this.guardandoTarifa.set(true);
 
-    const nuevaTarifa: TarifaItem = {
-      id: this.nextId++,
-      tipoTarifa: tipoTarifaNombre,
-      tipoConcepto: tipoConceptoNombre,
-      valor: valorAMostrar,
-      estratos: [...this.estratosActuales],
-      tipoTarifaId: tipoTarifaId,
-      tipoConceptoId: tipoConceptoId,
+    const item = {
+      idEmpresa: empresaId,
+      idTipoTarifa: tipoTarifaId,
+      usuarioCreacion: usuario,
+      activo: true,
+      concepto: {
+        idTipoConcepto: tipoConceptoId,
+        indCalcularMc: this.indCalcularMc()
+      } as any
     };
-    this.tarifasAgregadas.push(nuevaTarifa);
-    this.limpiarFormulario();
-  }
 
-  eliminarTarifa(id: number): void {
-    this.tarifasAgregadas = this.tarifasAgregadas.filter(
-      (tarifa) => tarifa.id !== id
-    );
+    // Agregar valores según el tipo (con o sin estratos)
+    if (this.mostrarTablaEstratos && this.estratosActuales.length > 0) {
+      item.concepto.valoresEstrato = this.estratosActuales.map(estrato => ({
+        estrato: estrato.numero,
+        valor: estrato.valor
+      }));
+    } else {
+      item.concepto.valor = this.valorTarifa;
+    }
+
+    const payload = {
+      items: [item]
+    };
+
+    this.conceptRateService.saveFeeConceptRate(payload).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.toastService.success('Éxito', 'Tarifa guardada exitosamente');
+          this.dataTypeConcepts.reload();
+          this.limpiarFormulario();
+        } else {
+          this.toastService.error('Error', 'No se pudo guardar la tarifa');
+        }
+        this.guardandoTarifa.set(false);
+      },
+      error: (error) => {
+        console.error('Error al guardar la tarifa:', error);
+        this.toastService.error('Error', 'Error al guardar la tarifa. Por favor, inténtelo de nuevo.');
+        this.guardandoTarifa.set(false);
+      },
+      complete: () => {
+        this.guardandoTarifa.set(false);
+        this.dataTypeConcepts.reload();
+      }
+    });
   }
 
   private limpiarFormulario(): void {
@@ -273,6 +315,8 @@ export class FeeComponent {
                   numero: estrato.estrato,
                   valor: estrato.valor
                 }));
+                // Actualizar el autoincremental para el próximo estrato
+                this.actualizarAutoincrementalEstrato();
               }
               // Verificar si tiene un valor único (sin estratos)
               else if (conceptRateExistente.valor !== null && conceptRateExistente.valor !== undefined) {
@@ -325,10 +369,12 @@ export class FeeComponent {
     this.mostrarTablaEstratos = !this.mostrarTablaEstratos;
 
     if (this.mostrarTablaEstratos) {
-      // this.valorTarifa = null;
       if (this.estratosActuales.length === 0) {
         this.estratosActuales = [];
         this.nuevoEstratoNumero = 1;
+      } else {
+        // Si hay estratos existentes, actualizar el autoincremental
+        this.actualizarAutoincrementalEstrato();
       }
     }
   }
@@ -349,9 +395,8 @@ export class FeeComponent {
       this.estratosActuales.push(nuevoEstrato);
       this.estratosActuales.sort((a, b) => a.numero - b.numero);
 
-      // Limpiar campos
-      this.nuevoEstratoNumero =
-        Math.max(...this.estratosActuales.map((e) => e.numero)) + 1;
+      // Limpiar campos y actualizar autoincremental
+      this.actualizarAutoincrementalEstrato();
       this.nuevoEstratoValor = null;
     }
   }
@@ -371,88 +416,6 @@ export class FeeComponent {
       // Forzar detección de cambios actualizando la referencia del array
       this.estratosActuales = [...this.estratosActuales];
     }
-  }
-
-  guardarTarifas(): void {
-    if (this.tarifasAgregadas.length === 0) {
-      this.toastService.error('Error', 'No hay tarifas para guardar');
-      return;
-    }
-
-    const empresaId = this.empresaId();
-    const usuario = this.nombreUsuario();
-
-    if (!empresaId) {
-      this.toastService.error('Error', 'No se pudo obtener la empresa actual');
-      return;
-    }
-
-    if (!usuario) {
-      this.toastService.error('Error', 'No se pudo obtener el usuario actual');
-      return;
-    }
-
-    this.guardandoTarifas.set(true);
-
-    // Construir array de items individuales
-    const items = this.tarifasAgregadas.map(tarifa => {
-      const item = {
-        idEmpresa: empresaId,
-        idTipoTarifa: tarifa.tipoTarifaId,
-        usuarioCreacion: usuario,
-        activo: true,
-        concepto: {
-          idTipoConcepto: tarifa.tipoConceptoId,
-          indCalcularMc: this.indCalcularMc()
-        } as any
-      };
-
-      // Agregar valores según el tipo (con o sin estratos)
-      if (tarifa.estratos && tarifa.estratos.length > 0) {
-        item.concepto.valoresEstrato = tarifa.estratos.map(estrato => ({
-          estrato: estrato.numero,
-          valor: estrato.valor
-        }));
-      } else {
-        item.concepto.valor = tarifa.valor;
-      }
-
-      return item;
-    });
-
-    // Construir el payload final
-    const payloadEstructurado = {
-      items: items
-    };
-
-    // Enviar payload estructurado
-    this.conceptRateService.saveFeeConceptRate(payloadEstructurado).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.toastService.success(
-            'Éxito',
-            `Se guardaron ${this.tarifasAgregadas.length} tarifas exitosamente`
-          );
-          this.dataTypeConcepts.reload();
-          this.tarifasAgregadas = [];
-        } else {
-          this.toastService.error('Error', 'No se pudo guardar las tarifas');
-        }
-        this.guardandoTarifas.set(false);
-      },
-      error: (error) => {
-        console.error('Error al guardar las tarifas:', error);
-        this.toastService.error(
-          'Error',
-          'Error al guardar las tarifas. Por favor, inténtelo de nuevo.'
-        );
-        this.guardandoTarifas.set(false);
-      },
-      complete: () => {
-        this.guardandoTarifas.set(false);
-        this.dataTypeConcepts.reload();
-      },
-    });
   }
 
   // Métodos para el popup de tipo de tarifa
@@ -786,7 +749,7 @@ export class FeeComponent {
   }
 
   confirmDeleteEstrato(): void {
-    if (!this.estratoToDelete?.id) {
+    if (!this.estratoToDelete) {
       this.cancelDeleteEstrato();
       return;
     }
@@ -794,40 +757,87 @@ export class FeeComponent {
     const estratoId = this.estratoToDelete.id;
     const estratoInfo = `${this.estratoToDelete.numero} (Valor: $${this.estratoToDelete.valor.toLocaleString()})`;
 
-    this.conceptRateService.deleteConceptStratum(estratoId).subscribe({
-      next: (response) => {
-        if (response?.success !== false) {
-          // Eliminar del array local solo si la petición fue exitosa
-          this.estratosActuales = this.estratosActuales.filter(
-            (estrato) => estrato.id !== estratoId
-          );
-          this.toastService.success(
-            'Éxito',
-            `Se eliminó exitosamente el estrato ${estratoInfo}`
-          );
-        } else {
+    // Si el estrato tiene ID (existe en BD), hacer petición al servidor
+    if (estratoId && estratoId > 0) {
+      this.conceptRateService.deleteConceptStratum(estratoId).subscribe({
+        next: (response) => {
+          if (response?.success !== false) {
+            // Eliminar del array local solo si la petición fue exitosa
+            this.estratosActuales = this.estratosActuales.filter(
+              (estrato) => estrato.id !== estratoId
+            );
+            // Actualizar autoincremental después de eliminar
+            this.actualizarAutoincrementalEstrato();
+            this.toastService.success(
+              'Éxito',
+              `Se eliminó exitosamente el estrato ${estratoInfo}`
+            );
+          } else {
+            this.toastService.error(
+              'Error',
+              response?.message || 'No se pudo eliminar el estrato'
+            );
+          }
+        },
+        error: (error) => {
+          console.error('Error al eliminar estrato:', error);
+          const errorMessage = error?.error?.message || error?.message || 'Error de conexión';
           this.toastService.error(
             'Error',
-            response?.message || 'No se pudo eliminar el estrato'
+            `No se pudo eliminar el estrato ${estratoInfo}: ${errorMessage}`
           );
+        },
+        complete: () => {
+          this.cancelDeleteEstrato();
         }
-      },
-      error: (error) => {
-        console.error('Error al eliminar estrato:', error);
-        const errorMessage = error?.error?.message || error?.message || 'Error de conexión';
-        this.toastService.error(
-          'Error',
-          `No se pudo eliminar el estrato ${estratoInfo}: ${errorMessage}`
-        );
-      },
-      complete: () => {
-        this.cancelDeleteEstrato();
-      }
-    });
+      });
+    } else {
+      // Si no tiene ID (elemento temporal), eliminar directamente del array
+      this.estratosActuales = this.estratosActuales.filter(
+        (estrato) => estrato.id !== estratoId
+      );
+      // Actualizar autoincremental después de eliminar
+      this.actualizarAutoincrementalEstrato();
+      this.toastService.success(
+        'Éxito',
+        `Se eliminó el estrato ${estratoInfo}`
+      );
+      this.cancelDeleteEstrato();
+    }
   }
 
   cancelDeleteEstrato(): void {
     this.showDeleteConfirmEstrato.set(false);
     this.estratoToDelete = null;
+  }
+
+  // Métodos para confirmación de guardado
+  abrirConfirmacionGuardar(): void {
+    if (this.canGuardarTarifa()) {
+      this.showSaveConfirm.set(true);
+    }
+  }
+
+  getSaveConfirmMessage(): string {
+    const tipoTarifaNombre = this.typeRatesData().find(t => t.id == this.selectedTipoTarifa)?.nombre || 'Sin nombre';
+    const tipoConceptoNombre = this.typeConceptsData().find(t => t.id == this.selectedTipoConcepto)?.descripcion || 'Sin descripción';
+
+    let valorInfo = '';
+    if (this.mostrarTablaEstratos && this.estratosActuales.length > 0) {
+      valorInfo = `con ${this.estratosActuales.length} estrato(s) configurado(s)`;
+    } else if (this.valorTarifa) {
+      valorInfo = `con valor único de $${this.valorTarifa.toLocaleString()}`;
+    }
+
+    return `¿Está seguro que desea guardar la tarifa concepto "${tipoTarifaNombre} - ${tipoConceptoNombre}" ${valorInfo}?`;
+  }
+
+  confirmarGuardarTarifa(): void {
+    this.showSaveConfirm.set(false);
+    this.guardarTarifa();
+  }
+
+  cancelarGuardarTarifa(): void {
+    this.showSaveConfirm.set(false);
   }
 }

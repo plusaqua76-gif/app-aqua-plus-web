@@ -274,12 +274,10 @@ export class Register implements OnInit, OnDestroy {
           }
         }
 
-        // console.log('Datos a enviar para registrar empresa:', empresaData);
 
         this.enterpriseService.registerEnterprise(empresaData).subscribe({
           next: (response) => {
             this.isLoading = false;
-            // console.log('Registro de empresa exitoso:', response);
 
             this.toast.success('Empresa registrada', 'Registro exitoso. Usuario por activar.');
 

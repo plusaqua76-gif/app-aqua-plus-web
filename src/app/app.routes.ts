@@ -96,13 +96,20 @@ export const routes: Routes = [
       {
         path: 'Inventory',
         loadChildren: () =>
-          import('./modules/accounting/accounting.route').then((m) => m.default),
+          import('./modules/accounting/accounting.route').then(
+            (m) => m.default
+          ),
       },
-            {
+      {
         path: 'pqr-client',
         loadChildren: () =>
-          import('./modules/pqr-client/pqr.route').then((m) => m.default)
-      }
+          import('./modules/pqr-client/pqr.route').then((m) => m.default),
+      },
+      {
+        path: 'configuration-roles',
+        loadChildren: () =>
+          import('./modules/admin-roles/roles.route').then((m) => m.default),
+      },
     ],
   },
   {

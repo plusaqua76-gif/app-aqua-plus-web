@@ -29,4 +29,8 @@ export default [
     path: 'update-debt/:id',
     loadComponent: () => import('./pages/update-debt/update-debt').then(m => m.UpdateDebt)
   },
+  {
+    path: 'print-bill/:id',
+    loadComponent: () => import('./pages/print-bill/print-bill').then(m => m.PrintBill)
+  }
 ] as Routes;

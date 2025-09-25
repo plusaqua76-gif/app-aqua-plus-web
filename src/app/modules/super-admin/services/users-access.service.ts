@@ -48,8 +48,6 @@ export class UserAccessService {
       usuario: usuario
     };
 
-    console.log('Payload a enviar:', payload);
-
     return this.http.post<ApiResponse<any>>(`${this.apiUrl}/empresa/actualizar`, payload).pipe(
       map(response => response.response)
     );
@@ -62,7 +60,6 @@ export class UserAccessService {
     nombreEmpresa: string;
     usuario: string;
   }): Observable<any> {
-    console.log('Payload a enviar:', payload);
 
     return this.http.post<ApiResponse<any>>(`${this.apiUrl}/empresa/actualizar`, payload).pipe(
       map(response => response.response)

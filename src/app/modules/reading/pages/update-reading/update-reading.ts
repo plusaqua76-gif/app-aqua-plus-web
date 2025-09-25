@@ -53,13 +53,11 @@ export class UpdateReading implements OnInit {
   this.readingService.updateLectura(this.lectura).subscribe({
     next: (res) => {
       if (!res.success) {
-        console.error('Error al actualizar lectura:', res.message);
         this.toastService.error(
           'Error al actualizar lectura',
           res.message || 'No se pudo actualizar la lectura.'
         );
       } else {
-        console.log('Lectura actualizada correctamente:', res);
         this.toastService.success(
           'Éxito',
           'La lectura se actualizó correctamente.'
@@ -68,7 +66,6 @@ export class UpdateReading implements OnInit {
       }
     },
     error: (err) => {
-      console.error('Error inesperado al actualizar lectura:', err);
       this.toastService.error(
         'Error inesperado',
         'No se pudo actualizar la lectura. Intente más tarde.'
