@@ -10,11 +10,7 @@ import { EMPTY, map } from 'rxjs';
   imports: [CommonModule, RouterLink],
   template: `
     <nav
-      [ngClass]="{
-        'shadow-lg border-gray-300 dark:border-gray-800': isScrolled,
-        'border-transparent': !isScrolled
-      }"
-      class="fixed top-0 z-[999] bg-white/70 dark:bg-gray-900/60 backdrop-blur-md border-b transition-all duration-300"
+      class="fixed top-0 z-[999] bg-white/70 dark:bg-gray-900/60 backdrop-blur-md  transition-all duration-300"
       [style.left]="
         screenWidth() > 768 ? (collapsed() ? '16.5625rem' : '5rem') : '0'
       "
