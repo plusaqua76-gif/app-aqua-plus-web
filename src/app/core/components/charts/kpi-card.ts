@@ -1,8 +1,9 @@
 import { DecimalPipe, isPlatformBrowser } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, inject, OnInit, OnDestroy, computed, PLATFORM_ID } from '@angular/core';
-import { ClientesKpiService } from '@services/clientes-kpi.service';
+// COMENTADO: Importaciones para consumo de API
+// import { ClientesKpiService } from '@services/clientes-kpi.service';
+// import { Subscription } from 'rxjs';
 import { IClienteKPI } from '@interfaces/IClienteKPI';
-import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-kpi-card',
@@ -129,20 +130,12 @@ import { Subscription } from 'rxjs';
     </div>
   </div>
 
-  <!-- Delta -->
+  <!-- Descripción -->
   <div class="mt-3 flex items-center gap-2 progress-container">
     @if (isLoading) {
-      <div class="h-3 bg-slate-700 rounded animate-pulse w-20"></div>
-      <div class="h-3 bg-slate-700 rounded animate-pulse w-24"></div>
+      <div class="h-3 bg-slate-700 rounded animate-pulse w-32"></div>
     } @else {
-      @if (kpiData?.esPositivo) {
-        <span class="inline-flex h-1.5 w-1.5 rounded-full bg-green-500"></span>
-        <span class="text-sm font-medium text-green-400">+{{ kpiData?.porcentajeCambio || 0 }}%</span>
-      } @else {
-        <span class="inline-flex h-1.5 w-1.5 rounded-full bg-rose-500"></span>
-        <span class="text-sm font-medium text-rose-400">{{ kpiData?.porcentajeCambio || 0 }}%</span>
-      }
-      <span class="text-sm text-slate-400">{{ kpiData?.descripcion || 'vs período anterior' }}</span>
+      <span class="text-sm text-slate-400">{{ kpiData?.descripcion || 'información' }}</span>
     }
   </div>
 
@@ -180,10 +173,12 @@ export class KpiCardComponent implements OnInit, OnDestroy {
   kpiData: IClienteKPI | null = null;
   isLoading = true;
   progressWidth = 0;
-  private subscription?: Subscription;
+  // COMENTADO: Para uso con API
+  // private subscription?: Subscription;
   protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
-  private readonly clientesKpiService = inject(ClientesKpiService);
+  // COMENTADO: Servicio para consumo de API
+  // private readonly clientesKpiService = inject(ClientesKpiService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
@@ -191,7 +186,8 @@ export class KpiCardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.subscription?.unsubscribe();
+    // En producción aquí iría: this.subscription?.unsubscribe();
+    console.log('KPI Card component destroyed');
   }
 
     readonly userData = computed(() => {
@@ -224,69 +220,119 @@ export class KpiCardComponent implements OnInit, OnDestroy {
     return this.currentDate().getFullYear();
   });
 
+  /**
+   * Genera un conjunto coherente de datos de clientes donde los números cuadran
+   */
+  private generateCoherentClientData() {
+    // Generar datos base coherentes
+    const clientesActivos = Math.floor(Math.random() * 80) + 120; // 120-200 clientes activos
+    const clientesNuevos = Math.floor(Math.random() * 15) + 5; // 5-20 clientes nuevos
+    const clientesEnMora = Math.floor(clientesActivos * 0.15) + Math.floor(Math.random() * 10); // ~15% en mora + variación
+    const clientesAlDia = clientesActivos - clientesEnMora; // El resto al día
+    const facturacionTotal = (clientesActivos * (Math.floor(Math.random() * 300) + 400)); // $400-700 por cliente
+
+    return {
+      clientesActivos,
+      clientesNuevos,
+      clientesEnMora,
+      clientesAlDia,
+      facturacionTotal
+    };
+  }
+
+  /**
+   * Genera datos KPI simulados basados en el ID proporcionado con datos coherentes
+   */
+  private generateSimulatedKpiData(kpiId?: string): IClienteKPI {
+    // Generar datos coherentes una sola vez
+    const coherentData = this.generateCoherentClientData();
+
+    const kpiTypes = [
+      {
+        id: 'clientes-nuevos',
+        titulo: 'Clientes Nuevos',
+        valor: coherentData.clientesNuevos,
+        porcentajeCambio: 0, // Eliminado
+        esPositivo: true,
+        descripcion: 'este mes',
+        icono: 'user-plus',
+        progreso: Math.min((coherentData.clientesNuevos / 25) * 100, 100) // Progreso basado en meta de 25
+      },
+      {
+        id: 'clientes-al-dia',
+        titulo: 'Clientes al Día',
+        valor: coherentData.clientesAlDia,
+        porcentajeCambio: 0, // Eliminado
+        esPositivo: true,
+        descripcion: 'del total',
+        icono: 'check-circle',
+        progreso: (coherentData.clientesAlDia / coherentData.clientesActivos) * 100 // Porcentaje del total
+      },
+      {
+        id: 'clientes-mora',
+        titulo: 'Clientes en Mora',
+        valor: coherentData.clientesEnMora,
+        porcentajeCambio: 0, // Eliminado
+        esPositivo: false, // Mora siempre es negativo
+        descripcion: 'del total',
+        icono: 'exclamation-triangle',
+        progreso: (coherentData.clientesEnMora / coherentData.clientesActivos) * 100 // Porcentaje del total
+      },
+      {
+        id: 'clientes-activos',
+        titulo: 'Clientes Activos',
+        valor: coherentData.clientesActivos,
+        porcentajeCambio: 0, // Eliminado
+        esPositivo: true,
+        descripcion: 'total registrados',
+        icono: 'users',
+        progreso: Math.min((coherentData.clientesActivos / 200) * 100, 100) // Progreso basado en meta de 200
+      },
+      {
+        id: 'facturacion-total',
+        titulo: 'Facturación Total',
+        valor: coherentData.facturacionTotal,
+        porcentajeCambio: 0, // Eliminado
+        esPositivo: true,
+        descripcion: 'este mes',
+        icono: 'check-circle',
+        progreso: Math.min((coherentData.facturacionTotal / 120000) * 100, 100) // Progreso basado en meta de $120k
+      }
+    ];
+
+    // Si se especifica un kpiId, buscar ese tipo específico
+    if (kpiId) {
+      const specificKpi = kpiTypes.find(kpi => kpi.id === kpiId);
+      if (specificKpi) {
+        return specificKpi;
+      }
+    }
+
+    // Si no se encuentra o no se especifica, devolver uno aleatorio
+    const randomIndex = Math.floor(Math.random() * kpiTypes.length);
+    return kpiTypes[randomIndex];
+  }
+
 
   private loadKpiData(): void {
+    // DATOS SIMULADOS para desarrollo
+    // En producción, aquí iría el código para consumir la API real
     this.isLoading = true;
     this.progressWidth = 0;
     this.cdr.detectChanges();
 
-    const empresaId = this.empresaId();
-    const mes = this.currentMonth();
-    const anio = this.currentYear();
-
-    // Validar que tengamos los datos necesarios
-    if (!empresaId || !mes || !anio) {
-      console.warn('Datos incompletos para cargar KPIs:', { empresaId, mes, anio });
+    // Simular delay de carga de la API
+    setTimeout(() => {
+      // Generar datos simulados
+      this.kpiData = this.generateSimulatedKpiData(this.kpiId);
       this.isLoading = false;
       this.cdr.detectChanges();
-      return;
-    }
 
-    if (this.kpiId) {
-      // Cargar KPI específico por ID usando el servicio dinámico
-      this.subscription = this.clientesKpiService
-        .getClientesKPIDinamico(empresaId, anio, mes, this.rangoPor, this.exclusivo)
-        .subscribe({
-          next: (response) => {
-            const kpis = this.clientesKpiService.mapResponseToKPIs(response);
-            this.kpiData = kpis.find(kpi => kpi.id === this.kpiId) || null;
-            this.isLoading = false;
-            this.cdr.detectChanges();
-
-            // Animar la barra de progreso después de cargar los datos
-            setTimeout(() => {
-              this.animateProgressBar();
-            }, 100);
-          },
-          error: (error: any) => {
-            console.error('Error loading dynamic KPI data:', error);
-            this.isLoading = false;
-            this.cdr.detectChanges();
-          }
-        });
-    } else {
-      // Si no se especifica ID, cargar el primero disponible usando el servicio dinámico
-      this.subscription = this.clientesKpiService
-        .getClientesKPIDinamico(empresaId, anio, mes, this.rangoPor, this.exclusivo)
-        .subscribe({
-          next: (response) => {
-            const kpis = this.clientesKpiService.mapResponseToKPIs(response);
-            this.kpiData = kpis.length > 0 ? kpis[0] : null;
-            this.isLoading = false;
-            this.cdr.detectChanges();
-
-            // Animar la barra de progreso después de cargar los datos
-            setTimeout(() => {
-              this.animateProgressBar();
-            }, 100);
-          },
-          error: (error: any) => {
-            console.error('Error loading dynamic KPI data:', error);
-            this.isLoading = false;
-            this.cdr.detectChanges();
-          }
-        });
-    }
+      // Animar la barra de progreso después de cargar los datos
+      setTimeout(() => {
+        this.animateProgressBar();
+      }, 100);
+    }, Math.floor(Math.random() * 800) + 300); // Delay aleatorio entre 300-1100ms
   }
 
   private animateProgressBar(): void {
@@ -313,9 +359,35 @@ export class KpiCardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Método público para actualizar los datos del KPI
+   * Método público para actualizar los datos del KPI con nuevos datos simulados
    */
   updateKpiData(): void {
     this.loadKpiData();
   }
 }
+
+/*
+INSTRUCCIONES PARA RESTAURAR LA FUNCIONALIDAD DE API:
+
+1. Descomentar las importaciones al inicio del archivo:
+   - import { ClientesKpiService } from '@services/clientes-kpi.service';
+   - import { Subscription } from 'rxjs';
+
+2. Descomentar las propiedades en la clase:
+   - private subscription?: Subscription;
+   - private readonly clientesKpiService = inject(ClientesKpiService);
+
+3. En ngOnDestroy(), cambiar por:
+   this.subscription?.unsubscribe();
+
+4. Reemplazar el método loadKpiData() con el código original que consume la API.
+
+5. Los datos simulados son coherentes y realistas:
+   - Clientes Activos: 120-200 (base total)
+   - Clientes Nuevos: 5-20 (progreso basado en meta de 25)
+   - Clientes al Día: calculado como (Activos - Mora)
+   - Clientes en Mora: ~15% de activos (progreso = % del total)
+   - Facturación Total: $400-700 por cliente activo
+   - Los números siempre cuadran: Activos = Al Día + En Mora
+   - Sin porcentajes de cambio mensual
+*/

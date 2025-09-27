@@ -1,0 +1,183 @@
+.form-group {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 12px 50px 12px 45px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder,
+.form-group select::placeholder {
+  color: #ada5b4;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #0062ff;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.form-group .icon {
+  position: absolute;
+  left: 16px;
+  top: 73%;
+  transform: translateY(-50%);
+  color: #ada5b4;
+  font-size: 16px;
+  z-index: 10;
+}
+
+.form-group.textarea-group .icon {
+  position: absolute;
+  left: 16px;
+  top: 47%;
+  transform: translateY(-50%);
+  color: #ada5b4;
+  font-size: 16px;
+  z-index: 10;
+}
+
+.form-group input {
+  height: 48px;
+  line-height: 24px;
+}
+
+.form-group textarea {
+  min-height: 88px;
+  padding-top: 16px;
+  line-height: 20px;
+}
+
+.form-group select {
+  height: 48px;
+  line-height: 24px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ada5b4' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+}
+
+/* Estilos para radio buttons personalizados */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.radio-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.radio-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.radio-item input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #0062ff;
+}
+
+/* Animaciones para los botones */
+.btn-primary {
+  background: linear-gradient(135deg, #0062ff 0%, #0052cc 100%);
+  border: none;
+  color: white;
+  transition: all 0.3s ease;
+  transform: translateZ(0);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0052cc 0%, #0041a3 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 98, 255, 0.3);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  color: white;
+  transition: all 0.3s ease;
+  transform: translateZ(0);
+}
+
+.btn-success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+/* Estilos para el panel de control */
+.control-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.payment-options {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out;
+}
+
+/* Estilos para inputs de número */
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .control-panel {
+    padding: 16px;
+    margin: 0 16px;
+  }
+}

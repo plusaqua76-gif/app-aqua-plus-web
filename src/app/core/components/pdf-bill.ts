@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LegendsHistoryBill } from "./charts/legens-bill-history";
+import { LegendsHistoryBill } from './charts/legens-bill-history';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { EnterpriseIdService } from '@services/enterpriceId.service';
 
 @Component({
   selector: 'app-pdf-bill',
@@ -314,22 +316,22 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
 
       .service-category.acueducto {
         background: white;
-        border-color: #DEE4EE;
+        border-color: #dee4ee;
       }
 
       .service-category.aseo {
         background: white;
-        border-color: #DEE4EE;
+        border-color: #dee4ee;
       }
 
       .service-category.alcantarillado {
         background: white;
-        border-color: #DEE4EE;
+        border-color: #dee4ee;
       }
 
       .service-category.otros {
         background: white;
-        border-color: #DEE4EE;
+        border-color: #dee4ee;
       }
 
       .service-category h3 {
@@ -347,7 +349,7 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
       }
 
       .service-category.aseo h3 {
-        background: #FAC6D0;
+        background: #fac6d0;
       }
 
       .service-category.alcantarillado h3 {
@@ -355,7 +357,7 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
       }
 
       .service-category.otros h3 {
-        background: #5D6481;
+        background: #5d6481;
       }
 
       .service-items {
@@ -497,7 +499,7 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
         left: 0;
         right: 0;
         height: 25px;
-        background: #FAC6D0;
+        background: #fac6d0;
         border-radius: 10px 10px 0 0;
         display: flex;
         align-items: center;
@@ -514,7 +516,7 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
         left: 0;
         right: 0;
         height: 8px;
-        background: #FAC6D0;
+        background: #fac6d0;
       }
 
       .total-card.alcantarillado-card::before {
@@ -551,7 +553,7 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
         left: 0;
         right: 0;
         height: 25px;
-        background: #5D6481;
+        background: #5d6481;
         border-radius: 10px 10px 0 0;
         display: flex;
         align-items: center;
@@ -568,7 +570,7 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
         left: 0;
         right: 0;
         height: 8px;
-        background: #5D6481;
+        background: #5d6481;
       }
 
       .total-card {
@@ -594,8 +596,8 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
       }
 
       .total-card.aseo-card .card-amount {
-        border-left: 1px solid #FAC6D0;
-        border-right: 1px solid #FAC6D0;
+        border-left: 1px solid #fac6d0;
+        border-right: 1px solid #fac6d0;
         padding: 8px 0;
       }
 
@@ -606,13 +608,13 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
       }
 
       .total-card.otros-card .card-amount {
-        border-left: 1px solid #5D6481;
-        border-right: 1px solid #5D6481;
+        border-left: 1px solid #5d6481;
+        border-right: 1px solid #5d6481;
         padding: 8px 0;
       }
 
       .final-total-card {
-        background: #ADECBB;
+        background: #adecbb;
         color: #2e7d32;
         padding: 15px 20px;
         border-radius: 0 0 15px 15px;
@@ -625,13 +627,48 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
 
       .total-label {
         font-size: 16px;
-        color: #19213D;
+        color: #19213d;
       }
 
       .total-amount {
         font-size: 20px;
         color: #1976d2;
         font-weight: bold;
+      }
+
+      /* Estilos para el letrero de suspensión */
+      .suspension-notice {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 1000;
+        overflow: hidden;
+      }
+
+      .suspension-banner {
+        position: absolute;
+        top: 40%;
+        left: -20%;
+        width: 140%;
+        height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 80px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 6px;
+        transform: rotate(-35deg);
+        color: rgba(0, 0, 0, 0.6);
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .suspension-banner-text {
+        position: relative;
+        z-index: 1;
       }
 
       /* Responsive */
@@ -710,15 +747,27 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
     `,
   ],
   template: `
-
     <div class="pdf-container">
       <div class="bill-content">
+        <!-- Letrero de estado dinámico -->
+        @if (selectedStatus()) {
+        <div class="suspension-notice">
+          <div class="suspension-banner">
+            <span class="suspension-banner-text">{{ selectedStatus() }}</span>
+          </div>
+        </div>
+        }
         <div class="bill-header">
           <div class="logo-container">
+            @if (enterpriseInfo.value()?.imagen?.[0]?.imagen) {
             <img
-              src="https://www.aquaplus.dev/images/logoAquaplus.webp"
-              alt="imagenempresa"
+              class="logo-image object-contain w-32 h-32 rounded-[20px]"
+              [src]="'data:' + (enterpriseInfo.value()?.imagen?.[0]?.contentType || 'image/png') + ';base64,' + enterpriseInfo.value()?.imagen?.[0]?.imagen"
+              [alt]="enterpriseInfo.value()?.nombre || 'Logo empresa'"
             />
+            } @else {
+            <h1>la imagen no se cargo pez</h1>
+            }
           </div>
           <div class="header-left">
             <div class="company-info">
@@ -748,9 +797,13 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
             <!-- Fila superior -->
             <div class="info-card client-card">
               <div class="card-header">
-                <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                <div
+                  class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center"
+                >
                   <svg class="h-3 w-3" fill="white" viewBox="0 0 24 24">
-                    <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    <path
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
                   </svg>
                 </div>
                 <span>Cliente</span>
@@ -771,16 +824,22 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
                 </div>
                 <div class="info-item">
                   <span class="label">Dirección:</span>
-                  <span class="value">Huila, Pitalito, Monte Carlos Carrera 43 # 55</span>
+                  <span class="value"
+                    >Huila, Pitalito, Monte Carlos Carrera 43 # 55</span
+                  >
                 </div>
               </div>
             </div>
 
             <div class="info-card counter-card">
               <div class="card-header">
-                <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                <div
+                  class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center"
+                >
                   <svg class="h-3 w-3" fill="white" viewBox="0 0 24 24">
-                    <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    <path
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
                   </svg>
                 </div>
                 <span>Contador</span>
@@ -796,16 +855,22 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
                 </div>
                 <div class="info-item">
                   <span class="label">Dirección:</span>
-                  <span class="value">Huila, Pitalito, Monte Carlos Carrera 43 # 55</span>
+                  <span class="value"
+                    >Huila, Pitalito, Monte Carlos Carrera 43 # 55</span
+                  >
                 </div>
               </div>
             </div>
 
             <div class="info-card consumption-card">
               <div class="card-header">
-                <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                <div
+                  class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center"
+                >
                   <svg class="h-3 w-3" fill="white" viewBox="0 0 24 24">
-                    <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    <path
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    />
                   </svg>
                 </div>
                 <span>Detalle de consumo</span>
@@ -823,9 +888,7 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
                   <span class="label">Consumo total:</span>
                   <span class="value">20 m³</span>
                 </div>
-                <div class="price-highlight">
-                  Precio: $30,000 COP
-                </div>
+                <div class="price-highlight">Precio: $30,000 COP</div>
               </div>
             </div>
           </div>
@@ -840,25 +903,45 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
             <!-- Punto de pago -->
             <div class="payment-point-card">
               <div class="card-header">
-                <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                <div
+                  class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center"
+                >
                   <svg class="h-3 w-3" fill="white" viewBox="0 0 24 24">
-                    <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    <path
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                    />
                   </svg>
                 </div>
                 <span>Punto de pago</span>
               </div>
               <div class="payment-methods">
                 <div class="payment-method">
-                  <img src="/images/image1.png" alt="Imagen 1" class="payment-logo">
+                  <img
+                    src="/images/image1.png"
+                    alt="Imagen 1"
+                    class="payment-logo"
+                  />
                 </div>
                 <div class="payment-method">
-                  <img src="/images/image2.png" alt="Imagen 2" class="payment-logo">
+                  <img
+                    src="/images/image2.png"
+                    alt="Imagen 2"
+                    class="payment-logo"
+                  />
                 </div>
                 <div class="payment-method">
-                  <img src="/images/image3.png" alt="Imagen 3" class="payment-logo">
+                  <img
+                    src="/images/image3.png"
+                    alt="Imagen 3"
+                    class="payment-logo"
+                  />
                 </div>
                 <div class="payment-method">
-                  <img src="/images/image7.png" alt="Imagen 7" class="payment-logo">
+                  <img
+                    src="/images/image7.png"
+                    alt="Imagen 7"
+                    class="payment-logo"
+                  />
                 </div>
               </div>
             </div>
@@ -1039,9 +1122,13 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
           <div class="bottom-section">
             <div class="consumption-summary">
               <div class="card-header">
-                <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                <div
+                  class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center"
+                >
                   <svg class="h-3 w-3" fill="white" viewBox="0 0 24 24">
-                    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <path
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
                   </svg>
                 </div>
                 <span>Factura Consumo</span>
@@ -1057,26 +1144,28 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
                 </div>
                 <div class="info-item">
                   <span class="label">Dirección:</span>
-                  <span class="value">Huila, Pitalito, Monte Carlos Carrera 43 # 55</span>
+                  <span class="value"
+                    >Huila, Pitalito, Monte Carlos Carrera 43 # 55</span
+                  >
                 </div>
-                <div class="due-date">
-                  Fecha límite de pago:
-                </div>
+                <div class="due-date">Fecha límite de pago:</div>
               </div>
             </div>
 
             <div class="payment-summary">
               <div class="card-header">
-                <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                <div
+                  class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center"
+                >
                   <svg class="h-3 w-3" fill="white" viewBox="0 0 24 24">
-                    <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                 </div>
                 <span>Información de pago</span>
               </div>
-              <div class="novedad-text">
-                Novedad asignada
-              </div>
+              <div class="novedad-text">Novedad asignada</div>
               <div class="payment-totals-grid">
                 <div class="total-card acueducto-card">
                   <div class="card-title">Acueducto</div>
@@ -1106,4 +1195,15 @@ import { LegendsHistoryBill } from "./charts/legens-bill-history";
     </div>
   `,
 })
-export class PdfBill {}
+export class PdfBill {
+  showSuspensionNotice = true;
+
+  // Input signal para recibir el estado seleccionado
+  selectedStatus = input<string | null>(null);
+
+  private readonly enterpriseIdService = inject(EnterpriseIdService);
+
+  enterpriseInfo = rxResource({
+    stream: () => this.enterpriseIdService.getEnterpriseInfo(),
+  });
+}
