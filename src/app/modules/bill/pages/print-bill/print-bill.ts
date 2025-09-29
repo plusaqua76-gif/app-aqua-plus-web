@@ -1,11 +1,14 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { PdfBill } from "@components/pdf-bill";
 import { PdfService } from "../../../../core/services/pdf.service";
 import { ToastService } from '../../../../core/services/toast.service';
 import { EstadoService } from '../../service/estado.service';
+import { PlazoPagoService } from '../../service/print-bill-details.service';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { EMPTY } from 'rxjs';
 
 @Component({
   selector: 'app-print-bill',
@@ -18,9 +21,28 @@ export class PrintBill {
   readonly pdfService = inject(PdfService);
   readonly toast = inject(ToastService);
   readonly estadoService = inject(EstadoService);
+  readonly billDetailsService = inject(PlazoPagoService);
+  readonly route = inject(ActivatedRoute);
 
   getStatus = rxResource({
     stream: () => this.estadoService.getAllEstado(),
+  });
+
+
+  billDetails = rxResource({
+    params: () => {
+      const billId = this.route.snapshot.paramMap.get('id');
+      console.log('Bill ID from route:', billId);
+      return billId ? Number(billId) : null;
+    },
+    stream: ({ params: billId }) => {
+      if (!billId) {
+        console.log('No bill ID provided');
+        return EMPTY;
+      }
+      console.log('Fetching bill details for ID:', billId);
+      return this.billDetailsService.getAllBillDetails(billId);
+    },
   });
 
 

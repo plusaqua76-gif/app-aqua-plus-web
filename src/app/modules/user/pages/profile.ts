@@ -1,9 +1,8 @@
-import { isPlatformBrowser } from '@angular/common';
 import { Component, effect, inject, PLATFORM_ID, OnInit, OnDestroy, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EnterpriseIdService } from '@services/enterpriceId.service';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule,isPlatformBrowser } from '@angular/common';
 import { ToastService } from '@services/toast.service';
 import { LocationService } from '@shared/services/location.service';
 import { IDepartament } from '@interfaces/Idepartament';

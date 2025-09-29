@@ -3,7 +3,10 @@
     <!-- Contenido de la factura -->
     <div class="mb-8">
       <div #billContainer>
-        <app-pdf-bill  [selectedStatus]="selectedStatus()"></app-pdf-bill>
+        <app-pdf-bill
+          [selectedStatus]="selectedStatus()"
+          [billData]="billDetails.value()?.response ?? null">
+        </app-pdf-bill>
       </div>
     </div>
 

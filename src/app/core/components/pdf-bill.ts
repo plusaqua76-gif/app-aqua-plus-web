@@ -4,11 +4,14 @@ import { RouterModule } from '@angular/router';
 import { LegendsHistoryBill } from './charts/legens-bill-history';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EnterpriseIdService } from '@services/enterpriceId.service';
+import { IBillDetailResponse } from '@interfaces/Ibill-detail';
+import { ColombianCurrencyPipe } from '@shared/index';
+import { DeudaService } from '../../modules/bill/service/deuda.service';
 
 @Component({
   selector: 'app-pdf-bill',
   standalone: true,
-  imports: [CommonModule, RouterModule, LegendsHistoryBill],
+  imports: [CommonModule, RouterModule, LegendsHistoryBill, ColombianCurrencyPipe],
   styles: [
     `
       .pdf-container {
@@ -16,12 +19,15 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
         min-height: 100vh;
         display: flex;
         justify-content: center;
-        align-items: flex-start;
+        align-items: center; /* Centrado vertical siempre */
         padding: 20px;
+        overflow-x: auto; /* Permite scroll horizontal si es necesario */
+        box-sizing: border-box;
       }
 
       .bill-content {
-        width: 894px; /* Ancho A4 en píxeles */
+        width: 894px; /* Ancho A4 en píxeles - FIJO */
+        min-width: 894px; /* Evita que se comprima */
         min-height: 1123px; /* Alto A4 en píxeles */
         background-image: url('/images/background/backgroundBillDef.svg');
         background-size: cover;
@@ -32,6 +38,7 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
         border-radius: 8px;
         background-color: white;
         position: relative;
+        flex-shrink: 0; /* Evita que se reduzca */
       }
 
       .bill-header {
@@ -163,6 +170,7 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
         grid-template-rows: auto auto;
         gap: 15px;
         margin-bottom: 20px;
+        min-width: 814px; /* Ancho fijo menos padding */
       }
 
       /* Fila específica para mapa y punto de pago */
@@ -172,6 +180,7 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
         grid-template-columns: 60% 40%;
         gap: 20px;
         margin: 15px 0;
+        min-width: 814px; /* Ancho fijo menos padding */
       }
 
       .info-card {
@@ -306,6 +315,7 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
         grid-template-columns: repeat(4, 1fr);
         gap: 15px;
         margin: 20px 0;
+        min-width: 814px; /* Ancho fijo menos padding */
       }
 
       .service-category {
@@ -381,12 +391,30 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
         color: #555;
       }
 
+      /* Estilos específicos para la categoría "Otros Servicios" */
+      .service-item.tarifa-title {
+        margin: 8px 0 4px 0;
+        padding: 4px 0;
+        border-bottom: 1px solid #eee;
+      }
+
+      .service-item.concepto-subitem {
+        margin: 2px 0;
+        padding: 1px 0;
+      }
+
+      .service-item.concepto-subitem span:first-child {
+        font-size: 10px;
+        color: #666;
+      }
+
       /* Sección inferior */
       .bottom-section {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 20px;
         margin-top: 20px;
+        min-width: 814px; /* Ancho fijo menos padding */
       }
 
       .consumption-summary,
@@ -434,6 +462,7 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
         grid-template-columns: repeat(4, 1fr);
         gap: 10px;
         margin-bottom: 0;
+        min-width: 320px; /* Ancho mínimo para 4 columnas */
       }
 
       .total-card {
@@ -671,56 +700,125 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
         z-index: 1;
       }
 
-      /* Responsive */
-      @media (max-width: 850px) {
-        .info-grid {
-          grid-template-columns: 1fr;
+      /* Responsive con escala proporcional - mantiene estructura como imagen */
+      /* Desktop grande - sin cambios */
+      @media (min-width: 951px) {
+        .pdf-container {
+          padding: 20px;
+          justify-content: center;
+          align-items: center;
         }
-
-        .map-payment-row {
-          grid-template-columns: 1fr;
-        }
-
-        .services-grid {
-          grid-template-columns: 1fr 1fr;
-        }
-
-        .bottom-section {
-          grid-template-columns: 1fr;
-        }
-
-        .payment-methods {
-          flex-direction: row;
-          gap: 10px;
-        }
-
-        .payment-method {
-          height: 50px;
-        }
-
-        .payment-totals-grid {
-          grid-template-columns: repeat(2, 1fr);
-          gap: 8px;
+        .bill-content {
+          transform: none;
         }
       }
 
-      @media (max-width: 600px) {
-        .services-grid {
-          grid-template-columns: 1fr;
+      /* Tablet grande */
+      @media (max-width: 950px) and (min-width: 801px) {
+        .pdf-container {
+          padding: 20px;
+          justify-content: center;
+          align-items: center;
         }
-
-        .payment-methods {
-          flex-wrap: wrap;
+        .bill-content {
+          transform: scale(0.85);
+          transform-origin: center center;
         }
+      }
 
-        .payment-totals-grid {
-          grid-template-columns: 1fr;
+      /* Tablet */
+      @media (max-width: 800px) and (min-width: 681px) {
+        .pdf-container {
+          padding: 20px;
+          justify-content: center;
+          align-items: center;
         }
+        .bill-content {
+          transform: scale(0.7);
+          transform-origin: center center;
+        }
+      }
 
-        .final-total-card {
-          flex-direction: column;
-          text-align: center;
-          gap: 8px;
+      /* Tablet pequeño */
+      @media (max-width: 680px) and (min-width: 581px) {
+        .pdf-container {
+          padding: 15px;
+          justify-content: center;
+          align-items: center;
+        }
+        .bill-content {
+          transform: scale(0.6);
+          transform-origin: center center;
+        }
+      }
+
+      /* Móvil grande */
+      @media (max-width: 580px) and (min-width: 481px) {
+        .pdf-container {
+          padding: 15px;
+          justify-content: center;
+          align-items: center;
+        }
+        .bill-content {
+          transform: scale(0.5);
+          transform-origin: center center;
+        }
+      }
+
+      /* Móvil mediano */
+      @media (max-width: 480px) and (min-width: 401px) {
+        .pdf-container {
+          width: 100vw;
+          max-width: 400px;
+          height: 600px;
+          max-height: 600px;
+          padding: 10px;
+          min-height: auto;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+        .bill-content {
+          transform: scale(0.4);
+          transform-origin: center center;
+        }
+      }
+
+      /* Móvil pequeño */
+      @media (max-width: 400px) and (min-width: 376px) {
+        .pdf-container {
+          width: 100vw;
+          max-width: 350px;
+          height: 550px;
+          max-height: 550px;
+          padding: 8px;
+          min-height: auto;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+        .bill-content {
+          transform: scale(0.38);
+          transform-origin: center center;
+        }
+      }
+
+      /* iPhone SE y dispositivos muy pequeños */
+      @media (max-width: 375px) {
+        .pdf-container {
+          width: 100vw;
+          max-width: 350px;
+          height: 500px;
+          max-height: 500px;
+          padding: 5px;
+          min-height: auto;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+        .bill-content {
+          transform: scale(0.36);
+          transform-origin: center center;
         }
       }
 
@@ -735,15 +833,11 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
           border-radius: 0;
           width: 100%;
           min-height: auto;
+          transform: none !important; /* Quita la escala en impresión */
         }
       }
 
-      @media (max-width: 850px) {
-        .bill-content {
-          width: 100%;
-          max-width: 794px;
-        }
-      }
+
     `,
   ],
   template: `
@@ -766,28 +860,28 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
               [alt]="enterpriseInfo.value()?.nombre || 'Logo empresa'"
             />
             } @else {
-            <h1>la imagen no se cargo pez</h1>
+            <h1>la imagen no se cargo</h1>
             }
           </div>
           <div class="header-left">
             <div class="company-info">
               <h1>Aqua Plus</h1>
               <div class="company-details">
-                <div><strong>NIT:</strong> 15734685</div>
-                <div><strong>Tel:</strong> (684) 879 - 0102</div>
+                <div><strong>NIT: </strong>{{ billData()?.empresa?.nit }}</div>
+                <div><strong>Direccion: </strong>{{ GetDirectiomComplete() }}</div>
               </div>
             </div>
           </div>
 
           <div class="header-center">
             <div class="address-info">
-              <div>Saladoblanco/Huila C 12</div>
-              <div># 23 - 45 A barrio Centro</div>
+              <!-- <div>Saladoblanco/Huila C 12</div>
+              <div># 23 - 45 A barrio Centro</div> -->
             </div>
           </div>
 
           <div class="header-right">
-            <div class="invoice-number">N°: 000027</div>
+            <div class="invoice-number">N°: {{ billData()?.empresa?.codigo }}</div>
           </div>
         </div>
 
@@ -807,26 +901,34 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
                   </svg>
                 </div>
                 <span>Cliente</span>
-                <span class="badge">Estrato 3</span>
+                <span class="badge">Estrato {{ billData()?.cliente?.estrato }}</span>
               </div>
               <div class="card-content">
                 <div class="info-item">
                   <span class="label">Nombre:</span>
-                  <span class="value">Juanito Chavarro</span>
+                  <span class="value">
+                    {{ billData()?.cliente?.primerNombre || '' }}
+                    {{ billData()?.cliente?.segundoNombre || '' }}
+                    {{ billData()?.cliente?.primerApellido || '' }}
+                    {{ billData()?.cliente?.segundoApellido || '' }}
+                  </span>
                 </div>
                 <div class="info-item">
                   <span class="label">Número de documento:</span>
-                  <span class="value">123456789074</span>
+                  <span class="value">{{ billData()?.cliente?.numeroCedula || '' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="label">Código Cliente:</span>
-                  <span class="value">4500T</span>
+                  <span class="value">{{ billData()?.cliente?.codigo || '' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="label">Dirección:</span>
-                  <span class="value"
-                    >Huila, Pitalito, Monte Carlos Carrera 43 # 55</span
-                  >
+                  <span class="value">
+                    {{ billData()?.cliente?.direccion?.departamentoNombre || '' }},
+                    {{ billData()?.cliente?.direccion?.ciudadNombre || '' }},
+                    {{ billData()?.cliente?.direccion?.corregimientoNombre || '' }}
+                    {{ billData()?.cliente?.direccion?.descripcion || '' }}
+                  </span>
                 </div>
               </div>
             </div>
@@ -847,16 +949,15 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
               <div class="card-content">
                 <div class="info-item">
                   <span class="label">Tipo:</span>
-                  <span class="value">Análogo</span>
+                  <span class="value">{{ billData()?.contador?.tipoContadorNombre }}</span>
                 </div>
                 <div class="info-item">
                   <span class="label">Serial:</span>
-                  <span class="value">239769574</span>
+                  <span class="value">{{ billData()?.contador?.serial }}</span>
                 </div>
                 <div class="info-item">
                   <span class="label">Dirección:</span>
-                  <span class="value"
-                    >Huila, Pitalito, Monte Carlos Carrera 43 # 55</span
+                  <span class="value">{{ getDirectionCompleteCounter() }}</span
                   >
                 </div>
               </div>
@@ -878,17 +979,17 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
               <div class="card-content">
                 <div class="info-item">
                   <span class="label">Lectura:</span>
-                  <span class="value">25 m³</span>
+                  <span class="value">{{ billData()?.factura?.lectura?.lectura || 0 }} m³</span>
                 </div>
                 <div class="info-item">
                   <span class="label">Fecha Lectura:</span>
-                  <span class="value">30/06/2029</span>
+                  <span class="value">{{ formatDate(billData()?.factura?.lectura?.fechaLectura) }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="label">Consumo total:</span>
-                  <span class="value">20 m³</span>
+                  <span class="label">Consumo anormal:</span>
+                  <span class="value">{{ billData()?.factura?.lectura?.consumoAnormal ? 'Sí' : 'No' }}</span>
                 </div>
-                <div class="price-highlight">Precio: $30,000 COP</div>
+                <div class="price-highlight">Precio: {{ billData()?.factura?.lectura?.precio | colombianCurrency }} </div>
               </div>
             </div>
           </div>
@@ -896,7 +997,9 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
             <!-- Área central con mapa -->
             <div class="map-section">
               <div class="map-content">
-                <app-legends-bill-history></app-legends-bill-history>
+                <app-legends-bill-history
+                  [historyData]="billData()?.lecturasHistorico || []">
+                </app-legends-bill-history>
               </div>
             </div>
 
@@ -949,48 +1052,45 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
 
           <!-- Grid de servicios -->
           <div class="services-grid">
-            <div class="service-category acueducto">
-              <h3>Acueducto</h3>
-              <div class="service-items">
-                <div class="service-item">
-                  <span>Concepto del servicio</span>
-                  <span>$1000</span>
-                </div>
-                <div class="service-item">
-                  <span>Cargo Fijo</span>
-                  <span>$1000</span>
-                </div>
-                <div class="service-item">
-                  <span>Contribución</span>
-                  <span>$1000</span>
-                </div>
-                <div class="service-item">
-                  <span>Cargo variable complementario</span>
-                  <span>$1000</span>
-                </div>
-                <div class="service-item">
-                  <span>Subsidio de consumo</span>
-                  <span>$1000</span>
-                </div>
-                <div class="service-item">
-                  <span>Intereses</span>
-                  <span>$1000</span>
-                </div>
-                <div class="service-item">
-                  <span>Servicios especiales</span>
-                  <span>$1000</span>
-                </div>
-                <div class="service-item">
-                  <span>Subsidio</span>
-                  <span>$1000</span>
-                </div>
-                <div class="service-item">
-                  <span>Cargo Fijo</span>
-                  <span>$1000</span>
+            <!-- Primeras 3 tarifas individuales -->
+            @for (tarifa of getPrimeras3Tarifas(); track tarifa.idTipoTarifa; let i = $index) {
+              <div class="service-category" [ngClass]="getTarifaCardClassByPosition(i)">
+                <h3>{{ tarifa.nombre }}</h3>
+                <div class="service-items">
+                  @for (concepto of tarifa.conceptos; track concepto.idTarifaConcepto) {
+                    <div class="service-item">
+                      <span>{{ concepto.tipoConceptoNombre }}</span>
+                      <span>{{ (concepto.valor || 0) | colombianCurrency }}</span>
+                    </div>
+                  }
                 </div>
               </div>
-            </div>
+            }
 
+            <!-- Cuarta categoría con tarifas agrupadas -->
+            @if (tieneOtrasTarifas()) {
+              <div class="service-category otros">
+                <h3>Otros Servicios</h3>
+                <div class="service-items">
+                  @for (tarifa of getTarifasRestantes(); track tarifa.idTipoTarifa) {
+                    <!-- Nombre de la tarifa como subtítulo -->
+                    <div class="service-item tarifa-title">
+                      <span style="font-weight: bold; color: #333; font-size: 12px;">{{ tarifa.nombre }}</span>
+                      <span></span>
+                    </div>
+                    <!-- Conceptos de la tarifa como subitems -->
+                    @for (concepto of tarifa.conceptos; track concepto.idTarifaConcepto) {
+                      <div class="service-item concepto-subitem">
+                        <span style="padding-left: 15px; color: #666;">{{ concepto.tipoConceptoNombre }}</span>
+                        <span>{{ (concepto.valor || 0) | colombianCurrency }}</span>
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+            }
+          </div>
+<!--
             <div class="service-category aseo">
               <h3>Aseo</h3>
               <div class="service-items">
@@ -1031,9 +1131,9 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
                   <span>$1000</span>
                 </div>
               </div>
-            </div>
+            </div> -->
 
-            <div class="service-category alcantarillado">
+            <!-- <div class="service-category alcantarillado">
               <h3>Alcantarillado</h3>
               <div class="service-items">
                 <div class="service-item">
@@ -1073,9 +1173,9 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
                   <span>$1000</span>
                 </div>
               </div>
-            </div>
+            </div> -->
 
-            <div class="service-category otros">
+            <!-- <div class="service-category otros">
               <h3>Otros</h3>
               <div class="service-items">
                 <div class="service-item">
@@ -1116,7 +1216,7 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
                 </div>
               </div>
             </div>
-          </div>
+          </div> -->
 
           <!-- Sección inferior con resumen -->
           <div class="bottom-section">
@@ -1167,26 +1267,24 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
               </div>
               <div class="novedad-text">Novedad asignada</div>
               <div class="payment-totals-grid">
-                <div class="total-card acueducto-card">
-                  <div class="card-title">Acueducto</div>
-                  <div class="card-amount">$ 1,454</div>
-                </div>
-                <div class="total-card aseo-card">
-                  <div class="card-title">Aseo</div>
-                  <div class="card-amount">$ 4,454</div>
-                </div>
-                <div class="total-card alcantarillado-card">
-                  <div class="card-title">Alcantarillado</div>
-                  <div class="card-amount">$ 2,454</div>
-                </div>
-                <div class="total-card otros-card">
-                  <div class="card-title">Otros</div>
-                  <div class="card-amount">$ 876</div>
-                </div>
+                <!-- Primeros 3 totales con colores específicos por posición -->
+                @for (tipo of getPrimeros3Totales(); track tipo.nombre; let i = $index) {
+                  <div class="total-card" [ngClass]="getTipoCardClassByPosition(i)">
+                    <div class="card-title">{{ tipo.nombre }}</div>
+                    <div class="card-amount">{{ tipo.valor | colombianCurrency }}</div>
+                  </div>
+                }
+                <!-- Cuarta tarjeta con total agrupado de otros servicios -->
+                @if (tieneOtrosTotales()) {
+                  <div class="total-card otros-card">
+                    <div class="card-title">Otros</div>
+                    <div class="card-amount">{{ getTotalOtrosServicios() | colombianCurrency }}</div>
+                  </div>
+                }
               </div>
               <div class="final-total-card">
                 <span class="total-label">Total a pagar:</span>
-                <span class="total-amount">$ 20,548.50</span>
+                <span class="total-amount">{{ getTotalAPagar() | colombianCurrency }}</span>
               </div>
             </div>
           </div>
@@ -1197,13 +1295,138 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
 })
 export class PdfBill {
   showSuspensionNotice = true;
-
-  // Input signal para recibir el estado seleccionado
   selectedStatus = input<string | null>(null);
-
+  billData = input<IBillDetailResponse | null>(null);
   private readonly enterpriseIdService = inject(EnterpriseIdService);
+  private readonly deudaService = inject(DeudaService);
 
   enterpriseInfo = rxResource({
     stream: () => this.enterpriseIdService.getEnterpriseInfo(),
   });
+
+
+
+  getTotalesPorTipo() {
+    const billData = this.billData();
+    if (!billData?.totalesTarifas?.porTipo) return [];
+
+    return Object.entries(billData.totalesTarifas.porTipo).map(([nombre, valor]) => ({
+      nombre,
+      valor
+    }));
+  }
+
+  getTipoCardClass(tipoNombre: string): string {
+    const tipo = tipoNombre.toLowerCase();
+    if (tipo.includes('acueducto')) return 'acueducto';
+    if (tipo.includes('aseo')) return 'aseo';
+    if (tipo.includes('alcantarillado')) return 'alcantarillado';
+    return 'otros';
+  }
+
+  getTipoCardClassForTotals(tipoNombre: string): string {
+    const tipo = tipoNombre.toLowerCase();
+    if (tipo.includes('acueducto')) return 'acueducto-card';
+    if (tipo.includes('aseo')) return 'aseo-card';
+    if (tipo.includes('alcantarillado')) return 'alcantarillado-card';
+    return 'otros-card';
+  }
+
+  // Métodos para manejar los totales con lógica de 3 primeros
+  getPrimeros3Totales() {
+    const totales = this.getTotalesPorTipo();
+    return totales.slice(0, 3);
+  }
+
+  getTotalesRestantes() {
+    const totales = this.getTotalesPorTipo();
+    if (totales.length <= 3) return [];
+    return totales.slice(3);
+  }
+
+  getTotalOtrosServicios(): number {
+    const totalesRestantes = this.getTotalesRestantes();
+    return totalesRestantes.reduce((sum, tipo) => sum + (tipo.valor || 0), 0);
+  }
+
+  tieneOtrosTotales(): boolean {
+    return this.getTotalesPorTipo().length > 3;
+  }
+
+  getTipoCardClassByPosition(index: number): string {
+    const classes = ['acueducto-card', 'aseo-card', 'alcantarillado-card'];
+    return classes[index] || 'otros-card';
+  }
+
+  getTarifaCardClassByPosition(index: number): string {
+    const classes = ['acueducto', 'aseo', 'alcantarillado'];
+    return classes[index] || 'otros';
+  }
+
+  getTotalAPagar(): number {
+    const billData = this.billData();
+    return billData?.totalesTarifas?.total || 0;
+  }
+
+  formatDate(dateString: string | undefined): string {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-CO');
+  }
+
+  getPrecioLectura(): number {
+    const billData = this.billData();
+    return billData?.factura?.lectura?.precio || 0;
+  }
+
+  GetDirectiomComplete(): string {
+    const billData = this.billData();
+    if (!billData?.empresa?.direccion) return '';
+    const dir = billData.empresa.direccion;
+    return `${dir.departamentoNombre || ''}, ${dir.ciudadNombre || ''}, ${dir.corregimientoNombre || ''} ${dir.descripcion || ''}`;
+  }
+
+  getDirectionCompleteCounter(): string {
+    const billData = this.billData();
+    if (!billData?.contador?.direccion) return '';
+    const dir = billData.contador.direccion;
+    return `${dir.departamentoNombre || ''}, ${dir.ciudadNombre || ''}, ${dir.corregimientoNombre || ''} ${dir.descripcion || ''}`;
+  }
+
+  // Métodos para manejar las tarifas limitadas
+  getPrimeras3Tarifas() {
+    const billData = this.billData();
+    if (!billData?.tarifas) return [];
+    // Tomar los primeros 3 elementos del array tal como llegan
+    return billData.tarifas.slice(0, 3);
+  }
+
+  getTarifasRestantes() {
+    const billData = this.billData();
+    if (!billData?.tarifas || billData.tarifas.length <= 3) return [];
+    return billData.tarifas.slice(3);
+  }
+
+  getConceptosAgrupados() {
+    const tarifasRestantes = this.getTarifasRestantes();
+    const conceptosAgrupados: any[] = [];
+
+    tarifasRestantes.forEach(tarifa => {
+      if (tarifa.conceptos) {
+        tarifa.conceptos.forEach(concepto => {
+          conceptosAgrupados.push({
+            ...concepto,
+            tarifaNombre: tarifa.nombre
+          });
+        });
+      }
+    });
+
+    return conceptosAgrupados;
+  }
+
+  tieneOtrasTarifas(): boolean {
+    const billData = this.billData();
+    return !!(billData?.tarifas && billData.tarifas.length > 3);
+  }
 }

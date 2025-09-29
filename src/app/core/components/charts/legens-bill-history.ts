@@ -1,5 +1,5 @@
 import { isPlatformBrowser, CommonModule } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, PLATFORM_ID, input, effect } from '@angular/core';
 
 
 declare const ApexCharts: any;
@@ -77,10 +77,13 @@ interface ChartOptions {
           <h5 class="text-sm font-semibold text-gray-900">Historial de consumo</h5>
         </div>
       </div>
-      <div id="consumption-chart" class="w-full bg-white" style="height: 140px; margin-bottom: -10px;"></div>
-      <div class="flex justify-end gap-3.5 mr-4" style="margin-top: -15px;">
-        <div *ngFor="let price of consumptionData.prices; let i = index">
-          <div class="text-xs text-green-600 font-medium bg-green-50 py-1 rounded text-center" style="width: 60px;">{{ price }}</div>
+      <div class="relative">
+        <div id="consumption-chart" class="w-full bg-white" style="height: 160px;"></div>
+        <!-- Valores posicionados más abajo, cerca del eje X -->
+        <div class="absolute bottom-0 left-0 right-0 flex justify-around pl-8 pr-1" style="pointer-events: none;">
+          <div *ngFor="let price of processedData.prices; let i = index" class="text-center">
+            <div class="text-xs text-green-600 font-semibold bg-green-50 px-2 py-1 rounded shadow-sm">{{ price }}</div>
+          </div>
         </div>
       </div>
     </div>
@@ -91,12 +94,36 @@ export class LegendsHistoryBill implements AfterViewInit, OnDestroy {
   protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
 
-  // Datos de prueba que coinciden con la imagen
+  // Input signal para recibir datos históricos
+  historyData = input<any[]>([]);
+
+  // Datos procesados para mostrar en la gráfica y precios
+  public processedData = {
+    categories: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'],
+    series: [12, 32, 22, 25, 8, 22],
+    prices: ['$34.454', '$34.454', '$34.454', '$34.454', '$34.454', '$34.454']
+  };
+
+  // Datos de prueba (fallback)
   public readonly consumptionData = {
     categories: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'],
     series: [12, 32, 22, 25, 8, 22],
     prices: ['$34.454', '$34.454', '$34.454', '$34.454', '$34.454', '$34.454']
   };
+
+  constructor() {
+    // Efecto para actualizar el gráfico cuando cambien los datos
+    effect(() => {
+      const data = this.historyData();
+      if (data.length > 0) {
+        console.log('Datos históricos recibidos:', data);
+        this.processedData = this.processHistoryData(data);
+        if (this.chart) {
+          this.updateChartWithHistoryData(data);
+        }
+      }
+    });
+  }
 
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -110,14 +137,55 @@ export class LegendsHistoryBill implements AfterViewInit, OnDestroy {
     this.chart?.destroy();
   }
 
+  // Método para procesar los datos históricos (cronológicamente de atrás para adelante)
+  private processHistoryData(historyData: any[]) {
+    if (historyData.length === 0) return this.consumptionData;
+
+    // Ordenar datos cronológicamente (de más antiguo a más reciente)
+    const sortedData = [...historyData].sort((a, b) => {
+      return new Date(a.mes + '-01').getTime() - new Date(b.mes + '-01').getTime();
+    });
+
+    const categories = sortedData.map(item => {
+      const [, month] = item.mes.split('-');
+      const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      return monthNames[parseInt(month) - 1] || month;
+    });
+
+    const series = sortedData.map(item => item.consumo || 0);
+    const prices = sortedData.map(item => `$${(item.precio || 0).toLocaleString('es-CO')}`);
+
+    return { categories, series, prices };
+  }
+
+  // Método para actualizar el gráfico con datos históricos
+  private updateChartWithHistoryData(historyData: any[]): void {
+    if (!this.chart || historyData.length === 0) return;
+
+    const processedData = this.processHistoryData(historyData);
+
+    // Actualizar el gráfico
+    this.chart.updateOptions({
+      xaxis: {
+        categories: processedData.categories
+      },
+      series: [{
+        name: 'Consumo m³',
+        data: processedData.series
+      }]
+    });
+
+    console.log('Gráfico actualizado con:', processedData);
+  }
+
   private getOptions(): ChartOptions {
     return {
       series: [{
         name: 'Consumo',
-        data: this.consumptionData.series
+        data: this.processedData.series
       }],
       chart: {
-        height: 140,
+        height: 150,
         type: 'bar',
         toolbar: { show: false },
         background: '#ffffff'
@@ -141,7 +209,7 @@ export class LegendsHistoryBill implements AfterViewInit, OnDestroy {
         }
       },
       xaxis: {
-        categories: this.consumptionData.categories,
+        categories: this.processedData.categories,
         axisBorder: { show: false },
         axisTicks: { show: false },
         labels: {

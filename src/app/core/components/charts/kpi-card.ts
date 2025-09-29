@@ -78,7 +78,7 @@ import { IClienteKPI } from '@interfaces/IClienteKPI';
   `],
   template: `
 <!-- Card -->
-<div class="w-[280px] rounded-xl bg-slate-800 text-slate-100 p-4 shadow-sm kpi-card">
+<div class="rounded-xl bg-slate-800 text-slate-100 p-4 shadow-sm kpi-card">
   <!-- Header -->
   <div class="flex items-start justify-between">
     <div class="space-y-1">
@@ -220,11 +220,8 @@ export class KpiCardComponent implements OnInit, OnDestroy {
     return this.currentDate().getFullYear();
   });
 
-  /**
-   * Genera un conjunto coherente de datos de clientes donde los números cuadran
-   */
+
   private generateCoherentClientData() {
-    // Generar datos base coherentes
     const clientesActivos = Math.floor(Math.random() * 80) + 120; // 120-200 clientes activos
     const clientesNuevos = Math.floor(Math.random() * 15) + 5; // 5-20 clientes nuevos
     const clientesEnMora = Math.floor(clientesActivos * 0.15) + Math.floor(Math.random() * 10); // ~15% en mora + variación

@@ -287,7 +287,7 @@ import { ToastService } from '@services/toast.service';
         paddingTop="pt-[20px]"
       >
         <!-- Contenido scrolleable -->
-        <div class="overflow-y-auto overflow-x-hidden" style="max-height: calc(100vh - 330px); padding: 0;">
+        <div class="overflow-y-auto overflow-x-hidden">
           <div class="space-y-6 px-6">
             @if (editingConceptRate) {
               <!-- Información del concepto -->
