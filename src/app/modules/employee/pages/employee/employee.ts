@@ -146,7 +146,7 @@ export class Employee {
         // this.serverEmployeeData.reload?.();
       },
       error: (err) => {
- 
+
         row.estado = estadoAnterior;
         console.error('Error al cambiar estado del empleado:', err.message);
         this.toastService.error('Error', 'Ocurrió un error al actualizar el estado');
@@ -161,7 +161,6 @@ export class Employee {
 
 
   handleTableAction(event: Action): void {
-    console.log('Action received:', event);
     if (event.action === 'add') {
       this.router.navigate(['create-employee'], {
         relativeTo: this.route

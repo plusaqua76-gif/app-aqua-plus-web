@@ -14,10 +14,14 @@ import { IPaginatedResponse, IPaginationParams } from "@interfaces/IpaginatedRes
 })
 export class DeudaService {
 
-    private apiUrl = `${environment.apiUrl}/${END_POINT_SERVICE.GET_DEUDA}`;
+    readonly apiUrl = `${environment.apiUrl}/${END_POINT_SERVICE.GET_DEUDA}`;
 
     protected readonly router = inject(Router)
     protected readonly http = inject(HttpClient)
+
+    getDebtById(id: number): Observable<ApiResponse<IDeudaCliente>> {
+      return this.http.get<ApiResponse<IDeudaCliente>>(`${this.apiUrl}/${id}`)
+    }
 
     getAllDeuda(): Observable<ApiResponse<IDeudaCliente[]>> {
         return this.http.get<ApiResponse<IDeudaCliente[]>>(`${this.apiUrl}/${END_POINT_SERVICE.GET_DEUDA_ALL}`).pipe(
@@ -25,11 +29,7 @@ export class DeudaService {
         );
     }
 
-    /**
-     * Obtiene todas las deudas de una empresa con paginación y filtros
-     * @param empresaId ID de la empresa
-     * @param params Parámetros de paginación y filtros
-     */
+
     getAllDeudaPaginated(
         empresaId: number,
         params: IPaginationParams

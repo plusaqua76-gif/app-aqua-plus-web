@@ -63,9 +63,7 @@ import {
               <div class="flex justify-center gap-4">
                 <button
                   (click)="onConfirm()"
-                  class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none
-                         focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm
-                         inline-flex items-center px-5 py-2.5 text-center"
+                  [class]="confirmButtonClass()"
                 >
                   {{ confirmText() }}
                 </button>
@@ -106,6 +104,7 @@ export class PopupComponent {
   readonly isConfirmation = input<boolean>(false);
   readonly maxWidth = input<string>('max-w-md');
   readonly paddingTop = input<string>('pt-[75px]');
+  readonly confirmButtonClass = input<string>('text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center');
   readonly confirmAction = output<void>();
   readonly cancelAction = output<void>();
 

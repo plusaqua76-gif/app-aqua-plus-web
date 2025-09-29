@@ -99,13 +99,6 @@ export class UserAccess {
     });
 
 
-    constructor() {
-      effect(() => {
-        console.log("la data mi pez: ", this.userAccess());
-      })
-    }
-
-
 
     usersInactives = rxResource({
       params: () => ({

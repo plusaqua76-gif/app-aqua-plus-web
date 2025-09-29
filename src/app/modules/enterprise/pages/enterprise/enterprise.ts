@@ -45,7 +45,7 @@ import { IEnterpriseResponse } from '@interfaces/Ienterprise';
     </div>
   </ng-template>
 
- 
+
   <app-table-dynamic
     [title]="title"
     [columns]="empresaColumns()"
@@ -55,8 +55,8 @@ import { IEnterpriseResponse } from '@interfaces/Ienterprise';
     (action)="onTableAction($event)">
   </app-table-dynamic>
 
-  
-  
+
+
 `
   ,
 })
@@ -77,11 +77,6 @@ export class Enterprise {
   empresaData = computed(() => this.dataEmpresaCounter.value() ?? []);
   title = 'Gestion de empresas';
 
-  constructor() {
-    effect(() => {
-      console.log('EmpresaData__________>', this.empresaData());
-    });
-  }
   protected readonly empresaService = inject(EmpresaService);
   protected readonly router = inject(Router);
   protected readonly route = inject(ActivatedRoute);
@@ -108,12 +103,6 @@ export class Enterprise {
 
   onToggle(row: any) {
   const nuevoEstado = !row.estado;
-
-  console.log('Payload a enviar:', {
-    id_empresa: row.id_empresa,
-    activo: nuevoEstado,
-    usuario_cambio: localStorage.getItem('nameUser') || 'admin'
-  });
 
   this.empresaService.updateEstado({
     id_empresa: row.id_empresa,
@@ -147,7 +136,7 @@ export class Enterprise {
     }
   }
 
- 
+
 
   onTableAction(event: Action) {
     if (event.action === 'add') {

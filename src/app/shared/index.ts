@@ -7,3 +7,4 @@ export { loaderInterceptor } from '../interceptors/loader-interceptor';
 export { toReadingRow, type ReadingRow } from './mappers/readingRow';
 export { toUserAccessRow, type UserAccessRow } from './mappers/userAccessRow';
 export { toCounterRow } from './mappers/counterRow';
+export { ColombianCurrencyPipe } from './pipes/colombian-currency.pipe';

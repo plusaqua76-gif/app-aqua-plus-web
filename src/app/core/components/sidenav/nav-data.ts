@@ -64,7 +64,13 @@ export const navbarData: NavItem[] = [
     {
     routeLink: 'pqr-client',
     icon: 'heroicon-shield-check',
-    label: 'Contabilidad',
+    label: 'Sistema PQR',
+    allowedRoles: ['ADMIN'],
+  },
+  {
+    routeLink: 'configuration-roles',
+    icon: 'heroicon-shield-check',
+    label: 'Configuración de Roles',
     allowedRoles: ['ADMIN'],
   },
 ];

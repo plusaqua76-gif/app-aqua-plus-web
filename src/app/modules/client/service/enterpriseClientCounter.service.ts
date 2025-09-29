@@ -11,9 +11,8 @@ import { ITelefonoGeneral } from '@interfaces/ItelefonoGeneral';
 import { CorreoPersonaService } from './correoPersona.service';
 import { TelefonoGeneralService } from './telefonoPersona.service';
 import { ClienteApi } from '@interfaces/client/IclienteApi';
-import { ClientRow } from '@interfaces/client/IclientRow';
-import { IPaginatedResponse, IPaginationParams } from '@interfaces/IpaginatedResponse';
-import { ClientApiResponse, ClientsPaginatedApiResponse, ClientsApiResponse } from '@interfaces/client/IclientApiResponse';
+import { IPaginationParams, IPaginatedResponse } from '@interfaces/IpaginatedResponse';
+import { ClientRaw, ClientsRawApiResponse, ClientsRawPaginatedApiResponse } from '@interfaces/client/IclientRaw';
 
 @Injectable({
   providedIn: 'root'
@@ -32,24 +31,17 @@ export class EnterpriseClientCounterService {
     return this.http.get<ApiResponse<IEnterpriseClientCounter[]>>(url)
   }
 
-  // Método que obtiene todos los clientes y los transforma a ClientRow[]
-  getAllClientsByIdEnterprise(enterpriseId: number): Observable<ApiResponse<ClientRow[]>> {
+  // Método que obtiene todos los clientes sin transformación
+  getAllClientsByIdEnterprise(enterpriseId: number): Observable<ClientsRawApiResponse> {
     const url = `${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_CLIENT}/${enterpriseId}`;
-    return this.http.get<ClientsApiResponse>(url).pipe(
-      map(response => ({
-        success: response.success,
-        message: response.message,
-        code: response.code,
-        response: response.response.map(client => this.transformToClientRow(client))
-      }))
-    );
+    return this.http.get<ClientsRawApiResponse>(url);
   }
 
 
   getAllClientsByIdEnterprisePaginated(
     enterpriseId: number,
     params: IPaginationParams
-  ): Observable<IPaginatedResponse<ClientRow>> {
+  ): Observable<IPaginatedResponse<ClientRaw>> {
     const url = `${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_CLIENT}/${enterpriseId}`;
 
     let httpParams = new HttpParams()
@@ -64,20 +56,7 @@ export class EnterpriseClientCounterService {
       httpParams = this.mapFiltersToHttpParams(httpParams, params.filters);
     }
 
-    return this.http
-      .get<ClientsPaginatedApiResponse>(url, { params: httpParams })
-      .pipe(
-        map(response => ({
-          success: response.success,
-          message: response.message,
-          code: response.code,
-          totalCount: response.totalCount,
-          pageSize: response.pageSize,
-          currentPage: response.currentPage,
-          totalPages: response.totalPages,
-          response: response.response.map(client => this.transformToClientRow(client))
-        }))
-      );
+    return this.http.get<IPaginatedResponse<ClientRaw>>(url, { params: httpParams });
   }
 
   getEntClientCounterById(id: number): Observable<ApiResponse<IEnterpriseClientCounter>> {
@@ -129,31 +108,7 @@ export class EnterpriseClientCounterService {
   }
 
 
-  private transformToClientRow(client: ClientApiResponse): ClientRow {
-    const fullName = [client?.nombre, client?.segundoNombre, client?.apellido, client?.segundoApellido]
-      .filter(Boolean)
-      .join(' ')
-      .trim();
 
-    return {
-      id: client?.id ?? 0,
-      numeroIdentificacion: client?.numeroCedula ?? '',
-      nombreCliente: fullName || '',
-      telefono: client?.telefono ?? '',
-      vereda: client?.direccion?.corregimiento?.nombre ?? '',
-      direccion: client?.direccion?.descripcion ?? '',
-      correo: client?.correo ?? '',
-      estado: client?.activo ?? false,
-      //  opcionales
-      direccionCompleta: client?.direccion,
-      tipoDocumento: client?.tipoDocumento,
-      nombre: client?.nombre,
-      segundoNombre: client?.segundoNombre,
-      apellido: client?.apellido,
-      segundoApellido: client?.segundoApellido,
-      codigo: client?.codigo
-    };
-  }
 
   private applyFilter(
     httpParams: HttpParams,
@@ -161,20 +116,23 @@ export class EnterpriseClientCounterService {
     value: string
   ): HttpParams {
     switch (key) {
-      case 'nombreCliente':
+      case 'nombre':
+      case 'apellido':
         return httpParams.set('nombreCompleto', value);
-      case 'numeroIdentificacion':
+      case 'numeroCedula':
         return httpParams.set('cedula', value);
-      case 'idContador':
+      case 'codigo':
         return httpParams.set('codigo', value);
-      case 'codigoVereda':
+      case 'corregimientoNombre':
         return httpParams.set('corregimiento', value);
       case 'telefono':
         return httpParams.set('telefono', value);
       case 'correo':
         return httpParams.set('correo', value);
-      case 'direccion':
-        return httpParams.set('departamento', value); // Si la dirección contiene departamento
+      case 'direccionDescripcion':
+        return httpParams.set('direccion', value);
+      case 'departamentoNombre':
+        return httpParams.set('departamento', value);
       default:
         return httpParams.set(key, value);
     }

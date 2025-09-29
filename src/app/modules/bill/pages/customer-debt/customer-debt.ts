@@ -97,11 +97,7 @@ export class CustomerDebt {
     size: 5,
   });
 
-  constructor() {
-    effect(() => {
-      console.log("la data mi pez", this.debtData())
-    })
-  }
+
 
 
 

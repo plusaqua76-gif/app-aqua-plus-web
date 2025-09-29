@@ -68,13 +68,7 @@ export class Inventory {
 
   categories = signal([]);
 
-  // constructor() {
-  //   const enterpriseId = Number(localStorage.getItem('enterpriseId'));
-  //   effect(() => {
-  //     console.log('InventarioData__________>', this.inventarioData());
-  //     console.log('ProductoData__________>', this.dataProductByEnterprise.value());
-  //   });
-  // }
+
 
   protected readonly inventarioService = inject(InventarioService);
   protected readonly productoService = inject(ProductoService);
@@ -167,7 +161,7 @@ export class Inventory {
   }
 
   createNewProduct() {
-    console.log('Nuevo producto a crear:', this.newProductData);
+
     this.toastService.success('Éxito', 'Producto creado (simulado).');
     this.closeNewProductPopup();
   }
@@ -176,7 +170,7 @@ export class Inventory {
   }
 
   guardarProducto() {
-    console.log('Datos del formulario:', this.formData);
+
   }
 
   calcularValorVentaUnit(): number | null {

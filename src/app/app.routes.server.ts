@@ -17,6 +17,7 @@ export const serverRoutes: ServerRoute[] = [
     'shell/counter/actualizar-contador/:id',
     'shell/employee/update-employee/:id',
     'shell/enterprise/update-enterprise/:id',
+    'shell/bill/print-bill/:id'
   ].map(createUpdateRoute),
 
   {

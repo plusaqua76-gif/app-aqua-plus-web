@@ -44,11 +44,4 @@ export class LoaderHelperService {
     }
   }
 
-  /**
-   * Verifica si hay peticiones activas para debugging
-   */
-  debugLoaderState(): void {
-    console.log('Loader State:', this.loaderService.state());
-    console.log('Active Requests:', this.loaderService.getActiveRequestCount());
-  }
 }

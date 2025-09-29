@@ -1,6 +1,6 @@
 import { CommonModule, DatePipe, isPlatformBrowser } from '@angular/common';
 import { Component, inject, OnInit, signal, effect, PLATFORM_ID, computed } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastService } from '@services/toast.service';
 import { PersonService } from '../../service/person.service';
@@ -101,18 +101,18 @@ export class UpdateClient implements OnInit {
     }
   }  private initializeForm(): void {
     this.updateForm = this.fb.group({
-      tipoDocumento: [null],
-      numeroDocumento: [''],
-      primerNombre: [''],
+      tipoDocumento: [null, [Validators.required]],
+      numeroDocumento: ['', [Validators.required]],
+      primerNombre: ['', [Validators.required]],
       segundoNombre: [''],
-      primerApellido: [''],
+      primerApellido: ['', [Validators.required]],
       segundoApellido: [''],
-      idDepartamento: [''],
-      idCiudad: [''],
+      idDepartamento: ['', [Validators.required]],
+      idCiudad: ['', [Validators.required]],
       idCorregimiento: [''],
-      direccion: [''],
-      telefono: [''],
-      correo: [''],
+      direccion: ['', [Validators.required]],
+      telefono: ['', [Validators.required]],
+      correo: ['', [Validators.required, Validators.email]],
     });
   }
 
@@ -200,34 +200,26 @@ export class UpdateClient implements OnInit {
 
   private loadClientFromData(clienteData: any): void {
     if (!clienteData) return;
-
-    const nombreCompleto = clienteData.nombreCliente || '';
-    const partesNombre = nombreCompleto.trim().split(' ');
-    const tipoDocumentoId = 1;
-
-    // Cargar datos básicos del cliente
     this.updateForm.patchValue({
-      tipoDocumento: tipoDocumentoId,
-      numeroDocumento: clienteData.numeroIdentificacion || '',
-      primerNombre: partesNombre[0] || '',
-      segundoNombre: partesNombre[1] || '',
-      primerApellido: partesNombre[2] || '',
-      segundoApellido: partesNombre[3] || '',
+      tipoDocumento: 1, // Valor por defecto
+      numeroDocumento: clienteData.numeroCedula || clienteData.numeroIdentificacion || '',
+      primerNombre: clienteData.nombre || '',
+      segundoNombre: clienteData.segundoNombre || '',
+      primerApellido: clienteData.apellido || '',
+      segundoApellido: clienteData.segundoApellido || '',
       telefono: clienteData.telefono || '',
       correo: clienteData.correo || '',
-      direccion: clienteData.direccion || ''
+      direccion: clienteData.direccionDescripcion || clienteData.direccion || ''
     });
-
 
     this.loadClientLocation(clienteData);
   }
 
   private loadClientLocation(clienteData: any): void {
-
+    // Método legacy mantenido por compatibilidad
     if (clienteData.codigoDepart) {
       this.selectedDepartmentId.set(Number(clienteData.codigoDepart));
       this.updateForm.patchValue({ idDepartamento: clienteData.codigoDepart });
-
 
       if (clienteData.codigoMuni) {
         setTimeout(() => {
@@ -242,7 +234,15 @@ export class UpdateClient implements OnInit {
         }, 200);
       }
     }
-  }  onSubmit(): void {
+  }
+
+  onSubmit(): void {
+    if (this.updateForm.invalid) {
+      this.updateForm.markAllAsTouched();
+      this.toast.error('Error', 'Por favor complete todos los campos requeridos');
+      return;
+    }
+
     const clienteSeleccionado = this.selectedClient();
     if (!clienteSeleccionado?.id) {
       this.toast.error('Error', 'No se pudo obtener la información del cliente');
@@ -251,7 +251,6 @@ export class UpdateClient implements OnInit {
 
     const formData = this.updateForm.value;
     const usuarioModificacion = this.usuarioModificacion();
-
 
     const updatePayload = {
       id: clienteSeleccionado.id,
@@ -271,8 +270,6 @@ export class UpdateClient implements OnInit {
       },
       usuarioModificacion: usuarioModificacion
     };
-
-    console.log('🔄 Payload de actualización:', updatePayload);
 
     this.personService.savaOrUpdatePerson(updatePayload as any).subscribe({
       next: (response: any) => {

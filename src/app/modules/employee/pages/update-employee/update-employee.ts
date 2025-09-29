@@ -43,8 +43,6 @@ export class UpdateEmployee implements OnInit {
     this.empleadoService.getEmpleadoById(id).subscribe({
       next: (res) => {
         const data = res.response;
-        console.log('📋 Datos del empleado cargados:', data);
-
         this.empleado = {
           id: data.id,
           personaId: data.personaId, // Agregamos personaId para futuras referencias

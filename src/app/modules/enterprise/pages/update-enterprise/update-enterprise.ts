@@ -72,7 +72,6 @@ export class UpdateEnterprise implements OnInit {
     this.empresaService.getEmpresaById(id).subscribe({
       next: (res) => {
         const data = res.response;
-        console.log('🌐 Respuesta cruda del backend:', data);
         const dept = this.departaments.find(d => d.nombre === data.departamento);
         const city = this.cities.find(c => c.nombre === data.ciudad);
         const correg = data.corregimiento;
@@ -86,7 +85,6 @@ export class UpdateEnterprise implements OnInit {
           codigo: data.codigo,
           direccion: data.descripcionDireccion ?? '',
         };
-        console.log('🚀 Empresa mapeada con IDs:', this.empresa);
         this.onDepartamentChange();
         setTimeout(() => this.onCitiesChange(), 0);
       },
@@ -114,9 +112,7 @@ export class UpdateEnterprise implements OnInit {
 
   onDepartamentChange(): void {
     const idDept = this.empresa.departamento;
-    console.log('🔁 Departamento seleccionado:', idDept);
     this.filteredCities = this.cities.filter(city => city.departamento?.id === idDept);
-    console.log('🏙️ Ciudades filtradas:', this.filteredCities);
     if (!this.filteredCities.some(c => c.id === this.empresa.ciudad)) {
       this.empresa.ciudad = null;
     }
