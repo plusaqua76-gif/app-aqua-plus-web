@@ -1,14 +1,9 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
-import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
-import { LoaderService } from '../shared/services/loader.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-  const loaderService = inject(LoaderService);
-
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      loaderService.hide();
 
       console.error('HTTP Error intercepted:', {
         url: req.url,

@@ -27,19 +27,16 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
           <input
             type="checkbox"
             class="sr-only peer"
-            [checked]="row.estado"
+            [checked]="row.activo === true"
+            [attr.data-activo]="row.activo"
             (change)="onToggle(row)"
           />
           <div
-            class="relative w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full
-                  peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full
-                  after:content-[''] after:absolute after:top-[2px] after:start-[2px]
-                  after:bg-white after:border-gray-300 after:border after:rounded-full
-                  after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
+            class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"
           ></div>
         </label>
-        <span class="text-sm font-medium">
-          {{ row.estado ? 'Activo' : 'Inactivo' }}
+        <span class="text-sm font-medium" [class]="row.activo ? 'text-green-600' : 'text-red-600'">
+          {{ row.activo ? 'Activo' : 'Inactivo' }}
         </span>
       </div>
     </ng-template>
@@ -94,6 +91,19 @@ export class Employee {
     }
   });
 
+  constructor() {
+    effect(() => {
+      console.log("esta es la data mi pez", this.serverEmployeeData.value())
+      // Debug: revisar la estructura de cada empleado
+      const data = this.serverEmployeeData.value();
+      if (data?.response && data.response.length > 0) {
+        console.log("Primer empleado - estructura completa:", data.response[0]);
+        console.log("Estado del primer empleado:", (data.response[0] as any)?.estado);
+        console.log("Tipo del estado:", typeof (data.response[0] as any)?.estado);
+      }
+    })
+  }
+
   // Signal para parámetros de paginación
   readonly paginationParams = signal<IPaginationParams>({
     page: 0,
@@ -128,12 +138,18 @@ export class Employee {
   }
 
 
+
+
   onToggle(row: any): void {
-    const estadoAnterior = row.estado;
-    const nuevoEstado = !row.estado;
+    const estadoAnterior = row.activo === true;
+    const nuevoEstado = !estadoAnterior;
 
+    console.log('Toggle - Empleado:', row.personaNombreCompleto || row.nombre);
+    console.log('Toggle - Estado anterior (activo):', estadoAnterior, 'Nuevo estado:', nuevoEstado);
+    console.log('Toggle - Valor original del campo activo:', row.activo, 'Tipo:', typeof row.activo);
 
-    row.estado = nuevoEstado;
+    // Actualizar optimísticamente
+    row.activo = nuevoEstado;
 
     this.empleadoService.updateEstadoEmpleado({
       id_persona: row.personaId,
@@ -142,12 +158,10 @@ export class Employee {
     }).subscribe({
       next: () => {
         this.toastService.success('Éxito', 'Estado actualizado correctamente');
-        // Opcional: recargar datos para mantener consistencia
-        // this.serverEmployeeData.reload?.();
       },
       error: (err) => {
-
-        row.estado = estadoAnterior;
+        // Revertir el cambio en caso de error
+        row.activo = estadoAnterior;
         console.error('Error al cambiar estado del empleado:', err.message);
         this.toastService.error('Error', 'Ocurrió un error al actualizar el estado');
       }
@@ -166,5 +180,10 @@ export class Employee {
         relativeTo: this.route
       });
     }
+  }
+
+  // TrackBy function para mejorar el rendimiento de la tabla
+  trackByEmployeeId(index: number, item: any): any {
+    return item?.id || item?.personaId || index;
   }
 }

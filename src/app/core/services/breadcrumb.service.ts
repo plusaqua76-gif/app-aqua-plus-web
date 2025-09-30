@@ -36,6 +36,7 @@ export class BreadcrumbService {
     'update-bill': 'Actualizar Factura',
     'print-bill': 'Imprimir Factura',
     'bill-data': 'Factura',
+    'Update-debt': 'Actualizar Deuda',
 
 
     'reading': 'Lecturas',

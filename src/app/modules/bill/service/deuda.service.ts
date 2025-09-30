@@ -15,9 +15,12 @@ import { IPaginatedResponse, IPaginationParams } from "@interfaces/IpaginatedRes
 export class DeudaService {
 
     readonly apiUrl = `${environment.apiUrl}/${END_POINT_SERVICE.GET_DEUDA}`;
-
     protected readonly router = inject(Router)
     protected readonly http = inject(HttpClient)
+
+    getDebByCodeClienteContadorId(billCode: string): Observable<ApiResponse<IDeudaCliente[]>> {
+        return this.http.get<ApiResponse<IDeudaCliente[]>>(`${this.apiUrl}/cliente-deuda/${billCode}`)
+    }
 
     getDebtById(id: number): Observable<ApiResponse<IDeudaCliente>> {
       return this.http.get<ApiResponse<IDeudaCliente>>(`${this.apiUrl}/${id}`)

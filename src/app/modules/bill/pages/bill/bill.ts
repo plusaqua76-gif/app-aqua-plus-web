@@ -202,6 +202,7 @@ export class Bill  {
     } else if (event.action === 'print' && event.row) {
       this.router.navigate(['print-bill', event.row.id], {
         relativeTo: this.route,
+        queryParams: { empresaClienteContadorId: event.row.empresaClienteContadorId }
       });
     } else if (event.action === 'download' && event.row) {
       this.downloadBillPDF(event.row.id, event.row.codigo || event.row.id);
