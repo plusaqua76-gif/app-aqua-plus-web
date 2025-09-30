@@ -137,7 +137,7 @@ export interface TableColumn {
           <div class="flex items-center gap-3">
             @if (showAddButton()) {
               <button
-                class="bg-blue-200 hover:bg-blue-400 text-gray-700 font-bold py-3 px-6 rounded-lg shadow-lg shadow-neutral-400 hover:text-white transform transition-all duration-500 ease-in-out hover:scale-110 hover:brightness-110 hover:animate-pulse active:animate-bounce flex items-center gap-4 whitespace-nowrap cursor-pointer"
+                class="bg-blue-200 hover:bg-blue-400 text-gray-700 font-bold py-3 px-6 rounded-lg hover:text-white transform transition-all duration-500 ease-in-out hover:scale-110 hover:brightness-110 hover:animate-pulse active:animate-bounce flex items-center gap-4 whitespace-nowrap cursor-pointer"
                 (click)="onAction('add', null)"
               >
                 <svg

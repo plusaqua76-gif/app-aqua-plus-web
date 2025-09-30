@@ -54,9 +54,7 @@ export class AbonoService {
     }
 
     saveAbono(abono: IAbonoFactura): Observable<ApiResponse<any>> {
-        return this.http.post<ApiResponse<any>>(`${this.apiUrl}`, abono).pipe(
-            catchError(this.handleError)
-        );
+        return this.http.post<ApiResponse<any>>(`${this.apiUrl}`, abono)
     }
 
     /**

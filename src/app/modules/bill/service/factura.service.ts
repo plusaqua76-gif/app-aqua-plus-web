@@ -11,6 +11,7 @@ import {
   IPaginationParams,
 } from '@interfaces/IpaginatedResponse';
 
+
 @Injectable({
   providedIn: 'root',
 })
@@ -46,6 +47,19 @@ export class FacturaService {
       .put<ApiResponse<IFactura>>(this.apiUrl, factura)
       .pipe(catchError(this.handleError));
   }
+
+  updateStatusBill(idBill: number, estadoId: number, estadoNombre: string): Observable<ApiResponse<IFactura>> {
+    const body = {
+      id: idBill,
+      estado: {
+        id: estadoId,
+        nombre: estadoNombre
+      }
+    };
+    return this.http.put<ApiResponse<IFactura>>(`${this.apiUrl}`, body)
+      .pipe(catchError(this.handleError));
+  }
+
 
   private handleError(error: any): Observable<never> {
     let errorMessage = 'An unknown error occurred while loading factura.';
