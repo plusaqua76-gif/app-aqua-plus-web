@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, PLATFORM_ID } from '@angular/core';
+import { Component, inject, signal, computed, PLATFORM_ID, effect } from '@angular/core';
 import { FormsModule, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
@@ -73,14 +73,17 @@ export class PrintBill {
     },
   });
 
+  constructor() {
+    effect(() => {
+      console.log("esta es la data mi negro", this.billDetails.value() )
+    })
+  }
+
 
   billDetails = rxResource({
     params: () => {
       const billId = this.route.snapshot.paramMap.get('id');
       const empresaClienteContadorId = this.route.snapshot.queryParamMap.get('empresaClienteContadorId');
-
-
-
       return {
         billId: billId ? Number(billId) : null,
         empresaClienteContadorId: empresaClienteContadorId ? Number(empresaClienteContadorId) : null
@@ -136,7 +139,6 @@ export class PrintBill {
       }
       return valor;
     } catch (error) {
-      console.warn('ℹ️ No hay deuda activa para calcular valor:', error);
       return 0;
     }
   });
@@ -151,7 +153,6 @@ export class PrintBill {
       const deudaData = Array.isArray(deudaResponse) ? deudaResponse[0] : deudaResponse;
       return deudaData || null;
     } catch (error) {
-      console.warn('ℹ️ No hay deuda activa para obtener información:', error);
       return null;
     }
   });

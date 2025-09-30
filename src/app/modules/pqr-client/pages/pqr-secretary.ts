@@ -2,9 +2,8 @@ import { Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angul
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '@services/toast.service';
-import { INovedadPQR } from '@interfaces/IClienteNovedad';
+import { IClienteNovedad } from '@interfaces/IClienteNovedad';
 import { PqrEnterprisesService } from '../services/pqr-enterprices.service';
-import { PQR_CONFIG } from '../config/pqr.config';
 
 @Component({
   selector: 'app-pqr-secretary',
@@ -42,7 +41,7 @@ import { PQR_CONFIG } from '../config/pqr.config';
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Búsqueda por Cliente -->
             <div>
-              <label class="block mb-2 text-sm font-medium text-gray-300">Cliente</label>
+              <label class="block mb-2 text-sm font-medium text-gray-300">Buscar cliente</label>
               <input
                 type="text"
                 [(ngModel)]="busquedaCliente"
@@ -64,14 +63,15 @@ import { PQR_CONFIG } from '../config/pqr.config';
               />
             </div>
 
-            <!-- Filtro por Fecha -->
+            <!-- Filtro por Estado -->
             <div>
-              <label class="block mb-2 text-sm font-medium text-gray-300">Fecha</label>
+              <label class="block mb-2 text-sm font-medium text-gray-300">Estado</label>
               <input
-                type="date"
-                [(ngModel)]="filtroFecha"
+                type="text"
+                [(ngModel)]="filtroEstado"
                 (ngModelChange)="aplicarFiltros()"
-                class="block w-full rounded-xl border border-gray-600/70 bg-transparent px-4 py-3 text-sm text-gray-100 outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-400/40"
+                placeholder="Estado..."
+                class="block w-full rounded-xl border border-gray-600/70 bg-transparent px-4 py-3 text-sm text-gray-100 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-400/40"
               />
             </div>
           </div>
@@ -104,72 +104,61 @@ import { PQR_CONFIG } from '../config/pqr.config';
                       <h3 class="text-lg font-semibold text-gray-100">PQR #{{ pqr.id }}</h3>
 
                       <!-- Badge de tipo -->
-                      <span [class]="getTipoBadgeClass(pqr.tipo)">
-                        {{ pqr.tipo }}
-                      </span>
-
-                      <!-- Badge de prioridad -->
-                      <span [class]="getPrioridadBadgeClass(pqr.prioridad)">
-                        {{ pqr.prioridad }}
+                      <span [class]="getTipoBadgeClass()">
+                        {{ pqr.tipoNovedad.novedad }}
                       </span>
 
                       <!-- Badge de estado -->
-                      <span [class]="getEstadoBadgeClass(pqr.estado)">
-                        {{ pqr.estado }}
+                      <span [class]="getEstadoBadgeClass()">
+                        {{ pqr.estado.descripcion }}
                       </span>
+
+                      <!-- Badge de activo -->
+                      @if (pqr.activo) {
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-300">
+                          Activo
+                        </span>
+                      } @else {
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-300">
+                          Inactivo
+                        </span>
+                      }
                     </div>
 
-                    <div class="text-sm text-gray-300">
-                      <strong>Cliente:</strong> {{ pqr.cliente }} - {{ pqr.documento }}
-                    </div>
-
-                    @if (pqr.serial) {
+                    @if (pqr.empresaClienteContador) {
                       <div class="text-sm text-gray-300">
-                        <strong>Contador:</strong> {{ pqr.serial }}
+                        <strong>Cliente:</strong>
+                        {{ pqr.empresaClienteContador.cliente.nombre }}
+                        {{ pqr.empresaClienteContador.cliente.segundoNombre }}
+                        {{ pqr.empresaClienteContador.cliente.apellido }}
+                        {{ pqr.empresaClienteContador.cliente.segundoApellido }}
+                      </div>
+
+                      <div class="text-sm text-gray-300">
+                        <strong>Contador:</strong> {{ pqr.empresaClienteContador.contador.serial }}
                       </div>
                     }
-
-                    <div class="text-sm text-gray-300">
-                      <strong>Fecha:</strong> {{ pqr.fecha }}
-                    </div>
 
                     <div class="text-sm text-gray-400">
                       <strong>Descripción:</strong> {{ pqr.descripcion }}
                     </div>
 
-                    @if (pqr.respuesta) {
-                      <div class="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-                        <div class="text-sm text-green-400 font-medium mb-1">Respuesta:</div>
-                        <div class="text-sm text-gray-300">{{ pqr.respuesta }}</div>
-                      </div>
-                    }
+                    <div class="text-sm text-gray-400">
+                      <strong>Tipo de novedad:</strong> {{ pqr.tipoNovedad.descripcion}}
+                    </div>
                   </div>
 
                   <!-- Acciones -->
                   <div class="flex flex-col gap-2 min-w-[200px]">
-                    @if (pqr.estado !== 'Cerrado') {
-                      <button
-                        type="button"
-                        (click)="abrirModalRespuesta(pqr)"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-600/70 bg-blue-600/10 px-4 py-2 text-sm text-blue-400 hover:bg-blue-600/20 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
-                      >
-                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                        </svg>
-                        Responder
-                      </button>
-                    }
-
                     <button
                       type="button"
-                      (click)="cambiarEstado(pqr)"
-                      [disabled]="pqr.estado === 'Cerrado'"
-                      class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-600/70 bg-transparent px-4 py-2 text-sm text-gray-200 hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-gray-400/40 transition-colors disabled:opacity-50"
+                      (click)="abrirModalRespuesta(pqr)"
+                      class="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-600/70 bg-blue-600/10 px-4 py-2 text-sm text-blue-400 hover:bg-blue-600/20 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
                     >
                       <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                       </svg>
-                      Cambiar Estado
+                      Responder
                     </button>
                   </div>
                 </div>
@@ -211,24 +200,30 @@ import { PQR_CONFIG } from '../config/pqr.config';
                 </h3>
 
                 <!-- Información del cliente -->
-                <div class="mb-4 text-center">
-                  <p class="text-sm text-gray-400">
-                    Cliente: {{ pqrSeleccionado()?.cliente }}
-                  </p>
-                </div>
+                @if (pqrSeleccionado()?.empresaClienteContador) {
+                  <div class="mb-4 text-center">
+                    <p class="text-sm text-gray-400">
+                      Cliente:
+                      {{ pqrSeleccionado()!.empresaClienteContador.cliente.nombre }}
+                      {{ pqrSeleccionado()!.empresaClienteContador.cliente.segundoNombre }}
+                      {{ pqrSeleccionado()!.empresaClienteContador.cliente.apellido }}
+                      {{ pqrSeleccionado()!.empresaClienteContador.cliente.segundoApellido }}
+                    </p>
+                  </div>
+                }
 
                 <!-- Información del PQR -->
                 <div class="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
                   <div class="flex justify-between items-start mb-2">
                     <span class="text-sm text-gray-300">Tipo:</span>
-                    <span [class]="getTipoBadgeClass(pqrSeleccionado()?.tipo || '')">
-                      {{ pqrSeleccionado()?.tipo }}
+                    <span [class]="getTipoBadgeClass()">
+                      {{ pqrSeleccionado()!.tipoNovedad.novedad }}
                     </span>
                   </div>
                   <div class="flex justify-between items-center">
                     <span class="text-sm text-gray-300">Estado actual:</span>
-                    <span [class]="getEstadoBadgeClass(pqrSeleccionado()?.estado || '')">
-                      {{ pqrSeleccionado()?.estado }}
+                    <span [class]="getEstadoBadgeClass()">
+                      {{ pqrSeleccionado()!.estado.descripcion }}
                     </span>
                   </div>
                   @if (pqrSeleccionado()?.descripcion) {
@@ -244,7 +239,6 @@ import { PQR_CONFIG } from '../config/pqr.config';
                     </label>
                     <textarea
                       id="nuevaRespuesta"
-                      [(ngModel)]="nuevaRespuesta"
                       rows="6"
                       placeholder="Escriba la respuesta al PQR..."
                       class="w-full px-4 py-2 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 resize-none"
@@ -258,7 +252,6 @@ import { PQR_CONFIG } from '../config/pqr.config';
                     </label>
                     <select
                       id="nuevoEstado"
-                      [(ngModel)]="nuevoEstado"
                       class="w-full px-4 py-2 bg-transparent border border-gray-600/70 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
                     >
                       <option value="En Proceso" class="bg-gray-900">En Proceso</option>
@@ -279,26 +272,14 @@ import { PQR_CONFIG } from '../config/pqr.config';
                       type="button"
                       (click)="cerrarModalRespuesta()"
                       class="flex-1 px-4 py-2 text-sm font-medium text-gray-300 bg-transparent border border-gray-600/70 rounded-lg hover:bg-gray-600/10 focus:outline-none focus:ring-2 focus:ring-gray-500/40 transition-colors"
-                      [disabled]="guardandoRespuesta()"
                     >
                       Cancelar
                     </button>
                     <button
                       type="button"
-                      (click)="guardarRespuesta()"
-                      class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      [disabled]="!nuevaRespuesta.trim() || guardandoRespuesta()"
+                      class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors"
                     >
-                      @if (guardandoRespuesta()) {
-                        <span class="flex items-center justify-center gap-2">
-                          <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/>
-                          </svg>
-                          Procesando...
-                        </span>
-                      } @else {
-                        Enviar Respuesta
-                      }
+                      Enviar Respuesta
                     </button>
                   </div>
                 </div>
@@ -319,21 +300,16 @@ export class PqrSecretary implements OnInit {
   // Señales para el estado del componente
   cargandoPQRs = signal(false);
   mostrarModalRespuesta = signal(false);
-  pqrSeleccionado = signal<INovedadPQR | null>(null);
-  guardandoRespuesta = signal(false);
+  pqrSeleccionado = signal<IClienteNovedad | null>(null);
 
   // Variables de filtros
   busquedaCliente: string = '';
   busquedaContador: string = '';
-  filtroFecha: string = '';
-
-  // Variables del modal
-  nuevaRespuesta: string = '';
-  nuevoEstado: 'En Proceso' | 'Resuelto' | 'Cerrado' = 'En Proceso';
+  filtroEstado: string = '';
 
   // Datos de PQRs/Novedades
-  pqrs: INovedadPQR[] = [];
-  pqrsFiltrados: INovedadPQR[] = [];
+  pqrs: IClienteNovedad[] = [];
+  pqrsFiltrados: IClienteNovedad[] = [];
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -372,8 +348,8 @@ export class PqrSecretary implements OnInit {
     }
 
     this.pqrService.getPqrsForSecretary(empresaId).subscribe({
-      next: (pqrs) => {
-        this.pqrs = pqrs;
+      next: (response) => {
+        this.pqrs = response.response;
         this.aplicarFiltros();
         this.cargandoPQRs.set(false);
       },
@@ -392,170 +368,38 @@ export class PqrSecretary implements OnInit {
 
   aplicarFiltros(): void {
     this.pqrsFiltrados = this.pqrs.filter(pqr => {
+      const cliente = pqr.empresaClienteContador?.cliente;
+      const nombreCompleto = cliente ?
+        `${cliente.nombre || ''} ${cliente.segundoNombre || ''} ${cliente.apellido || ''} ${cliente.segundoApellido || ''}`.trim() : '';
+
       const cumpleBusquedaCliente = !this.busquedaCliente ||
-        pqr.cliente.toLowerCase().includes(this.busquedaCliente.toLowerCase()) ||
-        pqr.documento.includes(this.busquedaCliente);
+        nombreCompleto.toLowerCase().includes(this.busquedaCliente.toLowerCase());
 
       const cumpleBusquedaContador = !this.busquedaContador ||
-        (pqr.serial?.toLowerCase().includes(this.busquedaContador.toLowerCase()) ?? false);
+        (pqr.empresaClienteContador?.contador.serial || '').toLowerCase().includes(this.busquedaContador.toLowerCase());
 
-      const cumpleFiltroFecha = !this.filtroFecha ||
-        pqr.fecha.startsWith(this.filtroFecha);
+      const cumpleFiltroEstado = !this.filtroEstado ||
+        pqr.estado.descripcion.toLowerCase().includes(this.filtroEstado.toLowerCase());
 
-      return cumpleBusquedaCliente && cumpleBusquedaContador && cumpleFiltroFecha;
+      return cumpleBusquedaCliente && cumpleBusquedaContador && cumpleFiltroEstado;
     });
   }
 
-  /**
-   * Aplicar filtros usando el servicio (para filtros más complejos)
-   */
-  aplicarFiltrosConServicio(): void {
-    const empresaId = this.empresaId();
-    if (!empresaId) return;
-
-    const filtros = {
-      cliente: this.busquedaCliente,
-      fechaInicio: this.filtroFecha,
-      fechaFin: this.filtroFecha
-    };
-
-    // Remover filtros vacíos
-    Object.keys(filtros).forEach(key => {
-      if (!filtros[key as keyof typeof filtros]) {
-        delete filtros[key as keyof typeof filtros];
-      }
-    });
-
-    this.cargandoPQRs.set(true);
-    this.pqrService.getFilteredPqrsForSecretary(empresaId, filtros).subscribe({
-      next: (pqrs) => {
-        this.pqrs = pqrs;
-        this.aplicarFiltros(); // Aplicar filtros locales adicionales (contador)
-        this.cargandoPQRs.set(false);
-      },
-      error: (error) => {
-        console.error('Error aplicando filtros:', error);
-        this.aplicarFiltros(); // Fallback a filtros locales
-        this.cargandoPQRs.set(false);
-      }
-    });
-  }
-
-
-
-  abrirModalRespuesta(pqr: INovedadPQR): void {
+  abrirModalRespuesta(pqr: IClienteNovedad): void {
     this.pqrSeleccionado.set(pqr);
-    this.nuevaRespuesta = pqr.respuesta || '';
-    this.nuevoEstado = pqr.estado === 'Pendiente' ? 'En Proceso' : 'Resuelto';
     this.mostrarModalRespuesta.set(true);
   }
 
   cerrarModalRespuesta(): void {
     this.mostrarModalRespuesta.set(false);
     this.pqrSeleccionado.set(null);
-    this.nuevaRespuesta = '';
-    this.nuevoEstado = 'En Proceso';
   }
 
-  guardarRespuesta(): void {
-    if (!this.nuevaRespuesta.trim() || this.guardandoRespuesta()) {
-      return;
-    }
-
-    const pqr = this.pqrSeleccionado();
-    if (!pqr) return;
-
-    const usuario = this.nombreUsuario() || 'Sistema';
-    this.guardandoRespuesta.set(true);
-
-    // Usar configuración para mapear estado a ID
-    const estadoId = PQR_CONFIG.ESTADO_ID_MAPPING[this.nuevoEstado];
-
-    if (!estadoId) {
-      this.toastService.error('Error', 'Estado no válido');
-      this.guardandoRespuesta.set(false);
-      return;
-    }
-
-    const respuesta = {
-      novedadId: pqr.id,
-      respuesta: this.nuevaRespuesta,
-      estadoId: estadoId,
-      usuario: usuario,
-      fecha: new Date()
-    };
-
-    this.pqrService.responderPqr(respuesta).subscribe({
-      next: () => {
-        // Actualizar el PQR en la lista local
-        const index = this.pqrs.findIndex(p => p.id === pqr.id);
-        if (index !== -1) {
-          this.pqrs[index] = {
-            ...this.pqrs[index],
-            respuesta: this.nuevaRespuesta,
-            estado: this.nuevoEstado
-          };
-        }
-
-        this.aplicarFiltros();
-        this.toastService.success('Éxito', 'Respuesta enviada correctamente');
-        this.cerrarModalRespuesta();
-        this.guardandoRespuesta.set(false);
-      },
-      error: (error) => {
-        console.error('Error guardando respuesta:', error);
-        this.toastService.error('Error', 'No se pudo enviar la respuesta');
-        this.guardandoRespuesta.set(false);
-      }
-    });
+  getTipoBadgeClass(): string {
+    return 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300';
   }
 
-  cambiarEstado(pqr: INovedadPQR): void {
-    const estadosDisponibles: ('Pendiente' | 'En Proceso' | 'Resuelto' | 'Cerrado')[] =
-      ['Pendiente', 'En Proceso', 'Resuelto', 'Cerrado'];
-
-    const estadoActualIndex = estadosDisponibles.indexOf(pqr.estado);
-    const siguienteEstado = estadosDisponibles[estadoActualIndex + 1];
-
-    if (siguienteEstado) {
-      const usuario = this.nombreUsuario() || 'Sistema';
-
-      const estadoId = PQR_CONFIG.ESTADO_ID_MAPPING[siguienteEstado];
-
-      if (estadoId) {
-        this.pqrService.changeEstadoPqr(pqr.id, estadoId, usuario).subscribe({
-          next: () => {
-            const index = this.pqrs.findIndex(p => p.id === pqr.id);
-            if (index !== -1) {
-              this.pqrs[index] = { ...this.pqrs[index], estado: siguienteEstado };
-            }
-            this.aplicarFiltros();
-            this.toastService.success('Estado actualizado', `PQR #${pqr.id} cambió a ${siguienteEstado}`);
-          },
-          error: (error) => {
-            console.error('Error actualizando estado:', error);
-            this.toastService.error('Error', 'No se pudo actualizar el estado');
-          }
-        });
-      }
-    }
-  }
-
-  getTipoBadgeClass(tipo: string): string {
-    const baseClasses = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium';
-    const colorClass = PQR_CONFIG.TIPO_COLORS[tipo as keyof typeof PQR_CONFIG.TIPO_COLORS] || PQR_CONFIG.TIPO_COLORS.Default;
-    return `${baseClasses} ${colorClass}`;
-  }
-
-  getPrioridadBadgeClass(prioridad: string): string {
-    const baseClasses = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium';
-    const colorClass = PQR_CONFIG.PRIORIDAD_COLORS[prioridad as keyof typeof PQR_CONFIG.PRIORIDAD_COLORS] || PQR_CONFIG.PRIORIDAD_COLORS.Baja;
-    return `${baseClasses} ${colorClass}`;
-  }
-
-  getEstadoBadgeClass(estado: string): string {
-    const baseClasses = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium';
-    const colorClass = PQR_CONFIG.ESTADO_COLORS[estado as keyof typeof PQR_CONFIG.ESTADO_COLORS] || PQR_CONFIG.ESTADO_COLORS.Pendiente;
-    return `${baseClasses} ${colorClass}`;
+  getEstadoBadgeClass(): string {
+    return 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-300';
   }
 }
