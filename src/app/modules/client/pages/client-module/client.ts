@@ -114,8 +114,6 @@ export class Client {
     size: 5,
   });
 
-
-
       readonly userData = computed(() => {
     if (!this.isBrowser) return null;
     try {

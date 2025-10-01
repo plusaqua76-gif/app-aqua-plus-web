@@ -418,56 +418,11 @@ export class PrintBill {
     const diferencia = this.valorFactura() - this.valorPago;
     if (diferencia <= 0) return;
 
-    const deudaExistente = this.deudaInfo();
-
-    // Si ya existe una deuda, actualizarla sumando la diferencia
-    if (deudaExistente?.id) {
-      this.actualizarDeudaExistente(deudaExistente, diferencia);
-    } else {
-      this.crearNuevaDeuda(diferencia);
-    }
+    // Siempre crear una nueva deuda independientemente de si ya existe una
+    this.crearNuevaDeuda(diferencia);
   }
 
-  private actualizarDeudaExistente(deudaExistente: any, diferencia: number): void {
-    const valorActual = typeof deudaExistente.valor === 'string' ? parseFloat(deudaExistente.valor) : deudaExistente.valor;
-    const nuevoValor = valorActual + diferencia;
 
-
-
-    // Crear objeto de deuda actualizada siguiendo la estructura de update-debt
-    const deudaActualizada: Partial<IDeudaCliente> = {
-      id: deudaExistente.id,
-      fechaDeuda: deudaExistente.fechaDeuda ? new Date(deudaExistente.fechaDeuda) : new Date(),
-      valor: nuevoValor.toString(),
-      descripcion: `${deudaExistente.descripcion || 'Deuda existente'} + Pago parcial de factura: $${diferencia.toLocaleString('es-CO')}`,
-      activo: true,
-      factura: deudaExistente.factura || { id: Number(this.route.snapshot.paramMap.get('id')) } as any,
-      empresaClienteContador: deudaExistente.empresaClienteContador || { id: this.empresaClienteContadorId() } as any,
-      tipoDeuda: deudaExistente.tipoDeuda,
-      plazoPago: deudaExistente.plazoPago,
-      usuarioCreacion: deudaExistente.usuarioCreacion,
-      fechaCreacion: deudaExistente.fechaCreacion ? new Date(deudaExistente.fechaCreacion) : new Date(),
-      usuarioActualizacion: this.nombreUsuario(),
-      fechaModificacion: new Date()
-    };
-
-    this.deudaService.updateDeuda(deudaActualizada as IDeudaCliente).subscribe({
-      next: (response) => {
-        this.toast.success(
-          'Deuda Actualizada',
-          `Se actualizó la deuda existente. Nuevo valor: $${nuevoValor.toLocaleString('es-CO')}`
-        );
-        this.clienteDeudas.reload?.();
-      },
-      error: (error) => {
-        this.toast.error(
-          'Error al actualizar deuda',
-          'No se pudo actualizar la deuda existente. Se intentará crear una nueva.'
-        );
-        this.crearNuevaDeuda(diferencia);
-      }
-    });
-  }
 
   private crearNuevaDeuda(diferencia: number): void {
     const billDetails = this.billDetails.value()?.response;

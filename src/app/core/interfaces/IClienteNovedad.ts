@@ -73,19 +73,3 @@ export interface IClienteNovedadRespuesta {
   fecha: Date;
 }
 
-// Interface para el componente PQR Secretary que mapea las novedades como PQRs
-export interface INovedadPQR {
-  id: number;
-  tipo: string; // Mapeado desde tipoNovedad.novedad
-  cliente: string; // Combinación de nombre y apellidos del cliente
-  documento: string; // Se podría obtener de otra fuente o generar
-  descripcion: string;
-  fecha: string;
-  estado: 'Pendiente' | 'En Proceso' | 'Resuelto' | 'Cerrado';
-  prioridad: 'Baja' | 'Media' | 'Alta' | 'Urgente';
-  respuesta?: string;
-  serial?: string; // Serial del contador
-  clienteId?: number;
-  contadorId?: number;
-  empresaClienteContadorId?: number;
-}
