@@ -94,33 +94,26 @@ export class LegendsHistoryBill implements AfterViewInit, OnDestroy {
   protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
 
-  // Input signal para recibir datos históricos
   historyData = input<any[]>([]);
 
-  // Datos procesados para mostrar en la gráfica y precios
   public processedData = {
     categories: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'],
-    series: [12, 32, 22, 25, 8, 22],
-    prices: ['$34.454', '$34.454', '$34.454', '$34.454', '$34.454', '$34.454']
+    series: [0, 0, 0, 0, 0, 0],
+    prices: ['$0', '$0', '$0', '$0', '$0', '$0']
   };
 
-  // Datos de prueba (fallback)
-  public readonly consumptionData = {
+  public readonly emptyData = {
     categories: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'],
-    series: [12, 32, 22, 25, 8, 22],
-    prices: ['$34.454', '$34.454', '$34.454', '$34.454', '$34.454', '$34.454']
+    series: [0, 0, 0, 0, 0, 0],
+    prices: ['$0', '$0', '$0', '$0', '$0', '$0']
   };
 
   constructor() {
-    // Efecto para actualizar el gráfico cuando cambien los datos
     effect(() => {
       const data = this.historyData();
-      if (data.length > 0) {
-        console.log('Datos históricos recibidos:', data);
-        this.processedData = this.processHistoryData(data);
-        if (this.chart) {
-          this.updateChartWithHistoryData(data);
-        }
+      this.processedData = this.processHistoryData(data);
+      if (this.chart) {
+        this.updateChartWithHistoryData(data);
       }
     });
   }
@@ -139,7 +132,7 @@ export class LegendsHistoryBill implements AfterViewInit, OnDestroy {
 
   // Método para procesar los datos históricos (cronológicamente de atrás para adelante)
   private processHistoryData(historyData: any[]) {
-    if (historyData.length === 0) return this.consumptionData;
+    if (historyData.length === 0) return this.emptyData;
 
     // Ordenar datos cronológicamente (de más antiguo a más reciente)
     const sortedData = [...historyData].sort((a, b) => {
@@ -158,13 +151,10 @@ export class LegendsHistoryBill implements AfterViewInit, OnDestroy {
     return { categories, series, prices };
   }
 
-  // Método para actualizar el gráfico con datos históricos
+
   private updateChartWithHistoryData(historyData: any[]): void {
     if (!this.chart || historyData.length === 0) return;
-
     const processedData = this.processHistoryData(historyData);
-
-    // Actualizar el gráfico
     this.chart.updateOptions({
       xaxis: {
         categories: processedData.categories

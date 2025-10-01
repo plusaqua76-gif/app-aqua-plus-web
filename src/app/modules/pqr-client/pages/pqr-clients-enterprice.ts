@@ -1,7 +1,10 @@
-import { Component, computed, inject, PLATFORM_ID, signal } from '@angular/core';
+import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '@services/toast.service';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { PqrEnterprisesService } from '../services/pqr-enterprices.service';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-pqr-clients-enterprice',
@@ -30,27 +33,65 @@ import { ToastService } from '@services/toast.service';
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           <!-- Columna izquierda - Formulario -->
           <div class="space-y-6">
-            <!-- Tipo de PQR -->
+            <!-- Búsqueda de Factura -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-300">
-                Tipo de PQR
+                Código de Factura
               </label>
               <div class="relative">
-                <select
-                  [(ngModel)]="selectedTipoPQR"
+                <input
+                  type="text"
+                  [(ngModel)]="billTerm"
+                  (ngModelChange)="onBillTermChange($event)"
                   class="block w-full appearance-none rounded-xl border border-gray-600/70 bg-transparent px-4 py-3 pr-10 text-sm text-gray-100 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-400/40"
-                >
-                  <option [value]="null" class="bg-gray-900">
-                    Seleccione el tipo de PQR
-                  </option>
-                  @for (tipo of tiposPQR; track tipo.id) {
-                  <option [value]="tipo.id" class="bg-gray-900">
-                    {{ tipo.nombre }}
-                  </option>
-                  }
-                </select>
-
+                  placeholder="Buscar código de factura..."
+                />
+                @if (billcode.isLoading()) {
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <svg class="animate-spin h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                }
               </div>
+              @if (billcode.value()?.response && billcode.value()!.response.length > 0) {
+                <div class="mt-2 space-y-2">
+                  <p class="text-sm text-gray-300 font-medium">Facturas encontradas:</p>
+                  @for (bill of billcode.value()!.response; track bill.id) {
+                    <div
+                      class="p-3 rounded-lg border cursor-pointer transition-colors"
+                      [class]="selectedBill?.id === bill.id ? 'border-green-600/70 bg-green-900/20' : 'border-gray-600/70 bg-gray-800/20 hover:bg-gray-700/20'"
+                      (click)="selectBill(bill)"
+                    >
+                      <div class="flex items-center gap-2">
+                        @if (selectedBill?.id === bill.id) {
+                          <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          </svg>
+                        } @else {
+                          <div class="w-4 h-4 rounded-full border border-gray-400"></div>
+                        }
+                        <span class="text-sm" [class]="selectedBill?.id === bill.id ? 'text-green-300' : 'text-gray-300'">
+                          {{ bill.codigo }}
+                        </span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+              @if (shouldShowNoResultsMessage()) {
+                <div class="mt-2 p-3 rounded-lg border border-red-600/70 bg-red-900/20">
+                  <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-sm text-red-300">
+                      No se encontró ninguna factura con ese código
+                    </span>
+                  </div>
+                </div>
+              }
             </div>
 
             <!-- Cliente -->
@@ -60,6 +101,17 @@ import { ToastService } from '@services/toast.service';
               </label>
               <div class="relative">
                 <select
+                 [(ngModel)]="selectedCliente"
+                 class="block w-full appearance-none rounded-xl border border-gray-600/70 bg-transparent px-4 py-3 pr-10 text-sm text-gray-100 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-400/40"
+                >
+                <!-- @for(couter of countersClient.value()){
+                  <option [value]="couter.cliente.id" class="bg-gray-900"></option>
+                    {{ couter.cliente.nombre }} - {{ couter.cliente.numeroCedula }}
+                  </option>
+                } -->
+
+                </select>
+                <!-- <select
                   [(ngModel)]="selectedCliente"
                   class="block w-full appearance-none rounded-xl border border-gray-600/70 bg-transparent px-4 py-3 pr-10 text-sm text-gray-100 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-400/40"
                 >
@@ -71,7 +123,7 @@ import { ToastService } from '@services/toast.service';
                     {{ cliente.nombre }} - {{ cliente.documento }}
                   </option>
                   }
-                </select>
+                </select> -->
 
               </div>
             </div>
@@ -223,17 +275,19 @@ import { ToastService } from '@services/toast.service';
 })
 export class PqrClientsEnterprice {
   protected readonly toastService = inject(ToastService);
+  protected readonly pqrService = inject(PqrEnterprisesService);
   protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
 
-  // Señales para el estado del componente
+
   selectedTipoPQR: any = null;
   selectedCliente: any = null;
   descripcionPQR: string = '';
   archivosSeleccionados: File[] = [];
   guardandoPQR = signal(false);
+  billTerm = signal('');
+  selectedBill: { codigo: string; id: number } | null = null;
 
-  // Datos de ejemplo - reemplazar por servicios reales
   tiposPQR = [
     { id: 1, nombre: 'Petición' },
     { id: 2, nombre: 'Queja' },
@@ -246,6 +300,45 @@ export class PqrClientsEnterprice {
     { id: 2, nombre: 'María García', documento: '87654321' },
     { id: 3, nombre: 'Carlos López', documento: '11223344' },
   ];
+
+
+  constructor() {
+    effect(() => {
+      console.log("esta es la data de los constadores", this.countersClient.value());
+    })
+  }
+
+
+  billcode = rxResource({
+    params: () => ({
+      term: this.billTerm()
+    }),
+    stream: ({ params }) => {
+      const { term } = params;
+      if (!term || term.trim().length < 3) {
+        return of(null);
+      }
+      return this.pqrService.getBillByCode(term);
+    }
+  })
+
+
+
+  countersClient = rxResource({
+    params: () => ({
+      idEmpresa: 14,
+      idPersona: 77
+      // idEmpresa: this.empresaId(),
+      // idPersona: this.personId()
+    }),
+    stream: ({ params }) => {
+      const { idEmpresa, idPersona } = params;
+      if (!idEmpresa || !idPersona) {
+        return of(null);
+      }
+      return this.pqrService.getCounterByClientEnterprice(idEmpresa, idPersona);
+    }
+  })
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -269,9 +362,14 @@ export class PqrClientsEnterprice {
     return data?.nombre || null;
   });
 
+    readonly personId = computed(() => {
+    const data = this.userData();
+    return data?.id || null;
+  });
+
   puedeCrearPQR(): boolean {
     return !!(
-      this.selectedTipoPQR &&
+      this.selectedBill &&
       this.selectedCliente &&
       this.descripcionPQR?.trim() &&
       this.descripcionPQR.trim().length <= 500
@@ -306,6 +404,8 @@ export class PqrClientsEnterprice {
     this.selectedCliente = null;
     this.descripcionPQR = '';
     this.archivosSeleccionados = [];
+    this.billTerm.set('');
+    this.selectedBill = null;
   }
 
   // Métodos para manejo de archivos
@@ -375,5 +475,47 @@ export class PqrClientsEnterprice {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  onBillTermChange(value: string): void {
+    this.billTerm.set(value);
+    // Limpiar la selección cuando se cambia el término de búsqueda
+    this.selectedBill = null;
+  }
+
+  selectBill(bill: { codigo: string; id: number }): void {
+    this.selectedBill = bill;
+  }
+
+  shouldShowNoResultsMessage(): boolean {
+    const billData = this.billcode.value();
+    const term = this.billTerm();
+
+    // No mostrar mensaje si no hay término de búsqueda o es muy corto
+    if (!term || term.trim().length < 3) {
+      return false;
+    }
+
+    // No mostrar mensaje si está cargando
+    if (this.billcode.isLoading()) {
+      return false;
+    }
+
+    // Mostrar mensaje si hay error
+    if (this.billcode.error()) {
+      return true;
+    }
+
+    // Mostrar mensaje si la respuesta es null/undefined (204 No Content)
+    if (!billData) {
+      return true;
+    }
+
+    // Mostrar mensaje si la respuesta existe pero no tiene resultados
+    if (billData.response && billData.response.length === 0) {
+      return true;
+    }
+
+    return false;
   }
 }

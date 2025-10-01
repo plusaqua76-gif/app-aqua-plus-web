@@ -1,4 +1,4 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, effect, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LegendsHistoryBill } from './charts/legens-bill-history';
@@ -26,8 +26,8 @@ import { DeudaService } from '../../modules/bill/service/deuda.service';
       }
 
       .bill-content {
-        width: 894px; /* Ancho A4 en píxeles - FIJO */
-        min-width: 894px; /* Evita que se comprima */
+        width: 994px; /* Ancho A4 en píxeles - FIJO */
+        min-width: 994px; /* Evita que se comprima */
         min-height: 1123px; /* Alto A4 en píxeles */
         background-image: url('/images/background/backgroundBillDef.svg');
         background-size: cover;
@@ -161,6 +161,165 @@ import { DeudaService } from '../../modules/bill/service/deuda.service';
       .bill-body {
         min-height: 800px;
         padding: 60px 0;
+      }
+
+      /* Card única con dos columnas */
+      .unified-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        min-width: 914px; /* Ancho fijo menos padding */
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        min-height: 350px;
+      }
+
+      /* Columna izquierda con dos filas */
+      .left-section {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        gap: 20px;
+      }
+
+      /* Información del cliente en la primera fila */
+      .client-info-section {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .client-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 15px;
+        font-weight: 600;
+        color: #2388ff;
+        font-size: 16px;
+      }
+
+      .client-content {
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      .client-info-item {
+        margin: 6px 0;
+        display: flex;
+        align-items: flex-start;
+      }
+
+      .client-info-item .label {
+        font-weight: 500;
+        color: #333;
+        min-width: 140px;
+        margin-right: 5px;
+      }
+
+      .client-info-item .value {
+        color: #666;
+        flex: 1;
+      }
+
+      .estrato-badge {
+        background: #2388ff;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 500;
+        margin-left: auto;
+        align-self: flex-start;
+      }
+
+      /* Área de la gráfica en la segunda fila */
+      .chart-section {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .chart-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 15px;
+        font-weight: 600;
+        color: #2388ff;
+        font-size: 16px;
+      }
+
+      .chart-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+      }
+
+      /* Columna derecha con información de consumo */
+      .right-section {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .consumption-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 15px;
+        font-weight: 600;
+        color: #2388ff;
+        font-size: 16px;
+      }
+
+      .consumption-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        flex: 1;
+      }
+
+      .consumption-item {
+        background: #f8faff;
+        border-radius: 10px;
+        padding: 12px;
+        border: 1px solid #e3f2fd;
+      }
+
+      .consumption-item .item-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #2388ff;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+      }
+
+      .consumption-item .item-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .total-section {
+        background: #adecbb;
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 15px;
+        text-align: center;
+      }
+
+      .total-label {
+        font-size: 16px;
+        font-weight: 600;
+        color: #2e7d32;
+      }
+
+      .total-amount {
+        font-size: 20px;
+        font-weight: bold;
+        color: #1b5e20;
       }
 
       /* Grid principal con información */
@@ -702,7 +861,7 @@ import { DeudaService } from '../../modules/bill/service/deuda.service';
 
       /* Responsive con escala proporcional - mantiene estructura como imagen */
       /* Desktop grande - sin cambios */
-      @media (min-width: 951px) {
+      @media (min-width: 1051px) {
         .pdf-container {
           padding: 20px;
           justify-content: center;
@@ -714,7 +873,7 @@ import { DeudaService } from '../../modules/bill/service/deuda.service';
       }
 
       /* Tablet grande */
-      @media (max-width: 950px) and (min-width: 801px) {
+      @media (max-width: 1050px) and (min-width: 901px) {
         .pdf-container {
           padding: 20px;
           justify-content: center;
@@ -727,7 +886,7 @@ import { DeudaService } from '../../modules/bill/service/deuda.service';
       }
 
       /* Tablet */
-      @media (max-width: 800px) and (min-width: 681px) {
+      @media (max-width: 900px) and (min-width: 751px) {
         .pdf-container {
           padding: 20px;
           justify-content: center;
@@ -740,7 +899,7 @@ import { DeudaService } from '../../modules/bill/service/deuda.service';
       }
 
       /* Tablet pequeño */
-      @media (max-width: 680px) and (min-width: 581px) {
+      @media (max-width: 750px) and (min-width: 631px) {
         .pdf-container {
           padding: 15px;
           justify-content: center;
@@ -753,7 +912,7 @@ import { DeudaService } from '../../modules/bill/service/deuda.service';
       }
 
       /* Móvil grande */
-      @media (max-width: 580px) and (min-width: 481px) {
+      @media (max-width: 630px) and (min-width: 531px) {
         .pdf-container {
           padding: 15px;
           justify-content: center;
@@ -766,7 +925,7 @@ import { DeudaService } from '../../modules/bill/service/deuda.service';
       }
 
       /* Móvil mediano */
-      @media (max-width: 480px) and (min-width: 401px) {
+      @media (max-width: 530px) and (min-width: 426px) {
         .pdf-container {
           width: 100vw;
           max-width: 400px;
@@ -785,7 +944,7 @@ import { DeudaService } from '../../modules/bill/service/deuda.service';
       }
 
       /* Móvil pequeño */
-      @media (max-width: 400px) and (min-width: 376px) {
+      @media (max-width: 425px) and (min-width: 376px) {
         .pdf-container {
           width: 100vw;
           max-width: 350px;
@@ -807,9 +966,9 @@ import { DeudaService } from '../../modules/bill/service/deuda.service';
       @media (max-width: 375px) {
         .pdf-container {
           width: 100vw;
-          max-width: 350px;
-          height: 500px;
-          max-height: 500px;
+          max-width: 375px;
+          height: 520px;
+          max-height: 520px;
           padding: 5px;
           min-height: auto;
           align-items: center;
@@ -817,7 +976,7 @@ import { DeudaService } from '../../modules/bill/service/deuda.service';
           overflow: hidden;
         }
         .bill-content {
-          transform: scale(0.36);
+          transform: scale(0.32);
           transform-origin: center center;
         }
       }
@@ -865,7 +1024,7 @@ import { DeudaService } from '../../modules/bill/service/deuda.service';
           </div>
           <div class="header-left">
             <div class="company-info">
-              <h1>Aqua Plus</h1>
+              <h1>{{ enterpriseInfo.value().nombre }}</h1>
               <div class="company-details">
                 <div><strong>NIT: </strong>{{ billData()?.empresa?.nit }}</div>
                 <div><strong>Direccion: </strong>{{ GetDirectiomComplete() }}</div>
@@ -886,166 +1045,112 @@ import { DeudaService } from '../../modules/bill/service/deuda.service';
         </div>
 
         <div class="bill-body">
-          <!-- Grid principal con información de la factura -->
-          <div class="info-grid">
-            <!-- Fila superior -->
-            <div class="info-card client-card">
-              <div class="card-header">
-                <div
-                  class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center"
-                >
-                  <svg class="h-3 w-3" fill="white" viewBox="0 0 24 24">
-                    <path
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
+          <!-- Card única con estructura de dos columnas -->
+          <div class="unified-card">
+            <!-- Columna izquierda con dos filas -->
+            <div class="left-section">
+              <!-- Primera fila: Información del cliente -->
+              <div class="client-info-section">
+                <div class="client-header">
+                  <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                    <svg class="h-3 w-3" fill="white" viewBox="0 0 24 24">
+                      <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                  </div>
+                  <span>Cliente</span>
+                  <div class="estrato-badge">Estrato {{ billData()?.cliente?.estrato }}</div>
                 </div>
-                <span>Cliente</span>
-                <span class="badge">Estrato {{ billData()?.cliente?.estrato }}</span>
+                <div class="client-content">
+                  <div class="client-info-item">
+                    <span class="label">Nombre:</span>
+                    <span class="value">
+                      {{ billData()?.cliente?.primerNombre || 'Joselito' }}
+                      {{ billData()?.cliente?.segundoNombre || '' }}
+                      {{ billData()?.cliente?.primerApellido || 'Chavarro' }}
+                      {{ billData()?.cliente?.segundoApellido || '' }}
+                    </span>
+                  </div>
+                  <div class="client-info-item">
+                    <span class="label">Número de documento:</span>
+                    <span class="value">{{ billData()?.cliente?.numeroCedula || '23874623874' }}</span>
+                  </div>
+                  <div class="client-info-item">
+                    <span class="label">Código Cliente:</span>
+                    <span class="value">{{ billData()?.cliente?.codigo || '45GDT' }}</span>
+                  </div>
+                  <div class="client-info-item">
+                    <span class="label">Dirección:</span>
+                    <span class="value">
+                      {{ billData()?.cliente?.direccion?.departamentoNombre || 'Huila' }}, {{ billData()?.cliente?.direccion?.ciudadNombre || 'Pitalito' }}, {{ billData()?.cliente?.direccion?.corregimientoNombre || 'Monte Carlos' }} {{ billData()?.cliente?.direccion?.descripcion || 'Carrera 45 # 67-89' }}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div class="card-content">
-                <div class="info-item">
-                  <span class="label">Nombre:</span>
-                  <span class="value">
-                    {{ billData()?.cliente?.primerNombre || '' }}
-                    {{ billData()?.cliente?.segundoNombre || '' }}
-                    {{ billData()?.cliente?.primerApellido || '' }}
-                    {{ billData()?.cliente?.segundoApellido || '' }}
-                  </span>
+
+              <!-- Segunda fila: Historial de consumo -->
+              <div class="chart-section">
+                <div class="chart-header">
+                  <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                    <svg class="h-3 w-3" fill="white" viewBox="0 0 24 24">
+                      <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                  </div>
+                  <span>Historial de consumo</span>
                 </div>
-                <div class="info-item">
-                  <span class="label">Número de documento:</span>
-                  <span class="value">{{ billData()?.cliente?.numeroCedula || '' }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">Código Cliente:</span>
-                  <span class="value">{{ billData()?.cliente?.codigo || '' }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">Dirección:</span>
-                  <span class="value">
-                    {{ billData()?.cliente?.direccion?.departamentoNombre || '' }},
-                    {{ billData()?.cliente?.direccion?.ciudadNombre || '' }},
-                    {{ billData()?.cliente?.direccion?.corregimientoNombre || '' }}
-                    {{ billData()?.cliente?.direccion?.descripcion || '' }}
-                  </span>
+                <div class="chart-content">
+                  <app-legends-bill-history
+                    [historyData]="billData()?.lecturasHistorico || []">
+                  </app-legends-bill-history>
                 </div>
               </div>
             </div>
 
-            <div class="info-card counter-card">
-              <div class="card-header">
-                <div
-                  class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center"
-                >
+            <!-- Columna derecha: Datos del consumo y contador -->
+            <div class="right-section">
+              <div class="consumption-header">
+                <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
                   <svg class="h-3 w-3" fill="white" viewBox="0 0 24 24">
-                    <path
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
+                    <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                   </svg>
                 </div>
-                <span>Contador</span>
+                <span>Datos del consumo y el contador</span>
               </div>
-              <div class="card-content">
-                <div class="info-item">
-                  <span class="label">Tipo:</span>
-                  <span class="value">{{ billData()?.contador?.tipoContadorNombre }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">Serial:</span>
-                  <span class="value">{{ billData()?.contador?.serial }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">Dirección:</span>
-                  <span class="value">{{ getDirectionCompleteCounter() }}</span
-                  >
-                </div>
-              </div>
-            </div>
 
-            <div class="info-card consumption-card">
-              <div class="card-header">
-                <div
-                  class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center"
-                >
-                  <svg class="h-3 w-3" fill="white" viewBox="0 0 24 24">
-                    <path
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                    />
-                  </svg>
+              <div class="consumption-grid">
+                <div class="consumption-item">
+                  <div class="item-label">Periodo Facturado</div>
+                  <div class="item-value">Mayo</div>
                 </div>
-                <span>Detalle de consumo</span>
+                <div class="consumption-item">
+                  <div class="item-label">Lectura</div>
+                  <div class="item-value">{{ billData()?.factura?.lectura?.lectura || 34 }} m³</div>
+                </div>
+                <div class="consumption-item">
+                  <div class="item-label">Fecha Expedición</div>
+                  <div class="item-value">12/23/20025</div>
+                </div>
+                <div class="consumption-item">
+                  <div class="item-label">Fecha vencimiento</div>
+                  <div class="item-value">12/23/20025</div>
+                </div>
+                <div class="consumption-item">
+                  <div class="item-label">Contador</div>
+                  <div class="item-value">Analógico</div>
+                </div>
+                <div class="consumption-item">
+                  <div class="item-label">Serial</div>
+                  <div class="item-value">FDFD435435</div>
+                </div>
               </div>
-              <div class="card-content">
-                <div class="info-item">
-                  <span class="label">Lectura:</span>
-                  <span class="value">{{ billData()?.factura?.lectura?.lectura || 0 }} m³</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">Fecha Lectura:</span>
-                  <span class="value">{{ formatDate(billData()?.factura?.lectura?.fechaLectura) }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">Consumo anormal:</span>
-                  <span class="value">{{ billData()?.factura?.lectura?.consumoAnormal ? 'Sí' : 'No' }}</span>
-                </div>
-                <div class="price-highlight">Precio: {{ billData()?.factura?.lectura?.precio | colombianCurrency }} </div>
-              </div>
-            </div>
-          </div>
-          <div class="map-payment-row">
-            <!-- Área central con mapa -->
-            <div class="map-section">
-              <div class="map-content">
-                <app-legends-bill-history
-                  [historyData]="billData()?.lecturasHistorico || []">
-                </app-legends-bill-history>
-              </div>
-            </div>
 
-            <!-- Punto de pago -->
-            <div class="payment-point-card">
-              <div class="card-header">
-                <div
-                  class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center"
-                >
-                  <svg class="h-3 w-3" fill="white" viewBox="0 0 24 24">
-                    <path
-                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                    />
-                  </svg>
-                </div>
-                <span>Punto de pago</span>
+              <div class="consumption-item" style="margin-top: 15px;">
+                <div class="item-label">Dirección</div>
+                <div class="item-value">Huila, Pitalito, Monte Carlos Carrera 45 # 67-89</div>
               </div>
-              <div class="payment-methods">
-                <div class="payment-method">
-                  <img
-                    src="/images/image1.png"
-                    alt="Imagen 1"
-                    class="payment-logo"
-                  />
-                </div>
-                <div class="payment-method">
-                  <img
-                    src="/images/image2.png"
-                    alt="Imagen 2"
-                    class="payment-logo"
-                  />
-                </div>
-                <div class="payment-method">
-                  <img
-                    src="/images/image3.png"
-                    alt="Imagen 3"
-                    class="payment-logo"
-                  />
-                </div>
-                <div class="payment-method">
-                  <img
-                    src="/images/image7.png"
-                    alt="Imagen 7"
-                    class="payment-logo"
-                  />
-                </div>
+
+              <div class="total-section">
+                <div class="total-label">Valor Facturado:</div>
+                <div class="total-amount">$ 34.000</div>
               </div>
             </div>
           </div>
@@ -1170,6 +1275,12 @@ export class PdfBill {
   billData = input<IBillDetailResponse | null>(null);
   private readonly enterpriseIdService = inject(EnterpriseIdService);
   private readonly deudaService = inject(DeudaService);
+
+  constructor() {
+    effect(() => {
+      console.log("la data mi pez: ", this.enterpriseInfo.value());
+    })
+  }
 
   enterpriseInfo = rxResource({
     stream: () => this.enterpriseIdService.getEnterpriseInfo(),
