@@ -12,7 +12,8 @@ import {
   EventEmitter,
   OnInit,
   HostListener,
-  inject
+  inject,
+  effect
 } from '@angular/core';
 import { navbarData } from './nav-data';
 import { CommonModule, NgClass } from '@angular/common';
@@ -79,6 +80,13 @@ export class SidenavComponent implements OnInit {
   }
 
   private readonly enterpriseIdService = inject(EnterpriseIdService);
+
+  constructor() {
+    effect(() => {
+      console.log("la data mi pez", this.enterpriseInfo.value())
+    }
+  )
+  }
 
   enterpriseInfo = rxResource({
     stream: () => this.enterpriseIdService.getEnterpriseInfo(),

@@ -9,15 +9,37 @@ import { IFactura } from "@interfaces/Ifactura";
 import { IAbonoFactura, IAbonoFacturaResponse, IDeudaCliente } from "@interfaces/IdeudaFactura";
 import { IPaginatedResponse, IPaginationParams } from "@interfaces/IpaginatedResponse";
 
+export interface IAbonoMassive {
+  eccId: number,
+  valorTotal: number,
+  usuario: string
+}
+
+export interface IAbonoItem {
+  deudaCliente: {
+    id: number
+  },
+  valor: number
+}
+
+export interface IAbonoMultiple {
+  usuarioCreacion: string,
+  items: IAbonoItem[]
+}
+
 @Injectable({
     providedIn: 'root'
 })
 export class AbonoService {
 
-    private apiUrl = `${environment.apiUrl}/${END_POINT_SERVICE.GET_ABONO}`;
+    readonly apiUrl = `${environment.apiUrl}/${END_POINT_SERVICE.GET_ABONO}`;
 
     protected readonly router = inject(Router)
     protected readonly http = inject(HttpClient)
+
+    setAbonoMassive(masiveValue: IAbonoMassive): Observable<ApiResponse<any>> {
+        return this.http.post<ApiResponse<any>>(`${this.apiUrl}/masivo`, masiveValue)
+    }
 
     getAllAbono(): Observable<ApiResponse<IAbonoFactura[]>> {
         return this.http.get<ApiResponse<IAbonoFactura[]>>(`${this.apiUrl}/${END_POINT_SERVICE.GET_ABONO_ALL}`).pipe(
@@ -55,6 +77,10 @@ export class AbonoService {
 
     saveAbono(abono: IAbonoFactura): Observable<ApiResponse<any>> {
         return this.http.post<ApiResponse<any>>(`${this.apiUrl}`, abono)
+    }
+
+    saveAbonoMultiple(abonoMultiple: IAbonoMultiple): Observable<ApiResponse<any>> {
+        return this.http.post<ApiResponse<any>>(`${this.apiUrl}`, abonoMultiple)
     }
 
     /**

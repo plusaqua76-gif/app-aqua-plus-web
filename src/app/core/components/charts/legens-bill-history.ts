@@ -72,10 +72,6 @@ interface ChartOptions {
   template: `
     <div class="bg-white rounded-lg p-1 w-lg h-48">
       <div class="flex items-center">
-        <div class="flex items-center">
-          <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-          <h5 class="text-sm font-semibold text-gray-900">Historial de consumo</h5>
-        </div>
       </div>
       <div class="relative">
         <div id="consumption-chart" class="w-full bg-white" style="height: 160px;"></div>
