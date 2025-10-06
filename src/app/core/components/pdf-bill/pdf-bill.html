@@ -1,0 +1,561 @@
+<div class="pdf-container">
+  <div class="bill-content">
+    <!-- Letrero de estado dinámico -->
+    @if (selectedStatus()) {
+    <div class="suspension-notice">
+      <div class="suspension-banner">
+        <span class="suspension-banner-text">{{ selectedStatus() }}</span>
+      </div>
+    </div>
+    }
+    <div class="bill-header">
+      <div class="logo-container">
+        @if (enterpriseInfo.value()?.imagen?.[0]?.imagen) {
+        <img
+          class="logo-image object-contain w-32 h-32 rounded-[20px]"
+          [src]="'data:' + (enterpriseInfo.value()?.imagen?.[0]?.contentType || 'image/png') + ';base64,' + enterpriseInfo.value()?.imagen?.[0]?.imagen"
+          [alt]="enterpriseInfo.value()?.nombre || 'Logo empresa'"
+        />
+        } @else {
+        <h1>cargando imagen</h1>
+        }
+      </div>
+      <div class="header-left">
+        <div class="company-info">
+          <h1>{{ enterpriseInfo.value()?.nombre || 'Cargando...' }}</h1>
+          <div class="company-details">
+            <div><strong>NIT: </strong>{{ billData()?.empresa?.nit }}</div>
+            <div><strong>Direccion: </strong>{{ GetDirectiomComplete() }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="address-info">
+          <!-- <div>Saladoblanco/Huila C 12</div>
+              <div># 23 - 45 A barrio Centro</div> -->
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="invoice-number">N°: {{ billData()?.empresa?.codigo }}</div>
+      </div>
+    </div>
+
+    <div class="bill-body">
+      <!-- Card única con estructura de dos columnas -->
+      <div class="unified-card">
+        <!-- Encabezado principal de la card -->
+        <div class="unified-card-header">
+          <div class="header-column">
+            <div class="column-icon">
+              <svg class="h-3 w-3" fill="white" viewBox="0 0 24 24">
+                <path
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </div>
+            <span class="titleTwo">Cliente e Historial de consumo</span>
+          </div>
+          <div class="header-column">
+            <div class="column-icon">
+              <svg class="h-3 w-3" fill="white" viewBox="0 0 24 24">
+                <path
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
+              </svg>
+            </div>
+            <span class="titleTwo">Datos del consumo y el contador</span>
+          </div>
+        </div>
+
+        <!-- Contenido de la card -->
+        <div class="unified-card-content">
+          <!-- Columna izquierda con dos filas -->
+          <div class="left-section">
+            <!-- Primera fila: Información del cliente -->
+            <div class="client-info-section">
+              <div class="client-content">
+                <div class="client-info-item">
+                  <span class="label">Nombre:</span>
+                  <span class="value">
+                    {{ billData()?.cliente?.primerNombre || '' }} {{
+                    billData()?.cliente?.segundoNombre || '' }} {{
+                    billData()?.cliente?.primerApellido || '' }} {{
+                    billData()?.cliente?.segundoApellido || '' }}
+                  </span>
+                  <div class="estrato-badge">
+                    Estrato {{ billData()?.cliente?.estrato }}
+                  </div>
+                </div>
+                <div class="client-info-item">
+                  <span class="label">Número de documento:</span>
+                  <span class="value"
+                    >{{ billData()?.cliente?.numeroCedula || '' }}</span
+                  >
+                </div>
+                <div class="client-info-item">
+                  <span class="label">Código Cliente:</span>
+                  <span class="value"
+                    >{{ billData()?.cliente?.codigo || '' }}</span
+                  >
+                </div>
+                <div class="client-info-item">
+                  <span class="label">Dirección:</span>
+                  <span class="value">
+                    {{ billData()?.cliente?.direccion?.departamentoNombre || ''
+                    }}, {{ billData()?.cliente?.direccion?.ciudadNombre || ''
+                    }}, {{ billData()?.cliente?.direccion?.corregimientoNombre
+                    || '' }} {{ billData()?.cliente?.direccion?.descripcion ||
+                    '' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Segunda fila: Historial de consumo -->
+            <div class="chart-section">
+              <div class="chart-content">
+                <app-legends-bill-history
+                  [historyData]="billData()?.lecturasHistorico || []"
+                >
+                </app-legends-bill-history>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna derecha: Datos del consumo y contador -->
+          <div class="right-section">
+            <div class="consumption-grid">
+              <div class="consumption-item">
+                <div class="item-label">Periodo Facturado</div>
+                <div class="item-value">
+                  {{ getMonthName(billData()?.factura?.fechaEmision) }}
+                </div>
+              </div>
+              <div class="consumption-item">
+                <div class="item-label">Lectura</div>
+                <div class="item-value">
+                  {{ billData()?.factura?.lectura?.lectura || '' }} m³
+                </div>
+              </div>
+              <div class="consumption-item">
+                <div class="item-label">Fecha Lectura</div>
+                <div class="item-value">
+                  {{ billData()?.factura?.lectura?.fechaLectura }}
+                </div>
+              </div>
+              <div class="consumption-item">
+                <div class="item-label">Fecha de fechaEmision</div>
+                <div class="item-value">
+                  {{ billData()?.factura?.fechaEmision }}
+                </div>
+              </div>
+              <div class="consumption-item">
+                <div class="item-label">Contador</div>
+                <div class="item-value">
+                  {{ billData()?.contador?.tipoContadorNombre }}
+                </div>
+              </div>
+              <div class="consumption-item">
+                <div class="item-label">Serial</div>
+                <div class="item-value">{{ billData()?.contador?.serial }}</div>
+              </div>
+            </div>
+
+            <div class="consumption-item" style="margin-top: 15px">
+              <div class="item-label">Dirección</div>
+              <div class="item-value">{{ getDirectionCompleteCounter() }}</div>
+            </div>
+
+            <div class="total-section">
+              <div class="total-label">Valor Facturado:</div>
+              <div class="total-amount">
+                {{ billData()?.factura?.lectura?.precio | colombianCurrency }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Fin del contenido de la card -->
+      </div>
+      <!-- Fin de la unified-card -->
+
+      <!-- Grid de servicios -->
+      <div class="services-grid">
+        <!-- Primera fila, primera columna: Primera tarifa -->
+        @if (getPrimeras3Tarifas()[0]) {
+        <div class="service-card-wrapper">
+          @if (shouldUseDualColumn(getPrimeras3Tarifas()[0].conceptos)) {
+          <!-- Card con dos columnas para más de 6 items -->
+          <div class="service-card dual-column">
+            <div class="service-column-title">
+              {{ getPrimeras3Tarifas()[0].nombre }}
+            </div>
+            <div class="service-items">
+              @for (concepto of
+              getFirstColumnItems(getPrimeras3Tarifas()[0].conceptos); track
+              concepto.idTarifaConcepto) {
+              <div class="service-item">
+                <span>{{ concepto.tipoConceptoNombre }}</span>
+                <span>{{ (concepto.valor || 0) | colombianCurrency }}</span>
+              </div>
+              }
+            </div>
+            <div class="service-items">
+              @for (concepto of
+              getSecondColumnItems(getPrimeras3Tarifas()[0].conceptos); track
+              concepto.idTarifaConcepto) {
+              <div class="service-item">
+                <span>{{ concepto.tipoConceptoNombre }}</span>
+                <span>{{ (concepto.valor || 0) | colombianCurrency }}</span>
+              </div>
+              }
+            </div>
+          </div>
+          } @else {
+          <!-- Card normal para 6 items o menos -->
+          <div class="service-card">
+            <div class="service-column-title">
+              {{ getPrimeras3Tarifas()[0].nombre }}
+            </div>
+            <div class="service-items">
+              @for (concepto of getPrimeras3Tarifas()[0].conceptos; track
+              concepto.idTarifaConcepto) {
+              <div class="service-item">
+                <span>{{ concepto.tipoConceptoNombre }}</span>
+                <span>{{ (concepto.valor || 0) | colombianCurrency }}</span>
+              </div>
+              }
+            </div>
+          </div>
+          }
+        </div>
+        }
+
+        <!-- Primera fila, segunda columna: Tercera tarifa -->
+        @if (getPrimeras3Tarifas()[2]) {
+        <div class="service-card-wrapper">
+          @if (shouldUseDualColumn(getPrimeras3Tarifas()[2].conceptos)) {
+          <!-- Card con dos columnas para más de 6 items -->
+          <div class="service-card dual-column">
+            <div class="service-column-title">
+              {{ getPrimeras3Tarifas()[2].nombre }}
+            </div>
+            <div class="service-items">
+              @for (concepto of
+              getFirstColumnItems(getPrimeras3Tarifas()[2].conceptos); track
+              concepto.idTarifaConcepto) {
+              <div class="service-item">
+                <span>{{ concepto.tipoConceptoNombre }}</span>
+                <span>{{ (concepto.valor || 0) | colombianCurrency }}</span>
+              </div>
+              }
+            </div>
+            <div class="service-items">
+              @for (concepto of
+              getSecondColumnItems(getPrimeras3Tarifas()[2].conceptos); track
+              concepto.idTarifaConcepto) {
+              <div class="service-item">
+                <span>{{ concepto.tipoConceptoNombre }}</span>
+                <span>{{ (concepto.valor || 0) | colombianCurrency }}</span>
+              </div>
+              }
+            </div>
+          </div>
+          } @else {
+          <!-- Card normal para 6 items o menos -->
+          <div class="service-card">
+            <div class="service-column-title">
+              {{ getPrimeras3Tarifas()[2].nombre }}
+            </div>
+            <div class="service-items">
+              @for (concepto of getPrimeras3Tarifas()[2].conceptos; track
+              concepto.idTarifaConcepto) {
+              <div class="service-item">
+                <span>{{ concepto.tipoConceptoNombre }}</span>
+                <span>{{ (concepto.valor || 0) | colombianCurrency }}</span>
+              </div>
+              }
+            </div>
+          </div>
+          }
+        </div>
+        }
+
+        <!-- Segunda fila, primera columna: Segunda tarifa con dos columnas -->
+        @if (getPrimeras3Tarifas()[1]) {
+        <div class="service-card-wrapper">
+          <div class="service-card aseo-dual">
+            <div class="service-column">
+              <div class="service-column-title">
+                {{ getPrimeras3Tarifas()[1].nombre }}
+              </div>
+              <div class="service-items">
+                @for (concepto of getPrimeras3Tarifas()[1].conceptos; track
+                concepto.idTarifaConcepto) {
+                <div class="service-item">
+                  <span>{{ concepto.tipoConceptoNombre }}</span>
+                  <span>{{ (concepto.valor || 0) | colombianCurrency }}</span>
+                </div>
+                }
+              </div>
+            </div>
+            <div class="service-column">
+              <div class="service-column-title otros-title">Otros</div>
+              <div class="service-items">
+                @if (tieneOtrasTarifas()) { @for (tarifa of
+                getTarifasRestantes(); track tarifa.idTipoTarifa) {
+                <div class="service-item tarifa-title">
+                  <span>{{ tarifa.nombre }}</span>
+                  <span></span>
+                </div>
+                @for (concepto of tarifa.conceptos.slice(0, 3); track
+                concepto.idTarifaConcepto) {
+                <div class="service-item concepto-subitem">
+                  <span>{{ concepto.tipoConceptoNombre }}</span>
+                  <span>{{ (concepto.valor || 0) | colombianCurrency }}</span>
+                </div>
+                } } }
+              </div>
+            </div>
+          </div>
+        </div>
+        }
+
+        <!-- Segunda fila, segunda columna: Puntos de pago -->
+        <div class="service-card-wrapper">
+          <div class="service-card puntos-pago">
+            <div class="puntos-pago-title">
+              <svg width="16" height="16" fill="#2388ff" viewBox="0 0 24 24">
+                <path
+                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                />
+              </svg>
+              Puntos de pago
+            </div>
+            <div class="puntos-pago-grid">
+              <!-- Código QR de la empresa - más grande si existe -->
+              @if (hasEmpresaCodigoQr()) {
+              <div class="punto-pago-item qr-item">
+                <img
+                  [src]="'data:image/png;base64,' + getEmpresaCodigoQrImagen()"
+                  [alt]="'Código QR - ' + (billData()?.empresa?.nombre || 'Empresa')"
+                  class="qr-image"
+                />
+              </div>
+              }
+
+              <!-- Puntos de pago normales -->
+              @if (getPuntosPago() && getPuntosPago().length > 0) { @for (punto
+              of getPuntosPago(); track punto.id || $index) {
+              <div class="punto-pago-item">
+                @if (punto.imagen) {
+                <img
+                  [src]="'data:' + (punto.contentType || 'image/png') + ';base64,' + punto.imagen"
+                  [alt]="punto.nombre || 'Punto de pago'"
+                />
+                } @else {
+                <!-- Fallback text si no hay imagen -->
+                <span style="font-size: 10px; text-align: center; color: #666">
+                  {{ punto.nombre || 'Punto de pago' }}
+                </span>
+                }
+              </div>
+              } } @else {
+              <p>no se cargaron las imagenes</p>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Línea divisoria -->
+      <div class="dashed-line"></div>
+
+      <div class="bottom-section">
+        <!-- Columna izquierda: Información de pago -->
+        <div class="consumption-summary">
+          <div class="card-header">
+            <div class="w-full">
+              <span>Información de pago</span>
+              <svg class="h-3 w-3" fill="white" viewBox="0 0 24 24">
+                <path
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </div>
+          </div>
+          <div class="summary-content">
+            <div class="info-item">
+              <span class="label">Nombre:</span>
+              <span class="value">
+                {{ billData()?.cliente?.primerNombre || '' }} {{
+                billData()?.cliente?.segundoNombre || '' }} {{
+                billData()?.cliente?.primerApellido || '' }} {{
+                billData()?.cliente?.segundoApellido || '' }}
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="label">Número de documento:</span>
+              <span class="value"
+                >{{ billData()?.cliente?.numeroCedula || '' }}</span
+              >
+            </div>
+            <div class="info-item">
+              <span class="label">Código Cliente:</span>
+              <span class="value">{{ billData()?.cliente?.codigo || '' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Dirección:</span>
+              <span class="value">
+                {{ billData()?.cliente?.direccion?.departamentoNombre || '' }},
+                {{ billData()?.cliente?.direccion?.ciudadNombre || '' }}, {{
+                billData()?.cliente?.direccion?.corregimientoNombre || '' }} {{
+                billData()?.cliente?.direccion?.descripcion || '' }}
+              </span>
+            </div>
+            <div
+              class="due-date"
+              style="
+                color: #d32f2f;
+                background: rgba(211, 47, 47, 0.1);
+                border: 1px solid #d32f2f;
+                margin-top: 55px;
+              "
+            >
+              <span style="color: #d32f2f">Fecha emision:</span>
+              <span style="color: #d32f2f; font-weight: bold"
+                >{{ billData()?.factura?.fechaEmision }}</span
+              >
+            </div>
+            <div
+              class="due-date"
+              style="
+                background: rgba(211, 47, 47, 0.1);
+                border: 1px solid #d32f2f;
+                margin-top: 10px;
+              "
+            >
+              <span style="color: #d32f2f">Valor de la deuda:</span>
+              <span style="color: #d32f2f; font-weight: bold"
+                >{{ valorDeuda() | colombianCurrency }}</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna derecha: Valor total de la factura -->
+        <div class="payment-summary">
+          <div class="card-header">
+            <div class="w-full">
+              <span>Valor total de la factura</span>
+              <svg class="h-3 w-3" fill="white" viewBox="0 0 24 24">
+                <path
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Fecha de vencimiento -->
+          <div
+            style="
+              background: rgba(35, 136, 255, 0.1);
+              border: 1px solid #2388ff;
+              border-radius: 8px;
+              padding-bottom: 20px;
+              padding-botton: 0px;
+              margin: 15px 0;
+              text-align: center;
+            "
+          >
+            <span style="color: #2388ff; font-size: 13px; font-weight: 500"
+              >Fecha de vencimiento:</span
+            >
+            <span
+              style="
+                color: #2388ff;
+                font-weight: bold;
+                margin-left: 8px;
+                font-size: 14px;
+              "
+              >{{ formatDate(billData()?.factura?.fechaFin) || '' }}</span
+            >
+          </div>
+
+          <div class="payment-totals-grid">
+            <!-- Primeros 3 totales con colores específicos por nombre del servicio -->
+            @for (tipo of getPrimeros3Totales(); track tipo.nombre; let i =
+            $index) {
+            <div
+              class="rounded-t-xl mt-[30px] text-center bg-white text-black relative overflow-hidden"
+            >
+              <!-- Header superior con texto y color -->
+              <div
+                class="h-[25px] rounded-t-xl flex items-center justify-center text-xs font-medium text-white pb-3"
+                [ngClass]="{
+                           'bg-[#74b9ff]': i === 0,
+                           'bg-[#fac6d0]': i === 1,
+                           'bg-[#fdcb6e]': i === 2
+                         }"
+              >
+                {{ i === 0 ? 'Acueducto' : i === 1 ? 'Aseo' : 'Alcantarillado'
+                }}
+              </div>
+              <!-- Contenido principal -->
+              <div class="hidden">{{ tipo.nombre }}</div>
+              <div
+                class="text-base font-bold text-black py-2 pb-4 m-0 border-l border-r min-h-[40px] flex items-center justify-center"
+                [ngClass]="{
+                           'border-[#74b9ff]': i === 0,
+                           'border-[#fac6d0]': i === 1,
+                           'border-[#fdcb6e]': i === 2
+                         }"
+              >
+                {{ tipo.valor | colombianCurrency }}
+              </div>
+              <!-- Footer inferior con color -->
+              <div
+                class="h-2"
+                [ngClass]="{
+                           'bg-[#74b9ff]': i === 0,
+                           'bg-[#fac6d0]': i === 1,
+                           'bg-[#fdcb6e]': i === 2
+                         }"
+              ></div>
+            </div>
+            }
+            <!-- Cuarta tarjeta con total agrupado de otros servicios -->
+            @if (tieneOtrosTotales()) {
+            <div
+              class="rounded-t-xl mt-[30px] text-center bg-white text-black relative overflow-hidden"
+            >
+              <!-- Header superior para "Otros" -->
+              <div
+                class="h-[25px] rounded-t-xl flex items-center justify-center text-xs font-medium text-white bg-[#5d6481] pb-3"
+              >
+                Otros
+              </div>
+              <!-- Contenido principal -->
+              <div class="hidden">Otros</div>
+              <div
+                class="text-base font-bold text-black py-2 pb-4 m-0 border-l border-r border-[#5d6481] min-h-[40px] flex items-center justify-center"
+              >
+                {{ getTotalOtrosServicios() | colombianCurrency }}
+              </div>
+              <!-- Footer inferior -->
+              <div class="h-2 bg-[#5d6481]"></div>
+            </div>
+            }
+          </div>
+          <div class="final-total-card">
+            <span class="total-label">Total a pagar:</span>
+            <span class="total-amount"
+              >{{ getTotalAPagar() | colombianCurrency }}</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

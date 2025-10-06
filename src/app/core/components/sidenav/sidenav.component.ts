@@ -12,7 +12,8 @@ import {
   EventEmitter,
   OnInit,
   HostListener,
-  inject
+  inject,
+  effect
 } from '@angular/core';
 import { navbarData } from './nav-data';
 import { CommonModule, NgClass } from '@angular/common';
@@ -80,6 +81,13 @@ export class SidenavComponent implements OnInit {
 
   private readonly enterpriseIdService = inject(EnterpriseIdService);
 
+  constructor() {
+    effect(() => {
+      console.log("la data mi pez", this.enterpriseInfo.value())
+    }
+  )
+  }
+
   enterpriseInfo = rxResource({
     stream: () => this.enterpriseIdService.getEnterpriseInfo(),
   });
@@ -108,6 +116,16 @@ export class SidenavComponent implements OnInit {
       collapsed: this.collapsed,
       screenWidth: this.screenWidth,
     });
+  }
+
+  onItemClick(): void {
+    // Cerrar sidenav automáticamente en móvil cuando se selecciona un item
+    if (this.screenWidth <= 768 && this.collapsed) {
+      // Pequeño retraso para que el usuario vea la selección antes de cerrar
+      setTimeout(() => {
+        this.closeSidenav();
+      }, 150);
+    }
   }
 
   onImageError(event: any): void {

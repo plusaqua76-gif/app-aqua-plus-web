@@ -45,7 +45,7 @@ export class UpdateEmployee implements OnInit {
         const data = res.response;
         this.empleado = {
           id: data.id,
-          personaId: data.personaId, // Agregamos personaId para futuras referencias
+          personaId: data.personaId,
           nombreCompleto: data.personaNombreCompleto || '',
           numeroIdentificacion: data.numeroCedula || '',
           codigo: data.codigo || '',

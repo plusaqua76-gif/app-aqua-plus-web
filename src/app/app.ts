@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import {
   RouterOutlet,
   RouterModule,
@@ -17,7 +17,9 @@ import { isPlatformBrowser } from '@angular/common';
   template: `
     <router-outlet></router-outlet>
     <app-toast></app-toast>
-    <app-global-loader></app-global-loader>
+    @if (shouldShowGlobalLoader()) {
+      <app-global-loader></app-global-loader>
+    }
   `,
 })
 export class App implements OnInit {
@@ -29,6 +31,16 @@ export class App implements OnInit {
 
   title = 'app-aqua-plus-web';
 
+  // Signal para trackear si estamos en una ruta que no debe mostrar el loader global
+  private readonly currentRoute = signal('');
+
+  // Computed para determinar si mostrar el loader global
+  shouldShowGlobalLoader = (): boolean => {
+    const route = this.currentRoute();
+    // No mostrar loader global en print-bill
+    return !route.includes('/print-bill');
+  };
+
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.flowbiteService.loadFlowbite((flowbite) => {
@@ -37,6 +49,8 @@ export class App implements OnInit {
 
       this.router.events.subscribe((event) => {
         if (event instanceof NavigationEnd) {
+          // Actualizar la ruta actual
+          this.currentRoute.set(event.url);
           setTimeout(() => initFlowbite(), 100);
         }
       });

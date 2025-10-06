@@ -46,8 +46,6 @@ import { ICorregimiento } from '@interfaces/icorregimiento';
                                 }
                             </select>
                         </div>
-
-                        <!-- Ciudad -->
                         <div class="flex flex-col">
                             <label class="mb-1 font-medium text-gray-700 dark:text-white">Ciudad:</label>
                             <select
@@ -61,8 +59,6 @@ import { ICorregimiento } from '@interfaces/icorregimiento';
                                 }
                             </select>
                         </div>
-
-                        <!-- Corregimiento -->
                         <div class="flex flex-col">
                             <label class="mb-1 font-medium text-gray-700 dark:text-white">Corregimiento:</label>
                             <select
@@ -348,7 +344,7 @@ export class UpdateCounter implements OnInit {
   onSubmit(): void {
     if (this.updateForm.valid && this.counterId) {
       this.toast.success('Éxito', 'Contador actualizado correctamente.');
-      this.router.navigate(['/counter']);
+      this.router.navigate(['/shell/counter']);
     } else {
       this.toast.error('Error', 'Por favor completa todos los campos requeridos');
       this.updateForm.markAllAsTouched();

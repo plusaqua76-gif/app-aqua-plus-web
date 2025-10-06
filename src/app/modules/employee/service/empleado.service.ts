@@ -96,18 +96,12 @@ export class EmpleadoService {
     return trimmed !== '' && !isNaN(Number(trimmed));
   }
 
-
-
-
-
-
-
   saveEmpleado(data: any): Observable<Map<string, any>> {
     const url = `${environment.apiUrl}/${END_POINT_SERVICE.GET_EMPLEADO}/${END_POINT_SERVICE.GET_SAVE_EMPLEADO}`;
     return this.http.post<Map<string, any>>(url, data)
   }
   getEmpleadoById(id: number): Observable<ApiResponse<IEmpleadoEmpresaResponse>> {
-    const url = `${this.apiUrl}/${END_POINT_SERVICE.GET_EMPLEADO}/${id}`;
+    const url = `${this.apiUrl}/${END_POINT_SERVICE.GET_EMPLEADO}/empresa/${id}`;
     return this.http.get<ApiResponse<IEmpleadoEmpresaResponse>>(url)
   }
 

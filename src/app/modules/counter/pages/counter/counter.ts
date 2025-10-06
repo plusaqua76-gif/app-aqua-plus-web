@@ -4,7 +4,7 @@ import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angul
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TableComponent } from '@components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { EMPTY } from 'rxjs';
+import { catchError, EMPTY, of } from 'rxjs';
 import { ToastService } from '@services/toast.service';
 import { CounterService } from '../../service/counter.service';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
@@ -88,7 +88,11 @@ export class Counter {
       return this.counterService.getAllCounterByIdEnterprisePaginated(
         enterpriseId,
         pagination
-      );
+      ).pipe(
+              catchError((error) => {
+                return of(null);
+              })
+            );
     },
   });
 

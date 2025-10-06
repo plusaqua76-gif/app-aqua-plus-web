@@ -61,17 +61,17 @@ export const navbarData: NavItem[] = [
     label: 'Contabilidad',
     allowedRoles: ['ADMIN'],
   },
-  //   {
-  //   routeLink: 'pqr-client',
-  //   icon: 'heroicon-shield-check',
-  //   label: 'Sistema PQR',
-  //   allowedRoles: ['ADMIN', 'CLIENTE'],
-  // },
-      {
+  {
     routeLink: 'pqr-client',
     icon: 'heroicon-shield-check',
     label: 'Sistema PQR',
     allowedRoles: ['ADMIN'],
+  },
+  {
+    routeLink: 'pqr-client/pqr-enterprice-clients',
+    icon: 'heroicon-shield-check',
+    label: 'Sistema PQR',
+    allowedRoles: ['CLIENTE'],
   },
   {
     routeLink: 'configuration-roles',

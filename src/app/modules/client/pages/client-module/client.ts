@@ -5,7 +5,7 @@ import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { Action, TableComponent } from '../../../../core/components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ToastService } from '@services/toast.service';
-import { EMPTY } from 'rxjs';
+import { EMPTY, catchError, of } from 'rxjs';
 import { PopupComponent } from '@shared/components/popUp';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
@@ -153,25 +153,15 @@ export class Client {
       return this.enterpriseClientCounterService.getAllClientsByIdEnterprisePaginated(
         enterpriseId,
         pagination
+      ).pipe(
+        catchError((error) => {
+          return of(null);
+        })
       );
     }
   });
 
 
-  // Método legacy para compatibilidad con el toggle de estado
-  dataClientCounter = rxResource({
-    params: () => ({ enterpriseId: this.enterpriseId() }),
-    stream: ({ params }) => {
-      const { enterpriseId } = params;
-
-      if (!enterpriseId) {
-        console.warn('No enterprise ID available');
-        return EMPTY;
-      }
-
-      return this.enterpriseClientCounterService.getAllClientsByIdEnterprise(enterpriseId);
-    }
-  });
 
   transformedData = computed(() => this.serverClientData.value() ?? null);
 

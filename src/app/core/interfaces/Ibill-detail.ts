@@ -108,6 +108,14 @@ export interface ILecturaHistorico {
   consumoAnormal: boolean;
 }
 
+export interface IPuntoPago {
+  id?: number;
+  nombre?: string;
+  imagen?: string;
+  contentType?: string;
+  codigoQr?: string;
+}
+
 export interface IBillDetailResponse {
   cliente: ICliente;
   empresa: IEmpresa;
@@ -117,6 +125,7 @@ export interface IBillDetailResponse {
   deudaCliente: IDeudaCliente[];
   totalesTarifas: ITotalesTarifas;
   lecturasHistorico: ILecturaHistorico[];
+  puntosPago?: IPuntoPago[];
 }
 
 export type IBillDetailApiResponse = ApiResponse<IBillDetailResponse>;

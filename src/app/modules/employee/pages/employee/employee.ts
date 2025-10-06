@@ -7,7 +7,7 @@ import {
 } from '../../../../../app/core/components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EmpleadoService } from '../../service/empleado.service';
-import { EMPTY } from 'rxjs';
+import { catchError, EMPTY, of } from 'rxjs';
 import { ToastService } from '@services/toast.service';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
@@ -124,7 +124,11 @@ export class Employee {
       return this.empleadoService.getEmployeeByEnterpricePaginated(
         enterpriseId,
         pagination
-      );
+      ).pipe(
+              catchError((error) => {
+                return of(null);
+              })
+            );
     },
   });
 

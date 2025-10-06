@@ -47,7 +47,7 @@ export const END_POINT_SERVICE = {
   UPDATE_EMPRESA:'updateEmpresa',
   UPDATE_ESTADO: 'update',
 
-  GET_INVENTORY:'Inventario',
+  GET_INVENTORY:'inventario',
   GET_ALL_INVENTORY:'empresa',
 
   GET_PRODUC:'Producto',
