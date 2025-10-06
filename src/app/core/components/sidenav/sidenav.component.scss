@@ -396,12 +396,24 @@
 
         &:hover .sidenav-nav-link {
             color: #ffffff;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transform: translateX(8px);
-            box-shadow:
-                0 8px 25px rgba(0, 0, 0, 0.3),
-                0 4px 10px rgba(255, 255, 255, 0.1);
+
+            // Efectos visuales SOLO cuando el sidenav está expandido
+            .sidenav-collapsed & {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                transform: translateX(8px);
+                box-shadow:
+                    0 8px 25px rgba(0, 0, 0, 0.3),
+                    0 4px 10px rgba(255, 255, 255, 0.1);
+            }
+
+            // Cuando está colapsado, solo efecto sutil sin bordes ni transform
+            &:not(.sidenav-collapsed &) {
+
+                border: 1px solid transparent;
+                transform: none;
+                box-shadow: none;
+            }
 
             .sidenav-link-icon {
                 background: rgba(255, 255, 255, 0.15);
@@ -435,18 +447,31 @@
 
 .active {
     color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.15) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    transform: translateX(8px) !important;
-    box-shadow:
-        0 8px 25px rgba(0, 0, 0, 0.3),
-        0 4px 10px rgba(255, 255, 255, 0.1) !important;
 
-    &::before {
-        opacity: 1 !important;
+    // Estilos visuales SOLO cuando el sidenav está expandido
+    .sidenav-collapsed & {
+        background: rgba(255, 255, 255, 0.15) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        transform: translateX(8px) !important;
+        box-shadow:
+            0 8px 25px rgba(0, 0, 0, 0.3),
+            0 4px 10px rgba(255, 255, 255, 0.1) !important;
+
+        &::before {
+            opacity: 1 !important;
+        }
+    }
+
+    // Cuando está colapsado, solo cambiar el color del ícono (sin bordes ni efectos)
+    &:not(.sidenav-collapsed &) {
+        background: transparent !important;
+        border: 1px solid transparent !important;
+        transform: none !important;
+        box-shadow: none !important;
     }
 
     .sidenav-link-icon {
+        // Estos estilos se aplican siempre (colapsado y expandido)
         background: rgba(255, 255, 255, 0.2) !important;
         transform: scale(1.1) !important;
 
