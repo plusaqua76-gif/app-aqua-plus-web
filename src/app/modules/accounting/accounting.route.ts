@@ -4,11 +4,13 @@ export default [
   {
     path: '',
     redirectTo: 'inventory',
-    pathMatch: 'full'
+    pathMatch: 'full',
   },
   {
     path: 'inventory',
-    loadComponent: () => import('./pages/inventory/inventory')
-      .then(m => m.Inventory)
-  }
+    loadComponent: () =>
+      import('./pages/inventorycompany/inventorycompany').then(
+        (m) => m.InventoryCompany
+      ),
+  },
 ] as Routes;

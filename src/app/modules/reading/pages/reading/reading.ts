@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ReadingService } from '../../service/reading.service';
 import { TableComponent } from '@components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { EMPTY } from 'rxjs';
+import { catchError, EMPTY, of } from 'rxjs';
 import { ToastService } from '@services/toast.service';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
@@ -109,7 +109,11 @@ export class Reading {
       return this.readingService.getReadingsPaginated(
         enterpriseId,
         pagination
-      );
+      ).pipe(
+              catchError((error) => {
+                return of(null);
+              })
+            );
     },
   });
 

@@ -50,6 +50,8 @@
     top: 0;
     height: 100vh;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
 
     width: 5rem;
     transition: width 0.5s ease;
@@ -62,12 +64,34 @@
         }
     }
 
+    // Gradiente sutil en la parte inferior para indicar scroll
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2rem;
+        background: linear-gradient(transparent, rgba(38, 50, 56, 0.8));
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    // Mostrar gradiente cuando hay scroll
+    &.has-scroll::after {
+        opacity: 1;
+    }
+
     .logo-container {
         display: flex;
         align-items: center;
-        padding: 0.938rem 0.938rem  ;
+        padding: 0.938rem 0.938rem;
         width: 100%;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        flex-shrink: 0; // Evita que se comprima cuando hay scroll
+        position: relative; // Para posicionar el botón indicador
 
         .logo {
             background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
@@ -121,12 +145,10 @@
             width: 2rem;
             height: 2rem;
             border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.1);
             border: none;
             transition: all 0.3s ease;
 
             &:hover {
-                background-color: rgba(255, 255, 255, 0.2);
                 transform: rotate(90deg);
             }
 
@@ -135,6 +157,67 @@
                 font-size: 24px;
             }
         }
+
+        .expand-indicator-btn {
+            position: absolute;
+            right: -12px;
+            top: 41%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            border: 2px solid rgba(38, 50, 56, 0.8);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1001;
+
+            svg {
+                width: 10px;
+                height: 10px;
+                color: #263238;
+                transition: transform 0.3s ease;
+            }
+
+            &:hover {
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                transform: translateY(-50%) scale(1.1);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+                svg {
+                    transform: translateX(1px);
+                }
+            }
+
+            &:active {
+                transform: translateY(-50%) scale(0.95);
+                transition: all 0.1s ease;
+            }
+
+            // Animación de pulsación sutil
+            animation: pulseHint 3s ease-in-out infinite;
+        }
+
+        // Solo mostrar en desktop cuando el sidenav NO está expandido
+        @media (max-width: 768px) {
+            .expand-indicator-btn {
+                display: none;
+            }
+        }
+    }
+}
+
+// Animación sutil para llamar la atención del usuario
+@keyframes pulseHint {
+    0%, 100% {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 4px rgba(255, 255, 255, 0.1);
     }
 }
 
@@ -151,16 +234,65 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: calc(100% - 3.65rem);
+    flex: 1; // Usa todo el espacio disponible
+    min-height: 0; // Permite que el flex funcione correctamente
+    max-height: calc(100vh - 120px); // Altura máxima fija para asegurar scroll
     cursor: pointer;
     gap: 0.5rem;
+    
+    // Agregar scroll cuando sea necesario - IMPORTANTE
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    
+    // Mejorar el scroll en móvil
+    -webkit-overflow-scrolling: touch;
+    
+    // Forzar el comportamiento de scroll
+    contain: layout style;
+    overscroll-behavior: contain;    // Estilos del scrollbar para mejor apariencia
+    &::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        transition: background 0.3s ease;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    }
+
+    // Para Firefox
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+
+    // Mejoras específicas para móvil
+    @media (max-width: 768px) {
+        // Asegurar altura máxima correcta en móvil
+        max-height: calc(100vh - 100px);
+        
+        // Padding adicional en la parte inferior para evitar cortes
+        padding-bottom: 2rem;
+        
+        // Asegurar que todos los items sean visibles
+        .sidenav-nav-item {
+            flex-shrink: 0; // Evita que los items se compriman
+            min-height: 3.5rem; // Altura mínima garantizada
+        }
+    }
 
     .sidenav-nav-item {
         width: 100%;
         display: flex;
         justify-content: center;
-
-        // Cuando el sidenav está expandido
+        flex-shrink: 0; // IMPORTANTE: Evita que se compriman        // Cuando el sidenav está expandido
         .sidenav-collapsed & {
             justify-content: stretch;
         }
@@ -187,51 +319,7 @@
                 width: 100%;
             }
 
-            // Tooltip usando CSS puro - solo cuando el sidenav NO está expandido
-            &:not(.sidenav-collapsed &)::after {
-                content: attr(data-tooltip);
-                position: absolute;
-                left: calc(100% + 0.75rem);
-                top: 50%;
-                transform: translateY(-50%);
-                background: rgba(38, 50, 56, 0.95);
-                backdrop-filter: blur(10px);
-                color: #ffffff;
-                padding: 0.5rem 0.75rem;
-                border-radius: 0.5rem;
-                font-size: 0.875rem;
-                font-weight: 500;
-                white-space: nowrap;
-                z-index: 1002;
-                opacity: 0;
-                visibility: hidden;
-                transition: all 0.3s ease;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-                pointer-events: none;
-            }
 
-            // Flecha del tooltip
-            // &:not(.sidenav-collapsed &)::before {
-            //     content: '';
-            //     position: absolute;
-            //     left: calc(100% + 0.375rem);
-            //     top: 50%;
-            //     transform: translateY(-50%);
-            //     border: 0.375rem solid transparent;
-            //     border-right-color: rgba(38, 50, 56, 0.95);
-            //     z-index: 1003;
-            //     opacity: 0;
-            //     visibility: hidden;
-            //     transition: all 0.3s ease;
-            // }
-
-            // Mostrar tooltip al hacer hover - solo cuando el sidenav NO está expandido
-            &:hover:not(.sidenav-collapsed &)::after,
-            &:hover:not(.sidenav-collapsed &)::before {
-                opacity: 1;
-                visibility: visible;
-            }
 
             &::before {
                 content: '';
@@ -334,6 +422,14 @@
                 text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
             }
         }
+
+        // Efecto al hacer clic (pressed state) para móvil
+        @media (max-width: 768px) {
+            &:active .sidenav-nav-link {
+                transform: translateX(4px) scale(0.98);
+                transition: all 0.1s ease;
+            }
+        }
     }
 }
 
@@ -371,3 +467,43 @@
         text-shadow: 0 0 12px rgba(255, 255, 255, 0.4) !important;
     }
 }
+
+// Estilos personalizados para los tooltips de Tailwind CSS
+.tooltip {
+    --tooltip-bg: rgba(38, 50, 56, 0.95);
+    --tooltip-border: rgba(255, 255, 255, 0.2);
+
+    background-color: var(--tooltip-bg) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--tooltip-border);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    font-weight: 500;
+    max-width: 200px;
+
+    // Transiciones mejoradas
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    // Cuando está visible
+    &.show {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: translateX(0) !important;
+    }
+
+    // Flecha del tooltip personalizada
+    .tooltip-arrow,
+    .tooltip-arrow::before {
+        border-right-color: var(--tooltip-bg) !important;
+    }
+}
+
+// Mejoras de accesibilidad para tooltips
+@media (prefers-reduced-motion: reduce) {
+    .tooltip {
+        transition: none !important;
+    }
+}
+
+

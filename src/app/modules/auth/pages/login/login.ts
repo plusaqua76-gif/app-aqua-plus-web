@@ -94,7 +94,14 @@ export class LoginComponent {
       const token = res.response?.token;
       if (token) {
         sessionStorage.setItem('authToken', token);
-        sessionStorage.setItem('userData', JSON.stringify(res.response));
+
+        // Crear objeto userData con personaId opcional
+        const userData = { ...res.response };
+        if (res.response?.personaId) {
+          userData.personaId = res.response.personaId;
+        }
+
+        sessionStorage.setItem('userData', JSON.stringify(userData));
         this.router.navigate(['shell']);
         this.cred.set({ nombre: '', contrasena: '' });
         this.shouldLogin.set(false);

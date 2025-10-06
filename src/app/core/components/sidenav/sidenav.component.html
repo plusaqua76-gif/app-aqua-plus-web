@@ -21,7 +21,18 @@
     <button class="logo" (click)="toggleCollapse()">
       {{ enterpriseInfo.value()?.nombre?.charAt(0) || "A" }}
     </button>
-    } @if (collapsed) {
+    }
+
+    <!-- Botón indicador de expansión - Solo visible cuando NO está expandido -->
+    @if (!collapsed) {
+    <button class="expand-indicator-btn" (click)="toggleCollapse()" aria-label="Expandir menú">
+      <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7"/>
+      </svg>
+    </button>
+    }
+
+    @if (collapsed) {
     <div class="logo-text" @fadeInOut>
       {{ enterpriseInfo.value()?.nombre || "Empresa" }}
     </div>
@@ -32,15 +43,20 @@
     }
   </div>
 
-  <ul class="sidenav-nav">
+  <nav aria-label="Menú principal">
+    <ul class="sidenav-nav">
     @for (data of navData; track $index) {
     <li class="sidenav-nav-item" *hasRole="data.allowedRoles">
       <a
         class="sidenav-nav-link"
         [routerLink]="[data.routeLink]"
         routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        [attr.data-tooltip]="data.label"
+        [attr.aria-label]="data.label"
+        [attr.title]="collapsed ? null : data.label"
+        role="menuitem"
+        [attr.data-tooltip-target]="collapsed ? null : 'tooltip-' + $index"
+        data-tooltip-placement="right"
+        (click)="onItemClick()"
       >
         <div class="sidenav-link-icon">
           @switch (data.icon) { @case ('heroicon-chart-bar') {
@@ -185,4 +201,21 @@
     </li>
     }
   </ul>
+
+  <!-- Tooltips de Tailwind CSS - Solo se muestran cuando el sidenav NO está expandido -->
+  @if (!collapsed) {
+    @for (data of navData; track $index) {
+      @if (data.allowedRoles) {
+        <div
+          [id]="'tooltip-' + $index"
+          role="tooltip"
+          class="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
+        >
+          {{ data.label }}
+          <div class="tooltip-arrow" data-popper-arrow></div>
+        </div>
+      }
+    }
+  }
+  </nav>
 </div>

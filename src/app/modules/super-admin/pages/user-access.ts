@@ -11,7 +11,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { TableComponent } from '@components/table';
 import { type UserAccessRow } from '@shared/index';
 import { isPlatformBrowser } from '@angular/common';
-import { EMPTY } from 'rxjs';
+import { catchError, EMPTY, of } from 'rxjs';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 import { EnterpriseIdService } from '../../../core/services/enterpriceId.service';
 import { ToastService } from '@services/toast.service';
@@ -113,7 +113,11 @@ export class UserAccess {
         return this.userAccessService.getAllUsersAccess(
           enterpriseId,
           pagination
-        );
+        ).pipe(
+                catchError((error) => {
+                  return of(null);
+                })
+              );
       },
     });
 

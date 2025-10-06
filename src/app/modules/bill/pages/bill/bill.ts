@@ -20,7 +20,7 @@ import { PopupComponent } from '@shared/components/popUp';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 import { PlazoPagoService } from '../../service/print-bill-details.service';
 import { PdfService } from '@services/pdf.service';
-import { PdfBill } from '@components/pdf-bill';
+import { PdfBill } from '@components/pdf-bill/pdf-bill';
 
 @Component({
   selector: 'app-bill',

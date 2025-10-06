@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, PLATFORM_ID, effect } from '@angul
 import { FormsModule, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { PdfBill } from "@components/pdf-bill";
+import { PdfBill } from "@components/pdf-bill/pdf-bill";
 import { PdfService } from "../../../../core/services/pdf.service";
 import { ToastService } from '../../../../core/services/toast.service';
 import { EstadoService } from '../../service/estado.service';
@@ -750,6 +750,10 @@ export class PrintBill {
       this.toast.error('Error', 'No hay deudas pendientes para pagar');
       return;
     }
+
+    // Llenar todos los valores con el total de cada deuda
+    this.llenarValoresTotales();
+    this.tipoConfirmacion.set('total');
 
     // Mostrar popup de confirmación
     this.showConfirmPagoTotalPopup.set(true);

@@ -104,28 +104,41 @@ import { of } from 'rxjs';
                  [(ngModel)]="selectedCliente"
                  class="block w-full appearance-none rounded-xl border border-gray-600/70 bg-transparent px-4 py-3 pr-10 text-sm text-gray-100 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-400/40"
                 >
-                <!-- @for(couter of countersClient.value()){
-                  <option [value]="couter.cliente.id" class="bg-gray-900"></option>
-                    {{ couter.cliente.nombre }} - {{ couter.cliente.numeroCedula }}
-                  </option>
-                } -->
-
-                </select>
-                <!-- <select
-                  [(ngModel)]="selectedCliente"
-                  class="block w-full appearance-none rounded-xl border border-gray-600/70 bg-transparent px-4 py-3 pr-10 text-sm text-gray-100 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-400/40"
-                >
                   <option [value]="null" class="bg-gray-900">
                     Seleccione el cliente
                   </option>
-                  @for (cliente of clientes; track cliente.id) {
-                  <option [value]="cliente.id" class="bg-gray-900">
-                    {{ cliente.nombre }} - {{ cliente.documento }}
-                  </option>
+                  @if (countersClient.value()?.response) {
+                    @for(counter of countersClient.value()!.response; track counter.cliente.id) {
+                      <option [value]="counter.cliente.id" class="bg-gray-900">
+                        {{ counter.cliente.nombre }} - {{ counter.cliente.numeroCedula }}
+                      </option>
+                    }
                   }
-                </select> -->
-
+                  @if (countersClient.isLoading()) {
+                    <option disabled class="bg-gray-900">Cargando clientes...</option>
+                  }
+                  @if (countersClient.error()) {
+                    <option disabled class="bg-gray-900">Error al cargar clientes</option>
+                  }
+                  @if (!empresaId() || !personId()) {
+                    <option disabled class="bg-gray-900">Faltan datos de usuario ({{ !empresaId() ? 'empresaId' : '' }} {{ !personId() ? 'personId' : '' }})</option>
+                  }
+                </select>
+                @if (countersClient.isLoading()) {
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <svg class="animate-spin h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                }
               </div>
+              <!-- Debug info - Remover en producción -->
+              @if (countersClient.error()) {
+                <div class="mt-2 p-2 bg-red-900/20 border border-red-600/70 rounded text-xs text-red-300">
+                  Error: {{ countersClient.error() | json }}
+                </div>
+              }
             </div>
 
             <!-- Descripción -->
@@ -305,7 +318,15 @@ export class PqrClientsEnterprice {
   constructor() {
     effect(() => {
       console.log("esta es la data de los constadores", this.countersClient.value());
-    })
+      console.log("countersClient isLoading:", this.countersClient.isLoading());
+      console.log("countersClient error:", this.countersClient.error());
+    });
+
+    effect(() => {
+      console.log("empresaId:", this.empresaId());
+      console.log("personId:", this.personId());
+      console.log("userData:", this.userData());
+    });
   }
 
 
@@ -326,16 +347,19 @@ export class PqrClientsEnterprice {
 
   countersClient = rxResource({
     params: () => ({
-      idEmpresa: 14,
-      idPersona: 77
-      // idEmpresa: this.empresaId(),
-      // idPersona: this.personId()
+      idEmpresa: this.empresaId(),
+      idPersona: this.personId()
     }),
     stream: ({ params }) => {
       const { idEmpresa, idPersona } = params;
+      console.log('rxResource params:', { idEmpresa, idPersona });
+
       if (!idEmpresa || !idPersona) {
+        console.log('Missing params, returning null');
         return of(null);
       }
+
+      console.log('Calling getCounterByClientEnterprice with:', { idEmpresa, idPersona });
       return this.pqrService.getCounterByClientEnterprice(idEmpresa, idPersona);
     }
   })
@@ -364,8 +388,10 @@ export class PqrClientsEnterprice {
 
     readonly personId = computed(() => {
     const data = this.userData();
-    return data?.id || null;
+    return data?.personId || null;
   });
+
+
 
   puedeCrearPQR(): boolean {
     return !!(
