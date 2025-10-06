@@ -239,14 +239,14 @@
     max-height: calc(100vh - 120px); // Altura máxima fija para asegurar scroll
     cursor: pointer;
     gap: 0.5rem;
-    
+
     // Agregar scroll cuando sea necesario - IMPORTANTE
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    
+
     // Mejorar el scroll en móvil
     -webkit-overflow-scrolling: touch;
-    
+
     // Forzar el comportamiento de scroll
     contain: layout style;
     overscroll-behavior: contain;    // Estilos del scrollbar para mejor apariencia
@@ -277,10 +277,10 @@
     @media (max-width: 768px) {
         // Asegurar altura máxima correcta en móvil
         max-height: calc(100vh - 100px);
-        
+
         // Padding adicional en la parte inferior para evitar cortes
         padding-bottom: 2rem;
-        
+
         // Asegurar que todos los items sean visibles
         .sidenav-nav-item {
             flex-shrink: 0; // Evita que los items se compriman
