@@ -104,7 +104,17 @@ export const routes: Routes = [
         path: 'profile',
         loadChildren: () =>
           import('./modules/user/user.route').then((m) => m.default),
-      }
+      },
+      {
+        path: 'reports',
+        loadChildren: () =>
+          import('./modules/reports/reports.route').then((m) => m.default),
+      },
+      {
+        path: 'bills-users',
+        loadComponent: () =>
+          import('./modules/user/pages/billsUsers').then((m) => m.BillUsers),
+      },
     ],
   },
   {

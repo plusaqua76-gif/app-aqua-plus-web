@@ -81,7 +81,7 @@ import {
             </div>
           } @else {
             <!-- Modal genérico -->
-            <div class="p-8 text-left">
+            <div [class]="contentPadding() + ' text-left'">
               <h3 class="text-xl font-semibold text-white mb-6 text-center">{{ title() }}</h3>
               <ng-content></ng-content>
             </div>
@@ -104,6 +104,7 @@ export class PopupComponent {
   readonly isConfirmation = input<boolean>(false);
   readonly maxWidth = input<string>('max-w-md');
   readonly paddingTop = input<string>('pt-[75px]');
+  readonly contentPadding = input<string>('p-8');
   readonly confirmButtonClass = input<string>('text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center');
   readonly confirmAction = output<void>();
   readonly cancelAction = output<void>();

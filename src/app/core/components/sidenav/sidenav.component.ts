@@ -119,9 +119,7 @@ export class SidenavComponent implements OnInit {
   }
 
   onItemClick(): void {
-    // Cerrar sidenav automáticamente en móvil cuando se selecciona un item
     if (this.screenWidth <= 768 && this.collapsed) {
-      // Pequeño retraso para que el usuario vea la selección antes de cerrar
       setTimeout(() => {
         this.closeSidenav();
       }, 150);

@@ -4,7 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { ToastService } from '@services/toast.service';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { PqrEnterprisesService } from '../services/pqr-enterprices.service';
-import { of } from 'rxjs';
+import { of, switchMap, firstValueFrom } from 'rxjs';
+import { ICreateNovedadWithFileRequest } from '@interfaces/INovelty/IClienteNovedad';
+import { ITypeNovelty } from '@interfaces/INovelty/ItypeNovelty';
 
 @Component({
   selector: 'app-pqr-clients-enterprice',
@@ -97,20 +99,20 @@ import { of } from 'rxjs';
             <!-- Cliente -->
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-300">
-                Cliente
+                Contador
               </label>
               <div class="relative">
                 <select
-                 [(ngModel)]="selectedCliente"
+                 [(ngModel)]="selectedContador"
                  class="block w-full appearance-none rounded-xl border border-gray-600/70 bg-transparent px-4 py-3 pr-10 text-sm text-gray-100 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-400/40"
                 >
                   <option [value]="null" class="bg-gray-900">
-                    Seleccione el cliente
+                    Seleccione el contador
                   </option>
                   @if (countersClient.value()?.response) {
                     @for(counter of countersClient.value()!.response; track counter.cliente.id) {
-                      <option [value]="counter.cliente.id" class="bg-gray-900">
-                        {{ counter.cliente.nombre }} - {{ counter.cliente.numeroCedula }}
+                      <option [value]="counter.id" class="bg-gray-900">
+                        {{ counter.contador.serial }} - {{ counter.contador.tipoContador.nombre }}
                       </option>
                     }
                   }
@@ -120,8 +122,8 @@ import { of } from 'rxjs';
                   @if (countersClient.error()) {
                     <option disabled class="bg-gray-900">Error al cargar clientes</option>
                   }
-                  @if (!empresaId() || !personId()) {
-                    <option disabled class="bg-gray-900">Faltan datos de usuario ({{ !empresaId() ? 'empresaId' : '' }} {{ !personId() ? 'personId' : '' }})</option>
+                  @if (!empresaId() || !personaId()) {
+                    <option disabled class="bg-gray-900">Faltan datos de usuario ({{ !empresaId() ? 'empresaId' : '' }} {{ !personaId() ? 'personaId' : '' }})</option>
                   }
                 </select>
                 @if (countersClient.isLoading()) {
@@ -295,40 +297,12 @@ export class PqrClientsEnterprice {
 
   selectedTipoPQR: any = null;
   selectedCliente: any = null;
+  selectedContador: number = 0;
   descripcionPQR: string = '';
   archivosSeleccionados: File[] = [];
   guardandoPQR = signal(false);
   billTerm = signal('');
   selectedBill: { codigo: string; id: number } | null = null;
-
-  tiposPQR = [
-    { id: 1, nombre: 'Petición' },
-    { id: 2, nombre: 'Queja' },
-    { id: 3, nombre: 'Reclamo' },
-    { id: 4, nombre: 'Sugerencia' },
-  ];
-
-  clientes = [
-    { id: 1, nombre: 'Juan Pérez', documento: '12345678' },
-    { id: 2, nombre: 'María García', documento: '87654321' },
-    { id: 3, nombre: 'Carlos López', documento: '11223344' },
-  ];
-
-
-  constructor() {
-    effect(() => {
-      console.log("esta es la data de los constadores", this.countersClient.value());
-      console.log("countersClient isLoading:", this.countersClient.isLoading());
-      console.log("countersClient error:", this.countersClient.error());
-    });
-
-    effect(() => {
-      console.log("empresaId:", this.empresaId());
-      console.log("personId:", this.personId());
-      console.log("userData:", this.userData());
-    });
-  }
-
 
   billcode = rxResource({
     params: () => ({
@@ -343,26 +317,42 @@ export class PqrClientsEnterprice {
     }
   })
 
-
-
   countersClient = rxResource({
     params: () => ({
       idEmpresa: this.empresaId(),
-      idPersona: this.personId()
+      idPersona: this.personaId()
     }),
     stream: ({ params }) => {
       const { idEmpresa, idPersona } = params;
-      console.log('rxResource params:', { idEmpresa, idPersona });
-
       if (!idEmpresa || !idPersona) {
-        console.log('Missing params, returning null');
         return of(null);
       }
-
-      console.log('Calling getCounterByClientEnterprice with:', { idEmpresa, idPersona });
       return this.pqrService.getCounterByClientEnterprice(idEmpresa, idPersona);
     }
   })
+
+
+
+//   "novedad": {
+//     "tipoNovedad": { se consume saveTypeNovelty para guardar la novedad y el resposnse de esa api me traera el id  "response": {//   "id": 7,//   "novedad": "daño contador",//   "descripcion": "daño contador"// }
+//       "id": 0
+//     },
+//     "empresaClienteContador": {   deberas acceder a la selecion de conteador y acceder a   countersClient en     "contador": {      "id": 168,
+//       "id": 0, "Opcional":""
+//     },
+//     "estado": { deberas consumir statusNovelty y en la respuesat obtener el id
+//       "id": 0
+//     },
+//     "codigo": "string",
+//     "descripcion": "string",
+//     "activo": true
+//   },
+//   "base64File": "string",
+//   "idPersona": 0, ya tenemos el personaId
+//   "nombreArchivo": "string", ya lo tenemos en nombreusuario
+//   "extension": "string",
+//   "categoriaCodigo": "PQR"  este valor se envia
+// }
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -381,14 +371,14 @@ export class PqrClientsEnterprice {
     return data?.empresaId || null;
   });
 
+    readonly personaId = computed(() => {
+    const data = this.userData();
+    return data?.personaId || null;
+  });
+
   readonly nombreUsuario = computed(() => {
     const data = this.userData();
     return data?.nombre || null;
-  });
-
-    readonly personId = computed(() => {
-    const data = this.userData();
-    return data?.personId || null;
   });
 
 
@@ -396,38 +386,130 @@ export class PqrClientsEnterprice {
   puedeCrearPQR(): boolean {
     return !!(
       this.selectedBill &&
-      this.selectedCliente &&
+      this.selectedContador &&
       this.descripcionPQR?.trim() &&
       this.descripcionPQR.trim().length <= 500
     );
   }
 
-  crearPQR(): void {
+  async crearPQR(): Promise<void> {
     if (!this.puedeCrearPQR() || this.guardandoPQR()) {
       return;
     }
 
-    const empresaId = this.empresaId();
+    const personaId = this.personaId();
     const usuario = this.nombreUsuario();
 
-    if (!empresaId || !usuario) {
+    if (!personaId || !usuario) {
       this.toastService.error('Error', 'No se pudo obtener la información del usuario');
       return;
     }
 
     this.guardandoPQR.set(true);
 
-    // Simular guardado del PQR
-    setTimeout(() => {
-      this.toastService.success('Éxito', 'PQR creado exitosamente');
-      this.limpiarFormulario();
+    try {
+      // 1. Crear tipo de novedad
+      const tipoNovedadData: ITypeNovelty = {
+        novedad: "PQR Cliente",
+        descripcion: this.descripcionPQR.trim(),
+        activo: true,
+        usuarioCreacion: usuario
+      };
+
+      // Obtener el ID del tipo de novedad usando subscribe
+      const tipoNovedadResponse = await new Promise<any>((resolve, reject) => {
+        this.pqrService.saveTypeNovelty(tipoNovedadData).subscribe({
+          next: (response) => resolve(response),
+          error: (error) => reject(new Error(error?.message || 'Error al crear tipo de novedad'))
+        });
+      });
+
+      if (!tipoNovedadResponse?.response?.id) {
+        this.toastService.error('Error', 'No se pudo crear el tipo de novedad');
+        return;
+      }
+
+      // 2. Convertir archivo a base64 si existe
+      let base64File = '';
+      let nombreArchivo = usuario; // Usar el nombre de usuario como nombre del archivo
+      let extension = 'jpg';
+
+      if (this.archivosSeleccionados.length > 0) {
+        const archivo = this.archivosSeleccionados[0];
+        base64File = await this.convertirArchivoABase64(archivo);
+        extension = archivo.name.split('.').pop() || 'jpg';
+      }
+
+      // 3. Construir el payload final
+      const fechaActual = new Date().toISOString();
+
+      const novedadRequest: ICreateNovedadWithFileRequest = {
+        novedad: {
+          tipoNovedad: { id: tipoNovedadResponse.response.id },
+          empresaClienteContador: { id: Number(this.selectedContador) }, // Convertir a number
+          estado: { codigo: "EST_PEN" },
+          codigo: `PQR-${Date.now()}`, // Generar código único
+          descripcion: this.descripcionPQR.trim(),
+          activo: true,
+          usuarioCreacion: usuario,
+          fechaCreacion: fechaActual,
+          usuarioModificacion: usuario,
+          fechaModificacion: fechaActual
+        },
+        base64File: base64File,
+        idPersona: personaId,
+        nombreArchivo: nombreArchivo,
+        extension: extension,
+        categoriaCodigo: 'PQR'
+      };
+
+      // 4. Enviar la novedad al servicio
+      this.pqrService.saveNovelty(novedadRequest).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.toastService.success('Éxito', 'PQR creado exitosamente');
+            this.limpiarFormulario();
+          } else {
+            this.toastService.error('Error', response.message || 'Error al crear el PQR');
+          }
+        },
+        error: (error) => {
+          console.error('Error al crear PQR:', error);
+          this.toastService.error('Error', 'Error al comunicarse con el servidor');
+        },
+        complete: () => {
+          this.guardandoPQR.set(false);
+        }
+      });
+
+    } catch (error) {
+      console.error('Error en el proceso de creación:', error);
+      this.toastService.error('Error', 'Error en el proceso de creación del PQR');
       this.guardandoPQR.set(false);
-    }, 2000);
+    }
+  }
+
+  private convertirArchivoABase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (reader.result) {
+          // Remover el prefijo "data:image/jpeg;base64," o similar
+          const base64 = (reader.result as string).split(',')[1];
+          resolve(base64);
+        } else {
+          reject(new Error('Error al leer el archivo'));
+        }
+      };
+      reader.onerror = () => reject(new Error('Error al leer el archivo'));
+      reader.readAsDataURL(file);
+    });
   }
 
   limpiarFormulario(): void {
     this.selectedTipoPQR = null;
     this.selectedCliente = null;
+    this.selectedContador = 0;
     this.descripcionPQR = '';
     this.archivosSeleccionados = [];
     this.billTerm.set('');

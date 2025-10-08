@@ -49,34 +49,53 @@ export const navbarData: NavItem[] = [
     label: 'Empresas',
     allowedRoles: ['SUPER ADMIN'],
   },
+    {
+    routeLink: 'bills-users',
+    icon: 'heroicon-clipboard-document-check',
+    label: 'Mis facturas',
+    allowedRoles: ['CLIENTE'],
+  },
   {
     routeLink: 'user-access',
-    icon: 'heroicon-shield-check',
+    icon: 'heroicon-user-group',
     label: 'Acceso de Usuarios',
     allowedRoles: ['SUPER ADMIN'],
   },
   {
     routeLink: 'Inventory',
-    icon: 'heroicon-shield-check',
+    icon: 'heroicon-credit-card',
     label: 'Contabilidad',
     allowedRoles: ['ADMIN'],
   },
   {
     routeLink: 'pqr-client',
-    icon: 'heroicon-shield-check',
+    icon: 'heroicon-exclamation-circle',
     label: 'Sistema PQR',
     allowedRoles: ['ADMIN'],
   },
   {
     routeLink: 'pqr-client/pqr-enterprice-clients',
-    icon: 'heroicon-shield-check',
+    icon: 'heroicon-exclamation-circle',
     label: 'Sistema PQR',
     allowedRoles: ['CLIENTE'],
   },
   {
     routeLink: 'configuration-roles',
-    icon: 'heroicon-shield-check',
+    icon: 'heroicon-cog',
     label: 'Configuración de Roles',
     allowedRoles: ['ADMIN'],
+  },
+  {
+    routeLink: 'reports',
+    icon: 'heroicon-wallet',
+    label: 'Reportes',
+    allowedRoles: ['ADMIN'],
+  },
+
+  {
+    routeLink: 'reports',
+    icon: 'heroicon-wallet',
+    label: 'Reportes',
+    allowedRoles: ['CLIENTE'],
   },
 ];

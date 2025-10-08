@@ -2,8 +2,10 @@ import { Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angul
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '@services/toast.service';
-import { IClienteNovedad } from '@interfaces/IClienteNovedad';
+import { IClienteNovedad } from '@interfaces/INovelty/IClienteNovedad';
+import { IUpdateNoveltyRequest } from '@interfaces/INovelty/IStatusNovelty';
 import { PqrEnterprisesService } from '../services/pqr-enterprices.service';
+import { rxResource } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-pqr-secretary',
@@ -76,9 +78,6 @@ import { PqrEnterprisesService } from '../services/pqr-enterprices.service';
             </div>
           </div>
         </div>
-
-
-
         <!-- Lista de PQRs -->
         <div class="space-y-4">
           @if (cargandoPQRs()) {
@@ -239,6 +238,7 @@ import { PqrEnterprisesService } from '../services/pqr-enterprices.service';
                     </label>
                     <textarea
                       id="nuevaRespuesta"
+                      [(ngModel)]="nuevaRespuesta"
                       rows="6"
                       placeholder="Escriba la respuesta al PQR..."
                       class="w-full px-4 py-2 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 resize-none"
@@ -250,15 +250,29 @@ import { PqrEnterprisesService } from '../services/pqr-enterprices.service';
                     <label for="nuevoEstado" class="block text-sm font-medium text-gray-300 mb-2">
                       Nuevo estado
                     </label>
+
                     <select
                       id="nuevoEstado"
+                      [(ngModel)]="nuevoEstado"
                       class="w-full px-4 py-2 bg-transparent border border-gray-600/70 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
                     >
-                      <option value="En Proceso" class="bg-gray-900">En Proceso</option>
-                      <option value="Resuelto" class="bg-gray-900">Resuelto</option>
-                      <option value="Cerrado" class="bg-gray-900">Cerrado</option>
+                      <option value="" class="bg-gray-900">Seleccione un estado</option>
+                      @if (statusNovelty.status() === 'loading') {
+                        <option value="" class="bg-gray-900">Cargando estados...</option>
+                      } @else if (statusNovelty.status() === 'error') {
+                        <option value="" class="bg-gray-900">Error al cargar estados</option>
+                      } @else if (statusNovelty.value()?.response && statusNovelty.value()!.response.length > 0) {
+                        @for (status of statusNovelty.value()!.response; track status.id) {
+                          <option [value]="status.codigo" class="bg-gray-900">{{ status.descripcion }}</option>
+                        }
+                      } @else {
+                        <option value="" class="bg-gray-900">No hay estados disponibles</option>
+                      }
                     </select>
                   </div>
+
+
+
 
                   <!-- Información adicional -->
                   <div class="text-xs text-gray-400">
@@ -277,7 +291,9 @@ import { PqrEnterprisesService } from '../services/pqr-enterprices.service';
                     </button>
                     <button
                       type="button"
-                      class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors"
+                      (click)="actualizarPQR()"
+                      [disabled]="!nuevaRespuesta.trim() || !nuevoEstado"
+                      class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Enviar Respuesta
                     </button>
@@ -307,6 +323,10 @@ export class PqrSecretary implements OnInit {
   busquedaContador: string = '';
   filtroEstado: string = '';
 
+  // Variables del modal de respuesta
+  nuevaRespuesta: string = '';
+  nuevoEstado: string = '';
+
   // Datos de PQRs/Novedades
   pqrs: IClienteNovedad[] = [];
   pqrsFiltrados: IClienteNovedad[] = [];
@@ -331,6 +351,10 @@ export class PqrSecretary implements OnInit {
   readonly nombreUsuario = computed(() => {
     const data = this.userData();
     return data?.nombre || null;
+  });
+
+  statusNovelty = rxResource({
+    stream: () => this.pqrService.getStatusPqrById()
   });
 
   ngOnInit() {
@@ -393,6 +417,47 @@ export class PqrSecretary implements OnInit {
   cerrarModalRespuesta(): void {
     this.mostrarModalRespuesta.set(false);
     this.pqrSeleccionado.set(null);
+    // Limpiar los campos del formulario
+    this.nuevaRespuesta = '';
+    this.nuevoEstado = '';
+  }
+
+  actualizarPQR(): void {
+    const pqr = this.pqrSeleccionado();
+
+    if (!pqr) {
+      this.toastService.error('Error', 'No hay PQR seleccionado');
+      return;
+    }
+
+    if (!this.nuevaRespuesta.trim()) {
+      this.toastService.error('Error', 'La respuesta es obligatoria');
+      return;
+    }
+
+    if (!this.nuevoEstado) {
+      this.toastService.error('Error', 'Debe seleccionar un estado');
+      return;
+    }
+
+    const updateRequest: IUpdateNoveltyRequest = {
+      id: pqr.id,
+      descripcion: this.nuevaRespuesta.trim(),
+      estado: {
+        codigo: this.nuevoEstado
+      }
+    };
+
+    this.pqrService.updateNovelty(updateRequest).subscribe({
+      next: (response) => {
+        this.toastService.success('Éxito', 'PQR actualizado correctamente');
+        this.cerrarModalRespuesta();
+        this.cargarPQRs();
+      },
+      error: (error) => {
+        this.toastService.error('Error', 'No se pudo actualizar el PQR');
+      }
+    });
   }
 
   getTipoBadgeClass(): string {
