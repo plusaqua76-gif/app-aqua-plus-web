@@ -38,11 +38,6 @@ export class PrintBill {
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
 
-  constructor() {
-    effect(() => {
-      console.log("la data mi negor tupe", this.clienteDeudas.value())
-    })
-  }
 
   getStatus = rxResource({
     stream: () => this.estadoService.getAllEstado(),
@@ -270,31 +265,6 @@ export class PrintBill {
   });
 
 
-  // constructor() {
-  //   effect(() => {
-  //      console.log("esta es la dat mi negro", this.billDetails.value())
-  //     const id = this.empresaClienteContadorId();
-  //     if (id) {
-  //       console.log(' EmpresaClienteContadorId recibido en print-bill:', id);
-  //     }
-  //   });
-
-  //   // Efecto para mostrar información de deudas cuando cambien
-  //   effect(() => {
-  //     const deudas = this.clienteDeudas.value();
-  //     const valorDeuda = this.valorDeuda();
-  //     const info = this.deudaInfo();
-
-  //     console.log(' Estado de deudas:');
-  //     console.log('  - Response completa:', deudas);
-  //     console.log('  - Valor calculado:', valorDeuda);
-  //     console.log('  - Información procesada:', info);
-  //     console.log('  - ¿Tiene deuda?:', this.tieneDeuda());
-  //   });
-  // }
-
-
-
 
   onTipoPagoChange(): void {
     if (this.tipoPago === 'total') {
@@ -467,24 +437,70 @@ export class PrintBill {
   }
 
   async downloadPDF(): Promise<void> {
+    const billData = this.billDetails.value()?.response;
+    if (!billData) {
+      this.toast.error('Error', 'No hay datos de factura para descargar');
+      return;
+    }
+
+    this.procesandoPDF.set(true);
+
     try {
       const billElement = document.querySelector('.bill-content') as HTMLElement;
       if (!billElement) {
         this.toast.error('Error', 'No se encontró el contenido de la factura.');
+        this.procesandoPDF.set(false);
         return;
       }
 
-      const filename = `factura-aquaplus-${new Date().getTime()}.pdf`;
-      await this.pdfService.convertElementToPdf(billElement, filename);
+      // Detectar si es móvil
+      const isMobile = window.innerWidth <= 768;
 
-      if (!this.procesandoPDF()) {
-        this.toast.success('Éxito', 'PDF generado correctamente');
+      if (isMobile) {
+        // Guardar estilos originales
+        const originalStyle = billElement.style.cssText;
+        const originalTransform = billElement.style.transform;
+
+        // Aplicar estilos optimizados para PDF en móvil
+        billElement.style.transform = 'scale(1)';
+        billElement.style.transformOrigin = 'top left';
+        billElement.style.width = '994px';
+        billElement.style.overflow = 'visible';
+
+        // Dar tiempo para que se apliquen los cambios
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const facturaId = billData?.factura?.id || 'factura';
+        const empresaCodigo = billData?.empresa?.codigo || '';
+        const clienteNombre = billData?.cliente?.primerNombre || 'cliente';
+        const timestamp = new Date().getTime();
+
+        const filename = `factura-${empresaCodigo}-${facturaId}-${clienteNombre}-${timestamp}.pdf`;
+
+        await this.pdfService.convertElementToPdf(billElement, filename);
+
+        // Restaurar estilos originales
+        billElement.style.cssText = originalStyle;
+        billElement.style.transform = originalTransform;
+      } else {
+        // En desktop usar el método normal
+        const facturaId = billData?.factura?.id || 'factura';
+        const empresaCodigo = billData?.empresa?.codigo || '';
+        const clienteNombre = billData?.cliente?.primerNombre || 'cliente';
+        const timestamp = new Date().getTime();
+
+        const filename = `factura-${empresaCodigo}-${facturaId}-${clienteNombre}-${timestamp}.pdf`;
+
+        await this.pdfService.convertElementToPdf(billElement, filename);
       }
+
+      this.toast.success('Éxito', 'PDF generado correctamente');
 
     } catch (error) {
       console.error('Error en downloadPDF:', error);
-      this.toast.warning('Advertencia', 'No se pudo generar el PDF');
-      throw error;
+      this.toast.error('Error', 'No se pudo generar el PDF. Intente nuevamente.');
+    } finally {
+      this.procesandoPDF.set(false);
     }
   }
 
@@ -607,8 +623,6 @@ export class PrintBill {
       items: items
     };
 
-    console.log('🔥 Payload a enviar:', abonoMultiple);
-
     this.abonoService.saveAbonoMultiple(abonoMultiple).subscribe({
       next: () => {
         this.toast.success(
@@ -683,8 +697,6 @@ export class PrintBill {
       usuarioCreacion: usuario,
       items: items
     };
-
-    console.log('🔥 Payload pago parcial a enviar:', abonoMultiple);
 
     this.abonoService.saveAbonoMultiple(abonoMultiple).subscribe({
       next: () => {

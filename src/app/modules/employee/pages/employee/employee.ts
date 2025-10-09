@@ -91,18 +91,7 @@ export class Employee {
     }
   });
 
-  constructor() {
-    effect(() => {
-      console.log("esta es la data mi pez", this.serverEmployeeData.value())
-      // Debug: revisar la estructura de cada empleado
-      const data = this.serverEmployeeData.value();
-      if (data?.response && data.response.length > 0) {
-        console.log("Primer empleado - estructura completa:", data.response[0]);
-        console.log("Estado del primer empleado:", (data.response[0] as any)?.estado);
-        console.log("Tipo del estado:", typeof (data.response[0] as any)?.estado);
-      }
-    })
-  }
+
 
   // Signal para parámetros de paginación
   readonly paginationParams = signal<IPaginationParams>({

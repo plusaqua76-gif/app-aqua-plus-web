@@ -104,8 +104,9 @@ import { PdfService } from '@services/pdf.service';
           @if (billDetailsResource.value()?.response) {
             <div class="bill-container">
               <app-pdf-bill
-                [selectedStatus]="null"
-                [billData]="billDetailsResource.value()?.response || null">
+                [selectedStatus]="selectedStatus()"
+                [billData]="billDetailsResource.value()?.response || null"
+                [valorDeuda]="valorDeuda()">
               </app-pdf-bill>
             </div>
 
@@ -262,18 +263,6 @@ export class BillUsers {
     () => `usuarios_facturas_${new Date().toISOString().split('T')[0]}`
   );
 
-  constructor() {
-    effect(() => {
-      console.log('Datos de usuarios:', this.serverUserData.value());
-    });
-
-    effect(() => {
-      const billDetails = this.billDetailsResource.value();
-      if (billDetails) {
-        console.log('Detalles de factura cargados:', billDetails);
-      }
-    });
-  }
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -295,6 +284,40 @@ export class BillUsers {
   readonly personaId = computed(() => {
     const data = this.userData();
     return data?.personaId || null;
+  });
+
+  // Computed para obtener el estado de la factura desde billDetailsResource
+  readonly selectedStatus = computed(() => {
+    const billData = this.billDetailsResource.value()?.response;
+    return billData?.factura?.estadoNombre || null;
+  });
+
+  // Computed para obtener el valor de deuda (si existe)
+  readonly valorDeuda = computed(() => {
+    const billData = this.billDetailsResource.value()?.response;
+
+    // Si no hay datos o está cargando
+    if (!billData || this.billDetailsResource.isLoading()) {
+      return 0;
+    }
+
+    // Obtener las deudas desde la respuesta de billDetails
+    const deudas = billData.deudaCliente;
+
+    // Si no hay deudas
+    if (!deudas || deudas.length === 0) {
+      return 0;
+    }
+
+    // Sumar todas las deudas, manejando tanto string como number
+    return deudas.reduce((total, deuda) => {
+      const valorDeuda = deuda.valor || 0;
+      // Manejar tanto string como number por seguridad
+      const valor = typeof valorDeuda === 'string'
+        ? parseFloat(valorDeuda)
+        : Number(valorDeuda);
+      return total + (isNaN(valor) ? 0 : valor);
+    }, 0);
   });
 
 
@@ -327,12 +350,8 @@ export class BillUsers {
 
   // Manejo de acciones de la tabla
   handleTableAction(event: { action: string; row?: any }): void {
-    console.log('Acción de tabla ejecutada:', event);
-
     if (event.action === 'view') {
      this.viewUser(event.row.id);
-    } else if (event.action === 'edit' && event.row) {
-      this.editUser(event.row.id);
     } else if (event.action === 'delete' && event.row) {
       this.onDelete(event.row.id);
     }
@@ -340,30 +359,23 @@ export class BillUsers {
 
 
   viewUser(billId: number): void {
-    console.log('Ver detalles de la factura con ID:', billId);
     this.selectedBillId.set(billId);
     this.showBillDetailsPopup.set(true);
   }
 
-  // Cerrar popup de detalles de factura
   closeBillDetailsPopup(): void {
     this.showBillDetailsPopup.set(false);
     this.selectedBillId.set(null);
   }
 
-  // Reintentar carga de detalles de factura
+
   retryLoadBillDetails(): void {
     if (this.selectedBillId()) {
       this.billDetailsResource.reload?.();
     }
   }
 
-  // Editar usuario
-  editUser(userId: number): void {
-    console.log('Editar usuario con ID:', userId);
-    // Aquí puedes navegar a la ruta de edición del usuario
-    // this.router.navigate(['edit-user', userId], { relativeTo: this.route });
-  }
+
 
   // Eliminar usuario
   onDelete(id: number): void {
@@ -375,7 +387,6 @@ export class BillUsers {
   confirmDelete(): void {
     const userId = this.itemToDelete();
     if (userId !== null) {
-      console.log('Eliminando usuario con ID:', userId);
 
       // Aquí harías la llamada al servicio para eliminar
       // this.userAccessService.deleteUser(userId).subscribe({
@@ -397,13 +408,10 @@ export class BillUsers {
     this.showDeleteConfirm.set(false);
   }
 
-  // Cambio de paginación
   onPaginationChange(params: IPaginationParams): void {
-    console.log('Parámetros de paginación cambiados:', params);
     this.paginationParams.set(params);
   }
 
-  // Método para descargar la factura en PDF
   async downloadPDF(): Promise<void> {
     if (!this.billDetailsResource.value()?.response) {
       this.toastService.error('Error', 'No hay datos de factura para descargar');
@@ -420,23 +428,16 @@ export class BillUsers {
         return;
       }
 
-      // Mejorar generación en móviles
       const isMobile = window.innerWidth <= 768;
 
       if (isMobile) {
-        // Guardar estilos originales
         const originalStyle = billElement.style.cssText;
         const originalTransform = billElement.style.transform;
-
-        // Aplicar estilos optimizados para PDF en móvil
         billElement.style.transform = 'scale(1)';
         billElement.style.transformOrigin = 'top left';
         billElement.style.width = '994px';
         billElement.style.overflow = 'visible';
-
-        // Dar tiempo para que se apliquen los cambios
         await new Promise(resolve => setTimeout(resolve, 100));
-
         const billData = this.billDetailsResource.value()?.response;
         const facturaId = billData?.factura?.id || 'factura';
         const empresaCodigo = billData?.empresa?.codigo || '';
@@ -447,7 +448,6 @@ export class BillUsers {
 
         await this.pdfService.convertElementToPdf(billElement, filename);
 
-        // Restaurar estilos originales
         billElement.style.cssText = originalStyle;
         billElement.style.transform = originalTransform;
       } else {

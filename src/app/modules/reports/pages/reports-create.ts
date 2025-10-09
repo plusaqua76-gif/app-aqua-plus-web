@@ -345,10 +345,6 @@ export class ReportsCreate {
 
   constructor() {
     effect(() => {
-      console.log('esta es la data mi negro', this.dataReports.value());
-    });
-
-    effect(() => {
       if (this.filtersReports.value()?.response && this.showFiltersPopup()) {
         this.initializeFilterValues();
       }
@@ -378,8 +374,6 @@ export class ReportsCreate {
       this.selectedReportName.set(event.row.nombre || 'Reporte');
       this.selectedNombreSp.set(event.row.nombreSp || ''); // Capturar nombreSp
       this.showFiltersPopup.set(true);
-      console.log('Reporte seleccionado ID:', event.row.id);
-      console.log('NombreSp capturado:', event.row.nombreSp);
     }
   }
 
@@ -457,9 +451,6 @@ export class ReportsCreate {
     const nombreSp = this.selectedNombreSp();
     const filters = this.filtersReports.value()?.response;
 
-    console.log('Filtros aplicados:', values);
-    console.log('NombreSp para el endpoint:', nombreSp);
-
     if (!nombreSp) {
       this.toastService.error('Error', 'No se ha seleccionado un procedimiento válido');
       return;
@@ -511,17 +502,11 @@ export class ReportsCreate {
       }
     });
 
-    console.log('Body del request:', requestBody);
 
     // Llamar al servicio directamente
     this.resportsService.generateReportWithFilters('reportes', nombreSp, requestBody)
       .subscribe({
         next: (apiResponse) => {
-          console.log('=== DATOS DEL REPORTE ===');
-          console.log('ApiResponse completa:', apiResponse);
-          console.log('Tipo de apiResponse:', typeof apiResponse);
-          console.log('Es Array apiResponse:', Array.isArray(apiResponse));
-
           // La respuesta puede venir como array o como objeto con response
           let response;
 
@@ -536,28 +521,21 @@ export class ReportsCreate {
             response = apiResponse;
           }
 
-          console.log('Datos del reporte procesados:', response);
-          console.log('response.rows:', response?.rows);
-          console.log('Es Array response.rows:', Array.isArray(response?.rows));
-          console.log('response.headers:', response?.headers);
 
           // Verificar que la respuesta existe y tiene datos
           if (!response) {
-            console.warn('Respuesta vacía o null');
             this.toastService.warning('Advertencia', 'No se recibió respuesta del servidor');
             return;
           }
 
           // Verificar que tiene rows y es un array válido
           if (!response.rows || !Array.isArray(response.rows)) {
-            console.warn('response.rows no existe o no es un array:', response.rows);
             this.toastService.warning('Advertencia', 'El reporte no contiene datos válidos');
             return;
           }
 
           // Si no hay filas, mostrar mensaje apropiado
           if (response.rows.length === 0) {
-            console.warn('response.rows está vacío');
             this.reportData.set([]);
             this.reportColumns.set([]);
             this.reportTotalRecords.set(0);
@@ -573,20 +551,16 @@ export class ReportsCreate {
 
           // Si tiene headers, crear mapeo dinámico
           if (response.headers && Array.isArray(response.headers) && response.headers.length > 0) {
-            console.log('=== MAPEO DE COLUMNAS ===');
-            console.log('Headers de la API:', response.headers);
 
             const firstRow = response.rows[0];
             const fieldKeys = Object.keys(firstRow);
 
-            console.log('Campos disponibles:', fieldKeys);
 
             // Filtrar headers que no queremos mostrar
             const filteredHeaders = response.headers.filter((header: string) =>
               !excludedHeaders.includes(header)
             );
 
-            console.log('Headers después de filtrar:', filteredHeaders);
 
             // Crear un mapeo dinámico basado en la normalización de nombres
             columns = filteredHeaders.map((header: string) => {
@@ -604,8 +578,6 @@ export class ReportsCreate {
               );
 
               const finalField = matchingField || normalizedField;
-
-              console.log(`✓ Header: "${header}" -> Campo encontrado: "${finalField}"`);
 
               return {
                 field: finalField,
@@ -636,19 +608,9 @@ export class ReportsCreate {
           this.reportData.set(response.rows);
           this.reportTotalRecords.set(response.total || response.rows.length);
 
-          console.log('=== DATOS PROCESADOS ===');
-          console.log('Total de registros:', response.rows.length);
-          console.log('Total según API:', response.total);
-          console.log('Página:', response.page);
-          console.log('Tamaño:', response.size);
-          console.log('Headers:', response.headers);
-          console.log('Columnas generadas:', columns);
-          console.log('Datos completos:', JSON.stringify(response.rows, null, 2));
-
           this.toastService.success('Éxito', `Reporte generado correctamente. ${response.rows.length} registros encontrados.`);
         },
         error: (error) => {
-          console.error('Error al generar reporte:', error);
           this.reportData.set([]);
           this.reportColumns.set([]);
           this.reportTotalRecords.set(0);
