@@ -9,3 +9,10 @@ export interface IRoleMenu {
 }
 
 export interface IRoleMenuResponse extends ApiResponse<IRoleMenu[]> {}
+
+
+export interface ICreateRole {
+  nombre: string;
+  usuarioCreacion?: string;
+  activo?: boolean;
+}

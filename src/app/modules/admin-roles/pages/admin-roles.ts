@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
+import { Component, computed, inject, PLATFORM_ID, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfigRolesService } from '../services/config-roles.service';
@@ -404,6 +404,11 @@ export class AdminRoles {
     return data?.rolId || null;
   });
 
+  readonly username = computed(() => {
+    const data = this.userData();
+    return data?.nombre || null;
+  });
+
   readonly exportFileName = computed(
     () => `usuarios_roles_${new Date().toISOString().split('T')[0]}`
   );
@@ -567,6 +572,7 @@ export class AdminRoles {
     const nombre = this.nombreNuevoRol().trim();
     const menuIds = this.menusSeleccionados();
     const empresaId = this.empresaId();
+    const usuarioCreacion = this.username();
 
     if (!nombre) {
       this.toastService.error('Error', 'El nombre del rol es obligatorio');
@@ -583,17 +589,57 @@ export class AdminRoles {
       return;
     }
 
-    this.configRolesService.createRole({
+    if (!usuarioCreacion) {
+      this.toastService.error('Error', 'No se pudo obtener el usuario actual');
+      return;
+    }
+
+    // Paso 1: Crear el tipo de rol
+    this.configRolesService.createTypeRol({
       nombre,
-      menuIds,
-      empresaId
+      usuarioCreacion: this.username(),
+      activo: true
     }).subscribe({
-      next: () => {
-        this.toastService.success('Éxito', 'Rol creado correctamente');
-        this.cerrarModalAgregarRol();
-        this.serverUsersData.reload?.();
+      next: (responseCreateType) => {
+        // Paso 2: Obtener todos los roles para encontrar el ID del rol recién creado
+        this.configRolesService.getAllRoles().subscribe({
+          next: (responseAllRoles) => {
+            const roles = responseAllRoles?.response || [];
+            // Buscar el rol recién creado por nombre
+            const rolCreado = roles.find(rol => rol.nombre === nombre);
+
+            if (!rolCreado) {
+              this.toastService.error('Error', 'No se pudo obtener el ID del rol creado');
+              return;
+            }
+
+            // Paso 3: Asociar los menús al rol
+            this.configRolesService.createRole({
+              rolId: rolCreado.id,
+              empresaId: empresaId,
+              menuIds: menuIds,
+              usuarioCreacion: usuarioCreacion
+            }).subscribe({
+              next: () => {
+                this.toastService.success('Éxito', 'Rol creado correctamente');
+                this.cerrarModalAgregarRol();
+                this.serverUsersData.reload?.();
+                this.allRolesData.reload?.();
+              },
+              error: (error) => {
+                console.error('Error al asociar menús al rol:', error);
+                this.toastService.error('Error', 'No se pudieron asociar los menús al rol');
+              }
+            });
+          },
+          error: (error) => {
+            console.error('Error al obtener roles:', error);
+            this.toastService.error('Error', 'No se pudo obtener el ID del rol creado');
+          }
+        });
       },
-      error: () => {
+      error: (error) => {
+        console.error('Error al crear tipo de rol:', error);
         this.toastService.error('Error', 'No se pudo crear el rol');
       }
     });

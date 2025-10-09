@@ -2,9 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { CanActivateFn } from '@angular/router';
 
-export type Role = 'SUPER ADMIN' | 'ADMIN' | 'CLIENTE' | 'EMPLEADO';
-
-export const hasRoleGuard = (allowedRoles: Role[]): CanActivateFn => {
+export const hasRoleGuard = (allowedRoles: string[]): CanActivateFn => {
   return (route, state) => {
     const platformId = inject(PLATFORM_ID);
     const isBrowser = isPlatformBrowser(platformId);
@@ -19,6 +17,10 @@ export const hasRoleGuard = (allowedRoles: Role[]): CanActivateFn => {
 
     if (!userRole) return false;
 
-    return allowedRoles.includes(userRole);
+    // Comparación case-insensitive (ignorando mayúsculas/minúsculas)
+    const userRoleUpper = userRole.toUpperCase();
+    const allowedRolesUpper = allowedRoles.map(role => role.toUpperCase());
+
+    return allowedRolesUpper.includes(userRoleUpper);
   };
 };
