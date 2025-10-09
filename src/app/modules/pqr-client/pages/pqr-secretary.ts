@@ -108,7 +108,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
                       </span>
 
                       <!-- Badge de estado -->
-                      <span [class]="getEstadoBadgeClass()">
+                      <span [class]="getEstadoBadgeClass(pqr.estado.descripcion)">
                         {{ pqr.estado.descripcion }}
                       </span>
 
@@ -221,7 +221,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
                   </div>
                   <div class="flex justify-between items-center">
                     <span class="text-sm text-gray-300">Estado actual:</span>
-                    <span [class]="getEstadoBadgeClass()">
+                    <span [class]="getEstadoBadgeClass(pqrSeleccionado()!.estado.descripcion)">
                       {{ pqrSeleccionado()!.estado.descripcion }}
                     </span>
                   </div>
@@ -417,7 +417,6 @@ export class PqrSecretary implements OnInit {
   cerrarModalRespuesta(): void {
     this.mostrarModalRespuesta.set(false);
     this.pqrSeleccionado.set(null);
-    // Limpiar los campos del formulario
     this.nuevaRespuesta = '';
     this.nuevoEstado = '';
   }
@@ -464,7 +463,18 @@ export class PqrSecretary implements OnInit {
     return 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300';
   }
 
-  getEstadoBadgeClass(): string {
-    return 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-300';
+  getEstadoBadgeClass(estado?: string): string {
+    const estadoTexto = estado || this.pqrSeleccionado()?.estado.descripcion || '';
+
+    switch (estadoTexto.toLowerCase()) {
+      case 'terminado':
+        return 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-300';
+      case 'pendiente':
+        return 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-300';
+      case 'en proceso':
+        return 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300';
+      default:
+        return 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-500/20 text-gray-300';
+    }
   }
 }

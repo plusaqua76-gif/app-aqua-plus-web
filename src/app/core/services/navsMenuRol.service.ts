@@ -15,7 +15,7 @@ export class NavsMenuRolService {
   readonly apiUrl = `${environment.apiUrl}`
 
   getNavsMenuRol(enterpriceId: number, rolId: number): Observable<ApiResponse<NavItem[]>> {
-    return this.http.get<ApiResponse<NavItem[]>>(`${this.apiUrl}/usuario/menus?enterpriceId=${enterpriceId}&rolId=${rolId}`);
+    return this.http.get<ApiResponse<NavItem[]>>(`${this.apiUrl}/usuario/menus?empresaId=${enterpriceId}&rolId=${rolId}`);
   }
 
 }

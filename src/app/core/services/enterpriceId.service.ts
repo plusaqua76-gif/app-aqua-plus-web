@@ -18,7 +18,7 @@ export class EnterpriseIdService {
   readonly apiUrl = environment.apiUrl;
 
   getByIdEnterprice(id: number): Observable<number | null> {
-    return this.http.get<ApiResponse<IdEnterprice>>(`${this.apiUrl}/${END_POINT_SERVICE.GET_ENTERPRISE}/${id}`).pipe(
+    return this.http.get<ApiResponse<IdEnterprice>>(`${this.apiUrl}/empresa/config/${id}`).pipe(
       map(res => res?.response?.idEmpresa ?? null),
       catchError(err => {
         console.error('Error en getByIdEnterprice:', err);
@@ -27,13 +27,13 @@ export class EnterpriseIdService {
     )
   }
 
-  getUserId(): number | null {
+  getEnterpriceId(): number | null {
     if (!this.isBrowser) return null;
     try {
       const userData = sessionStorage.getItem('userData');
       if (!userData) return null;
       const parsed = JSON.parse(userData);
-      return typeof parsed.id === 'number' ? parsed.id : Number(parsed.id) || null;
+      return typeof parsed.empresaId === 'number' ? parsed.empresaId : Number(parsed.empresaId) || null;
     } catch (e) {
       console.error('Error parsing userData:', e);
       return null;
@@ -41,14 +41,14 @@ export class EnterpriseIdService {
   }
 
   getEnterpriseId(): Observable<number | null> {
-    const userId = this.getUserId();
+    const enterpriceId = this.getEnterpriceId();
 
-    if (!userId) {
+    if (!enterpriceId) {
       console.warn('EnterpriseIdService: No user ID found in sessionStorage');
       return of(null);
     }
     return this.http
-      .get<any>(`${this.apiUrl}/${END_POINT_SERVICE.GET_ENTERPRISE}/${userId}`)
+      .get<any>(`${this.apiUrl}/empresa/config/${enterpriceId}`)
       .pipe(
         map(res => {
           const enterpriseId = res?.response?.idEmpresa ?? null;
@@ -61,15 +61,15 @@ export class EnterpriseIdService {
   }
 
 getEnterpriseInfo(): Observable<any | null> {
-  const userId = this.getUserId();
+   const enterpriceId = this.getEnterpriceId();
 
-  if (!userId) {
+  if (!enterpriceId) {
     console.warn('EnterpriseIdService: No user ID found in sessionStorage');
     return of(null);
   }
 
   return this.http
-    .get<any>(`${this.apiUrl}/${END_POINT_SERVICE.GET_ENTERPRISE}/${userId}`)
+       .get<any>(`${this.apiUrl}/empresa/config/${enterpriceId}`)
     .pipe(
       map(res => {
         const enterpriseInfo = res?.response ?? null;

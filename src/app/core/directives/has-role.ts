@@ -7,9 +7,9 @@ import { isPlatformBrowser } from '@angular/common';
 })
 export class HasRoleDirective {
 
-  private templateRef = inject(TemplateRef);
-  private viewContainerRef = inject(ViewContainerRef);
-  private platformId = inject(PLATFORM_ID);
+  private readonly templateRef = inject(TemplateRef);
+  private readonly viewContainerRef = inject(ViewContainerRef);
+  private readonly platformId = inject(PLATFORM_ID);
 
   roles = input.required<Role[]>({
     alias: 'hasRole'

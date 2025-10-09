@@ -45,7 +45,8 @@
 
   <nav aria-label="Menú principal">
     <ul class="sidenav-nav">
-    @for (data of navData; track $index) {
+    <!-- @for (data of navData; track $index) { -->
+         @for (data of dataNavsUser.value()?.response || []; track $index) {
     <li class="sidenav-nav-item" *hasRole="data.allowedRoles">
       <a
         class="sidenav-nav-link"
@@ -258,10 +259,8 @@
     </li>
     }
   </ul>
-
-  <!-- Tooltips de Tailwind CSS - Solo se muestran cuando el sidenav NO está expandido -->
-  @if (!collapsed) {
-    @for (data of navData; track $index) {
+ @if (!collapsed) {
+    @for (data of dataNavsUser.value()?.response || []; track $index) {
       @if (data.allowedRoles) {
         <div
           [id]="'tooltip-' + $index"
@@ -274,5 +273,21 @@
       }
     }
   }
+
+
+  <!-- @if (!collapsed) {
+    @for (data of navData; track $index) {
+      @if (data.allowedRoles) {
+        <div
+          [id]="'tooltip-' + $index"
+          role="tooltip"
+          class="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
+        >
+          {{ data.label }}
+          <div class="tooltip-arrow" data-popper-arrow></div>
+        </div>
+      }
+    }
+  } -->
   </nav>
 </div>
