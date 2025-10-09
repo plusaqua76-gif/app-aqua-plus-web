@@ -3,9 +3,10 @@ import { environment } from '../../../environments/environment.local';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '@interfaces/Iresponse';
-import { IRoleMenu } from '@interfaces/menu/IRoleMenu';
+import { ICreateRole, IRoleMenu } from '@interfaces/menu/IRoleMenu';
 import { IUserBill } from '@interfaces/IuserBill';
 import { IRoleMenuResponse } from '@interfaces/menu/IRoleMenuResponse';
+
 
 @Injectable({ providedIn: 'root' })
 export class ConfigRolesService {
@@ -33,10 +34,18 @@ export class ConfigRolesService {
     return this.http.get<ApiResponse<IRoleMenuResponse[]>>(`${this.apiUrl}/rol-menu/all`);
   }
 
-  createRole(roleData: { nombre: string; menuIds: number[]; empresaId: number }): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/rol-menu`, roleData);
+  createRole(roleData: {  // crear interfaz no dejar eso asi
+    rolId: number;
+    empresaId: number;
+    menuIds: number[];
+    usuarioCreacion: string
+  }): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/rol-menu/rol-menu`, roleData);
   }
 
+  createTypeRol(rol: ICreateRole): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/rol`, rol);
+  }
 
 
 

@@ -183,7 +183,6 @@ export class SidenavComponent implements OnInit {
       return this.navsMenuRolService.getNavsMenuRol(empresaId, rolId).pipe(
         map(response => {
           if (response?.response) {
-            // Transformar y ordenar los elementos del menú
             const orderedNavItems = this.transformNavItems(response.response);
             return {
               ...response,

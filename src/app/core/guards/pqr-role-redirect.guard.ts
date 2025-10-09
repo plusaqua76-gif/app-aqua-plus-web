@@ -6,7 +6,7 @@ import { isPlatformBrowser } from '@angular/common';
  * Guard que redirige automáticamente según el rol del usuario para las rutas PQR
  * - ADMIN: Permite acceso a la ruta actual (pqr-secretary)
  * - CLIENTE: Redirige automáticamente a pqr-enterprice-clients
- */
+ */ // esto de debo modificar obsolutamente por que se quema el valor del cleinte en caso qeu se cree un nuevo rol este no podra ingresar 
 export const pqrRoleRedirectGuard: CanActivateFn = () => {
   const router = inject(Router);
   const platformId = inject(PLATFORM_ID);
