@@ -381,11 +381,6 @@ export class AdminRoles {
     // { field: 'activo', header: 'Estado', type: 'text' as const },
   ]);
 
-  constructor() {
-    effect(() => {
-      console.log("esta es la data mi negro", this.serverUsersData.value());
-    })
-  }
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
