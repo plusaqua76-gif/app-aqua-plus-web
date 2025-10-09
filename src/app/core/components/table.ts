@@ -552,10 +552,7 @@ export class TableComponent {
     if (this.serverMode()) {
       return this.serverData()?.response ?? [];
     }
-
     let result = this.datasource() ?? [];
-
-    // Aplicar filtro de búsqueda global
     const searchTerm = this.search().toLowerCase().trim();
     if (searchTerm) {
       result = result.filter((row) =>
@@ -566,8 +563,6 @@ export class TableComponent {
         ),
       );
     }
-
-    // Aplicar filtros por columna
     const filters = this.columnFilters();
     Object.entries(filters).forEach(([column, filterValue]) => {
       if (filterValue.trim()) {

@@ -1,135 +1,606 @@
-import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ConfigRolesService } from '../services/config-roles.service';
-import { IRoleMenu } from '@interfaces/menu/IRoleMenu';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { EMPTY } from 'rxjs';
+import { TableComponent } from '@components/table';
+import { ToastService } from '@services/toast.service';
 
 @Component({
   selector: 'app-admin-roles',
-  imports: [CommonModule],
+  imports: [CommonModule, TableComponent, FormsModule],
   template: `
-    <section class="w-full bg-transparent text-gray-200 min-h-screen">
-      <!-- Header -->
-      <div class="sticky top-0 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700/50 z-10">
-        <div class="mx-auto max-w-7xl px-4 py-6">
-          <div class="flex justify-between items-center">
-            <div>
-              <h1 class="text-2xl font-bold text-white">Catálogo de Menús</h1>
-              <p class="text-gray-400 text-sm mt-1">Visualiza todos los menús disponibles en el sistema</p>
+    <ng-template #actionsTemplate let-row>
+      <div class="flex items-center space-x-2">
+        <button
+          type="button"
+          (click)="handleTableAction({ action: 'roles', row })"
+          class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-green-600/50 text-green-500 hover:bg-green-600/10 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors duration-200 cursor-pointer"
+          title="Editar rol del usuario"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </button>
+      </div>
+    </ng-template>
+
+    <app-table-dynamic
+      [title]="title()"
+      [columns]="userColumns()"
+      [serverMode]="false"
+      [datasource]="usersData()"
+      [loading]="serverUsersData.isLoading()"
+      [actionTemplate]="actionsTemplate"
+      [showAddButton]="true"
+      [addButtonText]="'Agregar Rol'"
+      [showExportButton]="true"
+      [exportFileName]="exportFileName()"
+      [showColumnFilters]="true"
+      (action)="handleTableAction($event)"
+    >
+    </app-table-dynamic>
+
+    <!-- Modal para gestionar roles -->
+    @if (mostrarModalRoles()) {
+      <div class="fixed inset-0 z-[1002] overflow-y-auto">
+        <div class="fixed inset-0 z-[1002] flex items-start justify-center bg-black/50 backdrop-blur-sm pt-[75px]" (click)="cerrarModalRoles()">
+          <div class="relative w-full p-4 max-h-[calc(100vh-85px)] overflow-hidden max-w-2xl" (click)="$event.stopPropagation()">
+            <div class="relative bg-black/10 backdrop-blur-xl border-2 border-white/10 rounded-3xl shadow-xl">
+              <!-- Botón de cerrar -->
+              <button
+                (click)="cerrarModalRoles()"
+                aria-label="Close"
+                class="absolute top-3 end-2.5 h-8 w-8 grid place-content-center text-gray-400 hover:bg-white/10 rounded-lg backdrop-blur-sm"
+              >
+                <svg class="h-3 w-3" viewBox="0 0 14 14" fill="none">
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                  />
+                </svg>
+              </button>
+
+              <!-- Contenido del modal -->
+              <div class="p-8 text-left">
+                <!-- Título del modal -->
+                <h3 class="text-xl font-semibold text-white mb-6 text-center">
+                  Editar rol - {{ usuarioSeleccionado()?.nombre }}
+                </h3>
+
+                <!-- Información del usuario -->
+                @if (usuarioSeleccionado()) {
+                  <div class="mb-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span class="text-gray-300">Usuario:</span>
+                        <span class="text-white ml-2">{{ usuarioSeleccionado()!.username }}</span>
+                      </div>
+                      <div>
+                        <span class="text-gray-300">Cédula:</span>
+                        <span class="text-white ml-2">{{ usuarioSeleccionado()!.numeroCedula }}</span>
+                      </div>
+                      <div>
+                        <span class="text-gray-300">Rol Actual:</span>
+                        <span class="text-white ml-2">{{ usuarioSeleccionado()!.rolNombre }}</span>
+                      </div>
+                      <!-- <div>
+                        <span class="text-gray-300">Estado:</span>
+                        <span [class]="usuarioSeleccionado()!.activo ? 'text-green-300 ml-2' : 'text-red-300 ml-2'">
+                          {{ usuarioSeleccionado()!.activo ? 'Activo' : 'Inactivo' }}
+                        </span>
+                      </div> -->
+                    </div>
+                  </div>
+
+                  <!-- Selector de nuevo rol -->
+                  <div class="mb-6">
+                    <label for="nuevoRol" class="block text-sm font-medium text-gray-300 mb-3">
+                      Cambiar Rol
+                    </label>
+                    @if (allRolesData.isLoading()) {
+                      <div class="flex items-center justify-center py-3">
+                        <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400"></div>
+                        <span class="ml-2 text-sm text-gray-400">Cargando roles...</span>
+                      </div>
+                    } @else if (allRolesData.error()) {
+                      <div class="text-center py-3">
+                        <div class="text-red-400 text-sm mb-2">Error al cargar los roles</div>
+                        <button
+                          (click)="allRolesData.reload()"
+                          class="text-xs text-blue-400 hover:text-blue-300"
+                        >
+                          Reintentar
+                        </button>
+                      </div>
+                    } @else {
+                      <select
+                        id="nuevoRol"
+                        [(ngModel)]="rolSeleccionado"
+                        class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
+                      >
+                        <option value="" class="bg-gray-800 text-gray-300">Seleccionar nuevo rol...</option>
+                        @for (rol of availableRoles(); track rol.id) {
+                          <option [value]="rol.id" class="bg-gray-800 text-white">{{ rol.nombre }}</option>
+                        }
+                      </select>
+                    }
+                  </div>
+                }
+
+                <!-- Lista de menús y roles -->
+                <div class="space-y-4">
+                  <h4 class="text-lg font-medium text-gray-200 border-b border-gray-600/50 pb-2">
+                    Menús Asignados al Rol
+                  </h4>
+
+                  @if (roleMenuData.isLoading()) {
+                    <div class="flex justify-center py-8">
+                      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+                    </div>
+                  } @else if (roleMenuData.error()) {
+                    <div class="text-center py-8">
+                      <svg class="mx-auto h-12 w-12 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                      </svg>
+                      <h3 class="mt-2 text-sm font-medium text-yellow-300">Usuario sin acceso a módulos</h3>
+                      <p class="mt-1 text-sm text-gray-400">Este usuario no tiene acceso a ningún módulo del sistema.</p>
+                    </div>
+                  } @else if (menuItems().length === 0) {
+                    <div class="text-center py-8">
+                      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                      </svg>
+                      <h3 class="mt-2 text-sm font-medium text-gray-300">Sin menús asignados</h3>
+                      <p class="mt-1 text-sm text-gray-400">Este rol no tiene menús asignados actualmente.</p>
+                    </div>
+                  } @else {
+                    <div class="space-y-3 max-h-96 overflow-y-auto">
+                      @for (item of menuItems(); track item.id) {
+                        <div class="rounded-lg border border-gray-600/70 bg-white/5 p-4 hover:bg-white/10 transition-colors">
+                          <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                              <!-- Icono del menú -->
+                              <div class="flex-shrink-0">
+                                <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                                  <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                  </svg>
+                                </div>
+                              </div>
+
+                              <!-- Información del menú -->
+                              <div>
+                                <h5 class="text-sm font-medium text-white">{{ item.menu.etiqueta }}</h5>
+                                <p class="text-xs text-gray-400">{{ item.menu.link }}</p>
+                              </div>
+                            </div>
+
+                            <!-- Badge del rol -->
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-300">
+                              {{ item.rol.nombre }}
+                            </span>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  <!-- Botones -->
+                  <div class="flex gap-3 pt-6 border-t border-gray-600/50">
+                    <button
+                      type="button"
+                      (click)="cerrarModalRoles()"
+                      class="flex-1 px-6 py-3 text-sm font-medium text-gray-300 bg-transparent border border-gray-600/70 rounded-lg hover:bg-gray-600/10 focus:outline-none focus:ring-2 focus:ring-gray-500/40 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      (click)="cambiarRolUsuario()"
+                      [disabled]="!rolSeleccionado() || rolSeleccionado() === usuarioSeleccionado()?.rolId?.toString()"
+                      class="flex-1 px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Guardar Cambios
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-            <button
-              type="button"
-              (click)="dataRolMenus.reload()"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-            >
-              <i class="fas fa-sync-alt"></i>
-              Actualizar
-            </button>
           </div>
         </div>
       </div>
+    }
 
-      <!-- Loading State -->
-      @if (dataRolMenus.isLoading()) {
-        <div class="flex items-center justify-center py-20">
-          <div class="text-center">
-            <div class="w-12 h-12 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
-            <p class="text-gray-400">Cargando configuración...</p>
-          </div>
-        </div>
-      }
+    <!-- Modal para agregar nuevo rol -->
+    @if (mostrarModalAgregarRol()) {
+      <div class="fixed inset-0 z-[1002] overflow-y-auto">
+        <div class="fixed inset-0 z-[1002] flex items-start justify-center bg-black/50 backdrop-blur-sm pt-[75px]" (click)="cerrarModalAgregarRol()">
+          <div class="relative w-full p-4 max-h-[calc(100vh-85px)] overflow-hidden max-w-3xl" (click)="$event.stopPropagation()">
+            <div class="relative bg-black/10 backdrop-blur-xl border-2 border-white/10 rounded-3xl shadow-xl">
+              <!-- Botón de cerrar -->
+              <button
+                (click)="cerrarModalAgregarRol()"
+                aria-label="Close"
+                class="absolute top-3 end-2.5 h-8 w-8 grid place-content-center text-gray-400 hover:bg-white/10 rounded-lg backdrop-blur-sm"
+              >
+                <svg class="h-3 w-3" viewBox="0 0 14 14" fill="none">
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                  />
+                </svg>
+              </button>
 
-      <!-- Error State -->
-      @if (dataRolMenus.error()) {
-        <div class="flex items-center justify-center py-20">
-          <div class="text-center">
-            <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <i class="fas fa-exclamation-triangle text-red-400 text-xl"></i>
+              <!-- Contenido del modal -->
+              <div class="p-8 text-left">
+                <!-- Título del modal -->
+                <h3 class="text-xl font-semibold text-white mb-6 text-center">
+                  Crear Nuevo Rol
+                </h3>
+
+                <div class="space-y-6">
+                  <!-- Campo nombre del rol -->
+                  <div>
+                    <label for="nombreRol" class="block text-sm font-medium text-gray-300 mb-2">
+                      Nombre del Rol
+                    </label>
+                    <input
+                      id="nombreRol"
+                      type="text"
+                      [(ngModel)]="nombreNuevoRol"
+                      placeholder="Ingrese el nombre del rol..."
+                      class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
+                    />
+                  </div>
+
+                  <!-- Selección de menús -->
+                  <div>
+                    <h4 class="text-lg font-medium text-gray-200 mb-4">
+                      Permisos de Acceso
+                    </h4>
+                    <p class="text-sm text-gray-400 mb-4">
+                      Seleccione los módulos a los que tendrá acceso este rol:
+                    </p>
+
+                    @if (allMenusData.isLoading()) {
+                      <div class="flex justify-center py-8">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+                      </div>
+                    } @else if (allMenusData.error()) {
+                      <div class="text-center py-8">
+                        <div class="text-red-400 mb-2">Error al cargar los menús</div>
+                        <button
+                          (click)="allMenusData.reload()"
+                          class="text-sm text-blue-400 hover:text-blue-300"
+                        >
+                          Reintentar
+                        </button>
+                      </div>
+                    } @else if (availableMenus().length === 0) {
+                      <div class="text-center py-8">
+                        <p class="text-gray-400">No hay menús disponibles</p>
+                      </div>
+                    } @else {
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto">
+                        @for (menu of availableMenus(); track menu.id) {
+                          <div
+                            class="flex items-center p-3 rounded-lg border border-gray-600/70 hover:bg-white/5 transition-colors cursor-pointer"
+                            (click)="toggleMenuSelection(menu.id)"
+                          >
+                            <div class="flex items-center">
+                              <input
+                                type="checkbox"
+                                [checked]="isMenuSelected(menu.id)"
+                                (change)="toggleMenuSelection(menu.id)"
+                                class="w-4 h-4 text-blue-600 bg-transparent border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                              />
+                              <div class="ml-3 flex items-center space-x-3">
+                                <!-- Icono del menú -->
+                                <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                                  <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                  </svg>
+                                </div>
+
+                                <!-- Información del menú -->
+                                <div>
+                                  <h5 class="text-sm font-medium text-white">{{ menu.etiqueta }}</h5>
+                                  <p class="text-xs text-gray-400">{{ menu.link }}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        }
+                      </div>
+
+                      <!-- Resumen de selección -->
+                      <div class="mt-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                        <p class="text-sm text-blue-300">
+                          <strong>{{ menusSeleccionados().length }}</strong> menús seleccionados de <strong>{{ availableMenus().length }}</strong> disponibles
+                        </p>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Botones -->
+                  <div class="flex gap-3 pt-6 border-t border-gray-600/50">
+                    <button
+                      type="button"
+                      (click)="cerrarModalAgregarRol()"
+                      class="flex-1 px-6 py-3 text-sm font-medium text-gray-300 bg-transparent border border-gray-600/70 rounded-lg hover:bg-gray-600/10 focus:outline-none focus:ring-2 focus:ring-gray-500/40 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      (click)="crearNuevoRol()"
+                      [disabled]="!nombreNuevoRol().trim() || menusSeleccionados().length === 0"
+                      class="flex-1 px-6 py-3 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Crear Rol
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-            <h3 class="text-lg font-semibold text-red-200 mb-2">Error al cargar datos</h3>
-            <p class="text-red-300 text-sm mb-4">No se pudieron cargar los menús y roles</p>
-            <button
-              type="button"
-              (click)="dataRolMenus.reload()"
-              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Reintentar
-            </button>
           </div>
         </div>
-      }
-
-      <!-- Main Content -->
-      @if (dataRolMenus.value()?.success) {
-        <div class="mx-auto max-w-7xl px-4 py-6">
-          <!-- Cards de Menús -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            @for (menu of getMenusData(); track menu.id) {
-              <div class="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm border border-gray-600/50 rounded-xl p-6 hover:border-gray-500/70 transition-all duration-300 hover:scale-[1.02] w-full">
-                <!-- Header del Menú -->
-                <div class="flex items-center gap-3 mb-4">
-                  <div class="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center">
-                    <i [class]="menu.icono + ' text-blue-400 text-lg'"></i>
-                  </div>
-                  <div class="flex-1">
-                    <h3 class="text-lg font-semibold text-white">{{ menu.etiqueta }}</h3>
-                    <p class="text-xs text-gray-400">ID: {{ menu.id }}</p>
-                  </div>
-                </div>
-
-                <!-- Información del Menú -->
-                <div class="space-y-3">
-                  <div class="flex items-center gap-2">
-                    <i class="fas fa-link text-blue-400 text-sm"></i>
-                    <span class="text-sm text-gray-300">Ruta:</span>
-                    <span class="text-sm text-white font-mono">/{{ menu.link }}</span>
-                  </div>
-
-                  <div class="flex items-center gap-2">
-                    <i class="fas fa-code text-purple-400 text-sm"></i>
-                    <span class="text-sm text-gray-300">Icono:</span>
-                    <span class="text-sm text-gray-400 font-mono">{{ menu.icono }}</span>
-                  </div>
-                </div>
-
-                <!-- Estado -->
-                <div class="mt-4 pt-3 border-t border-gray-700/50">
-                  <span class="px-3 py-1 bg-green-500/20 text-green-300 rounded-full text-xs border border-green-500/30">
-                    • Disponible
-                  </span>
-                </div>
-              </div>
-            } @empty {
-              <div class="col-span-full text-center py-12">
-                <div class="w-16 h-16 bg-gray-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <i class="fas fa-bars text-gray-400 text-xl"></i>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-300 mb-2">No hay menús configurados</h3>
-                <p class="text-gray-500 text-sm">No se encontraron menús en el sistema</p>
-              </div>
-            }
-          </div>
-        </div>
-      }
-    </section>
+      </div>
+    }
   `,
 })
-export class AdminRoles  {
-
-
+export class AdminRoles {
   private readonly configRolesService = inject(ConfigRolesService);
+  private readonly toastService = inject(ToastService);
+  protected platformId = inject(PLATFORM_ID);
+  protected isBrowser = isPlatformBrowser(this.platformId);
 
-  constructor() {}
+  title = signal('Gestión de Usuarios y Roles');
+  mostrarModalRoles = signal(false);
+  usuarioSeleccionado = signal<any>(null);
+  mostrarModalAgregarRol = signal(false);
+  nombreNuevoRol = signal('');
+  menusSeleccionados = signal<number[]>([]);
+  rolSeleccionado = signal<string>('');
 
-  dataRolMenus = rxResource({
-    stream: () =>  this.configRolesService.getAllMenuRoles()
+  userColumns = signal([
+    { field: 'numeroCedula', header: 'Cédula', type: 'text' as const },
+    { field: 'nombre', header: 'Nombre', type: 'text' as const },
+    { field: 'username', header: 'Usuario', type: 'text' as const },
+    { field: 'rolNombre', header: 'Rol', type: 'text' as const },
+    { field: 'tipoDocumento', header: 'Tipo Documento', type: 'text' as const },
+    // { field: 'activo', header: 'Estado', type: 'text' as const },
+  ]);
+
+  constructor() {
+    effect(() => {
+      console.log("esta es la data mi negro", this.serverUsersData.value());
+    })
+  }
+
+  readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      console.error('Error parsing userData from sessionStorage:', e);
+      return null;
+    }
+  });
+
+  readonly empresaId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
+  });
+
+    readonly rolId = computed(() => {
+    const data = this.userData();
+    return data?.rolId || null;
+  });
+
+  readonly exportFileName = computed(
+    () => `usuarios_roles_${new Date().toISOString().split('T')[0]}`
+  );
+
+  serverUsersData = rxResource({
+    params: () => ({
+      empresaId: this.empresaId(),
+    }),
+    stream: ({ params }) => {
+      const { empresaId } = params;
+      if (!empresaId) {
+        return EMPTY;
+      }
+      return this.configRolesService.getUsersEnterprice(empresaId);
+    },
+  });
+
+  dataByMenusByRole = rxResource({
+    params: () => ({
+      empresaId: this.empresaId(),
+      rolId: this.rolId(),
+    }),
+    stream: ({ params }) => {
+      const { empresaId, rolId } = params;
+      if (!empresaId || !rolId) {
+        return EMPTY;
+      }
+      return this.configRolesService.getmenuByRole(empresaId, rolId);
+    }
   })
 
-  getMenusData() {
-    const data = this.dataRolMenus.value();
-    if (!data?.success || !data.response) return [];
+  usersData = computed(() => {
+    const data = this.serverUsersData.value();
+    return data?.response || [];
+  });
 
-    const menus = data.response as any[];
-    return menus.filter(menu => menu?.id && menu?.etiqueta);
+  roleMenuData = rxResource({
+    params: () => ({
+      empresaId: this.empresaId(),
+      rolId: this.usuarioSeleccionado()?.rolId,
+    }),
+    stream: ({ params }) => {
+      const { empresaId, rolId } = params;
+      if (!empresaId || !rolId) {
+        return EMPTY;
+      }
+      return this.configRolesService.getmenuByRole(empresaId, rolId);
+    },
+  });
+
+  menuItems = computed(() => {
+    const data = this.roleMenuData.value();
+    return data?.response || [];
+  });
+
+  allMenusData = rxResource({
+    stream: () => this.configRolesService.getMenusAll()
+  });
+
+  allRolesData = rxResource({
+    stream: () => this.configRolesService.getAllRoles()
+  });
+
+  availableRoles = computed(() => {
+    const data = this.allRolesData.value();
+    return data?.response || [];
+  });
+
+  availableMenus = computed(() => {
+    const data = this.allMenusData.value();
+    if (!data?.response) return [];
+
+    // Extraer menús únicos
+    const uniqueMenus = new Map();
+    data.response.forEach(item => {
+      if (!uniqueMenus.has(item.menu.id)) {
+        uniqueMenus.set(item.menu.id, item.menu);
+      }
+    });
+
+    return Array.from(uniqueMenus.values());
+  });
+
+  handleTableAction(event: { action: string; row?: any }): void {
+    if (event.action === 'add') {
+      this.abrirModalAgregarRol();
+    } else if (event.action === 'roles' && event.row) {
+      this.abrirModalRoles(event.row);
+    }
+  }
+
+  abrirModalRoles(usuario: any): void {
+    this.usuarioSeleccionado.set(usuario);
+    this.rolSeleccionado.set(usuario.rolId?.toString() || '');
+    this.mostrarModalRoles.set(true);
+  }
+
+  cerrarModalRoles(): void {
+    this.mostrarModalRoles.set(false);
+    this.usuarioSeleccionado.set(null);
+    this.rolSeleccionado.set('');
+  }
+
+  abrirModalAgregarRol(): void {
+    this.mostrarModalAgregarRol.set(true);
+    this.nombreNuevoRol.set('');
+    this.menusSeleccionados.set([]);
+  }
+
+  cerrarModalAgregarRol(): void {
+    this.mostrarModalAgregarRol.set(false);
+    this.nombreNuevoRol.set('');
+    this.menusSeleccionados.set([]);
+  }
+
+  toggleMenuSelection(menuId: number): void {
+    const current = this.menusSeleccionados();
+    if (current.includes(menuId)) {
+      this.menusSeleccionados.set(current.filter(id => id !== menuId));
+    } else {
+      this.menusSeleccionados.set([...current, menuId]);
+    }
+  }
+
+  isMenuSelected(menuId: number): boolean {
+    return this.menusSeleccionados().includes(menuId);
+  }
+
+  /**
+   * Cambiar el rol del usuario seleccionado
+   */
+  cambiarRolUsuario(): void {
+    const usuario = this.usuarioSeleccionado();
+    const nuevoRolId = Number(this.rolSeleccionado());
+
+    if (!usuario || !nuevoRolId) {
+      this.toastService.error('Error', 'Seleccione un rol válido');
+      return;
+    }
+
+    if (nuevoRolId === usuario.rolId) {
+      this.toastService.error('Error', 'El usuario ya tiene este rol asignado');
+      return;
+    }
+
+    this.configRolesService.updateUserRole(usuario.id, nuevoRolId).subscribe({
+      next: () => {
+        this.toastService.success('Éxito', 'Rol actualizado correctamente');
+        this.cerrarModalRoles();
+        // Recargar la data de usuarios
+        this.serverUsersData.reload?.();
+      },
+      error: (error) => {
+        console.error('Error al cambiar rol:', error);
+        this.toastService.error('Error', 'No se pudo cambiar el rol del usuario');
+      }
+    });
+  }
+
+  crearNuevoRol(): void {
+    const nombre = this.nombreNuevoRol().trim();
+    const menuIds = this.menusSeleccionados();
+    const empresaId = this.empresaId();
+
+    if (!nombre) {
+      this.toastService.error('Error', 'El nombre del rol es obligatorio');
+      return;
+    }
+
+    if (menuIds.length === 0) {
+      this.toastService.error('Error', 'Debe seleccionar al menos un menú');
+      return;
+    }
+
+    if (!empresaId) {
+      this.toastService.error('Error', 'No se pudo obtener el ID de la empresa');
+      return;
+    }
+
+    this.configRolesService.createRole({
+      nombre,
+      menuIds,
+      empresaId
+    }).subscribe({
+      next: () => {
+        this.toastService.success('Éxito', 'Rol creado correctamente');
+        this.cerrarModalAgregarRol();
+        this.serverUsersData.reload?.();
+      },
+      error: () => {
+        this.toastService.error('Error', 'No se pudo crear el rol');
+      }
+    });
   }
 }

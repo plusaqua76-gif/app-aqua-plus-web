@@ -3,7 +3,6 @@ import { Routes } from '@angular/router';
 export default [
   {
     path: '',
-    loadComponent: () => import('./pages/user-access').then(m => m.UserAccess)
-    
-  },
+    loadComponent: () => import('./pages/reports-create').then(m => m.ReportsCreate)
+  }
 ] as Routes;

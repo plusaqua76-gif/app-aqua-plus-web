@@ -73,3 +73,49 @@ export interface IClienteNovedadRespuesta {
   fecha: Date;
 }
 
+// Interfaces para crear novedad con archivo
+export interface IFacturaRef {
+  id: number;
+}
+
+export interface ITipoNovedadRef {
+  id: number;
+}
+
+export interface IEmpresaClienteContadorRef {
+  id: number;
+}
+
+export interface IEstadoRef {
+  codigo: string;
+}
+
+export interface ICreateNovedadRequest {
+  tipoNovedad: ITipoNovedadRef;
+  empresaClienteContador: IEmpresaClienteContadorRef;
+  estado: IEstadoRef;
+  codigo: string;
+  descripcion: string;
+  activo: boolean;
+  usuarioCreacion: string;
+  fechaCreacion: string;
+  usuarioModificacion: string;
+  fechaModificacion: string;
+}
+
+export interface ICreateNovedadWithFileRequest {
+  novedad: ICreateNovedadRequest;
+  base64File: string;
+  idPersona: number;
+  nombreArchivo: string;
+  extension: string;
+  categoriaCodigo: string;
+}
+
+export interface ICreateNovedadResponse {
+  success: boolean;
+  message: string;
+  code: number;
+  response?: any;
+}
+
