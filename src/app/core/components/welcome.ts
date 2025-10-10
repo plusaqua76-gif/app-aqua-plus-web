@@ -4,7 +4,7 @@ import {
   CUSTOM_ELEMENTS_SCHEMA,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { LogoCarouselComponent } from './logo-carousel';
+import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carousel';
 
 @Component({
   selector: 'app-Welcome',

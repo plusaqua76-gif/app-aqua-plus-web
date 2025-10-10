@@ -13,9 +13,6 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
   imports: [CommonModule, TableComponent, RouterModule],
   template: `
     <ng-template #toggleTpl let-row>
-      <a (click)="edit(row)" class="text-green-600 hover:text-green-900 text-sm cursor-pointer">
-        <i class="fas fa-edit"></i>
-      </a>
     </ng-template>
 
     <ng-template #contadorTpl let-row>

@@ -103,30 +103,41 @@ import { BreadcrumbService } from '@services/breadcrumb.service';
           </button>
           <div
             id="dropdownAvatarName"
-            class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600"
+            class="z-10 hidden bg-gray-800/95 dark:bg-gray-800/95 backdrop-blur-sm divide-y divide-gray-600/30 rounded-xl shadow-2xl w-56 border border-gray-600/50"
           >
-            <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
-              <div class="font-medium">{{ user?.nombre || 'Usuario' }}</div>
+            <div class="px-4 py-3 text-sm text-white">
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <div class="font-medium">{{ user?.nombre || 'Usuario' }}</div>
+              </div>
             </div>
             <ul
-              class="py-2 text-sm text-gray-700 dark:text-gray-200"
+              class="py-2 text-sm"
               aria-labelledby="dropdownAvatarNameButton"
             >
               <li>
                 <a
                   [routerLink]="['profile']"
-                  class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                  class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-700/60 hover:text-white transition-all duration-200"
                 >
-                  Mi Perfil
+                  <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span>Mi Perfil</span>
                 </a>
               </li>
             </ul>
             <div class="py-2">
               <button
                 (click)="logout()"
-                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                class="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-600/10 hover:text-red-300 transition-all duration-200"
               >
-                Cerrar sesión
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Cerrar sesión</span>
               </button>
             </div>
           </div>
