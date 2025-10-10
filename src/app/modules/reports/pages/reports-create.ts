@@ -1,5 +1,12 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core';
 import { ResportsService } from '../services/resports.service';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { TableComponent } from '@components/table';
@@ -13,6 +20,26 @@ import { PopupComponent } from '@shared/components/popUp';
   template: `
     <ng-template #actionsTemplate let-row>
       <div class="flex items-center space-x-2">
+                <button
+          type="button"
+          (click)="handleTableAction({ action: 'generate', row })"
+          class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-green-600/50 text-green-400 hover:bg-green-600/10 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors duration-200 cursor-pointer"
+          title="Generar Reporte"
+        >
+          <svg
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+        </button>
         <button
           type="button"
           (click)="handleTableAction({ action: 'filter', row })"
@@ -55,41 +82,101 @@ import { PopupComponent } from '@shared/components/popUp';
     >
     </app-table-dynamic>
 
+    <!-- Botón flotante de WhatsApp -->
+    <div class="fixed bottom-6 right-6 z-[999] group">
+      <!-- Tooltip -->
+      <div
+        class="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-800/90 backdrop-blur-md border border-gray-600/50 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none"
+      >
+        ¿No encuentras tu reporte? Solicítalo aquí
+        <div
+          class="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-800/90"
+        ></div>
+      </div>
+
+      <!-- Botón -->
+      <button
+        type="button"
+        (click)="requestReportViaWhatsApp()"
+        class="relative w-14 h-14 rounded-full bg-white/70 dark:bg-gray-900/60 backdrop-blur-md shadow-lg hover:shadow-xl hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-110 active:scale-95 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-transparent border border-gray-200/20 dark:border-gray-700/20"
+        title="Solicitar reporte personalizado"
+      >
+        <!-- Pulso animado suave -->
+        <div
+          class="absolute inset-0 rounded-full bg-blue-400/20 animate-pulse"
+        ></div>
+
+        <!-- Logo de AquaPlus -->
+        <img
+          src="/images/logoAquaplus.webp"
+          alt="AquaPlus"
+          class="relative w-8 h-8 z-10 object-contain transition-transform duration-300 group-hover:rotate-12"
+        />
+      </button>
+    </div>
+
+
     <!-- Tabla de Resultados del Reporte -->
     @if (hasReportResults()) {
-      <div class="mt-8">
-        <!-- Mensaje informativo -->
-        <div class="mb-4 p-4 bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-500/30 rounded-lg mr-8 ml-8">
-          <div class="flex items-center gap-3">
-            <div class="flex-shrink-0">
-              <svg class="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <div class="flex-1">
-              <h3 class="text-lg font-semibold text-white">
-                Resultados del Reporte: {{ selectedReportName() }}
-              </h3>
-              <p class="text-sm text-gray-300 mt-1">
-                Se encontraron <span class="font-semibold text-blue-400">{{ reportTotalRecords() }}</span> registros
-              </p>
-            </div>
-            <button
-              type="button"
-              (click)="clearReportResults()"
-              class="px-4 py-2 text-sm font-medium text-white bg-red-600/80 hover:bg-red-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/40 transition-colors"
+    <div class="mt-8">
+      <!-- Mensaje informativo -->
+      <div
+        class="mb-4 p-4 bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-500/30 rounded-lg mr-8 ml-8"
+      >
+        <div class="flex items-center gap-3">
+          <div class="flex-shrink-0">
+            <svg
+              class="w-6 h-6 text-blue-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              <svg class="w-4 h-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Limpiar
-            </button>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
           </div>
+          <div class="flex-1">
+            <h3 class="text-lg font-semibold text-white">
+              Resultados del Reporte: {{ selectedReportName() }}
+            </h3>
+            <p class="text-sm text-gray-300 mt-1">
+              Se encontraron
+              <span class="font-semibold text-blue-400">{{
+                reportTotalRecords()
+              }}</span>
+              registros
+            </p>
+          </div>
+          <button
+            type="button"
+            (click)="clearReportResults()"
+            class="px-4 py-2 text-sm font-medium text-white bg-red-600/80 hover:bg-red-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/40 transition-colors"
+          >
+            <svg
+              class="w-4 h-4 inline mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+            Limpiar
+          </button>
         </div>
+      </div>
 
-        <!-- Tabla de resultados -->
-<div class="mb-12">
-          <app-table-dynamic
+      <!-- Tabla de resultados -->
+      <div class="mb-12">
+        <app-table-dynamic
           [title]="''"
           [columns]="reportColumns()"
           [serverMode]="false"
@@ -100,10 +187,9 @@ import { PopupComponent } from '@shared/components/popUp';
           [actionTemplate]="emptyActionsTemplate"
         >
         </app-table-dynamic>
-</div>
       </div>
+    </div>
     }
-
 
     <!-- Popup de Filtros -->
     <app-pop-up
@@ -126,59 +212,59 @@ import { PopupComponent } from '@shared/components/popUp';
           } @else if (filtersReports.value()?.response &&
           (filtersReports.value()?.response?.length ?? 0) > 0) {
           <div class="p-4">
-            <!-- Descripción
-              <div>
-                <h4 class="text-lg font-medium text-gray-200 mb-4">
-                  Configuración de Filtros - {{ selectedReportName() }}
-                </h4>
-                <p class="text-sm text-gray-400 mb-4">
-                  Configure los filtros para generar el reporte personalizado:
-                </p>
-              </div> -->
-
-            <!-- Grid de filtros -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              @for (filterItem of filtersReports.value()?.response; track filterItem.id) {
-                <!-- Solo mostrar campos que NO sean requeridos y NO sean de solo lectura -->
-                @if (!filterItem.filtro.requerido && !filterItem.filtro.lectura) {
-                  <div class="p-4 rounded-lg border border-gray-600/70 hover:bg-white/5 transition-colors">
+              @for (filterItem of filtersReports.value()?.response; track
+              filterItem.id) {
+              <!-- Solo mostrar campos que NO sean requeridos y NO sean de solo lectura -->
+            @if (!filterItem.filtro.requerido && !filterItem.filtro.lectura && filterItem.filtro.campo !== 'p_incluir_encabezado') {
+              <div
+                class="p-4 rounded-lg border border-gray-600/70 hover:bg-white/5 transition-colors"
+              >
+                <!-- Header con título -->
+                <div class="mb-4">
+                  <div class="flex items-start justify-between mb-2">
+                    <h5 class="text-sm font-medium text-white">
+                      {{ formatFieldName(filterItem.filtro.campo) }}
+                    </h5>
+                  </div>
+                </div>
 
-                    <!-- Header con título -->
-                    <div class="mb-4">
-                      <div class="flex items-start justify-between mb-2">
-                        <h5 class="text-sm font-medium text-white">
-                          {{ formatFieldName(filterItem.filtro.campo) }}
-                        </h5>
-                      </div>
-                    </div>
-
-                    <!-- Campo según tipo de atributo -->
-                    <div class="space-y-3">
-                      @switch (filterItem.filtro.tipoAtributo.nombre) {
-                        @case ('TEXT') {
-                          <div>
-                            <input
-                              type="text"
-                              class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
-                              [placeholder]="'Ingrese ' + formatFieldName(filterItem.filtro.campo).toLowerCase()"
-                              [value]="filterValues()[filterItem.filtro.campo] || ''"
-                              (input)="updateFilterValue(filterItem.filtro.campo, $event)"
-                            />
-                          </div>
-                        }
-                        @case ('INTEGER') {
-                          <div>
-                            <input
-                              type="number"
-                              class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
-                              [placeholder]="'Ingrese ' + formatFieldName(filterItem.filtro.campo).toLowerCase()"
-                              [value]="filterValues()[filterItem.filtro.campo] || ''"
-                              (input)="updateFilterValue(filterItem.filtro.campo, $event)"
-                              step="1"
-                            />
-                          </div>
-                        }
-                        <!-- @case ('BOOLEAN') {
+                <!-- Campo según tipo de atributo -->
+                <div class="space-y-3">
+                  @switch (filterItem.filtro.tipoAtributo.nombre) { @case
+                  ('TEXT') {
+                  <div>
+                    <input
+                      type="text"
+                      class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
+                      [placeholder]="
+                        'Ingrese ' +
+                        formatFieldName(filterItem.filtro.campo).toLowerCase()
+                      "
+                      [value]="filterValues()[filterItem.filtro.campo] || ''"
+                      (input)="
+                        updateFilterValue(filterItem.filtro.campo, $event)
+                      "
+                    />
+                  </div>
+                  } @case ('INTEGER') {
+                  <div>
+                    <input
+                      type="number"
+                      class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
+                      [placeholder]="
+                        'Ingrese ' +
+                        formatFieldName(filterItem.filtro.campo).toLowerCase()
+                      "
+                      [value]="filterValues()[filterItem.filtro.campo] || ''"
+                      (input)="
+                        updateFilterValue(filterItem.filtro.campo, $event)
+                      "
+                      step="1"
+                    />
+                  </div>
+                  }
+                  <!-- @case ('BOOLEAN') {
                           <div>
                             <div class="space-y-3">
                               <div class="flex items-center p-3 rounded-lg border border-gray-600/70 hover:bg-white/5 transition-colors cursor-pointer">
@@ -206,8 +292,8 @@ import { PopupComponent } from '@shared/components/popUp';
                             </div>
                           </div>
                         } -->
-                        @default {
-                          <!-- <div>
+                  @default {
+                  <!-- <div>
                             <input
                               type="text"
                               class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
@@ -216,12 +302,10 @@ import { PopupComponent } from '@shared/components/popUp';
                               (input)="updateFilterValue(filterItem.filtro.campo, $event)"
                             />
                           </div> -->
-                        }
-                      }
-                    </div>
-                  </div>
-                }
-              }
+                  } }
+                </div>
+              </div>
+              } }
             </div>
           </div>
           } @else {
@@ -304,14 +388,15 @@ import { PopupComponent } from '@shared/components/popUp';
 export class ReportsCreate {
   private readonly resportsService = inject(ResportsService);
   private readonly toastService = inject(ToastService);
-    protected platformId = inject(PLATFORM_ID);
+  protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
   title = signal('Gestión de Reportes');
   selectedReportId = signal<number | null>(null);
   selectedReportName = signal<string>('');
-  selectedNombreSp = signal<string>(''); // Nuevo signal para nombreSp
+  selectedNombreSp = signal<string>('');
   showFiltersPopup = signal(false);
   filterValues = signal<Record<string, any>>({});
+  shouldGenerateAfterLoad = signal(false); // Nueva señal para controlar la generación automática
 
   billColumns = signal([
     { field: 'nombre', header: 'Nombre', type: 'text' as const },
@@ -319,13 +404,12 @@ export class ReportsCreate {
     { field: 'nombreSp', header: 'Procedimiento', type: 'text' as const },
   ]);
 
-  // Propiedades para los resultados del reporte
   reportData = signal<any[]>([]);
   reportColumns = signal<{ field: string; header: string; type: 'text' }[]>([]);
   reportTotalRecords = signal<number>(0);
   hasReportResults = computed(() => this.reportData().length > 0);
 
-    readonly userData = computed(() => {
+  readonly userData = computed(() => {
     if (!this.isBrowser) return null;
     try {
       const userDataString = sessionStorage.getItem('userData');
@@ -342,11 +426,22 @@ export class ReportsCreate {
     return data?.empresaId || null;
   });
 
-
   constructor() {
     effect(() => {
       if (this.filtersReports.value()?.response && this.showFiltersPopup()) {
         this.initializeFilterValues();
+      }
+    });
+
+    // Effect para generar el reporte automáticamente cuando los filtros se carguen
+    effect(() => {
+      if (
+        this.shouldGenerateAfterLoad() &&
+        !this.filtersReports.isLoading() &&
+        this.filtersReports.value()?.response
+      ) {
+        this.shouldGenerateAfterLoad.set(false);
+        this.applyFilters();
       }
     });
   }
@@ -372,9 +467,16 @@ export class ReportsCreate {
     if (event.action === 'filter' && event.row) {
       this.selectedReportId.set(event.row.id);
       this.selectedReportName.set(event.row.nombre || 'Reporte');
-      this.selectedNombreSp.set(event.row.nombreSp || ''); // Capturar nombreSp
+      this.selectedNombreSp.set(event.row.nombreSp || '');
       this.showFiltersPopup.set(true);
+    } else if (event.action === 'generate' && event.row) {
+      this.selectedReportId.set(event.row.id);
+      this.selectedReportName.set(event.row.nombre || 'Reporte');
+      this.selectedNombreSp.set(event.row.nombreSp || '');
+      // Marcar que se debe generar el reporte después de cargar los filtros
+      this.shouldGenerateAfterLoad.set(true);
     }
+
   }
 
   closeFiltersPopup(): void {
@@ -398,7 +500,7 @@ export class ReportsCreate {
         if (!word) return '';
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
       })
-      .filter(word => word.length > 0) // Filtrar palabras vacías
+      .filter((word) => word.length > 0) // Filtrar palabras vacías
       .join(' ');
   }
 
@@ -407,7 +509,6 @@ export class ReportsCreate {
     if (filters) {
       const initialValues: Record<string, any> = {};
       filters.forEach((filterItem) => {
-        // Solo inicializar campos que NO sean requeridos y NO sean de solo lectura
         if (!filterItem.filtro.requerido && !filterItem.filtro.lectura) {
           const campo = filterItem.filtro.campo;
           switch (filterItem.filtro.tipoAtributo.nombre) {
@@ -436,13 +537,10 @@ export class ReportsCreate {
   updateFilterValue(campo: string, event: any): void {
     const target = event.target as HTMLInputElement;
     const currentValues = this.filterValues();
-
-    // Usar el value del input directamente
     const value = target.value;
-
     this.filterValues.set({
       ...currentValues,
-      [campo]: value
+      [campo]: value,
     });
   }
 
@@ -452,12 +550,15 @@ export class ReportsCreate {
     const filters = this.filtersReports.value()?.response;
 
     if (!nombreSp) {
-      this.toastService.error('Error', 'No se ha seleccionado un procedimiento válido');
+      this.toastService.error(
+        'Error',
+        'No se ha seleccionado un procedimiento válido'
+      );
       return;
     }
     const requestBody: any = {};
     if (filters) {
-      filters.forEach(filterItem => {
+      filters.forEach((filterItem) => {
         if (filterItem.filtro.requerido) {
           const campo = filterItem.filtro.campo;
 
@@ -487,7 +588,7 @@ export class ReportsCreate {
       });
     }
 
-    Object.keys(values).forEach(key => {
+    Object.keys(values).forEach((key) => {
       const value = values[key];
       if (value !== null && value !== undefined && value !== '') {
         if (value === 'true') {
@@ -502,79 +603,71 @@ export class ReportsCreate {
       }
     });
 
-
-    // Llamar al servicio directamente
-    this.resportsService.generateReportWithFilters('reportes', nombreSp, requestBody)
+    this.resportsService
+      .generateReportWithFilters('reportes', nombreSp, requestBody)
       .subscribe({
         next: (apiResponse) => {
-          // La respuesta puede venir como array o como objeto con response
           let response;
-
           if (Array.isArray(apiResponse) && apiResponse.length > 0) {
-            // Si es un array, tomar el primer elemento
             response = apiResponse[0];
           } else if (apiResponse?.response) {
-            // Si tiene la propiedad response
             response = apiResponse.response;
           } else {
-            // Si es un objeto directo
             response = apiResponse;
           }
 
-
-          // Verificar que la respuesta existe y tiene datos
           if (!response) {
-            this.toastService.warning('Advertencia', 'No se recibió respuesta del servidor');
+            this.toastService.warning(
+              'Advertencia',
+              'No se recibió respuesta del servidor'
+            );
             return;
           }
 
-          // Verificar que tiene rows y es un array válido
           if (!response.rows || !Array.isArray(response.rows)) {
-            this.toastService.warning('Advertencia', 'El reporte no contiene datos válidos');
+            this.toastService.warning(
+              'Advertencia',
+              'El reporte no contiene datos válidos'
+            );
             return;
           }
-
-          // Si no hay filas, mostrar mensaje apropiado
           if (response.rows.length === 0) {
             this.reportData.set([]);
             this.reportColumns.set([]);
             this.reportTotalRecords.set(0);
-            this.toastService.warning('Información', 'El reporte no contiene registros con los filtros aplicados');
+            this.toastService.warning(
+              'Información',
+              'El reporte no contiene registros con los filtros aplicados'
+            );
             return;
           }
-
-          // Procesar las columnas dinámicamente
           let columns: { field: string; header: string; type: 'text' }[] = [];
-
-          // Headers que NO queremos mostrar (blacklist)
           const excludedHeaders = ['Estado'];
 
-          // Si tiene headers, crear mapeo dinámico
-          if (response.headers && Array.isArray(response.headers) && response.headers.length > 0) {
-
+          if (
+            response.headers &&
+            Array.isArray(response.headers) &&
+            response.headers.length > 0
+          ) {
             const firstRow = response.rows[0];
             const fieldKeys = Object.keys(firstRow);
 
-
-            // Filtrar headers que no queremos mostrar
-            const filteredHeaders = response.headers.filter((header: string) =>
-              !excludedHeaders.includes(header)
+            const filteredHeaders = response.headers.filter(
+              (header: string) => !excludedHeaders.includes(header)
             );
 
-
-            // Crear un mapeo dinámico basado en la normalización de nombres
             columns = filteredHeaders.map((header: string) => {
-              // Normalizar el header para convertirlo en nombre de campo
-              const normalizedField = header.toLowerCase()
+              const normalizedField = header
+                .toLowerCase()
                 .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '') // Remover acentos
-                .replace(/\s+/g, '_'); // Espacios a guiones bajos
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/\s+/g, '_');
 
-              // Buscar el campo real que más se parezca al normalizado
-              const matchingField = fieldKeys.find(field =>
-                field.toLowerCase() === normalizedField ||
-                field.toLowerCase().includes(normalizedField) ||
-                normalizedField.includes(field.toLowerCase())
+              const matchingField = fieldKeys.find(
+                (field) =>
+                  field.toLowerCase() === normalizedField ||
+                  field.toLowerCase().includes(normalizedField) ||
+                  normalizedField.includes(field.toLowerCase())
               );
 
               const finalField = matchingField || normalizedField;
@@ -582,53 +675,63 @@ export class ReportsCreate {
               return {
                 field: finalField,
                 header: String(header),
-                type: 'text' as const
+                type: 'text' as const,
               };
             });
           } else {
-            // Si no hay headers, usar las claves del primer objeto como columnas
             const firstRow = response.rows[0];
             const fieldKeys = Object.keys(firstRow);
 
-            // Filtrar campos que no queremos mostrar
-            const excludedFields = ['estado']; // en minúsculas
-            const filteredFields = fieldKeys.filter(key =>
-              !excludedFields.includes(key.toLowerCase())
+            const excludedFields = ['estado'];
+            const filteredFields = fieldKeys.filter(
+              (key) => !excludedFields.includes(key.toLowerCase())
             );
 
             columns = filteredFields.map((key) => ({
               field: key,
               header: this.formatFieldName(key),
-              type: 'text' as const
+              type: 'text' as const,
             }));
           }
 
-          // Guardar los datos en las propiedades
           this.reportColumns.set(columns);
           this.reportData.set(response.rows);
           this.reportTotalRecords.set(response.total || response.rows.length);
 
-          this.toastService.success('Éxito', `Reporte generado correctamente. ${response.rows.length} registros encontrados.`);
+          this.toastService.success(
+            'Éxito',
+            `Reporte generado correctamente. ${response.rows.length} registros encontrados.`
+          );
         },
         error: (error) => {
           this.reportData.set([]);
           this.reportColumns.set([]);
           this.reportTotalRecords.set(0);
           this.toastService.error('Error', 'Error al generar el reporte');
-        }
+        },
       });
 
-    // Cerrar el popup y limpiar filtros
     this.showFiltersPopup.set(false);
     this.filterValues.set({});
   }
 
-  // Método para limpiar los resultados del reporte
   clearReportResults(): void {
     this.reportData.set([]);
     this.reportColumns.set([]);
     this.reportTotalRecords.set(0);
     this.selectedReportName.set('');
     this.selectedNombreSp.set('');
+  }
+
+  requestReportViaWhatsApp(): void {
+    const phoneNumber = '573225159744';
+    const message = encodeURIComponent(
+      '¡Hola! 👋 Me gustaría solicitar un reporte personalizado. ¿Podrían ayudarme?'
+    );
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+
+    if (this.isBrowser) {
+      window.open(whatsappUrl, '_blank');
+    }
   }
 }
