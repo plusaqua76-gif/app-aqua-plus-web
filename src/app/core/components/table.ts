@@ -45,7 +45,7 @@ export interface TableColumn {
               <div class="relative" data-export-dropdown>
                 <button
                   type="button"
-                  class="flex w-full items-center justify-center rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700 transition-colors duration-200"
+                  class="flex w-full items-center justify-center rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-4 py-3 text-sm font-medium text-gray-900 dark:text-white hover:bg-white/20 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300"
                   (click)="toggleExportDropdown()"
                 >
                   Descargar
@@ -55,14 +55,14 @@ export interface TableColumn {
                 </button>
 
                 @if (showExportDropdown()) {
-                  <div class="absolute right-0 z-50 mt-2 w-52 divide-y divide-gray-100 rounded-lg bg-white shadow-lg dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
-                    <ul class="p-2 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                  <div class="absolute left-0 top-full z-[9999] mt-2 w-52 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg shadow-2xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
+                    <ul class="p-2 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
                       <li>
                         <button
-                          class="group inline-flex w-full items-center rounded-md px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white transition-colors duration-150"
+                          class="group inline-flex w-full items-center rounded-lg px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200"
                           (click)="exportAsCSV()"
                         >
-                          <svg class="me-1.5 h-4 w-4 text-gray-400 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                          <svg class="me-1.5 h-4 w-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                             <path fill-rule="evenodd" d="M9 2.221V7H4.221a2 2 0 0 1 .365-.5L8.5 2.586A2 2 0 0 1 9 2.22ZM11 2v5a2 2 0 0 1-2 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2 2 2 0 0 0 2 2h12a2 2 0 0 0 2-2 2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2V4a2 2 0 0 0-2-2h-7Zm1.018 8.828a2.34 2.34 0 0 0-2.373 2.13v.008a2.32 2.32 0 0 0 2.06 2.497l.535.059a.993.993 0 0 0 .136.006.272.272 0 0 1 .263.367l-.008.02a.377.377 0 0 1-.018.044.49.49 0 0 1-.078.02 1.689 1.689 0 0 1-.297.021h-1.13a1 1 0 1 0 0 2h1.13c.417 0 .892-.05 1.324-.279.47-.248.78-.648.953-1.134a2.272 2.272 0 0 0-2.115-3.06l-.478-.052a.32.32 0 0 1-.285-.341.34.34 0 0 1 .344-.306l.94.02a1 1 0 1 0 .043-2l-.943-.02h-.003Zm7.933 1.482a1 1 0 1 0-1.902-.62l-.57 1.747-.522-1.726a1 1 0 0 0-1.914.578l1.443 4.773a1 1 0 0 0 1.908.021l1.557-4.773Zm-13.762.88a.647.647 0 0 1 .458-.19h1.018a1 1 0 1 0 0-2H6.647A2.647 2.647 0 0 0 4 13.647v1.706A2.647 2.647 0 0 0 6.647 18h1.018a1 1 0 1 0 0-2H6.647A.647.647 0 0 1 6 15.353v-1.706c0-.172.068-.336.19-.457Z" clip-rule="evenodd"/>
                           </svg>
                           <span>Export CSV</span>
@@ -70,10 +70,21 @@ export interface TableColumn {
                       </li>
                       <li>
                         <button
-                          class="group inline-flex w-full items-center rounded-md px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white transition-colors duration-150"
+                          class="group inline-flex w-full items-center rounded-lg px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-400 transition-all duration-200"
+                          (click)="exportAsExcel()"
+                        >
+                          <svg class="me-1.5 h-4 w-4 text-gray-400 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd" d="M9 7V2.221a2 2 0 0 0-.5.365L4.586 6.5a2 2 0 0 0-.365.5H9Zm2 0V2h7a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9h5a2 2 0 0 0 2-2Zm-1 9a1 1 0 1 0-2 0v2a1 1 0 1 0 2 0v-2Zm2-5a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Zm4 4a1 1 0 1 0-2 0v3a1 1 0 1 0 2 0v-3Z" clip-rule="evenodd"/>
+                          </svg>
+                          <span>Export Excel</span>
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          class="group inline-flex w-full items-center rounded-lg px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-500/10 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-200"
                           (click)="exportAsJSON()"
                         >
-                          <svg class="me-1.5 h-4 w-4 text-gray-400 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                          <svg class="me-1.5 h-4 w-4 text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                             <path fill-rule="evenodd" d="M9 2.221V7H4.221a2 2 0 0 1 .365-.5L8.5 2.586A2 2 0 0 1 9 2.22ZM11 2v5a2 2 0 0 1-2 2H4v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-7Zm-.293 9.293a1 1 0 0 1 0 1.414L9.414 14l1.293 1.293a1 1 0 0 1-1.414 1.414l-2-2a1 1 0 0 1 0-1.414l2-2a1 1 0 0 1 1.414 0Zm2.586 1.414a1 1 0 0 1 1.414-1.414l2 2a1 1 0 0 1 0 1.414l-2 2a1 1 0 0 1-1.414-1.414L14.586 14l-1.293-1.293Z" clip-rule="evenodd"/>
                           </svg>
                           <span>Export JSON</span>
@@ -81,10 +92,10 @@ export interface TableColumn {
                       </li>
                       <li>
                         <button
-                          class="group inline-flex w-full items-center rounded-md px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white transition-colors duration-150"
+                          class="group inline-flex w-full items-center rounded-lg px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400 transition-all duration-200"
                           (click)="exportAsTXT()"
                         >
-                          <svg class="me-1.5 h-4 w-4 text-gray-400 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                          <svg class="me-1.5 h-4 w-4 text-gray-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                             <path fill-rule="evenodd" d="M9 2.221V7H4.221a2 2 0 0 1 .365-.5L8.5 2.586A2 2 0 0 1 9 2.22ZM11 2v5a2 2 0 0 1-2 2H4v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-7ZM8 16a1 1 0 0 1 1-1h6a1 1 0 1 1 0 2H9a1 1 0 0 1-1-1Zm1-5a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2H9Z" clip-rule="evenodd"/>
                           </svg>
                           <span>Export TXT</span>
@@ -92,10 +103,10 @@ export interface TableColumn {
                       </li>
                       <li>
                         <button
-                          class="group inline-flex w-full items-center rounded-md px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white transition-colors duration-150"
+                          class="group inline-flex w-full items-center rounded-lg px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all duration-200"
                           (click)="exportAsSQL()"
                         >
-                          <svg class="me-1.5 h-4 w-4 text-gray-400 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                          <svg class="me-1.5 h-4 w-4 text-gray-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 7.205c4.418 0 8-1.165 8-2.602C20 3.165 16.418 2 12 2S4 3.165 4 4.603c0 1.437 3.582 2.602 8 2.602ZM12 22c4.963 0 8-1.686 8-2.603v-4.404c-.052.032-.112.06-.165.09a7.75 7.75 0 0 1-.745.387c-.193.088-.394.173-.6.253-.063.024-.124.05-.189.073a18.934 18.934 0 0 1-6.3.998c-2.135.027-4.26-.31-6.3-.998-.065-.024-.126-.05-.189-.073a10.143 10.143 0 0 1-.852-.373 7.75 7.75 0 0 1-.493-.267c-.053-.03-.113-.058-.165-.09v4.404C4 20.315 7.037 22 12 22Zm7.09-13.928a9.91 9.91 0 0 1-.6.253c-.063.025-.124.05-.189.074a18.935 18.935 0 0 1-6.3.998c-2.135.027-4.26-.31-6.3-.998-.065-.024-.126-.05-.189-.074a10.163 10.163 0 0 1-.852-.372 7.816 7.816 0 0 1-.493-.268c-.055-.03-.115-.058-.167-.09V12c0 .917 3.037 2.603 8 2.603s8-1.686 8-2.603V7.596c-.052.031-.112.059-.165.09a7.816 7.816 0 0 1-.745.386Z"/>
                           </svg>
                           <span>Export SQL</span>
@@ -110,10 +121,10 @@ export interface TableColumn {
             @if (showColumnFilters()) {
               <button
                 type="button"
-                class="flex items-center justify-center rounded-lg border px-4 py-3 text-sm font-medium transition-colors duration-200"
+                class="flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-medium backdrop-blur-md transition-all duration-300"
                 [class]="buttonFilter()
-                  ? 'border-green-500 bg-green-50 text-green-700 hover:bg-green-100 dark:border-green-600 dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800'
-                  : 'border-gray-200 bg-white text-gray-900 hover:bg-gray-100 hover:text-blue-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'"
+                  ? 'border-green-500/30 bg-green-500/10 text-green-700 hover:bg-green-500/20 dark:border-green-400/30 dark:bg-green-400/10 dark:text-green-300 dark:hover:bg-green-400/20'
+                  : 'border-white/20 bg-white/10 text-gray-900 dark:text-white hover:bg-white/20 hover:border-white/30'"
                 (click)="toggleFilters()"
                 [title]="buttonFilter() ? 'Ocultar filtros' : 'Mostrar filtros'"
               >
@@ -137,7 +148,7 @@ export interface TableColumn {
           <div class="flex items-center gap-3">
             @if (showAddButton()) {
               <button
-                class="bg-blue-200 hover:bg-blue-400 text-gray-700 font-bold py-3 px-6 rounded-lg hover:text-white transform transition-all duration-500 ease-in-out hover:scale-110 hover:brightness-110 hover:animate-pulse active:animate-bounce flex items-center gap-4 whitespace-nowrap cursor-pointer"
+                class="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-semibold py-3 px-6 rounded-xl hover:border-blue-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center gap-3 whitespace-nowrap cursor-pointer"
                 (click)="onAction('add', null)"
               >
                 <svg
@@ -161,7 +172,7 @@ export interface TableColumn {
 
             @if (showSecondaryButton()) {
               <button
-                class="bg-green-200 hover:bg-green-400 text-gray-700 font-bold py-3 px-6 rounded-lg shadow-lg shadow-neutral-400 hover:text-white transform transition-all duration-500 ease-in-out hover:scale-110 hover:brightness-110 hover:animate-pulse active:animate-bounce flex items-center gap-4 whitespace-nowrap cursor-pointer"
+                class="bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 backdrop-blur-md text-green-700 dark:text-green-300 font-semibold py-3 px-6 rounded-xl hover:border-green-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 active:scale-95 flex items-center gap-3 whitespace-nowrap cursor-pointer"
                 (click)="onSecondaryAction()"
               >
                 <svg
@@ -188,14 +199,15 @@ export interface TableColumn {
     </div>
 
     <div
-      class="relative overflow-x-auto shadow-lg sm:rounded-t-lg mx-4 sm:mx-6 lg:mx-8 bg-white dark:bg-slate-800"
+      class="relative overflow-hidden shadow-2xl sm:rounded-t-2xl mx-4 sm:mx-6 lg:mx-8 bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border-t border-white/20 dark:border-slate-700/30"
     >
-      <table
-        class="w-full text-sm text-left rtl:text-right text-gray-700 dark:text-gray-300"
-      >
-        <thead
-          class="bg-slate-700 dark:bg-slate-900"
+      <div class="overflow-x-auto">
+        <table
+          class="w-full text-sm text-left rtl:text-right text-gray-700 dark:text-gray-300"
         >
+          <thead
+            class="bg-slate-700/40 dark:bg-slate-900/30 backdrop-blur-xl"
+          >
           <tr>
             @for (column of columns(); track column) {
               <th
@@ -217,12 +229,12 @@ export interface TableColumn {
 
           <!-- Fila de filtros separada -->
           @if (showColumnFilters() && buttonFilter()) {
-            <tr class="bg-slate-600 dark:bg-slate-800">
+            <tr class="bg-slate-600/30 dark:bg-slate-800/20 backdrop-blur-xl border-t border-white/10">
               @for (column of columns(); track column) {
                 <th scope="col" class="px-3 sm:px-6 py-3">
                   <div class="relative">
                     <!-- Icono de filtro -->
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
                       <svg class="w-4 h-4 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                         <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z"/>
                       </svg>
@@ -241,8 +253,8 @@ export interface TableColumn {
                       <!-- Input normal para otros tipos -->
                       <input
                         type="text"
-                        class="w-full pl-10 pr-3 py-2 text-sm bg-slate-700 border border-slate-400 rounded-md text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:bg-slate-600"
-                        (keydown.enter)="onColumnFilterInput(column.field, $event)"
+                        class="w-full pl-6 pr-3 py-2 text-sm bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+                        (input)="onColumnFilterInput(column.field, $event)"
                         [value]="columnFilters()[column.field] || ''"
                       />
                     }
@@ -251,22 +263,26 @@ export interface TableColumn {
               }
               <th scope="col" class="px-3 sm:px-6 py-3">
                 <button
-                  class="px-2 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded transition-colors duration-200"
+                  type="button"
                   (click)="clearAllFilters()"
+                  class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-red-600/40 bg-red-500/10 text-red-400 hover:bg-red-600/20 hover:border-red-500/60 focus:outline-none focus:ring-2 focus:ring-red-500/40 backdrop-blur-sm transition-all duration-300"
                   title="Limpiar todos los filtros"
                 >
-                  <i class="fas fa-times"></i>
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
                 </button>
               </th>
             </tr>
           }
         </thead>
 
-        <tbody>
+        <tbody class="bg-white/10 dark:bg-gray-800/10 backdrop-blur-xl">
           @if (pagedRows().length) {
             @for (row of pagedRows(); track trackById($index, row)) {
               <tr
-                class="bg-white border-b border-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 transition-colors"
+                class="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-b border-gray-200/30 dark:border-gray-700/30 hover:bg-blue-50/30 dark:hover:bg-gray-700/40 transition-all duration-300"
               >
                 @for (col of columns(); track col) {
                   <td
@@ -311,11 +327,12 @@ export interface TableColumn {
           }
         </tbody>
       </table>
+      </div>
     </div>
 
     <!-- Footer de paginación separado del scroll -->
     <div
-      class="flex flex-col sm:flex-row items-center justify-between p-4 bg-slate-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 text-sm shadow-lg sm:rounded-b-lg mx-4 sm:mx-6 lg:mx-8"
+      class="flex flex-col sm:flex-row items-center justify-between p-4 bg-slate-100/30 dark:bg-slate-700/20 backdrop-blur-xl text-gray-700 dark:text-gray-300 text-sm shadow-xl sm:rounded-b-2xl mx-4 sm:mx-6 lg:mx-8 mt-[-1px]"
     >
       <span class="font-medium mb-3 sm:mb-0">
         Mostrando {{ startEntry() }} en {{ endEntry() }} de
@@ -324,9 +341,10 @@ export interface TableColumn {
 
       <!-- Paginación simple -->
       <div class="flex items-center gap-4">
-        <nav class="inline-flex items-center gap-0 bg-slate-800 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-600">          <!-- Botón Anterior -->
+        <nav class="inline-flex items-center gap-0 bg-slate-800/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-xl overflow-hidden border border-slate-600/50 shadow-lg">
+          <!-- Botón Anterior -->
           <button
-            class="px-3 py-2 text-white hover:bg-slate-700 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 border-r border-slate-600"
+            class="px-3 py-2 text-white hover:bg-slate-700/80 dark:hover:bg-slate-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border-r border-slate-600/50 backdrop-blur-sm"
             [disabled]="currentPageIndex() === 0"
             (click)="prevPage()"
           >
@@ -336,10 +354,10 @@ export interface TableColumn {
           <!-- Páginas numeradas (responsive) -->
           @for (i of getVisiblePages(); track i) {
             <button
-              class="px-3 py-2 min-w-[40px] text-center transition-colors duration-200 border-r border-slate-600 last:border-r-0"
+              class="px-3 py-2 min-w-[40px] text-center transition-all duration-300 border-r border-slate-600/50 last:border-r-0 backdrop-blur-sm"
               [class]="i === currentPageIndex()
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'text-white hover:bg-slate-700 dark:hover:bg-slate-600'"
+                ? 'bg-blue-600/90 text-white hover:bg-blue-700/90 shadow-lg shadow-blue-500/20'
+                : 'text-white hover:bg-slate-700/80 dark:hover:bg-slate-600/80'"
               (click)="goToPage(i)"
             >
               {{ i + 1 }}
@@ -348,7 +366,7 @@ export interface TableColumn {
 
           <!-- Botón Siguiente -->
           <button
-            class="px-3 py-2 text-white hover:bg-slate-700 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            class="px-3 py-2 text-white hover:bg-slate-700/80 dark:hover:bg-slate-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 backdrop-blur-sm"
             [disabled]="currentPageIndex() >= totalPages() - 1"
             (click)="nextPage()"
           >
@@ -358,16 +376,17 @@ export interface TableColumn {
 
         <!-- Selector de filas por página -->
         <div class="flex items-center gap-2 text-sm">
-          <span class="text-gray-600 dark:text-gray-300 whitespace-nowrap">
+          <span class="text-gray-600 dark:text-gray-300 whitespace-nowrap font-medium">
             Filas:
           </span>
           <select
-            class="px-3 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 text-sm min-w-[70px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            class="px-3 py-2 rounded-xl bg-gray-800/60 dark:bg-gray-800/60 backdrop-blur-sm text-white border border-gray-600/50 text-sm min-w-[70px] focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 cursor-pointer hover:bg-gray-700/70 shadow-lg appearance-none bg-[length:16px_16px] bg-[position:right_0.5rem_center] bg-no-repeat"
+            style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23ffffff%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%272%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E');"
             [value]="currentPageSize()"
             (change)="onPageSizeChange($event)"
           >
             @for (opt of pageSizeOptions; track opt) {
-              <option [value]="opt">{{ opt }}</option>
+              <option [value]="opt" class="bg-gray-800 text-white">{{ opt }}</option>
             }
           </select>
         </div>
@@ -742,7 +761,85 @@ export class TableComponent {
       csvContent += rowData.join(';') + '\n';
     });
 
-    this.downloadFile(csvContent, `${this.exportFileName()}.csv`, 'text/csv;charset=utf-8');
+    // Agregar BOM UTF-8 para caracteres especiales
+    const BOM = '\uFEFF';
+    const csvWithBOM = BOM + csvContent;
+
+    this.downloadFile(csvWithBOM, `${this.exportFileName()}.csv`, 'text/csv;charset=utf-8');
+  }
+
+  exportAsExcel() {
+    const data = this.getExportData();
+    const headers = this.columns().map(col => col.header);
+
+    // Crear tabla HTML compatible con Excel
+    let excelContent = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8">
+        <!--[if gte mso 9]>
+        <xml>
+          <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+              <x:ExcelWorksheet>
+                <x:Name>${this.title() || 'Hoja1'}</x:Name>
+                <x:WorksheetOptions>
+                  <x:DisplayGridlines/>
+                </x:WorksheetOptions>
+              </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+          </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+        <style>
+          table { border-collapse: collapse; width: 100%; }
+          th { background-color: #4472C4; color: white; font-weight: bold; padding: 8px; border: 1px solid #ddd; }
+          td { padding: 8px; border: 1px solid #ddd; }
+          tr:nth-child(even) { background-color: #f2f2f2; }
+        </style>
+      </head>
+      <body>
+        <table>
+          <thead>
+            <tr>
+              ${headers.map(header => `<th>${this.escapeHtml(header)}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    data.forEach(row => {
+      excelContent += '<tr>';
+      headers.forEach(header => {
+        const value = row[header] ?? '';
+        excelContent += `<td>${this.escapeHtml(String(value))}</td>`;
+      });
+      excelContent += '</tr>';
+    });
+
+    excelContent += `
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    // Agregar BOM UTF-8 para caracteres especiales
+    const BOM = '\uFEFF';
+    const excelWithBOM = BOM + excelContent;
+
+    this.downloadFile(excelWithBOM, `${this.exportFileName()}.xls`, 'application/vnd.ms-excel;charset=utf-8');
+  }
+
+  private escapeHtml(text: string): string {
+    const map: { [key: string]: string } = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, (m) => map[m]);
   }
 
   exportAsJSON() {

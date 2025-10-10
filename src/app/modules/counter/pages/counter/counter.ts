@@ -14,12 +14,16 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
   imports: [CommonModule, RouterModule, TableComponent],
   template: `
       <ng-template #toggleTpl let-row>
-        <a
+        <button
+          type="button"
           (click)="edit(row)"
-          class="text-green-600 hover:text-green-900 text-sm cursor-pointer"
-        >
-          <i class="fas fa-edit"></i>
-        </a>
+          class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-blue-600/50 text-blue-400 hover:bg-blue-600/10 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors duration-200"
+          title="Editar contador">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </button>
       </ng-template>
 
       <app-table-dynamic
