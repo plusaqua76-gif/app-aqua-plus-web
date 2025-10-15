@@ -18,129 +18,271 @@ import { ICorregimiento } from '@interfaces/icorregimiento';
   selector: 'app-update-counter',
   imports: [CommonModule, ReactiveFormsModule],
   template: `
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex items-center justify-center py-4">
-    <div class="max-w-4xl w-full mx-auto p-6">
-        @if (dataenterpriseClientCounter.isLoading() || formLoading()) {
-            <div class="flex justify-center items-center py-8">
-                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <span class="ml-3 text-gray-600 dark:text-gray-300">Cargando datos del contador...</span>
-            </div>
-        } @else if (!formLoading() && updateForm) {
-            <form [formGroup]="updateForm" (ngSubmit)="onSubmit()" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg dark:shadow-gray-700/50 border border-gray-200 dark:border-gray-700">
-                <h2 class="text-2xl font-semibold text-center mb-6 text-gray-900 dark:text-white">Editar Contador</h2>
+  <!-- Formulario de edición de contador con estilos glassmorphism -->
+  <div class="px-4 sm:px-6 lg:px-8 py-6">
+    <!-- Header con estilo similar al de la tabla -->
+    <div class="mb-6">
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-700 dark:text-gray-200 mb-4">
+        Editar Contador
+      </h1>
 
-                <!-- Datos de Dirección -->
-                <div class="mb-8">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Dirección</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <!-- Departamento -->
-                        <div class="flex flex-col">
-                            <label class="mb-1 font-medium text-gray-700 dark:text-white">Departamento:</label>
-                            <select
-                                formControlName="idDepartamento"
-                                class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                            >
-                                <option value="">Seleccionar departamento</option>
-                                @for (dept of departaments(); track dept.id) {
-                                    <option [value]="dept.id">{{ dept.nombre }}</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="mb-1 font-medium text-gray-700 dark:text-white">Ciudad:</label>
-                            <select
-                                formControlName="idCiudad"
-                                [disabled]="!cities().length"
-                                class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 disabled:opacity-50"
-                            >
-                                <option value="">Seleccionar ciudad</option>
-                                @for (city of cities(); track city.id) {
-                                    <option [value]="city.id">{{ city.nombre }}</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="mb-1 font-medium text-gray-700 dark:text-white">Corregimiento:</label>
-                            <select
-                                formControlName="idCorregimiento"
-                                [disabled]="!corregimientos().length"
-                                class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 disabled:opacity-50"
-                            >
-                                <option value="">Seleccionar corregimiento</option>
-                                @for (corr of corregimientos(); track corr.id) {
-                                    <option [value]="corr.id">{{ corr.nombre }}</option>
-                                }
-                            </select>
-                        </div>
-
-                        <!-- Dirección -->
-                        <div class="flex flex-col lg:col-span-3">
-                            <label class="mb-1 font-medium text-gray-700 dark:text-white">Dirección Específica:</label>
-                            <input
-                                type="text"
-                                formControlName="direccion"
-                                class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Datos del Contador -->
-                <div class="mb-8">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Información del Contador</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <!-- Tipo de Contador -->
-                        <div class="flex flex-col">
-                            <label class="mb-1 font-medium text-gray-700 dark:text-white">Tipo de Contador:</label>
-                            <select
-                                formControlName="tipoContador"
-                                class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                            >
-                                <option value="">Seleccionar tipo</option>
-                                @for (tipo of tiposContador(); track tipo.id) {
-                                    <option [value]="tipo.id">{{ tipo.nombre }}</option>
-                                }
-                            </select>
-                        </div>
-
-                        <!-- Número de Serie -->
-                        <div class="flex flex-col">
-                            <label class="mb-1 font-medium text-gray-700 dark:text-white">Número de Serie:</label>
-                            <input
-                                type="text"
-                                formControlName="serial"
-                                class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Botones -->
-                <div class="flex justify-center gap-4 mt-8">
-                    <button
-                        type="button"
-                        (click)="router.navigate(['/counter'])"
-                        class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-md shadow-md cursor-pointer transition-colors duration-200"
-                    >
-                        Cancelar
-                    </button>
-                    <button
-                        type="submit"
-                        [disabled]="updateForm.invalid || formLoading()"
-                        class="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-md shadow-md dark:shadow-gray-700/50 cursor-pointer transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        Actualizar Contador
-                    </button>
-                </div>
-            </form>
-        } @else if (dataenterpriseClientCounter.error()) {
-            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                <h3 class="text-red-800 dark:text-red-200 font-medium mb-2">Error al cargar el contador</h3>
-                <p class="text-red-600 dark:text-red-300">No se pudo cargar la información del contador. Por favor, intente nuevamente.</p>
-            </div>
-        }
+      <!-- Breadcrumb o botón de regreso -->
+      <div class="flex items-center gap-4 mb-6">
+        <button
+          type="button"
+          (click)="router.navigate(['/shell/counter'])"
+          class="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md text-gray-900 dark:text-white hover:bg-white/20 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Volver a la lista
+        </button>
+      </div>
     </div>
-</div>
+
+    <!-- Estados de carga y error -->
+    @if (dataenterpriseClientCounter.isLoading() || formLoading()) {
+      <div class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 max-w-4xl mx-auto">
+        <div class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <span class="ml-3 text-gray-600 dark:text-gray-300 font-medium">Cargando datos del contador...</span>
+        </div>
+      </div>
+    } @else if (dataenterpriseClientCounter.error()) {
+      <div class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-red-500/20 dark:bg-red-800/20 backdrop-blur-xl border border-red-500/30 dark:border-red-700/30 max-w-4xl mx-auto">
+        <div class="p-6 sm:p-8">
+          <div class="flex items-center gap-4 mb-4">
+            <svg class="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <h3 class="text-red-800 dark:text-red-200 font-semibold text-lg">Error al cargar el contador</h3>
+          </div>
+          <p class="text-red-600 dark:text-red-300">No se pudo cargar la información del contador. Por favor, intente nuevamente.</p>
+        </div>
+      </div>
+    } @else if (!formLoading() && updateForm) {
+      <!-- Contenedor principal con estilo glassmorphism -->
+      <div class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 max-w-6xl mx-auto">
+
+        <!-- Formulario -->
+        <form [formGroup]="updateForm" (ngSubmit)="onSubmit()" class="p-6 sm:p-8">
+
+          <!-- Sección: Información de Dirección -->
+          <div class="mb-8">
+            <div class="flex items-center gap-3 mb-6">
+              <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <h3 class="text-xl font-bold text-gray-700 dark:text-gray-200">Información de Dirección</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+              <!-- Campo: Departamento -->
+              <div>
+                <label for="idDepartamento" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+                  Departamento <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                  <select
+                    id="idDepartamento"
+                    formControlName="idDepartamento"
+                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+                  >
+                    <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
+                      @if (departmentsLoading()) { Cargando departamentos... } @else { Seleccione un departamento... }
+                    </option>
+                    @for (dept of departaments(); track dept.id) {
+                      <option [value]="dept.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">{{ dept.nombre }}</option>
+                    }
+                  </select>
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Campo: Ciudad -->
+              <div>
+                <label for="idCiudad" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+                  Ciudad <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                  <select
+                    id="idCiudad"
+                    formControlName="idCiudad"
+                    [disabled]="!cities().length"
+                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
+                      @if (citiesLoading()) { Cargando ciudades... } @else if (!selectedDepartmentId()) { Seleccione primero un departamento... } @else { Seleccione una ciudad... }
+                    </option>
+                    @for (city of cities(); track city.id) {
+                      <option [value]="city.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">{{ city.nombre }}</option>
+                    }
+                  </select>
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Campo: Corregimiento -->
+              <div>
+                <label for="idCorregimiento" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+                  Corregimiento
+                </label>
+                <div class="relative">
+                  <select
+                    id="idCorregimiento"
+                    formControlName="idCorregimiento"
+                    [disabled]="!corregimientos().length"
+                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
+                      @if (corregimientosLoading()) { Cargando corregimientos... } @else if (!selectedCityId()) { Seleccione primero una ciudad... } @else { Seleccione un corregimiento... }
+                    </option>
+                    @for (corr of corregimientos(); track corr.id) {
+                      <option [value]="corr.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">{{ corr.nombre }}</option>
+                    }
+                  </select>
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Campo: Dirección -->
+              <div class="lg:col-span-3">
+                <label for="direccion" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+                  Dirección Específica <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                  <input
+                    id="direccion"
+                    formControlName="direccion"
+                    type="text"
+                    placeholder="Dirección completa del contador..."
+                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+                  />
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Divisor visual -->
+          <div class="border-t border-white/10 dark:border-slate-700/30 my-8"></div>
+
+          <!-- Sección: Información del Contador -->
+          <div class="mb-8">
+            <div class="flex items-center gap-3 mb-6">
+              <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+              </svg>
+              <h3 class="text-xl font-bold text-gray-700 dark:text-gray-200">Información del Contador</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+              <!-- Campo: Tipo de Contador -->
+              <div>
+                <label for="tipoContador" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+                  Tipo de Contador <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                  <select
+                    id="tipoContador"
+                    formControlName="tipoContador"
+                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+                  >
+                    <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">Seleccione tipo de contador...</option>
+                    @for (tipo of tiposContador(); track tipo.id) {
+                      <option [value]="tipo.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">{{ tipo.nombre }}</option>
+                    }
+                  </select>
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Campo: Número de Serie -->
+              <div>
+                <label for="serial" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+                  Número de Serie <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                  <input
+                    id="serial"
+                    formControlName="serial"
+                    type="text"
+                    placeholder="Serial del contador..."
+                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+                  />
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones de acción con estilo similar a la tabla -->
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-white/10 dark:border-slate-700/30">
+            <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+              <span>Formulario de edición de contador</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+              <button
+                type="button"
+                (click)="router.navigate(['/shell/counter'])"
+                class="w-full sm:w-auto bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-semibold py-3 px-6 rounded-xl hover:border-gray-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-gray-500/20 active:scale-95 flex items-center gap-3 justify-center"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                Cancelar
+              </button>
+
+              <button
+                type="submit"
+                [disabled]="updateForm.invalid || formLoading()"
+                class="w-full sm:w-auto bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-semibold py-3 px-6 rounded-xl hover:border-blue-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center gap-3 justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Actualizar Contador
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    }
+  </div>
   `
 })
 export class UpdateCounter implements OnInit {

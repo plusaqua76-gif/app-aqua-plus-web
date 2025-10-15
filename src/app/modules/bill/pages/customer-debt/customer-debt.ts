@@ -2,7 +2,6 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { DeudaService } from '../../service/deuda.service';
-import { ApiResponse } from '@interfaces/Iresponse';
 import { ToastService } from '@services/toast.service';
 import { TableComponent } from '@components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -117,16 +116,6 @@ export class CustomerDebt {
     page: 0,
     size: 5,
   });
-
-
-  constructor() {
-    effect(() => {
-      console.log("la data mi negro", this.debtData())
-    })
-  }
-
-
-
 
 
   /** commentNg

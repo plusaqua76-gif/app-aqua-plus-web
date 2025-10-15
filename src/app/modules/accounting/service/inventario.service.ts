@@ -4,7 +4,7 @@ import { END_POINT_SERVICE } from "../../../environments/environment.variables";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { catchError, Observable, throwError } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";
-import { IInventario } from "@interfaces/Iaccounting";
+import { IInventario, IInventarioCreate } from "@interfaces/Iaccounting";
 import { IPaginatedResponse, IPaginationParams } from "@interfaces/IpaginatedResponse";
 
 @Injectable({
@@ -15,9 +15,9 @@ export class InventarioService {
   readonly apiUrl = `${environment.apiUrl}/${END_POINT_SERVICE.GET_INVENTORY}`;
   readonly http = inject(HttpClient);
 
-  // getInventarioByEnterprise(enterpriceId: number): Observable<ApiResponse<IInventario[]>> {
-  //   return this.http.get<ApiResponse<IInventario[]>>(`${this.apiUrl}/empresa/${enterpriceId}`);
-  // }
+  createInventary(inventary: IInventarioCreate): Observable<ApiResponse<IInventario>> {
+    return this.http.post<ApiResponse<IInventario>>(`${this.apiUrl}`, inventary);
+  }
 
   getInventoryCompany(enterpriseId: number): Observable<ApiResponse<IInventario[]>> {
     return this.http.get<ApiResponse<IInventario[]>>(`${this.apiUrl}/empresa/${enterpriseId}`);

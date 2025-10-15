@@ -1,79 +1,47 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, computed, inject, OnInit, PLATFORM_ID } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-
-import { IDeudaCliente, IPlazoPago, ITipoDeuda } from '@interfaces/IdeudaFactura';
-import { IEnterpriseClientCounter } from '@interfaces/IenterpriseClientCounter';
+import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
+import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { EnterpriseClientCounterService } from '../../../client/service/enterpriseClientCounter.service';
-import { TipoDeudaService } from '../../service/tipoDeuda.service';
-import { DeudaService } from '../../service/deuda.service';
-import { Router, ActivatedRoute } from '@angular/router';
-import { IFactura, IfacturaResponse } from '@interfaces/Ifactura';
-import { FacturaService } from '../../service/factura.service';
 import { PlazoPagoService } from '../../service/plazoPago.service';
 import { ToastService } from '@services/toast.service';
-import { ApiResponse } from '@interfaces/Iresponse';
+import { PqrEnterprisesService } from '../../../pqr-client/services/pqr-enterprices.service';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { of } from 'rxjs';
+import { TipoDeudaService } from '../../service/tipoDeuda.service';
+import { DeudaService } from '../../service/deuda.service';
+import { IDeudaCliente } from '@interfaces/IdeudaFactura';
+import { Router } from '@angular/router';
 
 
 @Component({
   selector: 'app-create-debt',
   imports: [FormsModule, ReactiveFormsModule, CommonModule],
   templateUrl: './create-debt.html',
-
 })
-export class CreateDebt implements OnInit {
-  deudaId!: number;
-  registerForm!: FormGroup;
-  showSuccessMessage = false;
+export class CreateDebt  {
 
-  empresaClienteContador: IEnterpriseClientCounter[] = [];
-  empresaClienteContadorName: string[] = [];
-
-  tipoDeuda: ITipoDeuda[] = [];
-  tipoDeudaName: string[] = [];
-
-  factura: IFactura[] = [];
-  facturaName: string[] = [];
-
-  facturas: IfacturaResponse[] = [];
-
-  plazoPago: IPlazoPago[] = [];
-  plazoPagoName: string[] = [];
-
-  selectedClienteId: number | null = null;
-  selectTipoDeudaId: number | null = null;
-  selectFacturaId: number | null = null;
-  selectPlazoPagoId: number | null = null;
-
-  protected readonly fb = inject(FormBuilder);
-  protected readonly enterpriseClientCounterService = inject(EnterpriseClientCounterService);
-  protected readonly tipoDeudaService = inject(TipoDeudaService);
-  protected readonly deudaService = inject(DeudaService);
-  protected readonly router = inject(Router);
-  protected readonly route = inject(ActivatedRoute);
-  protected readonly plazoPagoService = inject(PlazoPagoService);
-  protected readonly facturaService = inject(FacturaService);
-  protected readonly toast = inject(ToastService);
+  protected readonly toastService = inject(ToastService);
+  protected readonly pqrService = inject(PqrEnterprisesService);
   protected platformId = inject(PLATFORM_ID);
-  protected isBrowser = isPlatformBrowser(this.platformId);
+  private readonly enterpriseClientCounterService = inject(EnterpriseClientCounterService);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
+  private readonly plazoPagoService = inject(PlazoPagoService);
+  private readonly tipoDeudaService = inject(TipoDeudaService);
+  private readonly deudaService = inject(DeudaService);
+  private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
+  readonly procesandoDeuda = signal(false);
 
- ngOnInit(): void {
-    this.initializeForm();
-    this.loadAllClientes();
-    this.loadTipoDeuda();
-    this.loadPlazoPago();
+  readonly deudaForm = this.fb.group({
+    empresaClienteContadorId: [null, [Validators.required]],
+    tipoDeudaId: [null, [Validators.required]],
+    plazoPagoId: [null, [Validators.required]],
+    fechaDeuda: [new Date().toISOString().split('T')[0], [Validators.required]],
+    valor: ['', [Validators.required, Validators.min(0.01), Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
+    descripcion: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]]
+  });
 
-    this.registerForm.get('empresaClienteContador')?.valueChanges.subscribe(selectedCliente => {
-      if (selectedCliente && selectedCliente.id) {
-        const clienteId = selectedCliente.id;
-        this.loadFacturasPorCliente(clienteId);
-      } else {
-        this.facturas = [];
-      }
-    });
-  }
-
-    readonly userData = computed(() => {
+  readonly userData = computed(() => {
     if (!this.isBrowser) return null;
     try {
       const userDataString = sessionStorage.getItem('userData');
@@ -85,92 +53,148 @@ export class CreateDebt implements OnInit {
     }
   });
 
-    readonly empresaId = computed(() => {
+  readonly empresaId = computed(() => {
     const data = this.userData();
     return data?.empresaId || null;
   });
 
+  readonly personaId = computed(() => {
+    const data = this.userData();
+    return data?.personaId || null;
+  });
 
   readonly nombreUsuario = computed(() => {
     const data = this.userData();
     return data?.nombre || null;
   });
 
+  dataClients = rxResource({
+    params: () => ({
+      empresaId: this.empresaId()
+    }),
+    stream: ({ params }) => {
+      const { empresaId } = params;
+      if (!empresaId) {
+        return of(null);
+      }
+      return this.enterpriseClientCounterService.getAllClientsByIdEnterprise(empresaId);
+    }
+  })
 
-  private initializeForm(): void {
-    this.registerForm = this.fb.group({
-      empresaClienteContador: [null, Validators.required],
-      tipoDeuda: [null, Validators.required],
-      factura: [null, Validators.required],
-      plazoPago: [null, Validators.required],
-      fechaDeuda: ['', Validators.required],
-      valor: ['', Validators.required],
-      descripcion: ['']
-    });
+  plazopago = rxResource({
+    stream: () => this.plazoPagoService.getAllPlazoPago()
+  })
+
+  tipodeuda = rxResource({
+    stream: () => this.tipoDeudaService.getAllTipoDeuda()
+  })
+
+  // Métodos para validar el formulario
+  isFormValid(): boolean {
+    return this.deudaForm.valid;
   }
 
-  loadFacturasPorCliente(empresaClienteContadorId: number): void {
-    this.facturaService.getFacturAll().subscribe((response: ApiResponse<IfacturaResponse[]>) => {
-
-      const facturasFiltradas = response.response.filter(fac =>
-        fac.empresaClienteContadorId === empresaClienteContadorId
-      );
-
-      this.facturas = [...facturasFiltradas];
-    });
+  getFieldError(fieldName: string): string | null {
+    const field = this.deudaForm.get(fieldName);
+    if (field?.errors && field?.touched) {
+      if (field.errors['required']) return `${fieldName} es requerido`;
+      if (field.errors['min']) return `El valor debe ser mayor a 0`;
+      if (field.errors['pattern']) return `Formato de valor inválido`;
+      if (field.errors['minlength']) return `Mínimo 10 caracteres`;
+      if (field.errors['maxlength']) return `Máximo 500 caracteres`;
+    }
+    return null;
   }
 
-
-  loadPlazoPago(): void {
-    this.plazoPagoService.getAllPlazoPago().subscribe((response) => {
-      this.plazoPago = response.response;
-      this.plazoPagoName = response.response.map((plazoPago) => plazoPago.nombre)
-    })
-  }
-  loadTipoDeuda(): void {
-    this.tipoDeudaService.getAllTipoDeuda().subscribe((response) => {
-      this.tipoDeuda = response.response;
-      this.tipoDeudaName = response.response.map((tipoDeuda) => tipoDeuda.nombre)
-    })
-  }
-  loadAllClientes(): void {
-    this.enterpriseClientCounterService.getAllCLiente().subscribe((response) => {
-      this.empresaClienteContador = response.response;
-      this.empresaClienteContadorName = response.response.map((empresaClienteContador) => empresaClienteContador.cliente.nombre)
-    })
-  }
-
-  onSubmit(): void {
-    if (this.registerForm.invalid) {
-      this.toast.warning('Formulario inválido', 'Revisa los campos requeridos.');
+  // Método para crear la deuda
+  crearDeuda(): void {
+    if (!this.isFormValid()) {
+      this.toastService.warning('Formulario inválido', 'Por favor complete todos los campos correctamente');
+      this.markAllFieldsAsTouched();
       return;
     }
 
-    const rawForm = this.registerForm.value;
-    const nombreUsuario = this.nombreUsuario()
-    const fechaDeuda: string = rawForm.fechaDeuda;
+    const usuario = this.nombreUsuario();
+    if (!usuario) {
+      this.toastService.error('Error', 'No se pudo obtener la información del usuario');
+      return;
+    }
 
-    const deuda: IDeudaCliente = {
-      ...rawForm,
-      fechaDeuda: fechaDeuda,
-      valor: parseFloat(rawForm.valor),
+    this.procesandoDeuda.set(true);
+
+    const formValues = this.deudaForm.value;
+
+    // Validar que los IDs existen en las listas cargadas
+    // const tipoDeudaExists = this.tipodeuda.value()?.response?.find(
+    //   t => t.id === Number(formValues.tipoDeudaId)
+    // );
+
+    // const plazoPagoExists = this.plazopago.value()?.response?.find(
+    //   p => p.id === Number(formValues.plazoPagoId)
+    // );
+
+    // if (!tipoDeudaExists) {
+    //   this.toastService.error('Error', 'Tipo de deuda no válido');
+    //   this.procesandoDeuda.set(false);
+    //   return;
+    // }
+
+    // if (!plazoPagoExists) {
+    //   this.toastService.error('Error', 'Plazo de pago no válido');
+    //   this.procesandoDeuda.set(false);
+    //   return;
+    // }
+
+    // Construir el objeto de deuda enviando solo los IDs como en el ejemplo que funciona
+    const deuda: Partial<IDeudaCliente> = {
+      fechaDeuda: new Date(formValues.fechaDeuda!),
+      valor: formValues.valor!,
+      descripcion: formValues.descripcion!,
       activo: true,
-      usuarioCreacion: nombreUsuario,
+      empresaClienteContador: { id: Number(formValues.empresaClienteContadorId) } as any,
+      tipoDeuda: { id: Number(formValues.tipoDeudaId) } as any,
+      plazoPago: { id: Number(formValues.plazoPagoId) } as any,
+      usuarioCreacion: usuario,
       fechaCreacion: new Date(),
     };
 
-    this.deudaService.saveDeuda(deuda).subscribe({
-      next: (res) => {
-        this.toast.success('Deuda registrada correctamente.', 'Éxito');
-        this.router.navigate(['../customer-debt'], {
-          relativeTo: this.route,
-        });
+    this.deudaService.saveDeuda(deuda as IDeudaCliente).subscribe({
+      next: (response) => {
+        const valorFormateado = Number(formValues.valor).toLocaleString('es-CO');
+        this.toastService.success(
+          'Deuda Creada Exitosamente',
+          `Se ha registrado una nueva deuda por valor de $${valorFormateado}`
+        );
+        this.resetForm();
+        this.procesandoDeuda.set(false);
+
+        // Opcional: redirigir o realizar alguna acción después del éxito
+        // this.router.navigate(['/bill/debt-list']);
       },
-      error: (err) => {
-        console.error('Error al guardar deuda:', err);
-        this.toast.error('Ocurrió un error al guardar la deuda.', 'Error');
+      error: (error) => {
+        console.error('Error al crear deuda:', error);
+        this.toastService.error(
+          'Error al crear deuda',
+          'No se pudo crear la deuda. Intente nuevamente.'
+        );
+        this.procesandoDeuda.set(false);
       }
     });
   }
+
+  // Método para resetear el formulario
+  resetForm(): void {
+    this.deudaForm.reset({
+      fechaDeuda: new Date().toISOString().split('T')[0]
+    });
+  }
+
+  // Método para marcar todos los campos como tocados (para mostrar errores)
+  private markAllFieldsAsTouched(): void {
+    Object.keys(this.deudaForm.controls).forEach(key => {
+      this.deudaForm.get(key)?.markAsTouched();
+    });
+  }
+
 }
 

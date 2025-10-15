@@ -331,29 +331,6 @@ export class PqrClientsEnterprice {
     }
   })
 
-
-
-//   "novedad": {
-//     "tipoNovedad": { se consume saveTypeNovelty para guardar la novedad y el resposnse de esa api me traera el id  "response": {//   "id": 7,//   "novedad": "daño contador",//   "descripcion": "daño contador"// }
-//       "id": 0
-//     },
-//     "empresaClienteContador": {   deberas acceder a la selecion de conteador y acceder a   countersClient en     "contador": {      "id": 168,
-//       "id": 0, "Opcional":""
-//     },
-//     "estado": { deberas consumir statusNovelty y en la respuesat obtener el id
-//       "id": 0
-//     },
-//     "codigo": "string",
-//     "descripcion": "string",
-//     "activo": true
-//   },
-//   "base64File": "string",
-//   "idPersona": 0, ya tenemos el personaId
-//   "nombreArchivo": "string", ya lo tenemos en nombreusuario
-//   "extension": "string",
-//   "categoriaCodigo": "PQR"  este valor se envia
-// }
-
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
     try {

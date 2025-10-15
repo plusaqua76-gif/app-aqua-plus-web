@@ -14,6 +14,7 @@ import { ToastService } from '@services/toast.service';
 import { Router } from '@angular/router';
 import { UserService } from '../../../auth/service/user.service';
 import { LocationService } from '@shared/services/location.service';
+import { rxResource } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-create-employee',
@@ -72,7 +73,6 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
   ngOnInit(): void {
     this.initializeForm();
     this.loadDepartments();
-    this.loadTypeDocument();
 
     this.registerForm
       .get('idDepartamento')
@@ -148,12 +148,9 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
     id_empresa: [this.empresaId()]
   });
 }
-  loadTypeDocument(): void {
-    this.tipoDocumentoService.getAllTypeDocument().subscribe((response) => {
-      this.typeDocument = response.response;
-      this.typeDocumentName = response.response.map((tipoDocumento) => tipoDocumento.nombre);
-    });
-  }
+loadTypeDocument = rxResource({
+  stream: () => this.tipoDocumentoService.getAllTypeDocument()
+})
 
   loadDepartments(): void {
     this.departmentsLoading.set(true);
@@ -211,12 +208,10 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
         this.toast.success('Éxito', 'Empleado registrado correctamente');
         this.registerForm.reset();
         this.initializeForm();
-        // this.router.navigate(['/employee']);
+        //  this.router.navigate(['']);
       },
       error: (error: any) => {
         console.error('Error al crear empleado:', error);
-        const errorMessage = error?.error?.message || error?.message || 'No se pudo registrar el empleado. Inténtelo nuevamente.';
-        this.toast.error('Error', errorMessage);
       }
     });
   }

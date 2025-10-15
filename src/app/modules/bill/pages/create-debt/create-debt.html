@@ -1,81 +1,275 @@
+<!-- Formulario de creación de deuda con estilos consistentes con update-client -->
+<div class="px-4 sm:px-6 lg:px-8 py-6">
+  <!-- Header con estilo similar al de update-client -->
+  <div class="mb-6">
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-700 dark:text-gray-200 mb-4">
+      Crear Nueva Deuda
+    </h1>
+    <p class="text-gray-600 dark:text-gray-400">Complete el formulario para registrar una nueva deuda</p>
+  </div>
 
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex items-center justify-center py-4">
-    <div class="max-w-3xl w-full mx-auto p-6">
-        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="backdrop-blur-lg bg-gray-900/70 dark:bg-gray-900/80 p-8 rounded-xl shadow-2xl border border-gray-700/30">
-            <h2 class="text-2xl font-semibold text-center mb-6 text-white">Agregar deuda de cliente</h2>
+  <!-- Contenedor principal con estilo glassmorphism similar a update-client -->
+  <div class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30">
+    <!-- Formulario -->
+    <form [formGroup]="deudaForm" (ngSubmit)="crearDeuda()" class="p-6 sm:p-8">
+      <h2 class="text-xl font-semibold text-center mb-6 text-gray-700 dark:text-gray-200">Agregar deuda de cliente</h2>
 
-            <div *ngIf="showSuccessMessage" class="bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 px-4 py-3 rounded relative mb-4 text-center transition-colors duration-200" role="alert">
-                <strong class="font-bold">¡Éxito!</strong>
-                <span class="block sm:inline">La deuda fue guardada correctamente.</span>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Selección de Cliente -->
+        <div>
+          <label for="empresaClienteContadorId" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Cliente Contador <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <select
+              id="empresaClienteContadorId"
+              formControlName="empresaClienteContadorId"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+              [class.border-red-500]="getFieldError('empresaClienteContadorId')"
+              required
+            >
+              <option value="" disabled class="text-gray-400 dark:text-gray-500">Seleccione el cliente</option>
+              @if (dataClients.value()?.response) {
+                @for(counter of dataClients.value()!.response; track counter.id) {
+                  <option [value]="counter.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
+                    {{ counter.nombre }} {{ counter.segundoNombre || '' }} {{ counter.apellido }} {{ counter.segundoApellido || '' }}
+                  </option>
+                }
+              }
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
             </div>
+          </div>
+          @if (getFieldError('empresaClienteContadorId')) {
+            <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              {{ getFieldError('empresaClienteContadorId') }}
+            </p>
+          }
+        </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-white">Cliente:</label>
-                    <select formControlName="empresaClienteContador" class="p-3 border border-gray-600 rounded-md w-full bg-gray-800/80 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
-                        <option [ngValue]="null" disabled>Cliente...</option>
-                        @for (cliente of empresaClienteContador; track cliente.id) {
-                            <option [ngValue]="cliente">
-                                {{ cliente.cliente.nombre }} {{ cliente.cliente.segundoNombre || '' }} {{ cliente.cliente.apellido
-                                }} {{ cliente.cliente.segundoApellido || '' }}
-                            </option>
-                        }
-                    </select>
-                </div>
-
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-white">Tipo Deuda:</label>
-                    <select formControlName="tipoDeuda" class="p-3 border border-gray-600 rounded-md w-full bg-gray-800/80 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
-                        <option [ngValue]="null" disabled>Tipo Deuda...</option>
-                        @for (tip of tipoDeuda; track tip.id) {
-                            <option [ngValue]="tip">{{ tip.nombre }}</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-white">Factura:</label>
-                    <select formControlName="factura" class="p-3 border border-gray-600 rounded-md w-full bg-gray-800/80 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
-                        <option [ngValue]="null" disabled>Factura...</option>
-                        @for (fac of facturas; track fac.id) {
-                            <option [ngValue]="fac">{{ fac.codigo }}</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-white">N° de cuotas:</label>
-                    <select formControlName="plazoPago" class="p-3 border border-gray-600 rounded-md w-full bg-gray-800/80 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
-                        <option [ngValue]="null" disabled>N° de cuotas...</option>
-                        @for (plazo of plazoPago; track plazo.id) {
-                            <option [ngValue]="plazo">{{ plazo.nombre }}</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-white">Fecha Deuda:</label>
-                    <input type="date" class="p-3 border border-gray-600 rounded-md w-full bg-gray-800/80 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" formControlName="fechaDeuda" />
-                </div>
-
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-white">Valor:</label>
-                    <input type="text" class="p-3 border border-gray-600 rounded-md w-full bg-gray-800/80 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" formControlName="valor" placeholder="Valor" />
-                </div>
-
-                <div class="flex flex-col sm:col-span-2">
-                    <label class="mb-1 font-medium text-white">Descripción:</label>
-                    <textarea class="p-3 border border-gray-600 rounded-md w-full bg-gray-800/80 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none" formControlName="descripcion" rows="3" placeholder="Descripción"></textarea>
-                </div>
-
-                <div class="col-span-1 sm:col-span-2 flex justify-center mt-4">
-                    <button (ngSubmit)="onSubmit()" type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-md shadow-md dark:shadow-gray-700/50 cursor-pointer transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
-                        Guardar
-                    </button>
-                </div>
+        <!-- Tipo de Deuda -->
+        <div>
+          <label for="tipoDeudaId" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Tipo de Deuda <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <select
+              id="tipoDeudaId"
+              formControlName="tipoDeudaId"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+              [class.border-red-500]="getFieldError('tipoDeudaId')"
+              required
+            >
+              <option value="" disabled class="text-gray-400 dark:text-gray-500">Seleccione tipo de deuda</option>
+              @if (tipodeuda.value()?.response) {
+                @for(type of tipodeuda.value()!.response; track type.id) {
+                  <option [value]="type.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
+                    {{ type.nombre }}
+                  </option>
+                }
+              }
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
             </div>
-        </form>
-    </div>
+          </div>
+          @if (getFieldError('tipoDeudaId')) {
+            <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              {{ getFieldError('tipoDeudaId') }}
+            </p>
+          }
+        </div>
+
+        <!-- Plazo de Pago -->
+        <div>
+          <label for="plazoPagoId" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            N° de cuotas <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <select
+              id="plazoPagoId"
+              formControlName="plazoPagoId"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+              [class.border-red-500]="getFieldError('plazoPagoId')"
+              required
+            >
+              <option value="" disabled class="text-gray-400 dark:text-gray-500">N° de cuotas...</option>
+              @if (plazopago.value()?.response) {
+                @for(plazobill of plazopago.value()!.response; track plazobill.id) {
+                  <option [value]="plazobill.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
+                    {{ plazobill.nombre }}
+                  </option>
+                }
+              }
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 9l6-6m-6 0l6 6"/>
+              </svg>
+            </div>
+          </div>
+          @if (getFieldError('plazoPagoId')) {
+            <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              {{ getFieldError('plazoPagoId') }}
+            </p>
+          }
+        </div>
+
+        <!-- Fecha de Deuda -->
+        <div>
+          <label for="fechaDeuda" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Fecha Deuda <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input
+              id="fechaDeuda"
+              type="date"
+              formControlName="fechaDeuda"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+              [class.border-red-500]="getFieldError('fechaDeuda')"
+            />
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 9l6-6m-6 0l6 6"/>
+              </svg>
+            </div>
+          </div>
+          @if (getFieldError('fechaDeuda')) {
+            <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              {{ getFieldError('fechaDeuda') }}
+            </p>
+          }
+        </div>
+
+        <!-- Valor -->
+        <div>
+          <label for="valor" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Valor <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input
+              id="valor"
+              type="number"
+              step="0.01"
+              min="0.01"
+              formControlName="valor"
+              placeholder="Valor"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+              [class.border-red-500]="getFieldError('valor')"
+            />
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+              </svg>
+            </div>
+          </div>
+          @if (getFieldError('valor')) {
+            <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              {{ getFieldError('valor') }}
+            </p>
+          }
+        </div>
+
+        <!-- Descripción (campo completo) -->
+        <div class="md:col-span-2 lg:col-span-3">
+          <label for="descripcion" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Descripción <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <textarea
+              id="descripcion"
+              formControlName="descripcion"
+              rows="3"
+              placeholder="Descripción"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 resize-none"
+              [class.border-red-500]="getFieldError('descripcion')"
+            ></textarea>
+            <div class="absolute top-3 right-3 pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+              </svg>
+            </div>
+          </div>
+          <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <span>
+              @if (getFieldError('descripcion')) {
+                <span class="text-red-500 flex items-center gap-1">
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                  </svg>
+                  {{ getFieldError('descripcion') }}
+                </span>
+              } @else {
+                <span>Mínimo 10 caracteres, máximo 500</span>
+              }
+            </span>
+            <span>{{ deudaForm.get('descripcion')?.value?.length || 0 }}/500</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Botones de acción con estilo similar a update-client -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-white/10 dark:border-slate-700/30">
+        <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span>Formulario de creación de deuda</span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <button
+            type="button"
+            (click)="resetForm()"
+            [disabled]="procesandoDeuda()"
+            class="w-full sm:w-auto bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-semibold py-3 px-6 rounded-xl hover:border-gray-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-gray-500/20 active:scale-95 flex items-center gap-3 justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Limpiar
+          </button>
+
+          <button
+            type="submit"
+            [disabled]="!isFormValid() || procesandoDeuda()"
+            class="w-full sm:w-auto bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-semibold py-3 px-6 rounded-xl hover:border-blue-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center gap-3 justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            @if (procesandoDeuda()) {
+              <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
+              Procesando...
+            } @else {
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              Guardar
+            }
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
 </div>
+    

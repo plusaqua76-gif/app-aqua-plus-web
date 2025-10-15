@@ -5,6 +5,7 @@ import { Auth } from '@interfaces/IAuth';
 
 @Component({
   selector: 'app-login-form',
+  standalone: true,
   imports: [ReactiveFormsModule, CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [`

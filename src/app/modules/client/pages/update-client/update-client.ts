@@ -263,7 +263,7 @@ export class UpdateClient implements OnInit {
       telefono: formData.telefono || '',
       correo: formData.correo || '',
       direccion: {
-        id: clienteSeleccionado.direccion?.id || 0, // Usar ID de dirección existente
+        id: clienteSeleccionado.direccion?.id || 0,
         ciudad: { id: formData.idCiudad ? Number(formData.idCiudad) : 0 },
         corregimiento: formData.idCorregimiento ? { id: Number(formData.idCorregimiento) } : null,
         descripcion: formData.direccion || ''
@@ -287,5 +287,9 @@ export class UpdateClient implements OnInit {
         }
       }
     });
+  }
+
+  goBack(): void {
+    this.router.navigate(['/shell/client']);
   }
 }

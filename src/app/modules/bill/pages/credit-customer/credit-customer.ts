@@ -1,5 +1,5 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { AbonoService } from '../../service/abono.service';
 import { TableComponent } from '@components/table';
@@ -10,6 +10,7 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 @Component({
   selector: 'app-credit-customer',
   imports: [ CommonModule, TableComponent, RouterModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-table-dynamic
       [title]="title()"

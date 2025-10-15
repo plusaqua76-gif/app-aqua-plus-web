@@ -1,93 +1,243 @@
-<div
-  class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex items-center justify-center py-4">
-  <div class="max-w-7xl w-full mx-auto p-6">
-    <form [formGroup]="registerForm"
-      class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg dark:shadow-gray-700/50 border border-gray-200 dark:border-gray-700">
-      <h2 class="text-2xl font-semibold text-center mb-6 text-gray-900 dark:text-white">Registrar Contador</h2>
+<!-- Formulario de creación de contador con estilos glassmorphism -->
+<div class="px-4 sm:px-6 lg:px-8 py-6">
+  <!-- Header con estilo similar al de la tabla -->
+  <div class="mb-6">
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-700 dark:text-gray-200 mb-4">
+      Registrar Contador
+    </h1>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- Breadcrumb o botón de regreso -->
+    <div class="flex items-center gap-4 mb-6">
+      <button
+        type="button"
+        (click)="goBack()"
+        class="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md text-gray-900 dark:text-white hover:bg-white/20 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Volver a la lista
+      </button>
+    </div>
+  </div>
 
+  <!-- Contenedor principal con estilo glassmorphism -->
+  <div class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30">
+
+    <!-- Formulario -->
+    <form [formGroup]="registerForm" class="p-6 sm:p-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Campo: Tipo de Contador -->
         <div>
-          <label for="tipoContador" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de Contador <span class="text-red-500">*</span></label>
-          <select id="tipoContador" formControlName="tipoContador"
-            class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-            required>
-            <option [ngValue]="null" disabled>Tipo Contador...</option>
-            <option *ngFor="let tipo of tipoContador" [ngValue]="tipo.id">{{ tipo.nombre }}</option>
-          </select>
+          <label for="tipoContador" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Tipo de Contador <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <select
+              id="tipoContador"
+              formControlName="tipoContador"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+              required
+            >
+              <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">Seleccione tipo de contador...</option>
+              @for (tipo of tipoContador; track $index) {
+                <option [value]="tipo.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">{{ tipo.nombre }}</option>
+              }
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+              </svg>
+            </div>
+          </div>
         </div>
 
+        <!-- Campo: Serial del Contador -->
         <div>
-          <label for="serial" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serial del Contador <span class="text-red-500">*</span></label>
-          <input id="serial" formControlName="serial" type="text" placeholder="Serial Contador..."
-            class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
-        </div>
-        <div>
-          <label for="idDepartamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Departamento <span class="text-red-500">*</span></label>
-          <select id="idDepartamento" formControlName="idDepartamento"
-            class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-            required>
-            <option value="" disabled>
-              @if (departmentsLoading()) { Cargando departamentos... } @else { Seleccione un departamento }
-            </option>
-            @for (item of departaments(); track $index) {
-            <option [value]="item.id">{{ item.nombre }}</option>
-            }
-          </select>
-        </div>
-
-        <div>
-          <label for="idCiudad" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ciudad <span class="text-red-500">*</span></label>
-          <select id="idCiudad" formControlName="idCiudad"
-            class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-            required>
-            <option value="" disabled>
-              @if (citiesLoading()) { Cargando ciudades... } @else if (!selectedDepartmentId()) { Seleccione primero un
-              departamento } @else { Seleccione una ciudad }
-            </option>
-            @for (city of cities(); track $index) {
-            <option [value]="city.id">{{ city.nombre }}</option>
-            }
-          </select>
+          <label for="serial" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Serial del Contador <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input
+              id="serial"
+              formControlName="serial"
+              type="text"
+              placeholder="Serial del contador..."
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+            />
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
+              </svg>
+            </div>
+          </div>
         </div>
 
+        <!-- Campo: Departamento -->
         <div>
-          <label for="idCorregimiento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Corregimiento</label>
-          <select id="idCorregimiento" formControlName="idCorregimiento"
-            class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200">
-            <option value="" disabled>
-              @if (corregimientosLoading()) { Cargando corregimientos... } @else if (!selectedCityId()) { Seleccione
-              primero una ciudad } @else { Seleccione un corregimiento }
-            </option>
-            @for (cor of corregimientos(); track $index) {
-            <option [value]="cor.id">{{ cor.nombre }}</option>
-            }
-          </select>
+          <label for="idDepartamento" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Departamento <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <select
+              id="idDepartamento"
+              formControlName="idDepartamento"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+              required
+            >
+              <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
+                @if (departmentsLoading()) { Cargando departamentos... } @else { Seleccione un departamento... }
+              </option>
+              @for (item of departaments(); track $index) {
+                <option [value]="item.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">{{ item.nombre }}</option>
+              }
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+            </div>
+          </div>
         </div>
+
+        <!-- Campo: Ciudad -->
         <div>
-          <label for="direccion" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dirección</label>
-          <input id="direccion" formControlName="direccion" type="text" placeholder="Dirección..."
-            class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" />
+          <label for="idCiudad" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Ciudad <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <select
+              id="idCiudad"
+              formControlName="idCiudad"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+              required
+            >
+              <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
+                @if (citiesLoading()) { Cargando ciudades... } @else if (!selectedDepartmentId()) { Seleccione primero un departamento... } @else { Seleccione una ciudad... }
+              </option>
+              @for (city of cities(); track $index) {
+                <option [value]="city.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">{{ city.nombre }}</option>
+              }
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+              </svg>
+            </div>
+          </div>
         </div>
+
+        <!-- Campo: Corregimiento -->
         <div>
-          <label for="idEmpleadoEmpresa" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Empleado Asignado <span class="text-red-500">*</span></label>
-          <select id="idEmpleadoEmpresa" formControlName="idEmpleadoEmpresa"
-            class="w-full p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" required>
-            <option value="" disabled>
-              @if (dataEmployee.isLoading()) { Cargando empleados... }
-              @else { Seleccione un empleado }
-            </option>
-            @for (item of employeeData(); track $index) {
-              <option [value]="item.id">{{ item.personaNombreCompleto }}</option>
-            }
-          </select>
+          <label for="idCorregimiento" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Corregimiento
+          </label>
+          <div class="relative">
+            <select
+              id="idCorregimiento"
+              formControlName="idCorregimiento"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+            >
+              <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
+                @if (corregimientosLoading()) { Cargando corregimientos... } @else if (!selectedCityId()) { Seleccione primero una ciudad... } @else { Seleccione un corregimiento... }
+              </option>
+              @for (cor of corregimientos(); track $index) {
+                <option [value]="cor.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">{{ cor.nombre }}</option>
+              }
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campo: Dirección -->
+        <div>
+          <label for="direccion" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Dirección
+          </label>
+          <div class="relative">
+            <input
+              id="direccion"
+              formControlName="direccion"
+              type="text"
+              placeholder="Dirección completa..."
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+            />
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campo: Empleado Asignado -->
+        <div>
+          <label for="idEmpleadoEmpresa" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Empleado Asignado <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <select
+              id="idEmpleadoEmpresa"
+              formControlName="idEmpleadoEmpresa"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+              required
+            >
+              <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
+                @if (dataEmployee.isLoading()) { Cargando empleados... }
+                @else { Seleccione un empleado... }
+              </option>
+              @for (item of employeeData(); track $index) {
+                <option [value]="item.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">{{ item.personaNombreCompleto }}</option>
+              }
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="text-center mt-8">
-        <button (click)="saveClient()"
-          class="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-md shadow-md dark:shadow-gray-700/50 cursor-pointer transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
-          Guardar cliente
-        </button>
+
+      <!-- Botones de acción con estilo similar a la tabla -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-white/10 dark:border-slate-700/30">
+        <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+          </svg>
+          <span>Formulario de registro de contador</span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <button
+            type="button"
+            (click)="goBack()"
+            class="w-full sm:w-auto bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-semibold py-3 px-6 rounded-xl hover:border-gray-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-gray-500/20 active:scale-95 flex items-center gap-3 justify-center"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Cancelar
+          </button>
+
+          <button
+            type="button"
+            (click)="saveClient()"
+            class="w-full sm:w-auto bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 backdrop-blur-md text-green-700 dark:text-green-300 font-semibold py-3 px-6 rounded-xl hover:border-green-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 active:scale-95 flex items-center gap-3 justify-center"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+            </svg>
+            Guardar Contador
+          </button>
+        </div>
       </div>
     </form>
   </div>

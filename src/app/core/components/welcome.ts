@@ -1146,7 +1146,8 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
         </div>
       </section>
 
-      <section
+    @defer (on viewport) {
+            <section
         id="soluciones"
         class="relative mt-10 flex min-h-[100vh] w-full max-w-[100vw] flex-col place-items-center lg:p-6"
       >
@@ -1364,6 +1365,10 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
           </div>
         </div>
       </section>
+    }@placeholder {
+      <div>Cargando informacion</div>
+    }
+
 
       <section
       id="nosotros"
