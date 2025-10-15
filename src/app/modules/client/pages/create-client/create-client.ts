@@ -12,6 +12,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute , Router} from '@angular/router';
 import { ToastService } from '@services/toast.service';
 import { LocationService } from '@shared/services/location.service';
+import { rxResource } from '@angular/core/rxjs-interop';
 
 
 @Component({
@@ -68,7 +69,6 @@ export class CreateClient implements OnInit {
   ngOnInit(): void {
     this.initializeForm();
     this.loadDepartments();
-    this.loadTypeDocument();
 
     this.registerForm
       .get('idDepartamento')
@@ -115,13 +115,15 @@ export class CreateClient implements OnInit {
       direccion: [''],
     });
   }
-
-  loadTypeDocument(): void {
-    this.tipoDocumentoService.getAllTypeDocument().subscribe((response) => {
-      this.typeDocument = response.response;
-      this.typeDocumentName = response.response.map((tipoDocumento) => tipoDocumento.nombre);
-    });
-  }
+loadTypeDocument = rxResource({
+  stream: () => this.tipoDocumentoService.getAllTypeDocument()
+})
+  // loadTypeDocument(): void {
+  //   this.tipoDocumentoService.getAllTypeDocument().subscribe((response) => {
+  //     this.typeDocument = response.response;
+  //     this.typeDocumentName = response.response.map((tipoDocumento) => tipoDocumento.nombre);
+  //   });
+  // }
 
   loadDepartments(): void {
     this.departmentsLoading.set(true);
@@ -176,5 +178,9 @@ export class CreateClient implements OnInit {
       this.toast.error('Completa todos los campos requeridos antes de continuar', 'Formulario inválido');
       this.registerForm.markAllAsTouched();
     }
+  }
+
+    goBack(): void {
+    this.router.navigate(['/shell/client']);
   }
 }

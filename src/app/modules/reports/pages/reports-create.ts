@@ -76,9 +76,10 @@ import { PopupComponent } from '@shared/components/popUp';
       [loading]="dataReports.isLoading()"
       [actionTemplate]="actionsTemplate"
       [showAddButton]="false"
-      [showExportButton]="false"
-      [showColumnFilters]="false"
       (action)="handleTableAction($event)"
+      [showColumnFilters]="true"
+      [showExportButton]="true"
+      [exportFileName]="exportFileName()"
     >
     </app-table-dynamic>
 
@@ -185,6 +186,7 @@ import { PopupComponent } from '@shared/components/popUp';
           [showExportButton]="true"
           [showColumnFilters]="true"
           [actionTemplate]="emptyActionsTemplate"
+
         >
         </app-table-dynamic>
       </div>
@@ -215,8 +217,8 @@ import { PopupComponent } from '@shared/components/popUp';
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
               @for (filterItem of filtersReports.value()?.response; track
               filterItem.id) {
-              <!-- Solo mostrar campos que NO sean requeridos y NO sean de solo lectura -->
-            @if (!filterItem.filtro.requerido && !filterItem.filtro.lectura && filterItem.filtro.campo !== 'p_incluir_encabezado') {
+              <!-- Mostrar campos opcionales (no requeridos y no de solo lectura) -->
+              @if (!filterItem.filtro.requerido && !filterItem.filtro.lectura && filterItem.filtro.campo) {
               <div
                 class="p-4 rounded-lg border border-gray-600/70 hover:bg-white/5 transition-colors"
               >
@@ -225,6 +227,7 @@ import { PopupComponent } from '@shared/components/popUp';
                   <div class="flex items-start justify-between mb-2">
                     <h5 class="text-sm font-medium text-white">
                       {{ formatFieldName(filterItem.filtro.campo) }}
+                      <span class="text-xs text-gray-400 ml-1">(Opcional)</span>
                     </h5>
                   </div>
                 </div>
@@ -264,7 +267,7 @@ import { PopupComponent } from '@shared/components/popUp';
                     />
                   </div>
                   }
-                  <!-- @case ('BOOLEAN') {
+                  @case ('BOOLEAN') {
                           <div>
                             <div class="space-y-3">
                               <div class="flex items-center p-3 rounded-lg border border-gray-600/70 hover:bg-white/5 transition-colors cursor-pointer">
@@ -291,9 +294,9 @@ import { PopupComponent } from '@shared/components/popUp';
                               </div>
                             </div>
                           </div>
-                        } -->
+                        }
                   @default {
-                  <!-- <div>
+                  <div>
                             <input
                               type="text"
                               class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
@@ -301,11 +304,108 @@ import { PopupComponent } from '@shared/components/popUp';
                               [value]="filterValues()[filterItem.filtro.campo] || ''"
                               (input)="updateFilterValue(filterItem.filtro.campo, $event)"
                             />
-                          </div> -->
+                          </div>
                   } }
                 </div>
               </div>
-              } }
+              }
+
+              <!-- Mostrar campos requeridos y no de solo lectura -->
+              @else if (filterItem.filtro.requerido && !filterItem.filtro.lectura && filterItem.filtro.campo) {
+              <div
+                class="p-4 rounded-lg border-2 border-red-500/50 hover:bg-white/5 transition-colors bg-red-500/5"
+              >
+                <!-- Header con título -->
+                <div class="mb-4">
+                  <div class="flex items-start justify-between mb-2">
+                    <h5 class="text-sm font-medium text-white">
+                      {{ formatFieldName(filterItem.filtro.campo) }}
+                      <span class="text-xs text-red-400 ml-1 font-semibold">* (Requerido)</span>
+                    </h5>
+                  </div>
+                </div>
+
+                <!-- Campo según tipo de atributo -->
+                <div class="space-y-3">
+                  @switch (filterItem.filtro.tipoAtributo.nombre) { @case
+                  ('TEXT') {
+                  <div>
+                    <input
+                      type="text"
+                      class="w-full px-4 py-3 bg-transparent border-2 border-red-500/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40"
+                      [placeholder]="
+                        'Ingrese ' +
+                        formatFieldName(filterItem.filtro.campo).toLowerCase() + ' (requerido)'
+                      "
+                      [value]="filterValues()[filterItem.filtro.campo] || ''"
+                      (input)="
+                        updateFilterValue(filterItem.filtro.campo, $event)
+                      "
+                      required
+                    />
+                  </div>
+                  } @case ('INTEGER') {
+                  <div>
+                    <input
+                      type="number"
+                      class="w-full px-4 py-3 bg-transparent border-2 border-red-500/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40"
+                      [placeholder]="
+                        'Ingrese ' +
+                        formatFieldName(filterItem.filtro.campo).toLowerCase() + ' (requerido)'
+                      "
+                      [value]="filterValues()[filterItem.filtro.campo] || ''"
+                      (input)="
+                        updateFilterValue(filterItem.filtro.campo, $event)
+                      "
+                      step="1"
+                      required
+                    />
+                  </div>
+                  }
+                  @case ('BOOLEAN') {
+                          <div>
+                            <div class="space-y-3">
+                              <div class="flex items-center p-3 rounded-lg border-2 border-red-500/70 hover:bg-white/5 transition-colors cursor-pointer">
+                                <input
+                                  type="radio"
+                                  [name]="'filter_required_' + filterItem.filtro.campo"
+                                  value="true"
+                                  [checked]="filterValues()[filterItem.filtro.campo] === 'true'"
+                                  (change)="updateFilterValue(filterItem.filtro.campo, $event)"
+                                  class="w-4 h-4 text-red-600 bg-transparent border-red-600 rounded focus:ring-red-500 focus:ring-2"
+                                />
+                                <span class="ml-3 text-sm font-medium text-gray-300">Sí</span>
+                              </div>
+                              <div class="flex items-center p-3 rounded-lg border-2 border-red-500/70 hover:bg-white/5 transition-colors cursor-pointer">
+                                <input
+                                  type="radio"
+                                  [name]="'filter_required_' + filterItem.filtro.campo"
+                                  value="false"
+                                  [checked]="filterValues()[filterItem.filtro.campo] === 'false'"
+                                  (change)="updateFilterValue(filterItem.filtro.campo, $event)"
+                                  class="w-4 h-4 text-red-600 bg-transparent border-red-600 rounded focus:ring-red-500 focus:ring-2"
+                                />
+                                <span class="ml-3 text-sm font-medium text-gray-300">No</span>
+                              </div>
+                            </div>
+                          </div>
+                        }
+                  @default {
+                  <div>
+                            <input
+                              type="text"
+                              class="w-full px-4 py-3 bg-transparent border-2 border-red-500/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40"
+                              placeholder="Valor personalizado (requerido)"
+                              [value]="filterValues()[filterItem.filtro.campo] || ''"
+                              (input)="updateFilterValue(filterItem.filtro.campo, $event)"
+                              required
+                            />
+                          </div>
+                  } }
+                </div>
+              </div>
+              }
+              }
             </div>
           </div>
           } @else {
@@ -334,8 +434,7 @@ import { PopupComponent } from '@shared/components/popUp';
         </div>
 
         <!-- Botones fijos al final -->
-        @if (filtersReports.value()?.response &&
-        (filtersReports.value()?.response?.length ?? 0) > 0) {
+        @if (hasVisibleFilters()) {
         <div class="flex-shrink-0 p-4">
           <div class="flex flex-col sm:flex-row gap-3">
             <button
@@ -396,7 +495,8 @@ export class ReportsCreate {
   selectedNombreSp = signal<string>('');
   showFiltersPopup = signal(false);
   filterValues = signal<Record<string, any>>({});
-  shouldGenerateAfterLoad = signal(false); // Nueva señal para controlar la generación automática
+  shouldGenerateAfterLoad = signal(false);
+  requiredFields = signal<string[]>([]);
 
   billColumns = signal([
     { field: 'nombre', header: 'Nombre', type: 'text' as const },
@@ -408,6 +508,27 @@ export class ReportsCreate {
   reportColumns = signal<{ field: string; header: string; type: 'text' }[]>([]);
   reportTotalRecords = signal<number>(0);
   hasReportResults = computed(() => this.reportData().length > 0);
+
+  readonly exportFileName = computed(
+    () => `clientes_${new Date().toISOString().split('T')[0]}`
+  );
+
+  // Computed para clasificar filtros
+  readonly optionalFilters = computed(() =>
+    this.filtersReports.value()?.response?.filter(item =>
+      !item.filtro.requerido && !item.filtro.lectura && item.filtro.campo
+    ) || []
+  );
+
+  readonly requiredFilters = computed(() =>
+    this.filtersReports.value()?.response?.filter(item =>
+      item.filtro.requerido && !item.filtro.lectura && item.filtro.campo
+    ) || []
+  );
+
+  readonly hasVisibleFilters = computed(() =>
+    this.optionalFilters().length > 0 || this.requiredFilters().length > 0
+  );
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -473,10 +594,32 @@ export class ReportsCreate {
       this.selectedReportId.set(event.row.id);
       this.selectedReportName.set(event.row.nombre || 'Reporte');
       this.selectedNombreSp.set(event.row.nombreSp || '');
-      // Marcar que se debe generar el reporte después de cargar los filtros
+
+      // Verificar si hay campos requeridos
+      this.checkRequiredFieldsAndGenerate();
+    }
+  }
+
+  checkRequiredFieldsAndGenerate(): void {
+    // Esperar a que se carguen los filtros antes de verificar
+    if (this.filtersReports.isLoading()) {
       this.shouldGenerateAfterLoad.set(true);
+      return;
     }
 
+    const hasRequiredEditableFields = this.requiredFilters().length > 0;
+
+    if (hasRequiredEditableFields) {
+      // Si hay campos requeridos, mostrar el popup de filtros
+      this.showFiltersPopup.set(true);
+      this.toastService.warning(
+        'Campos requeridos',
+        'Este reporte tiene campos obligatorios que deben ser completados antes de generar.'
+      );
+    } else {
+      // Si no hay campos requeridos, generar directamente
+      this.shouldGenerateAfterLoad.set(true);
+    }
   }
 
   closeFiltersPopup(): void {
@@ -485,6 +628,7 @@ export class ReportsCreate {
     this.selectedReportName.set('');
     this.selectedNombreSp.set(''); // Limpiar nombreSp
     this.filterValues.set({});
+    this.requiredFields.set([]);
   }
 
   formatFieldName(fieldName: string): string {
@@ -504,30 +648,40 @@ export class ReportsCreate {
       .join(' ');
   }
 
+  private getInitialValueByType(type: string): any {
+    return type === 'TEXT' ? '' : null;
+  }
+
+  private shouldShowFilter(filtro: any): boolean {
+    return !filtro.requerido && !filtro.lectura && filtro.campo;
+  }
+
+  private isRequiredEditableFilter(filtro: any): boolean {
+    return filtro.requerido && !filtro.lectura && filtro.campo;
+  }
+
   initializeFilterValues(): void {
     const filters = this.filtersReports.value()?.response;
-    if (filters) {
-      const initialValues: Record<string, any> = {};
-      filters.forEach((filterItem) => {
-        if (!filterItem.filtro.requerido && !filterItem.filtro.lectura) {
-          const campo = filterItem.filtro.campo;
-          switch (filterItem.filtro.tipoAtributo.nombre) {
-            case 'TEXT':
-              initialValues[campo] = '';
-              break;
-            case 'INTEGER':
-              initialValues[campo] = null;
-              break;
-            case 'BOOLEAN':
-              initialValues[campo] = null;
-              break;
-            default:
-              initialValues[campo] = null;
-          }
-        }
-      });
-      this.filterValues.set(initialValues);
-    }
+    if (!filters) return;
+
+    const initialValues: Record<string, any> = {};
+    const requiredFieldsList: string[] = [];
+
+    filters.forEach((filterItem) => {
+      const { campo, requerido, lectura, tipoAtributo } = filterItem.filtro;
+
+      // Solo procesar campos que se muestran en el UI (opcionales o requeridos editables)
+      if ((requerido && lectura) || !campo) return;
+
+      initialValues[campo] = this.getInitialValueByType(tipoAtributo.nombre);
+
+      if (this.isRequiredEditableFilter(filterItem.filtro)) {
+        requiredFieldsList.push(campo);
+      }
+    });
+
+    this.filterValues.set(initialValues);
+    this.requiredFields.set(requiredFieldsList);
   }
 
   clearFilters(): void {
@@ -537,69 +691,91 @@ export class ReportsCreate {
   updateFilterValue(campo: string, event: any): void {
     const target = event.target as HTMLInputElement;
     const currentValues = this.filterValues();
-    const value = target.value;
     this.filterValues.set({
       ...currentValues,
-      [campo]: value,
+      [campo]: target.value,
     });
   }
 
+  private getDefaultValueForRequiredField(campo: string, type: string): any {
+    switch (type) {
+      case 'INTEGER':
+        if (campo.toLowerCase().includes('page')) return 1;
+        if (campo.toLowerCase().includes('size')) return 10;
+        if (campo.toLowerCase().includes('empresa')) return this.empresaId() || 0;
+        return 0;
+      case 'TEXT':
+        return '';
+      case 'BOOLEAN':
+        return false;
+      default:
+        return null;
+    }
+  }
+
+  private parseFilterValue(value: any): any {
+    if (value === null || value === undefined || value === '') return null;
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    if (!isNaN(Number(value)) && value !== '') return Number(value);
+    return value;
+  }
+
+  validateRequiredFields(): { isValid: boolean; missingFields: string[] } {
+    const values = this.filterValues();
+    const requiredFields = this.requiredFields();
+    const missingFields: string[] = [];
+
+    requiredFields.forEach(field => {
+      const value = values[field];
+      if (value === null || value === undefined || value === '') {
+        missingFields.push(this.formatFieldName(field));
+      }
+    });
+
+    return {
+      isValid: missingFields.length === 0,
+      missingFields
+    };
+  }
+
   applyFilters(): void {
+    // Validar campos requeridos antes de proceder
+    const validation = this.validateRequiredFields();
+    if (!validation.isValid) {
+      this.toastService.error(
+        'Campos requeridos',
+        `Por favor complete los siguientes campos obligatorios: ${validation.missingFields.join(', ')}`
+      );
+      return;
+    }
+
     const values = this.filterValues();
     const nombreSp = this.selectedNombreSp();
     const filters = this.filtersReports.value()?.response;
 
     if (!nombreSp) {
-      this.toastService.error(
-        'Error',
-        'No se ha seleccionado un procedimiento válido'
-      );
+      this.toastService.error('Error', 'No se ha seleccionado un procedimiento válido');
       return;
     }
+
     const requestBody: any = {};
+
+    // Agregar valores por defecto para campos requeridos de solo lectura
     if (filters) {
       filters.forEach((filterItem) => {
-        if (filterItem.filtro.requerido) {
-          const campo = filterItem.filtro.campo;
-
-          switch (filterItem.filtro.tipoAtributo.nombre) {
-            case 'INTEGER':
-              if (campo.toLowerCase().includes('page')) {
-                requestBody[campo] = 1;
-              } else if (campo.toLowerCase().includes('size')) {
-                requestBody[campo] = 10;
-              } else if (campo.toLowerCase().includes('empresa')) {
-                const empresaId = this.empresaId();
-                requestBody[campo] = empresaId || 0;
-              } else {
-                requestBody[campo] = 0;
-              }
-              break;
-            case 'TEXT':
-              requestBody[campo] = '';
-              break;
-            case 'BOOLEAN':
-              requestBody[campo] = false;
-              break;
-            default:
-              requestBody[campo] = null;
-          }
+        if (filterItem.filtro.requerido && filterItem.filtro.lectura) {
+          const { campo, tipoAtributo } = filterItem.filtro;
+          requestBody[campo] = this.getDefaultValueForRequiredField(campo, tipoAtributo.nombre);
         }
       });
     }
 
+    // Agregar valores de los campos editables (tanto opcionales como requeridos)
     Object.keys(values).forEach((key) => {
-      const value = values[key];
-      if (value !== null && value !== undefined && value !== '') {
-        if (value === 'true') {
-          requestBody[key] = true;
-        } else if (value === 'false') {
-          requestBody[key] = false;
-        } else if (!isNaN(Number(value)) && value !== '') {
-          requestBody[key] = Number(value);
-        } else {
-          requestBody[key] = value;
-        }
+      const parsedValue = this.parseFilterValue(values[key]);
+      if (parsedValue !== null) {
+        requestBody[key] = parsedValue;
       }
     });
 
@@ -713,6 +889,7 @@ export class ReportsCreate {
 
     this.showFiltersPopup.set(false);
     this.filterValues.set({});
+    this.requiredFields.set([]);
   }
 
   clearReportResults(): void {
@@ -721,6 +898,7 @@ export class ReportsCreate {
     this.reportTotalRecords.set(0);
     this.selectedReportName.set('');
     this.selectedNombreSp.set('');
+    this.requiredFields.set([]);
   }
 
   requestReportViaWhatsApp(): void {

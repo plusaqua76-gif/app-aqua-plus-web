@@ -2,7 +2,7 @@ import { ProductoService } from "../modules/accounting/service/producto.service"
 
 export const END_POINT_SERVICE = {
   POST_AUTH_USER: 'usuario/validar',
-  POST_REC_PASS: 'recoverPassword',
+  POST_REC_PASS: 'recover-password',
   POST_UPD_PASS: 'update-password',
   PUT_UPD_PASS: 'Password',
   PUT_IMG_USER: 'imagen',
@@ -50,7 +50,7 @@ export const END_POINT_SERVICE = {
   GET_INVENTORY:'inventario',
   GET_ALL_INVENTORY:'empresa',
 
-  GET_PRODUC:'Producto',
+  GET_PRODUC:'producto',
   GET_ALL_PRODUC:'empresa'
 };
 

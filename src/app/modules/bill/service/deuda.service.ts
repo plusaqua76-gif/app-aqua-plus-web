@@ -71,10 +71,9 @@ export class DeudaService {
     }
 
     saveDeuda(deuda: IDeudaCliente): Observable<ApiResponse<any>> {
-        return this.http.post<ApiResponse<any>>(`${this.apiUrl}`, deuda).pipe(
-            catchError(this.handleError)
-        );
+        return this.http.post<ApiResponse<any>>(`${this.apiUrl}`, deuda)
     }
+    
     deleteDeudaById(id: number): Observable<ApiResponse<any>> {
         return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${id}`).pipe(
             catchError(this.handleError)

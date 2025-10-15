@@ -1,96 +1,160 @@
-import { CommonModule, DatePipe } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, effect, inject, OnInit, signal, computed } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EmpleadoService } from '../../service/empleado.service';
-import { CorreoPersonaService } from '../../../client/service/correoPersona.service';
-import { TelefonoGeneralService } from '../../../client/service/telefonoPersona.service';
 import { ToastService } from '@services/toast.service';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { catchError, EMPTY, of } from 'rxjs';
+import { IEmpleadoEmpresaResponse } from '@interfaces/Iemployee';
 
 @Component({
   selector: 'app-update-employee',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './update-employee.html',
-  providers: [DatePipe]
 })
 export class UpdateEmployee implements OnInit {
-  empleado: any = {
-    id: null,
-    personaId: null,
-    nombreCompleto: '',
-    numeroIdentificacion: '',
-    codigo: '',
-    correo: '',
-    telefono: '',
-    activo: true
-  };
+
+  updateForm!: FormGroup;
+  selectedEmployee = signal<IEmpleadoEmpresaResponse | null>(null);
 
   private readonly route = inject(ActivatedRoute);
   private readonly empleadoService = inject(EmpleadoService);
-  protected readonly correoService = inject(CorreoPersonaService);
-  protected readonly telefonoService = inject(TelefonoGeneralService);
   protected readonly toast = inject(ToastService);
   protected readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
+
+  idEmployee = signal(0);
+
+  readonly userData = computed(() => {
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      console.error('Error parsing userData from sessionStorage:', e);
+      return null;
+    }
+  });
+
+  readonly usuarioModificacion = computed(() => {
+    const data = this.userData();
+    return data?.nombre || 'admin';
+  });
+
+  constructor() {
+    this.idEmployee.set(Number(this.route.snapshot.paramMap.get('id')));
+
+    effect(() => {
+      const employeeData = this.employeeById.value();
+      if (employeeData?.response) {
+        this.selectedEmployee.set(employeeData.response);
+        this.loadEmployeeFromData(employeeData.response);
+      }
+    });
+  }
 
   ngOnInit(): void {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    if (id) {
-      this.loadEmpleado(id);
-    }
+    this.initializeForm();
   }
 
-  loadEmpleado(id: number): void {
-    this.empleadoService.getEmpleadoById(id).subscribe({
-      next: (res) => {
-        const data = res.response;
-        this.empleado = {
-          id: data.id,
-          personaId: data.personaId,
-          nombreCompleto: data.personaNombreCompleto || '',
-          numeroIdentificacion: data.numeroCedula || '',
-          codigo: data.codigo || '',
-          correo: data.correo || 'Sin correo',
-          telefono: data.telefono || 'Sin teléfono',
-          activo: data.activo || false
-        };
-      },
-      error: (err) => {
-        this.toast.error('Error', 'No se pudo cargar la información del empleado');
-      }
+  private initializeForm(): void {
+    this.updateForm = this.fb.group({
+      personaNombreCompleto: ['', [Validators.required]],
+      numeroCedula: ['', [Validators.required]],
+      codigo: ['', [Validators.required]],
+      correo: ['', [Validators.required, Validators.email]],
+      telefono: ['', [Validators.required]],
+      activo: [true]
     });
   }
+
+  private loadEmployeeFromData(employeeData: IEmpleadoEmpresaResponse): void {
+    if (!employeeData) return;
+
+    this.updateForm.patchValue({
+      personaNombreCompleto: employeeData.personaNombreCompleto || '',
+      numeroCedula: employeeData.numeroCedula || '',
+      codigo: employeeData.codigo || '',
+      correo: employeeData.correo || '',
+      telefono: employeeData.telefono || '',
+      activo: employeeData.activo ?? true
+    });
+  }
+
+  employeeById = rxResource({
+    params: () => ({ idEmployee: this.idEmployee() }),
+    stream: ({ params }) => {
+      const { idEmployee } = params;
+      if (!idEmployee) {
+        return EMPTY;
+      }
+      return this.empleadoService.getEmpleadoById(idEmployee).pipe(
+        catchError((error) => {
+          console.error('Error loading employee:', error);
+          this.toast.error('Error', 'No se pudo cargar la información del empleado');
+          return of(null);
+        })
+      );
+    },
+  });
 
   onSubmit(): void {
-    const partes = this.empleado.nombreCompleto.trim().split(' ');
+    if (this.updateForm.invalid) {
+      this.updateForm.markAllAsTouched();
+      this.toast.error('Error', 'Por favor complete todos los campos requeridos');
+      return;
+    }
 
-    const payload = {
-      id_empleado: this.empleado.id,
-      id_persona: this.empleado.personaId,
-      numero_cedula: this.empleado.numeroIdentificacion,
-      codigo: this.empleado.codigo,
-      primer_nombre: partes[0] || '',
-      segundo_nombre: partes[1] || '',
-      primer_apellido: partes[2] || '',
-      segundo_apellido: partes[3] || '',
-      correo: this.empleado.correo,
-      telefono: this.empleado.telefono,
-      activo: this.empleado.activo,
-      usuario_cambio: localStorage.getItem('nameUser') || 'admin'
+    const empleadoSeleccionado = this.selectedEmployee();
+    if (!empleadoSeleccionado?.id) {
+      this.toast.error('Error', 'No se pudo obtener la información del empleado');
+      return;
+    }
+
+    const formData = this.updateForm.value;
+    const usuarioModificacion = this.usuarioModificacion();
+
+    const updatePayload = {
+      id: empleadoSeleccionado.id,
+      empresaId: empleadoSeleccionado.empresaId,
+      personaId: empleadoSeleccionado.personaId,
+      personaNombreCompleto: formData.personaNombreCompleto || '',
+      numeroCedula: formData.numeroCedula || '',
+      codigo: formData.codigo || '',
+      correo: formData.correo || '',
+      telefono: formData.telefono || '',
+      activo: formData.activo ?? true,
+      usuarioActualizacion: usuarioModificacion,
+      fechaModificacion: new Date()
     };
 
-    this.empleadoService.updateEmpleado(payload).subscribe({
-      next: (res) => {
-        if (res['error']) {
-          this.toast.error('Error al actualizar', res['error'] || 'No se pudo actualizar el empleado.');
-        } else {
-          this.toast.success('Éxito', 'El empleado se actualizó correctamente.');
-          this.router.navigate(['/shell/employee']);
-        }
+    // Usando el método de actualización del servicio
+    this.empleadoService.updateEmpleado(updatePayload).subscribe({
+      next: (response: any) => {
+        this.toast.success('Éxito', 'Empleado actualizado correctamente');
+        this.router.navigate(['/shell/employee']);
       },
-      error: (err) => {
-        this.toast.error('Error inesperado', 'No se pudo actualizar el empleado. Intente más tarde.');
+      error: (err: any) => {
+        console.error('Error al actualizar empleado:', err);
+        // Manejar casos donde el backend devuelve 200 pero con error HTTP
+        if (err.status === 200 || err.status === 201 || err.status === 204) {
+          this.toast.success('Éxito', 'Empleado actualizado correctamente');
+          this.router.navigate(['/shell/employee']);
+        } else {
+          this.toast.error('Error', 'No se pudo actualizar el empleado');
+        }
       }
     });
   }
 
+  onToggleEstado(): void {
+    const currentValue = this.updateForm.get('activo')?.value;
+    this.updateForm.patchValue({ activo: !currentValue });
+  }
+
+  goBack(): void {
+    this.router.navigate(['/shell/employee']);
+  }
 }

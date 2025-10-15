@@ -145,10 +145,10 @@ export interface TableColumn {
             }
           </div>
 
-          <div class="flex items-center gap-3">
+          <div class="flex flex-col sm:flex-row items-center gap-3">
             @if (showAddButton()) {
               <button
-                class="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-semibold py-3 px-6 rounded-xl hover:border-blue-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center gap-3 whitespace-nowrap cursor-pointer"
+                class="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-semibold py-3 px-6 rounded-xl hover:border-blue-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center gap-3 whitespace-nowrap cursor-pointer w-full sm:w-auto justify-center"
                 (click)="onAction('add', null)"
               >
                 <svg
@@ -172,7 +172,7 @@ export interface TableColumn {
 
             @if (showSecondaryButton()) {
               <button
-                class="bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 backdrop-blur-md text-green-700 dark:text-green-300 font-semibold py-3 px-6 rounded-xl hover:border-green-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 active:scale-95 flex items-center gap-3 whitespace-nowrap cursor-pointer"
+                class="bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 backdrop-blur-md text-green-700 dark:text-green-300 font-semibold py-3 px-6 rounded-xl hover:border-green-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 active:scale-95 flex items-center gap-3 whitespace-nowrap cursor-pointer w-full sm:w-auto justify-center"
                 (click)="onSecondaryAction()"
               >
                 <svg

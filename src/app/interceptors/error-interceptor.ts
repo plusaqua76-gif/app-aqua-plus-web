@@ -27,8 +27,12 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         toastTitle = 'Error de conexión';
       } else if (error.status === 400) {
         console.error('Bad Request:', error.error?.message || errorMessage);
-        // Para errores 400, priorizar el mensaje del servidor
-        errorMessage = error.error?.message || error.error?.msg || 'Error de solicitud. Verifica los datos enviados.';
+        // Para errores 400, priorizar los mensajes específicos del servidor
+        errorMessage = error.error?.error ||
+                      error.error?.originalError?.error ||
+                      error.error?.message ||
+                      error.error?.msg ||
+                      'Error de solicitud. Verifica los datos enviados.';
         toastTitle = 'Error de solicitud';
       } else if (error.status === 401) {
         console.error('Unauthorized:', error.error?.message || errorMessage);

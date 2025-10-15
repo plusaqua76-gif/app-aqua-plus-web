@@ -181,6 +181,8 @@ export class UpdateDebt implements OnInit {
     });
   }
 
-
+  goBack(): void {
+    this.router.navigate(['/shell/bill/customer-debt']);
+  }
 
 }

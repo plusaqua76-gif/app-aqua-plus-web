@@ -181,7 +181,6 @@ employeeData = computed(() => this.dataEmployee.value()?.response ?? []);
       },
       error: (err) => {
         console.error('Error al cargar departamentos:', err);
-        this.toast.error('Error', 'No se pudieron cargar los departamentos');
         this.departmentsLoading.set(false);
       }
     });
@@ -196,7 +195,6 @@ employeeData = computed(() => this.dataEmployee.value()?.response ?? []);
       },
       error: (err) => {
         console.error('Error al cargar ciudades:', err);
-        this.toast.error('Error', 'No se pudieron cargar las ciudades');
         this.citiesLoading.set(false);
       }
     });
@@ -210,7 +208,7 @@ employeeData = computed(() => this.dataEmployee.value()?.response ?? []);
         this.corregimientosLoading.set(false);
       },
       error: (err) => {
-        this.toast.error('Error', 'No se pudieron cargar los corregimientos');
+        console.error('Error al cargar corregimientos:', err);
         this.corregimientosLoading.set(false);
       }
     });
@@ -263,18 +261,22 @@ employeeData = computed(() => this.dataEmployee.value()?.response ?? []);
           if (resp.statusCode === 200 || resp.statusCode === 201) {
             sessionStorage.removeItem('personaData');
             this.toast.success('Cliente y contador guardados correctamente', 'Éxito');
-            this.router.navigate(['client']);
+            this.router.navigate(['/shell/counter']);
           } else {
             this.toast.warning(`Error al guardar: ${resp.message || 'Desconocido'}`, 'Advertencia');
           }
         },
         error: (err) => {
-          this.toast.error('Ocurrió un error al guardar los datos', 'Error');
+          console.error('Error al guardar cliente y contador:', err);
         }
       });
     } else {
       this.toast.warning('Completa todos los campos antes de guardar', 'Formulario incompleto');
       this.registerForm.markAllAsTouched();
     }
+  }
+
+    goBack(): void {
+    this.router.navigate(['/shell/counter']);
   }
 }
