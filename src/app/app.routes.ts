@@ -75,7 +75,7 @@ export const routes: Routes = [
       },
       {
         path: 'user-access',
-        canActivate: [hasRoleGuard(['SUPER ADMIN'])],
+        // canActivate: [hasRoleGuard(['SUPER ADMIN'])],
         loadChildren: () =>
           import('./modules/super-admin/admin.route').then((m) => m.default),
       },

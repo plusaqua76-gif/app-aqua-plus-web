@@ -1,161 +1,186 @@
-<!-- Formulario de creación de deuda con estilos consistentes con update-client -->
+<!-- Formulario de creación de deuda con estilos glassmorphism -->
 <div class="px-4 sm:px-6 lg:px-8 py-6">
-  <!-- Header con estilo similar al de update-client -->
+  <!-- Header con estilo similar al de la tabla -->
   <div class="mb-6">
     <h1 class="text-2xl sm:text-3xl font-bold text-gray-700 dark:text-gray-200 mb-4">
       Crear Nueva Deuda
     </h1>
-    <p class="text-gray-600 dark:text-gray-400">Complete el formulario para registrar una nueva deuda</p>
+
+    <!-- Breadcrumb o botón de regreso -->
+    <div class="flex items-center gap-4 mb-6">
+      <button
+        type="button"
+        (click)="cancelar()"
+        class="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md text-gray-900 dark:text-white hover:bg-white/20 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300"
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+        Volver a la lista
+      </button>
+    </div>
   </div>
 
-  <!-- Contenedor principal con estilo glassmorphism similar a update-client -->
+  <!-- Contenedor principal con estilo glassmorphism -->
   <div class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30">
     <!-- Formulario -->
-    <form [formGroup]="deudaForm" (ngSubmit)="crearDeuda()" class="p-6 sm:p-8">
-      <h2 class="text-xl font-semibold text-center mb-6 text-gray-700 dark:text-gray-200">Agregar deuda de cliente</h2>
+    <form [formGroup]="deudaForm" (ngSubmit)="onSubmit()" class="p-6 sm:p-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-        <!-- Selección de Cliente -->
+        <!-- Cliente -->
         <div>
-          <label for="empresaClienteContadorId" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
-            Cliente Contador <span class="text-red-500">*</span>
+          <label for="cliente" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Cliente <span class="text-red-500">*</span>
           </label>
           <div class="relative">
             <select
-              id="empresaClienteContadorId"
+              id="cliente"
               formControlName="empresaClienteContadorId"
               class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
-              [class.border-red-500]="getFieldError('empresaClienteContadorId')"
-              required
-            >
-              <option value="" disabled class="text-gray-400 dark:text-gray-500">Seleccione el cliente</option>
+              [class.border-red-500]="deudaForm.get('empresaClienteContadorId')?.invalid && deudaForm.get('empresaClienteContadorId')?.touched"
+              required>
+              <option
+                value=""
+                disabled
+                selected
+                hidden
+                class="text-gray-400 dark:text-gray-500"
+              >
+                @if (dataClients.isLoading()) { Cargando clientes... } @else {
+                Seleccione un cliente... }
+              </option>
               @if (dataClients.value()?.response) {
-                @for(counter of dataClients.value()!.response; track counter.id) {
-                  <option [value]="counter.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    {{ counter.nombre }} {{ counter.segundoNombre || '' }} {{ counter.apellido }} {{ counter.segundoApellido || '' }}
+                @for (client of dataClients.value()?.response; track client.id) {
+                  <option [value]="client.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
+                    {{ client.nombreCompleto }}
                   </option>
                 }
               }
             </select>
             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
           </div>
-          @if (getFieldError('empresaClienteContadorId')) {
-            <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-              </svg>
-              {{ getFieldError('empresaClienteContadorId') }}
-            </p>
+          @if (deudaForm.get('empresaClienteContadorId')?.invalid && deudaForm.get('empresaClienteContadorId')?.touched) {
+            <p class="mt-1 text-sm text-red-600">Debe seleccionar un cliente</p>
           }
         </div>
 
         <!-- Tipo de Deuda -->
         <div>
-          <label for="tipoDeudaId" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+          <label for="tipoDeuda" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
             Tipo de Deuda <span class="text-red-500">*</span>
           </label>
           <div class="relative">
             <select
-              id="tipoDeudaId"
+              id="tipoDeuda"
               formControlName="tipoDeudaId"
               class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
-              [class.border-red-500]="getFieldError('tipoDeudaId')"
-              required
-            >
-              <option value="" disabled class="text-gray-400 dark:text-gray-500">Seleccione tipo de deuda</option>
+              [class.border-red-500]="deudaForm.get('tipoDeudaId')?.invalid && deudaForm.get('tipoDeudaId')?.touched"
+              required>
+              <option
+                value=""
+                disabled
+                selected
+                hidden
+                class="text-gray-400 dark:text-gray-500"
+              >
+                @if (tipodeuda.isLoading()) { Cargando tipos de deuda... } @else {
+                Seleccione el tipo de deuda... }
+              </option>
               @if (tipodeuda.value()?.response) {
-                @for(type of tipodeuda.value()!.response; track type.id) {
-                  <option [value]="type.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    {{ type.nombre }}
+                @for (tipo of tipodeuda.value()?.response; track tipo.id) {
+                  <option [value]="tipo.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
+                    {{ tipo.nombre }}
                   </option>
                 }
               }
             </select>
             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
           </div>
-          @if (getFieldError('tipoDeudaId')) {
-            <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-              </svg>
-              {{ getFieldError('tipoDeudaId') }}
-            </p>
+          @if (deudaForm.get('tipoDeudaId')?.invalid && deudaForm.get('tipoDeudaId')?.touched) {
+            <p class="mt-1 text-sm text-red-600">Debe seleccionar un tipo de deuda</p>
           }
         </div>
 
         <!-- Plazo de Pago -->
         <div>
-          <label for="plazoPagoId" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
-            N° de cuotas <span class="text-red-500">*</span>
+          <label for="plazoPago" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Plazo de Pago <span class="text-red-500">*</span>
           </label>
           <div class="relative">
             <select
-              id="plazoPagoId"
+              id="plazoPago"
               formControlName="plazoPagoId"
               class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
-              [class.border-red-500]="getFieldError('plazoPagoId')"
+              [class.border-red-500]="deudaForm.get('plazoPagoId')?.invalid && deudaForm.get('plazoPagoId')?.touched"
               required
-            >
-              <option value="" disabled class="text-gray-400 dark:text-gray-500">N° de cuotas...</option>
+              placeholder="Seleccione un plazo de pago...">
+              <option
+                value="seleccione un plazo"
+                disabled
+                selected
+                hidden
+                class="text-gray-400 dark:text-gray-500"
+              >
+                @if (plazopago.isLoading()) { Cargando plazos de pago... } @else {
+                Seleccione el plazo de pago... }
+              </option>
               @if (plazopago.value()?.response) {
-                @for(plazobill of plazopago.value()!.response; track plazobill.id) {
-                  <option [value]="plazobill.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    {{ plazobill.nombre }}
+                @for (plazo of plazopago.value()?.response; track plazo.id) {
+                  <option [value]="plazo.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
+                    {{ plazo.nombre }}
                   </option>
                 }
               }
             </select>
             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 9l6-6m-6 0l6 6"/>
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
           </div>
-          @if (getFieldError('plazoPagoId')) {
-            <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-              </svg>
-              {{ getFieldError('plazoPagoId') }}
-            </p>
+          @if (deudaForm.get('plazoPagoId')?.invalid && deudaForm.get('plazoPagoId')?.touched) {
+            <p class="mt-1 text-sm text-red-600">Debe seleccionar un plazo de pago</p>
           }
         </div>
 
         <!-- Fecha de Deuda -->
         <div>
           <label for="fechaDeuda" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
-            Fecha Deuda <span class="text-red-500">*</span>
+            Fecha de Deuda <span class="text-red-500">*</span>
           </label>
           <div class="relative">
             <input
-              id="fechaDeuda"
               type="date"
+              id="fechaDeuda"
               formControlName="fechaDeuda"
               class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
-              [class.border-red-500]="getFieldError('fechaDeuda')"
-            />
+              [class.border-red-500]="deudaForm.get('fechaDeuda')?.invalid && deudaForm.get('fechaDeuda')?.touched">
             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
               <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 9l6-6m-6 0l6 6"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
           </div>
-          @if (getFieldError('fechaDeuda')) {
-            <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-              </svg>
-              {{ getFieldError('fechaDeuda') }}
-            </p>
+          @if (deudaForm.get('fechaDeuda')?.invalid && deudaForm.get('fechaDeuda')?.touched) {
+            <p class="mt-1 text-sm text-red-600">Debe seleccionar una fecha válida</p>
           }
         </div>
 
@@ -165,34 +190,37 @@
             Valor <span class="text-red-500">*</span>
           </label>
           <div class="relative">
+            <span class="absolute left-3 top-3 text-gray-500 font-medium">$</span>
             <input
-              id="valor"
               type="number"
+              id="valor"
+              formControlName="valor"
               step="0.01"
               min="0.01"
-              formControlName="valor"
-              placeholder="Valor"
-              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
-              [class.border-red-500]="getFieldError('valor')"
-            />
+              placeholder="0.00"
+              class="w-full pl-8 pr-12 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+              [class.border-red-500]="deudaForm.get('valor')?.invalid && deudaForm.get('valor')?.touched">
             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
               <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
               </svg>
             </div>
           </div>
-          @if (getFieldError('valor')) {
-            <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-              </svg>
-              {{ getFieldError('valor') }}
+          @if (deudaForm.get('valor')?.invalid && deudaForm.get('valor')?.touched) {
+            <p class="mt-1 text-sm text-red-600">
+              @if (deudaForm.get('valor')?.errors?.['required']) {
+                El valor es requerido
+              } @else if (deudaForm.get('valor')?.errors?.['min']) {
+                El valor debe ser mayor a 0
+              } @else if (deudaForm.get('valor')?.errors?.['pattern']) {
+                Formato de valor inválido (máximo 2 decimales)
+              }
             </p>
           }
         </div>
 
-        <!-- Descripción (campo completo) -->
-        <div class="md:col-span-2 lg:col-span-3">
+        <!-- Descripción - campo que ocupa toda la fila -->
+        <div class="md:col-span-2">
           <label for="descripcion" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
             Descripción <span class="text-red-500">*</span>
           </label>
@@ -200,71 +228,86 @@
             <textarea
               id="descripcion"
               formControlName="descripcion"
-              rows="3"
-              placeholder="Descripción"
+              rows="4"
+              placeholder="Describa el motivo o detalle de la deuda..."
               class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 resize-none"
-              [class.border-red-500]="getFieldError('descripcion')"
-            ></textarea>
-            <div class="absolute top-3 right-3 pointer-events-none">
+              [class.border-red-500]="deudaForm.get('descripcion')?.invalid && deudaForm.get('descripcion')?.touched">
+            </textarea>
+            <div class="absolute top-3 right-0 flex items-start pr-3 pointer-events-none">
               <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </div>
           </div>
-          <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-            <span>
-              @if (getFieldError('descripcion')) {
-                <span class="text-red-500 flex items-center gap-1">
-                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                  </svg>
-                  {{ getFieldError('descripcion') }}
-                </span>
-              } @else {
-                <span>Mínimo 10 caracteres, máximo 500</span>
-              }
+          <div class="flex justify-between mt-1">
+            @if (deudaForm.get('descripcion')?.invalid && deudaForm.get('descripcion')?.touched) {
+              <p class="text-sm text-red-600">
+                @if (deudaForm.get('descripcion')?.errors?.['required']) {
+                  La descripción es requerida
+                } @else if (deudaForm.get('descripcion')?.errors?.['minlength']) {
+                  Mínimo 2 caracteres
+                } @else if (deudaForm.get('descripcion')?.errors?.['maxlength']) {
+                  Máximo 500 caracteres
+                }
+              </p>
+            } @else {
+              <span></span>
+            }
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+              {{ deudaForm.get('descripcion')?.value?.length || 0 }}/500
             </span>
-            <span>{{ deudaForm.get('descripcion')?.value?.length || 0 }}/500</span>
           </div>
         </div>
-
       </div>
 
-      <!-- Botones de acción con estilo similar a update-client -->
+      <!-- Loading States -->
+      @if (dataClients.isLoading() || plazopago.isLoading() || tipodeuda.isLoading()) {
+        <div class="flex items-center justify-center py-8">
+          <div class="flex items-center space-x-3 text-blue-600 dark:text-blue-400">
+            <svg class="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-sm font-medium">Cargando datos...</span>
+          </div>
+        </div>
+      }
+
+      <!-- Botones de acción con estilo similar a la tabla -->
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-white/10 dark:border-slate-700/30">
         <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <span>Formulario de creación de deuda</span>
+          <span>Formulario de registro de deuda</span>
         </div>
 
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           <button
             type="button"
-            (click)="resetForm()"
-            [disabled]="procesandoDeuda()"
-            class="w-full sm:w-auto bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-semibold py-3 px-6 rounded-xl hover:border-gray-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-gray-500/20 active:scale-95 flex items-center gap-3 justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-          >
+            (click)="cancelar()"
+            class="w-full sm:w-auto bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-semibold py-3 px-6 rounded-xl hover:border-gray-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-gray-500/20 active:scale-95 flex items-center gap-3 justify-center">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
-            Limpiar
+            Cancelar
           </button>
 
           <button
             type="submit"
-            [disabled]="!isFormValid() || procesandoDeuda()"
-            class="w-full sm:w-auto bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-semibold py-3 px-6 rounded-xl hover:border-blue-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center gap-3 justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-          >
+            [disabled]="deudaForm.invalid || procesandoDeuda()"
+            class="w-full sm:w-auto bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-semibold py-3 px-6 rounded-xl hover:border-blue-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center gap-3 justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:scale-100">
             @if (procesandoDeuda()) {
-              <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
-              Procesando...
+              <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Creando...</span>
             } @else {
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              Guardar
+              Crear Deuda
             }
           </button>
         </div>
@@ -272,4 +315,3 @@
     </form>
   </div>
 </div>
-    

@@ -44,9 +44,9 @@ export class FacturasDataService {
   ): Observable<IFacturasData> {
     return this.getFacturasMesDinamico(empresaId, anio).pipe(
       map((response: IFacturasMesResponse | IFacturasAnualResponse) => {
-        // Si es respuesta anual (array de meses)
-        if ('meses' in response) {
-          return this.mapAnualResponseToChart(response as IFacturasAnualResponse);
+        // Si es respuesta anual (tiene porMes y periodo.mes es null)
+        if ('porMes' in response && response.periodo.mes === null && response.porMes) {
+          return this.mapPorMesResponseToChart(response);
         }
         // Si es respuesta de un solo mes
         else {
@@ -68,15 +68,23 @@ export class FacturasDataService {
     const facturasPendientes: number[] = [];
     const facturasVencidas: number[] = [];
 
-    // Ordenar meses por número de mes
-    const mesesOrdenados = response.meses.sort((a, b) => a.periodo.mes - b.periodo.mes);
+    // Verificar si hay meses en la respuesta
+    if (!response.meses || response.meses.length === 0) {
+      return { xAxis, yAxis: { facturasPagadas, facturasPendientes, facturasVencidas } };
+    }
 
-    mesesOrdenados.forEach(mesData => {
-      xAxis.push(meses[mesData.periodo.mes - 1]);
+    // Ordenar meses por número de mes
+    const mesesOrdenados = [...response.meses].sort((a, b) => (a.periodo.mes || 0) - (b.periodo.mes || 0));
+
+    for (const mesData of mesesOrdenados) {
+      if (mesData.periodo.mes === null) continue;
+      const nombreMes = meses[mesData.periodo.mes - 1];
+
+      xAxis.push(nombreMes);
       facturasPagadas.push(mesData.facturasPagadas.total);
       facturasPendientes.push(mesData.facturasPendientes.total);
       facturasVencidas.push(mesData.facturasVencidas.total);
-    });
+    }
 
     return {
       xAxis,
@@ -100,12 +108,15 @@ export class FacturasDataService {
     const facturasPendientes: number[] = [];
     const facturasVencidas: number[] = [];
 
-    meses.forEach(mesData => {
-      xAxis.push(nombresMeses[mesData.periodo.mes - 1]);
+    for (const mesData of meses) {
+      if (mesData.periodo.mes === null) continue;
+      const nombreMes = nombresMeses[mesData.periodo.mes - 1];
+
+      xAxis.push(nombreMes);
       facturasPagadas.push(mesData.facturasPagadas.total);
       facturasPendientes.push(mesData.facturasPendientes.total);
       facturasVencidas.push(mesData.facturasVencidas.total);
-    });
+    }
 
     return {
       xAxis,
@@ -115,5 +126,50 @@ export class FacturasDataService {
         facturasVencidas
       }
     };
-}
+  }
+
+  /**
+   * Mapea respuesta con datos porMes a formato del gráfico
+   */
+  private mapPorMesResponseToChart(response: IFacturasMesResponse): IFacturasData {
+    const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+    const xAxis: string[] = [];
+    const facturasPagadas: number[] = [];
+    const facturasPendientes: number[] = [];
+    const facturasVencidas: number[] = [];
+
+    if (!response.porMes || response.porMes.length === 0) {
+      return { xAxis, yAxis: { facturasPagadas, facturasPendientes, facturasVencidas } };
+    }
+
+    // Filtrar meses que tienen datos (al menos uno de los totales > 0)
+    const mesesConDatos = response.porMes.filter(mesData =>
+      mesData.pagadas.total > 0 ||
+      mesData.pendientes.total > 0 ||
+      mesData.vencidas.total > 0
+    );
+
+    // Si no hay meses con datos, mostrar todos los meses para mantener la estructura
+    const mesesAMostrar = mesesConDatos.length > 0 ? mesesConDatos : response.porMes;
+
+    for (const mesData of mesesAMostrar) {
+      const nombreMes = nombresMeses[mesData.mes - 1];
+
+      xAxis.push(nombreMes);
+      facturasPagadas.push(mesData.pagadas.total);
+      facturasPendientes.push(mesData.pendientes.total);
+      facturasVencidas.push(mesData.vencidas.total);
+    }
+
+    return {
+      xAxis,
+      yAxis: {
+        facturasPagadas,
+        facturasPendientes,
+        facturasVencidas
+      }
+    };
+  }
 }

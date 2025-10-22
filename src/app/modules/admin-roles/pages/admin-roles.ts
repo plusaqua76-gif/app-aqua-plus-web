@@ -45,172 +45,167 @@ import { ToastService } from '@services/toast.service';
 
     <!-- Modal para gestionar roles -->
     @if (mostrarModalRoles()) {
-      <div class="fixed inset-0 z-[1002] overflow-y-auto">
-        <div class="fixed inset-0 z-[1002] flex items-start justify-center bg-black/50 backdrop-blur-sm pt-[75px]" (click)="cerrarModalRoles()">
-          <div class="relative w-full p-4 max-h-[calc(100vh-85px)] overflow-hidden max-w-2xl" (click)="$event.stopPropagation()">
-            <div class="relative bg-black/10 backdrop-blur-xl border-2 border-white/10 rounded-3xl shadow-xl">
-              <!-- Botón de cerrar -->
-              <button
-                (click)="cerrarModalRoles()"
-                aria-label="Close"
-                class="absolute top-3 end-2.5 h-8 w-8 grid place-content-center text-gray-400 hover:bg-white/10 rounded-lg backdrop-blur-sm"
-              >
-                <svg class="h-3 w-3" viewBox="0 0 14 14" fill="none">
-                  <path
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                  />
-                </svg>
-              </button>
+      <div class="fixed inset-0 z-[1002] flex items-center justify-center p-2 sm:p-4 pt-16 sm:pt-20">
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" (click)="cerrarModalRoles()"></div>
 
-              <!-- Contenido del modal -->
-              <div class="p-8 text-left">
-                <!-- Título del modal -->
-                <h3 class="text-xl font-semibold text-white mb-6 text-center">
-                  Editar rol - {{ usuarioSeleccionado()?.nombre }}
-                </h3>
+        <div class="relative w-full max-w-2xl max-h-[calc(100vh-5rem)] sm:max-h-[calc(100vh-6rem)] flex flex-col bg-black/10 backdrop-blur-xl border-2 border-white/10 rounded-2xl sm:rounded-3xl shadow-xl" (click)="$event.stopPropagation()">
 
-                <!-- Información del usuario -->
-                @if (usuarioSeleccionado()) {
-                  <div class="mb-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span class="text-gray-300">Usuario:</span>
-                        <span class="text-white ml-2">{{ usuarioSeleccionado()!.username }}</span>
-                      </div>
-                      <div>
-                        <span class="text-gray-300">Cédula:</span>
-                        <span class="text-white ml-2">{{ usuarioSeleccionado()!.numeroCedula }}</span>
-                      </div>
-                      <div>
-                        <span class="text-gray-300">Rol Actual:</span>
-                        <span class="text-white ml-2">{{ usuarioSeleccionado()!.rolNombre }}</span>
-                      </div>
-                      <!-- <div>
-                        <span class="text-gray-300">Estado:</span>
-                        <span [class]="usuarioSeleccionado()!.activo ? 'text-green-300 ml-2' : 'text-red-300 ml-2'">
-                          {{ usuarioSeleccionado()!.activo ? 'Activo' : 'Inactivo' }}
-                        </span>
-                      </div> -->
-                    </div>
+          <!-- Header fijo -->
+          <div class="flex-shrink-0 relative p-4 sm:p-6 pb-2 sm:pb-4 border-b border-white/10">
+            <!-- Botón de cerrar -->
+            <button
+              (click)="cerrarModalRoles()"
+              aria-label="Close"
+              class="absolute top-2 right-2 sm:top-3 sm:right-3 h-8 w-8 grid place-content-center text-gray-400 hover:bg-white/10 rounded-lg backdrop-blur-sm z-10"
+            >
+              <svg class="h-3 w-3" viewBox="0 0 14 14" fill="none">
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                />
+              </svg>
+            </button>
+
+            <!-- Título del modal -->
+            <h3 class="text-lg sm:text-xl font-semibold text-white text-center pr-8">
+              Editar rol - {{ usuarioSeleccionado()?.nombre }}
+            </h3>
+
+            <!-- Información del usuario -->
+            @if (usuarioSeleccionado()) {
+              <div class="mt-4 p-3 sm:p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
+                  <div>
+                    <span class="text-gray-300">Usuario:</span>
+                    <span class="text-white ml-2">{{ usuarioSeleccionado()!.username }}</span>
                   </div>
-
-                  <!-- Selector de nuevo rol -->
-                  <div class="mb-6">
-                    <label for="nuevoRol" class="block text-sm font-medium text-gray-300 mb-3">
-                      Cambiar Rol
-                    </label>
-                    @if (allRolesData.isLoading()) {
-                      <div class="flex items-center justify-center py-3">
-                        <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400"></div>
-                        <span class="ml-2 text-sm text-gray-400">Cargando roles...</span>
-                      </div>
-                    } @else if (allRolesData.error()) {
-                      <div class="text-center py-3">
-                        <div class="text-red-400 text-sm mb-2">Error al cargar los roles</div>
-                        <button
-                          (click)="allRolesData.reload()"
-                          class="text-xs text-blue-400 hover:text-blue-300"
-                        >
-                          Reintentar
-                        </button>
-                      </div>
-                    } @else {
-                      <select
-                        id="nuevoRol"
-                        [(ngModel)]="rolSeleccionado"
-                        class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
-                      >
-                        <option value="" class="bg-gray-800 text-gray-300">Seleccionar nuevo rol...</option>
-                        @for (rol of availableRoles(); track rol.id) {
-                          <option [value]="rol.id" class="bg-gray-800 text-white">{{ rol.nombre }}</option>
-                        }
-                      </select>
-                    }
+                  <div>
+                    <span class="text-gray-300">Cédula:</span>
+                    <span class="text-white ml-2">{{ usuarioSeleccionado()!.numeroCedula }}</span>
                   </div>
-                }
-
-                <!-- Lista de menús y roles -->
-                <div class="space-y-4">
-                  <h4 class="text-lg font-medium text-gray-200 border-b border-gray-600/50 pb-2">
-                    Menús Asignados al Rol
-                  </h4>
-
-                  @if (roleMenuData.isLoading()) {
-                    <div class="flex justify-center py-8">
-                      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-                    </div>
-                  } @else if (roleMenuData.error()) {
-                    <div class="text-center py-8">
-                      <svg class="mx-auto h-12 w-12 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                      </svg>
-                      <h3 class="mt-2 text-sm font-medium text-yellow-300">Usuario sin acceso a módulos</h3>
-                      <p class="mt-1 text-sm text-gray-400">Este usuario no tiene acceso a ningún módulo del sistema.</p>
-                    </div>
-                  } @else if (menuItems().length === 0) {
-                    <div class="text-center py-8">
-                      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                      </svg>
-                      <h3 class="mt-2 text-sm font-medium text-gray-300">Sin menús asignados</h3>
-                      <p class="mt-1 text-sm text-gray-400">Este rol no tiene menús asignados actualmente.</p>
-                    </div>
-                  } @else {
-                    <div class="space-y-3 max-h-96 overflow-y-auto">
-                      @for (item of menuItems(); track item.id) {
-                        <div class="rounded-lg border border-gray-600/70 bg-white/5 p-4 hover:bg-white/10 transition-colors">
-                          <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                              <!-- Icono del menú -->
-                              <div class="flex-shrink-0">
-                                <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                                  <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                  </svg>
-                                </div>
-                              </div>
-
-                              <!-- Información del menú -->
-                              <div>
-                                <h5 class="text-sm font-medium text-white">{{ item.menu.etiqueta }}</h5>
-                                <p class="text-xs text-gray-400">{{ item.menu.link }}</p>
-                              </div>
-                            </div>
-
-                            <!-- Badge del rol -->
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-300">
-                              {{ item.rol.nombre }}
-                            </span>
-                          </div>
-                        </div>
-                      }
-                    </div>
-                  }
-
-                  <!-- Botones -->
-                  <div class="flex gap-3 pt-6 border-t border-gray-600/50">
-                    <button
-                      type="button"
-                      (click)="cerrarModalRoles()"
-                      class="flex-1 px-6 py-3 text-sm font-medium text-gray-300 bg-transparent border border-gray-600/70 rounded-lg hover:bg-gray-600/10 focus:outline-none focus:ring-2 focus:ring-gray-500/40 transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="button"
-                      (click)="cambiarRolUsuario()"
-                      [disabled]="!rolSeleccionado() || rolSeleccionado() === usuarioSeleccionado()?.rolId?.toString()"
-                      class="flex-1 px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Guardar Cambios
-                    </button>
+                  <div class="sm:col-span-2">
+                    <span class="text-gray-300">Rol Actual:</span>
+                    <span class="text-white ml-2">{{ usuarioSeleccionado()!.rolNombre }}</span>
                   </div>
                 </div>
               </div>
+            }
+          </div>
+
+          <!-- Contenido con scroll -->
+          <div class="flex-1 overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4">
+            <!-- Selector de nuevo rol -->
+            <div class="mb-6">
+              <label for="nuevoRol" class="block text-sm font-medium text-gray-300 mb-3">
+                Cambiar Rol
+              </label>
+              @if (allRolesData.isLoading()) {
+                <div class="flex items-center justify-center py-3">
+                  <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400"></div>
+                  <span class="ml-2 text-sm text-gray-400">Cargando roles...</span>
+                </div>
+              } @else if (allRolesData.error()) {
+                <div class="text-center py-3">
+                  <div class="text-red-400 text-sm mb-2">Error al cargar los roles</div>
+                  <button
+                    (click)="allRolesData.reload()"
+                    class="text-xs text-blue-400 hover:text-blue-300"
+                  >
+                    Reintentar
+                  </button>
+                </div>
+              } @else {
+                <select
+                  id="nuevoRol"
+                  [(ngModel)]="rolSeleccionado"
+                  class="w-full px-3 sm:px-4 py-2 sm:py-3 bg-transparent border border-gray-600/70 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 text-sm"
+                >
+                  <option value="" class="bg-gray-800 text-gray-300">Seleccionar nuevo rol...</option>
+                  @for (rol of availableRoles(); track rol.id) {
+                    <option [value]="rol.id" class="bg-gray-800 text-white">{{ rol.nombre }}</option>
+                  }
+                </select>
+              }
+            </div>
+
+            <!-- Lista de menús y roles -->
+            <div class="space-y-4">
+              <h4 class="text-base sm:text-lg font-medium text-gray-200 border-b border-gray-600/50 pb-2">
+                Menús Asignados al Rol
+              </h4>
+
+              @if (roleMenuData.isLoading()) {
+                <div class="flex justify-center py-8">
+                  <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+                </div>
+              } @else if (roleMenuData.error()) {
+                <div class="text-center py-8">
+                  <svg class="mx-auto h-12 w-12 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                  </svg>
+                  <h3 class="mt-2 text-sm font-medium text-yellow-300">Usuario sin acceso a módulos</h3>
+                  <p class="mt-1 text-sm text-gray-400">Este usuario no tiene acceso a ningún módulo del sistema.</p>
+                </div>
+              } @else if (menuItems().length === 0) {
+                <div class="text-center py-8">
+                  <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                  <h3 class="mt-2 text-sm font-medium text-gray-300">Sin menús asignados</h3>
+                  <p class="mt-1 text-sm text-gray-400">Este rol no tiene menús asignados actualmente.</p>
+                </div>
+              } @else {
+                <div class="space-y-3 max-h-80 overflow-y-auto">
+                  @for (item of menuItems(); track item.id) {
+                    <div class="rounded-lg border border-gray-600/70 bg-white/5 p-3 sm:p-4 hover:bg-white/10 transition-colors">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                          <!-- Icono del menú -->
+                          <div class="flex-shrink-0">
+                            <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                              <svg class="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                              </svg>
+                            </div>
+                          </div>
+                          <!-- Información del menú -->
+                          <div>
+                            <h5 class="text-xs sm:text-sm font-medium text-white">{{ item.menu.etiqueta }}</h5>
+                          </div>
+                        </div>
+                        <!-- Badge del rol -->
+                        <span class="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-300">
+                          {{ item.rol.nombre }}
+                        </span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Footer fijo con botones -->
+          <div class="flex-shrink-0 p-4 sm:p-6 pt-2 sm:pt-4 border-t border-white/10">
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <button
+                type="button"
+                (click)="cerrarModalRoles()"
+                class="w-full sm:flex-1 px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium text-gray-300 bg-transparent border border-gray-600/70 rounded-lg hover:bg-gray-600/10 focus:outline-none focus:ring-2 focus:ring-gray-500/40 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                (click)="cambiarRolUsuario()"
+                [disabled]="!rolSeleccionado() || rolSeleccionado() === usuarioSeleccionado()?.rolId?.toString()"
+                class="w-full sm:flex-1 px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Guardar Cambios
+              </button>
             </div>
           </div>
         </div>
@@ -219,138 +214,142 @@ import { ToastService } from '@services/toast.service';
 
     <!-- Modal para agregar nuevo rol -->
     @if (mostrarModalAgregarRol()) {
-      <div class="fixed inset-0 z-[1002] overflow-y-auto">
-        <div class="fixed inset-0 z-[1002] flex items-start justify-center bg-black/50 backdrop-blur-sm pt-[75px]" (click)="cerrarModalAgregarRol()">
-          <div class="relative w-full p-4 max-h-[calc(100vh-85px)] overflow-hidden max-w-3xl" (click)="$event.stopPropagation()">
-            <div class="relative bg-black/10 backdrop-blur-xl border-2 border-white/10 rounded-3xl shadow-xl">
-              <!-- Botón de cerrar -->
-              <button
-                (click)="cerrarModalAgregarRol()"
-                aria-label="Close"
-                class="absolute top-3 end-2.5 h-8 w-8 grid place-content-center text-gray-400 hover:bg-white/10 rounded-lg backdrop-blur-sm"
-              >
-                <svg class="h-3 w-3" viewBox="0 0 14 14" fill="none">
-                  <path
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                  />
-                </svg>
-              </button>
+      <div class="fixed inset-0 z-[1002] flex items-center justify-center p-2 sm:p-4 pt-16 sm:pt-20">
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" (click)="cerrarModalAgregarRol()"></div>
 
-              <!-- Contenido del modal -->
-              <div class="p-8 text-left">
-                <!-- Título del modal -->
-                <h3 class="text-xl font-semibold text-white mb-6 text-center">
-                  Crear Nuevo Rol
-                </h3>
+        <div class="relative w-full max-w-3xl max-h-[calc(100vh-5rem)] sm:max-h-[calc(100vh-6rem)] flex flex-col bg-black/10 backdrop-blur-xl border-2 border-white/10 rounded-2xl sm:rounded-3xl shadow-xl" (click)="$event.stopPropagation()">
 
-                <div class="space-y-6">
-                  <!-- Campo nombre del rol -->
-                  <div>
-                    <label for="nombreRol" class="block text-sm font-medium text-gray-300 mb-2">
-                      Nombre del Rol
-                    </label>
-                    <input
-                      id="nombreRol"
-                      type="text"
-                      [(ngModel)]="nombreNuevoRol"
-                      placeholder="Ingrese el nombre del rol..."
-                      class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
-                    />
+          <!-- Header fijo -->
+          <div class="flex-shrink-0 relative p-4 sm:p-6 pb-2 sm:pb-4 border-b border-white/10">
+            <!-- Botón de cerrar -->
+            <button
+              (click)="cerrarModalAgregarRol()"
+              aria-label="Close"
+              class="absolute top-2 right-2 sm:top-3 sm:right-3 h-8 w-8 grid place-content-center text-gray-400 hover:bg-white/10 rounded-lg backdrop-blur-sm z-10"
+            >
+              <svg class="h-3 w-3" viewBox="0 0 14 14" fill="none">
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                />
+              </svg>
+            </button>
+
+            <!-- Título del modal -->
+            <h3 class="text-lg sm:text-xl font-semibold text-white text-center pr-8">
+              Crear Nuevo Rol
+            </h3>
+          </div>
+
+          <!-- Contenido con scroll -->
+          <div class="flex-1 overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4">
+            <div class="space-y-6">
+              <!-- Campo nombre del rol -->
+              <div>
+                <label for="nombreRol" class="block text-sm font-medium text-gray-300 mb-2">
+                  Nombre del Rol
+                </label>
+                <input
+                  id="nombreRol"
+                  type="text"
+                  [(ngModel)]="nombreNuevoRol"
+                  placeholder="Ingrese el nombre del rol..."
+                  class="w-full px-3 sm:px-4 py-2 sm:py-3 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 text-sm"
+                />
+              </div>
+
+              <!-- Selección de menús -->
+              <div>
+                <h4 class="text-base sm:text-lg font-medium text-gray-200 mb-4">
+                  Permisos de Acceso
+                </h4>
+                <p class="text-xs sm:text-sm text-gray-400 mb-4">
+                  Seleccione los módulos a los que tendrá acceso este rol:
+                </p>
+
+                @if (allMenusData.isLoading()) {
+                  <div class="flex justify-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
                   </div>
+                } @else if (allMenusData.error()) {
+                  <div class="text-center py-8">
+                    <div class="text-red-400 mb-2 text-sm">Error al cargar los menús</div>
+                    <button
+                      (click)="allMenusData.reload()"
+                      class="text-sm text-blue-400 hover:text-blue-300"
+                    >
+                      Reintentar
+                    </button>
+                  </div>
+                } @else if (availableMenus().length === 0) {
+                  <div class="text-center py-8">
+                    <p class="text-gray-400 text-sm">No hay menús disponibles</p>
+                  </div>
+                } @else {
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 max-h-64 sm:max-h-80 overflow-y-auto">
+                    @for (menu of availableMenus(); track menu.id) {
+                      <div
+                        class="flex items-center p-2 sm:p-3 rounded-lg border border-gray-600/70 hover:bg-white/5 transition-colors cursor-pointer"
+                        (click)="toggleMenuSelection(menu.id)"
+                      >
+                        <div class="flex items-center w-full">
+                          <input
+                            type="checkbox"
+                            [checked]="isMenuSelected(menu.id)"
+                            (change)="toggleMenuSelection(menu.id)"
+                            class="w-4 h-4 text-blue-600 bg-transparent border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                          />
+                          <div class="ml-2 sm:ml-3 flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                            <!-- Icono del menú -->
+                            <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                              <svg class="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                              </svg>
+                            </div>
 
-                  <!-- Selección de menús -->
-                  <div>
-                    <h4 class="text-lg font-medium text-gray-200 mb-4">
-                      Permisos de Acceso
-                    </h4>
-                    <p class="text-sm text-gray-400 mb-4">
-                      Seleccione los módulos a los que tendrá acceso este rol:
-                    </p>
-
-                    @if (allMenusData.isLoading()) {
-                      <div class="flex justify-center py-8">
-                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-                      </div>
-                    } @else if (allMenusData.error()) {
-                      <div class="text-center py-8">
-                        <div class="text-red-400 mb-2">Error al cargar los menús</div>
-                        <button
-                          (click)="allMenusData.reload()"
-                          class="text-sm text-blue-400 hover:text-blue-300"
-                        >
-                          Reintentar
-                        </button>
-                      </div>
-                    } @else if (availableMenus().length === 0) {
-                      <div class="text-center py-8">
-                        <p class="text-gray-400">No hay menús disponibles</p>
-                      </div>
-                    } @else {
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto">
-                        @for (menu of availableMenus(); track menu.id) {
-                          <div
-                            class="flex items-center p-3 rounded-lg border border-gray-600/70 hover:bg-white/5 transition-colors cursor-pointer"
-                            (click)="toggleMenuSelection(menu.id)"
-                          >
-                            <div class="flex items-center">
-                              <input
-                                type="checkbox"
-                                [checked]="isMenuSelected(menu.id)"
-                                (change)="toggleMenuSelection(menu.id)"
-                                class="w-4 h-4 text-blue-600 bg-transparent border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
-                              />
-                              <div class="ml-3 flex items-center space-x-3">
-                                <!-- Icono del menú -->
-                                <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                                  <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                  </svg>
-                                </div>
-
-                                <!-- Información del menú -->
-                                <div>
-                                  <h5 class="text-sm font-medium text-white">{{ menu.etiqueta }}</h5>
-                                  <p class="text-xs text-gray-400">{{ menu.link }}</p>
-                                </div>
-                              </div>
+                            <!-- Información del menú -->
+                            <div class="min-w-0 flex-1">
+                              <h5 class="text-xs sm:text-sm font-medium text-white truncate">{{ menu.etiqueta }}</h5>
+                              <!-- <p class="text-xs text-gray-400 truncate">{{ menu.link }}</p> -->
                             </div>
                           </div>
-                        }
-                      </div>
-
-                      <!-- Resumen de selección -->
-                      <div class="mt-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                        <p class="text-sm text-blue-300">
-                          <strong>{{ menusSeleccionados().length }}</strong> menús seleccionados de <strong>{{ availableMenus().length }}</strong> disponibles
-                        </p>
+                        </div>
                       </div>
                     }
                   </div>
 
-                  <!-- Botones -->
-                  <div class="flex gap-3 pt-6 border-t border-gray-600/50">
-                    <button
-                      type="button"
-                      (click)="cerrarModalAgregarRol()"
-                      class="flex-1 px-6 py-3 text-sm font-medium text-gray-300 bg-transparent border border-gray-600/70 rounded-lg hover:bg-gray-600/10 focus:outline-none focus:ring-2 focus:ring-gray-500/40 transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="button"
-                      (click)="crearNuevoRol()"
-                      [disabled]="!nombreNuevoRol().trim() || menusSeleccionados().length === 0"
-                      class="flex-1 px-6 py-3 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Crear Rol
-                    </button>
+                  <!-- Resumen de selección -->
+                  <div class="mt-4 p-2 sm:p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                    <p class="text-xs sm:text-sm text-blue-300">
+                      <strong>{{ menusSeleccionados().length }}</strong> menús seleccionados de <strong>{{ availableMenus().length }}</strong> disponibles
+                    </p>
                   </div>
-                </div>
+                }
               </div>
+            </div>
+          </div>
+
+          <!-- Footer fijo con botones -->
+          <div class="flex-shrink-0 p-4 sm:p-6 pt-2 sm:pt-4 border-t border-white/10">
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <button
+                type="button"
+                (click)="cerrarModalAgregarRol()"
+                class="w-full sm:flex-1 px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium text-gray-300 bg-transparent border border-gray-600/70 rounded-lg hover:bg-gray-600/10 focus:outline-none focus:ring-2 focus:ring-gray-500/40 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                (click)="crearNuevoRol()"
+                [disabled]="!nombreNuevoRol().trim() || menusSeleccionados().length === 0"
+                class="w-full sm:flex-1 px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Crear Rol
+              </button>
             </div>
           </div>
         </div>

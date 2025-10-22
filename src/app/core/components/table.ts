@@ -332,19 +332,20 @@ export interface TableColumn {
 
     <!-- Footer de paginación separado del scroll -->
     <div
-      class="flex flex-col sm:flex-row items-center justify-between p-4 bg-slate-100/30 dark:bg-slate-700/20 backdrop-blur-xl text-gray-700 dark:text-gray-300 text-sm shadow-xl sm:rounded-b-2xl mx-4 sm:mx-6 lg:mx-8 mt-[-1px]"
+      class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-slate-100/30 dark:bg-slate-700/20 backdrop-blur-xl text-gray-700 dark:text-gray-300 text-sm shadow-xl sm:rounded-b-2xl mx-4 sm:mx-6 lg:mx-8 mt-[-1px]"
     >
-      <span class="font-medium mb-3 sm:mb-0">
-        Mostrando {{ startEntry() }} en {{ endEntry() }} de
-        {{ totalCount() }} registros
+      <!-- Información de registros -->
+      <span class="font-medium text-xs sm:text-sm text-center sm:text-left sm:mb-0">
+        Mostrando {{ startEntry() }} en {{ endEntry() }} de {{ totalCount() }} registros
       </span>
 
-      <!-- Paginación simple -->
-      <div class="flex items-center gap-4">
-        <nav class="inline-flex items-center gap-0 bg-slate-800/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-xl overflow-hidden border border-slate-600/50 shadow-lg">
+      <!-- Controles de paginación -->
+      <div class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+        <!-- Navegación de páginas -->
+        <nav class="inline-flex items-center gap-0 bg-slate-800/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-lg sm:rounded-xl overflow-hidden border border-slate-600/50 shadow-lg">
           <!-- Botón Anterior -->
           <button
-            class="px-3 py-2 text-white hover:bg-slate-700/80 dark:hover:bg-slate-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border-r border-slate-600/50 backdrop-blur-sm"
+            class="px-2 py-1.5 sm:px-3 sm:py-2 text-white hover:bg-slate-700/80 dark:hover:bg-slate-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border-r border-slate-600/50 backdrop-blur-sm text-xs sm:text-sm"
             [disabled]="currentPageIndex() === 0"
             (click)="prevPage()"
           >
@@ -354,7 +355,7 @@ export interface TableColumn {
           <!-- Páginas numeradas (responsive) -->
           @for (i of getVisiblePages(); track i) {
             <button
-              class="px-3 py-2 min-w-[40px] text-center transition-all duration-300 border-r border-slate-600/50 last:border-r-0 backdrop-blur-sm"
+              class="px-2 py-1.5 sm:px-3 sm:py-2 min-w-[32px] sm:min-w-[40px] text-center transition-all duration-300 border-r border-slate-600/50 last:border-r-0 backdrop-blur-sm text-xs sm:text-sm"
               [class]="i === currentPageIndex()
                 ? 'bg-blue-600/90 text-white hover:bg-blue-700/90 shadow-lg shadow-blue-500/20'
                 : 'text-white hover:bg-slate-700/80 dark:hover:bg-slate-600/80'"
@@ -366,7 +367,7 @@ export interface TableColumn {
 
           <!-- Botón Siguiente -->
           <button
-            class="px-3 py-2 text-white hover:bg-slate-700/80 dark:hover:bg-slate-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 backdrop-blur-sm"
+            class="px-2 py-1.5 sm:px-3 sm:py-2 text-white hover:bg-slate-700/80 dark:hover:bg-slate-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 backdrop-blur-sm text-xs sm:text-sm"
             [disabled]="currentPageIndex() >= totalPages() - 1"
             (click)="nextPage()"
           >
@@ -375,12 +376,12 @@ export interface TableColumn {
         </nav>
 
         <!-- Selector de filas por página -->
-        <div class="flex items-center gap-2 text-sm">
+        <div class="flex items-center gap-2 text-xs sm:text-sm">
           <span class="text-gray-600 dark:text-gray-300 whitespace-nowrap font-medium">
             Filas:
           </span>
           <select
-            class="px-3 py-2 rounded-xl bg-gray-800/60 dark:bg-gray-800/60 backdrop-blur-sm text-white border border-gray-600/50 text-sm min-w-[70px] focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 cursor-pointer hover:bg-gray-700/70 shadow-lg appearance-none bg-[length:16px_16px] bg-[position:right_0.5rem_center] bg-no-repeat"
+            class="px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl bg-gray-800/60 dark:bg-gray-800/60 backdrop-blur-sm text-white border border-gray-600/50 text-xs sm:text-sm min-w-[60px] sm:min-w-[70px] focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 cursor-pointer hover:bg-gray-700/70 shadow-lg appearance-none bg-[length:14px_14px] sm:bg-[length:16px_16px] bg-[position:right_0.4rem_center] sm:bg-[position:right_0.5rem_center] bg-no-repeat"
             style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23ffffff%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%272%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E');"
             [value]="currentPageSize()"
             (change)="onPageSizeChange($event)"
@@ -617,19 +618,22 @@ export class TableComponent {
   createRange = (n: number) =>
     Array.from({ length: n }, (_, i) => i);
 
-  // Método para obtener las páginas visibles (siempre mínimo 5)
+  // Método para obtener las páginas visibles (adaptativo según pantalla)
   getVisiblePages(): number[] {
     const totalPages = this.totalPages();
     const currentPage = this.currentPageIndex();
-    const maxVisible = 5;
 
-    // Si hay 5 o menos páginas, mostrar todas
+    // Detectar si es móvil (esto es una aproximación simple)
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+    const maxVisible = isMobile ? 3 : 5; // 3 páginas en móvil, 5 en desktop
+
+    // Si hay maxVisible o menos páginas, mostrar todas
     if (totalPages <= maxVisible) {
       return this.createRange(totalPages);
     }
 
-    // Calcular el rango de 5 páginas centrado en la página actual
-    const half = Math.floor(maxVisible / 2); // 2
+    // Calcular el rango centrado en la página actual
+    const half = Math.floor(maxVisible / 2);
     let start = Math.max(0, currentPage - half);
     let end = Math.min(totalPages, start + maxVisible);
 

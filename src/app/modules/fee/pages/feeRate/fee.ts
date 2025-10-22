@@ -14,6 +14,9 @@ import { PopupComponent } from '../../../../shared/components/popUp';
 import { RateTypesListComponent } from '../../components/rate-types-list.component';
 import { TypeConceptsListComponent } from '../../components/type-concepts-list.component';
 import { ConceptRateEnterpice } from '../fee-enterprice/concept-rate-enterpice';
+import { PaymentPoints } from '../payment-points/payment-points';
+import { DaysValidity } from '../days-validity/days-validity';
+import { CounterEnterprice } from '../company-accountant-reading/counter-enterprice';
 import { IrateTypes } from '@interfaces/IrateTypes';
 import { ToastService } from '@services/toast.service';
 import { TypeConceptService } from '../../services/type-concept.service';
@@ -38,6 +41,9 @@ import {
     RateTypesListComponent,
     TypeConceptsListComponent,
     ConceptRateEnterpice,
+    PaymentPoints,
+    DaysValidity,
+    CounterEnterprice,
   ],
   styleUrls: ['./fee.css'],
   templateUrl: './fee.html',
@@ -50,6 +56,9 @@ export class FeeComponent {
   protected conceptRateService = inject(ConceptRateService);
   protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
+
+  // Tab navigation
+  activeTab = signal<string>('fee-rate');
 
   selectedTipoTarifa: any = null;
   selectedTipoConcepto: any = null;
@@ -839,5 +848,15 @@ export class FeeComponent {
 
   cancelarGuardarTarifa(): void {
     this.showSaveConfirm.set(false);
+  }
+
+  // Tab navigation methods
+  selectTab(tabId: string): void {
+    this.activeTab.set(tabId);
+  }
+
+  getTabClasses(tabId: string): string {
+    const isActive = this.activeTab() === tabId;
+    return isActive ? 'active' : '';
   }
 }

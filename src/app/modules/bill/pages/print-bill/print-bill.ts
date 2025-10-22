@@ -60,7 +60,6 @@ export class PrintBill {
     },
   });
 
-
   billDetails = rxResource({
     params: () => {
       const billId = this.route.snapshot.paramMap.get('id');

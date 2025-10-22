@@ -21,10 +21,24 @@ export default [
       ),
   },
   {
+    path: 'sales/create',
+    loadComponent: () =>
+      import('./pages/sales/create-sale').then(
+        (m) => m.CreateSale
+      ),
+  },
+  {
     path: 'accounts',
     loadComponent: () =>
       import('./pages/accounts/account').then(
         (m) => m.Account
+      ),
+  },
+  {
+    path: 'accounts/create',
+    loadComponent: () =>
+      import('./pages/accounts/create-account').then(
+        (m) => m.CreateAccount
       ),
   }
 ] as Routes;

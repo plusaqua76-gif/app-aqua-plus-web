@@ -13,10 +13,36 @@ import { IProducto, ICategoria } from '@interfaces/Iaccounting';
 import { ProductoService } from '../../service/producto.service';
 import { Toast } from '../../../../shared/components/toast';
 import { ToastService } from '@services/toast.service';
+import { Sale } from '../sales/sale';
+import { Account } from '../accounts/account';
 
 @Component({
   selector: 'app-inventory-company',
-  imports: [CommonModule, RouterModule, TableComponent, FormsModule, ReactiveFormsModule, PopupComponent],
+  imports: [CommonModule, RouterModule, TableComponent, FormsModule, ReactiveFormsModule, PopupComponent, Sale, Account],
+  styles: [`
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+
+    .animate-fadeIn {
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  `],
   template: `
     <ng-template #actionsTemplate let-row>
       <div class="flex items-center space-x-2">
@@ -47,6 +73,66 @@ import { ToastService } from '@services/toast.service';
       </div>
     </ng-template>
 
+    <!-- Sistema de Navegación por Tabs -->
+    <div class="px-4 sm:px-6 lg:px-8 py-6">
+      <!-- Header -->
+      <div class="mb-6">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-700 dark:text-gray-200 mb-4">
+          Gestión Contable
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400">Sistema integral para la administración contable</p>
+      </div>
+
+      <!-- Tabs Navigation -->
+      <div class="mb-6">
+        <div class="relative overflow-hidden shadow-xl sm:rounded-2xl bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl border border-white/20 dark:border-slate-700/30">
+          <!-- Tab Headers -->
+          <div class="flex overflow-x-auto scrollbar-hide border-b border-white/20 dark:border-slate-700/30">
+            <button
+              type="button"
+              (click)="selectTab('inventory')"
+              [class]="'flex-shrink-0 px-6 py-4 text-sm font-medium transition-all duration-300 border-b-2 ' +
+                       (navigationTab() === 'inventory' ?
+                        'border-blue-500 text-blue-600 dark:text-blue-400 bg-white/20 dark:bg-slate-700/20' :
+                        'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600')"
+            >
+              <i class="fas fa-warehouse mr-2"></i>
+              Inventario
+            </button>
+
+            <button
+              type="button"
+              (click)="selectTab('sales')"
+              [class]="'flex-shrink-0 px-6 py-4 text-sm font-medium transition-all duration-300 border-b-2 ' +
+                       (navigationTab() === 'sales' ?
+                        'border-blue-500 text-blue-600 dark:text-blue-400 bg-white/20 dark:bg-slate-700/20' :
+                        'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600')"
+            >
+              <i class="fas fa-shopping-cart mr-2"></i>
+              Ventas
+            </button>
+
+            <button
+              type="button"
+              (click)="selectTab('accounts')"
+              [class]="'flex-shrink-0 px-6 py-4 text-sm font-medium transition-all duration-300 border-b-2 ' +
+                       (navigationTab() === 'accounts' ?
+                        'border-blue-500 text-blue-600 dark:text-blue-400 bg-white/20 dark:bg-slate-700/20' :
+                        'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600')"
+            >
+              <i class="fas fa-users mr-2"></i>
+              Cuentas
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="relative">
+        @if (navigationTab() === 'inventory') {
+        <div class="animate-fadeIn">
+          <!-- Contenido original del inventario -->
+
     <app-table-dynamic
       [title]="title()"
       [columns]="inventoryColumns()"
@@ -66,6 +152,22 @@ import { ToastService } from '@services/toast.service';
       (serverPaginationChange)="onPaginationChange($event)"
     >
     </app-table-dynamic>
+        </div>
+        }
+
+        @if (navigationTab() === 'sales') {
+        <div class="animate-fadeIn">
+          <app-sale></app-sale>
+        </div>
+        }
+
+        @if (navigationTab() === 'accounts') {
+        <div class="animate-fadeIn">
+          <app-account></app-account>
+        </div>
+        }
+      </div>
+    </div>
 
     <!-- Popup Unificado para Agregar Producto o Categoría -->
     <app-pop-up
@@ -371,14 +473,17 @@ import { ToastService } from '@services/toast.service';
             <label class="block text-sm font-medium text-gray-300 mb-2">
               Precio Unitario <span class="text-red-400">*</span>
             </label>
-            <input
-              type="number"
-              formControlName="precioUnitario"
-              min="0"
-              step="0.01"
-              class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              placeholder="Ej: 5000.00"
-            />
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+              <input
+                type="number"
+                formControlName="precioUnitario"
+                min="0"
+                step="0.01"
+                class="w-full pl-8 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="5000.00"
+              />
+            </div>
             @if (inventoryForm.get('precioUnitario')?.invalid && inventoryForm.get('precioUnitario')?.touched) {
               <p class="mt-1 text-sm text-red-400">
                 @if (inventoryForm.get('precioUnitario')?.errors?.['required']) {
@@ -392,23 +497,44 @@ import { ToastService } from '@services/toast.service';
           </div>
 
           <!-- Precio Venta -->
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">
+          <div class="relative">
+            <label class="flex items-center text-sm font-medium text-gray-300 mb-2">
               Precio Venta <span class="text-red-400">*</span>
             </label>
-            <input
-              type="number"
-              formControlName="precioVenta"
-              min="0"
-              step="0.01"
-              class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              placeholder="Ej: 7000.00"
-            />
+
+            <div id="tooltip-precio-venta" role="tooltip" class="absolute z-50 invisible inline-block w-72 px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+              <div class="space-y-2">
+                <h3 class="font-semibold text-white">Cálculo Automático del Precio de Venta</h3>
+                <p class="text-gray-300">El precio de venta se calcula automáticamente basado en:</p>
+                <div class="bg-gray-800 p-2 rounded text-xs">
+                  <strong>Fórmula:</strong><br/>
+                  Precio Venta = Precio Unitario + (Precio Unitario × Porcentaje ÷ 100)
+                </div>
+                <p class="text-xs text-gray-300"><strong>Ejemplo:</strong> Si el precio unitario es $5000 y el porcentaje es 40%, el precio de venta será $7000.</p>
+              </div>
+              <div class="tooltip-arrow" data-popper-arrow></div>
+            </div>
+            <div class="relative">
+              <input
+                type="number"
+                formControlName="precioVenta"
+                min="0"
+                step="0.01"
+                readonly
+                class="w-full px-4 py-3 pr-10 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-not-allowed"
+                placeholder="Se calcula automáticamente"
+              />
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                <div class="flex items-center space-x-1">
+                  <span class="text-xs text-green-400">Auto</span>
+                  <svg class="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
             @if (inventoryForm.get('precioVenta')?.invalid && inventoryForm.get('precioVenta')?.touched) {
               <p class="mt-1 text-sm text-red-400">
-                @if (inventoryForm.get('precioVenta')?.errors?.['required']) {
-                  El precio de venta es requerido
-                }
                 @if (inventoryForm.get('precioVenta')?.errors?.['min']) {
                   El precio debe ser mayor o igual a 0
                 }
@@ -419,17 +545,25 @@ import { ToastService } from '@services/toast.service';
           <!-- Porcentaje -->
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">
-              Porcentaje (%) <span class="text-red-400">*</span>
+              Porcentaje de Ganancia <span class="text-red-400">*</span>
+              @if (inventoryForm.get('precioUnitario')?.value && inventoryForm.get('porcentaje')?.value) {
+                <span class="text-xs text-blue-400 ml-2">
+                  ({{ inventoryForm.get('precioUnitario')?.value | currency:'COP':'symbol':'1.0-0' }} + {{ (inventoryForm.get('precioUnitario')?.value * inventoryForm.get('porcentaje')?.value / 100) | currency:'COP':'symbol':'1.0-0' }})
+                </span>
+              }
             </label>
-            <input
-              type="number"
-              formControlName="porcentaje"
-              min="0"
-              max="100"
-              step="0.01"
-              class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              placeholder="Ej: 40.00"
-            />
+            <div class="relative">
+              <input
+                type="number"
+                formControlName="porcentaje"
+                min="0"
+                max="100"
+                step="0.01"
+                class="w-full px-4 pr-8 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="40.00"
+              />
+              <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">%</span>
+            </div>
             @if (inventoryForm.get('porcentaje')?.invalid && inventoryForm.get('porcentaje')?.touched) {
               <p class="mt-1 text-sm text-red-400">
                 @if (inventoryForm.get('porcentaje')?.errors?.['required']) {
@@ -456,7 +590,7 @@ import { ToastService } from '@services/toast.service';
             placeholder="Descripción del inventario..."
           ></textarea>
         </div>
-        <div class="flex items-center gap-3">
+        <!-- <div class="flex items-center gap-3">
           <input
             type="checkbox"
             formControlName="activo"
@@ -466,7 +600,7 @@ import { ToastService } from '@services/toast.service';
           <label for="activo" class="text-sm font-medium text-gray-300 cursor-pointer">
             Activo
           </label>
-        </div>
+        </div> -->
 
         <!-- Botones de acción -->
         <div class="flex justify-end gap-3 pt-4 border-t border-gray-700">
@@ -507,8 +641,10 @@ export class InventoryCompany {
 
   // Señal unificada para controlar el popup
   showAddPopup = signal(false);
-  // Señal para controlar el tab activo
+  // Señal para controlar el tab activo de los popups
   activeTab = signal<'producto' | 'categoria'>('producto');
+  // Señal para la navegación principal de tabs
+  navigationTab = signal<string>('inventory');
   // Señal para el popup de inventario (separado)
   showInventoryPopup = signal(false);
 
@@ -517,7 +653,7 @@ export class InventoryCompany {
   categoryForm: FormGroup;
   inventoryForm: FormGroup;
 
-  title = signal('Gestión de Inventario');
+  title = signal('Inventario');
 
   inventoryColumns = signal([
     { field: 'codigo', header: 'Código', type: 'text' as const },
@@ -527,8 +663,7 @@ export class InventoryCompany {
     { field: 'precioUnitario', header: 'Precio Unitario', type: 'text' as const },
     { field: 'precioVenta', header: 'Precio Venta', type: 'text' as const },
     { field: 'porcentaje', header: 'Porcentaje', type: 'text' as const },
-    { field: 'fechaCreacion', header: 'Fecha Creación', type: 'date' as const },
-    { field: 'activo', header: 'Estado', type: 'text' as const },
+    { field: 'fechaCreacion', header: 'Fecha Creación', type: 'date' as const  },
   ]);
 
   readonly enterpriseId = computed(() => {
@@ -565,13 +700,47 @@ export class InventoryCompany {
       categoriaId: ['', Validators.required],
       cantidad: [0, [Validators.required, Validators.min(0)]],
       precioUnitario: [0, [Validators.required, Validators.min(0)]],
-      precioVenta: [0, [Validators.required, Validators.min(0)]],
+      precioVenta: [0, [Validators.min(0)]], // Removido required ya que se calcula automáticamente
       porcentaje: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
       descripcion: [''],
       activo: [true]
     });
 
+    // Suscribirse a cambios en precio unitario y porcentaje para cálculo automático
+    this.setupAutomaticCalculation();
+  }
 
+  private setupAutomaticCalculation(): void {
+    // Escuchar cambios en precio unitario
+    this.inventoryForm.get('precioUnitario')?.valueChanges.subscribe(value => {
+      this.calculatePrecioVenta();
+    });
+
+    // Escuchar cambios en porcentaje
+    this.inventoryForm.get('porcentaje')?.valueChanges.subscribe(value => {
+      this.calculatePrecioVenta();
+    });
+  }
+
+  private calculatePrecioVenta(): void {
+    const precioUnitario = this.inventoryForm.get('precioUnitario')?.value || 0;
+    const porcentaje = this.inventoryForm.get('porcentaje')?.value || 0;
+
+    if (precioUnitario > 0 && porcentaje >= 0) {
+      const precioVenta = precioUnitario + (precioUnitario * (porcentaje / 100));
+
+      // Actualizar el valor sin disparar el evento valueChanges
+      this.inventoryForm.get('precioVenta')?.setValue(
+        Math.round(precioVenta * 100) / 100, // Redondear a 2 decimales
+        { emitEvent: false }
+      );
+    } else if (precioUnitario > 0 && porcentaje === 0) {
+      // Si no hay porcentaje, el precio de venta es igual al precio unitario
+      this.inventoryForm.get('precioVenta')?.setValue(
+        Math.round(precioUnitario * 100) / 100,
+        { emitEvent: false }
+      );
+    }
   }
 
   readonly exportFileName = computed(
@@ -642,7 +811,6 @@ export class InventoryCompany {
     this.paginationParams.set(params);
   }
 
-  // Método unificado para abrir el popup
   openAddPopup(tab: 'producto' | 'categoria' = 'producto'): void {
     this.activeTab.set(tab);
     this.productForm.reset({
@@ -806,5 +974,15 @@ export class InventoryCompany {
         }
       });
     }
+  }
+
+  // Tab navigation methods
+  selectTab(tabId: string): void {
+    this.navigationTab.set(tabId);
+  }
+
+  getTabClasses(tabId: string): string {
+    const isActive = this.navigationTab() === tabId;
+    return isActive ? 'active' : '';
   }
 }

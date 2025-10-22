@@ -7,11 +7,33 @@ export interface IClienteKPIPeriodo {
   exclusivo_al_dia: boolean;
 }
 
+export interface IClienteKPIClientesMora {
+  total: number;
+  porcentaje: number;
+}
+
+export interface IClienteKPIClientesAlDia {
+  total: number;
+  porcentaje: number;
+}
+
 export interface IClienteKPIResumen {
-  clientes_al_dia: number;
-  clientes_nuevos: number;
-  clientes_activos: number;
-  clientes_en_mora: number;
+  clientesMora: IClienteKPIClientesMora;
+  clientesAlDia: IClienteKPIClientesAlDia;
+  clientesNuevos: number;
+  clientesActivos: number;
+}
+
+export interface IClienteKPIApiResponse {
+  code: number;
+  message: string;
+  success: boolean;
+  response: {
+    periodo: IClienteKPIPeriodo;
+    resumen: IClienteKPIResumen;
+    empresa_id: number;
+  };
+  totalCount: number;
 }
 
 export interface IClienteKPIResponse {

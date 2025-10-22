@@ -73,7 +73,7 @@ import { PdfBill } from '@components/pdf-bill/pdf-bill';
       [actionTemplate]="actionsTemplate"
       [showAddButton]="true"
       [addButtonText]="'Deuda Clientes'"
-      [showExportButton]="true"
+      [showExportButton]="true"f
       [exportFileName]="exportFileName()"
       [showColumnFilters]="true"
       (action)="handleTableAction($event)"

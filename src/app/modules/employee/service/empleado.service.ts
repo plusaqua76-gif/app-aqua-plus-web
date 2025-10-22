@@ -3,14 +3,9 @@ import { environment } from "../../../environments/environment.local";
 import { END_POINT_SERVICE } from "../../../environments/environment.variables";
 import { Router } from "@angular/router";
 import { HttpClient, HttpParams } from "@angular/common/http";
-import { catchError, map, Observable, throwError } from "rxjs";
+import { map, Observable } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";
 import { IEmpleadoEmpresaResponse } from "@interfaces/Iemployee";
-import { ICorreoPerson } from '@interfaces/Iperson';
-import { ITelefonoGeneral } from '@interfaces/ItelefonoGeneral';
-import { forkJoin } from 'rxjs';
-import { CorreoPersonaService } from "../../client/service/correoPersona.service";
-import { TelefonoGeneralService } from "../../client/service/telefonoPersona.service";
 import { IPaginatedResponse, IPaginationParams } from "@interfaces/IpaginatedResponse";
 
 @Injectable({
@@ -19,15 +14,8 @@ import { IPaginatedResponse, IPaginationParams } from "@interfaces/IpaginatedRes
 export class EmpleadoService {
 
   readonly apiUrl = `${environment.apiUrl}`
-
-  protected readonly correoService = inject(CorreoPersonaService)
-  protected readonly telefonoService = inject(TelefonoGeneralService)
   protected readonly router = inject(Router)
   protected readonly http = inject(HttpClient)
-
-
-
-
 
   getEmployeeByEnterprice(id: number): Observable<ApiResponse<IEmpleadoEmpresaResponse[]>> {
       const url = `${this.apiUrl}/empleado-empresa/empresa/${id}`;
@@ -115,21 +103,21 @@ export class EmpleadoService {
     return this.http.get<ApiResponse<IEmpleadoEmpresaResponse[]>>(url);
   }
 
-  getAllDatosEmpleadoCompleto(): Observable<{
-    empleados: ApiResponse<IEmpleadoEmpresaResponse[]>,
-    correos: ApiResponse<ICorreoPerson[]>,
-    telefonos: ApiResponse<ITelefonoGeneral[]>
-  }> {
-    const empleados$ = this.getAllEmpleados();
-    const correos$ = this.correoService.getAllCorreo();
-    const telefonos$ = this.telefonoService.getAllTelefono();
+  // getAllDatosEmpleadoCompleto(): Observable<{
+  //   empleados: ApiResponse<IEmpleadoEmpresaResponse[]>,
+  //   correos: ApiResponse<ICorreoPerson[]>,
+  //   telefonos: ApiResponse<ITelefonoGeneral[]>
+  // }> {
+  //   const empleados$ = this.getAllEmpleados();
+  //   const correos$ = this.correoService.getAllCorreo();
+  //   const telefonos$ = this.telefonoService.getAllTelefono();
 
-    return forkJoin({
-      empleados: empleados$,
-      correos: correos$,
-      telefonos: telefonos$
-    });
-  }
+  //   return forkJoin({
+  //     empleados: empleados$,
+  //     correos: correos$,
+  //     telefonos: telefonos$
+  //   });
+  // }
 
 
   updateEstadoEmpleado(data: { id_persona: number, activo: boolean, usuario_cambio: string }): Observable<Map<string, any>> {

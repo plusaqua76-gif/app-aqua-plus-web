@@ -14,7 +14,6 @@ export const serverRoutes: ServerRoute[] = [
     'shell/bill/create-credit/:id',
     'shell/bill/update-debt/:id',
     'shell/reading/update-reading/:id',
-    'shell/counter/actualizar-contador/:id',
     'shell/employee/update-employee/:id',
     'shell/enterprise/update-enterprise/:id',
     'shell/bill/print-bill/:id'

@@ -1,12 +1,15 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { environment } from '../../../environments/environment.local';
-import { catchError, map, Observable, throwError } from 'rxjs';
+import { catchError, Observable, throwError } from 'rxjs';
 import { ApiResponse } from '@interfaces/Iresponse';
 import { Iuser } from '@interfaces/Iuser';
-import { isPlatformBrowser } from '@angular/common';
 import { IPaginatedResponse, IPaginationParams } from '@interfaces/IpaginatedResponse';
-
+  interface IUpdateUserStatus {
+    idEmpresa: number;
+    activo: boolean;
+    usuarioCambio: string;
+  }
 @Injectable({
   providedIn: 'root'
 })
@@ -16,70 +19,79 @@ export class UserAccessService {
   readonly platformId = inject(PLATFORM_ID);
   readonly apiUrl = `${environment.apiUrl}`;
 
-  private getUserFromSession(): string | null {
-    if (isPlatformBrowser(this.platformId)) {
-      try {
-        const userData = sessionStorage.getItem('userData');
-        if (userData) {
-          const user = JSON.parse(userData);
-          return user.nombre || null;
-        }
-      } catch (error) {
-        console.error('Error al obtener usuario del sessionStorage:', error);
-      }
-    }
-    return null;
+  updateUserStatus(payload: IUpdateUserStatus): Observable<any> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/empresa/actualizar`, payload)
   }
 
-  updateUserState(user: Iuser, activo: boolean, usuario: string, nombreEmpresa: string): Observable<any> {
-    const usuarioCambio = this.getUserFromSession();
-
-    if (!usuarioCambio) {
-      throw new Error('No se pudo obtener el usuario logueado del sessionStorage');
-    }
-
-    const enterpriseId = this.getEnterpriseIdFromSession();
-
-    const payload = {
-      idEmpresa: enterpriseId || user.id,
-      activo: activo,
-      usuarioCambio: usuarioCambio,
-      nombreEmpresa: nombreEmpresa,
-      usuario: usuario
-    };
-
-    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/empresa/actualizar`, payload).pipe(
-      map(response => response.response)
-    );
+  getEnterpriceIdByIdUser(userId: number): Observable<ApiResponse<{ empresaId: number }>> {
+     return this.http.get<ApiResponse<{ empresaId: number }>>(`${this.apiUrl}/empresa/usuario/${userId}`)
   }
 
-  updateUserStateWithPayload(payload: {
-    idEmpresa: number;
-    activo: boolean;
-    usuarioCambio: string;
-    nombreEmpresa: string;
-    usuario: string;
-  }): Observable<any> {
 
-    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/empresa/actualizar`, payload).pipe(
-      map(response => response.response)
-    );
-  }
+  // private getUserFromSession(): string | null {
+  //   if (isPlatformBrowser(this.platformId)) {
+  //     try {
+  //       const userData = sessionStorage.getItem('userData');
+  //       if (userData) {
+  //         const user = JSON.parse(userData);
+  //         return user.nombre || null;
+  //       }
+  //     } catch (error) {
+  //       console.error('Error al obtener usuario del sessionStorage:', error);
+  //     }
+  //   }
+  //   return null;
+  // }
 
-  private getEnterpriseIdFromSession(): number | null {
-    if (isPlatformBrowser(this.platformId)) {
-      try {
-        const userData = sessionStorage.getItem('userData');
-        if (userData) {
-          const user = JSON.parse(userData);
-          return user.empresaId ? Number(user.empresaId) : null;
-        }
-      } catch (error) {
-        console.error('Error al obtener empresaId del sessionStorage:', error);
-      }
-    }
-    return null;
-  }
+  // updateUserState(user: Iuser, activo: boolean, usuario: string, nombreEmpresa: string): Observable<any> {
+  //   const usuarioCambio = this.getUserFromSession();
+
+  //   if (!usuarioCambio) {
+  //     throw new Error('No se pudo obtener el usuario logueado del sessionStorage');
+  //   }
+
+  //   const enterpriseId = this.getEnterpriseIdFromSession();
+
+  //   const payload = {
+  //     idEmpresa: enterpriseId || user.id,
+  //     activo: activo,
+  //     usuarioCambio: usuarioCambio,
+  //     nombreEmpresa: nombreEmpresa,
+  //     usuario: usuario
+  //   };
+
+  //   return this.http.post<ApiResponse<any>>(`${this.apiUrl}/empresa/actualizar`, payload).pipe(
+  //     map(response => response.response)
+  //   );
+  // }
+
+  // updateUserStateWithPayload(payload: {
+  //   idEmpresa: number;
+  //   activo: boolean;
+  //   usuarioCambio: string;
+  //   nombreEmpresa: string;
+  //   usuario: string;
+  // }): Observable<any> {
+
+  //   return this.http.post<ApiResponse<any>>(`${this.apiUrl}/empresa/actualizar`, payload).pipe(
+  //     map(response => response.response)
+  //   );
+  // }
+
+  // private getEnterpriseIdFromSession(): number | null {
+  //   if (isPlatformBrowser(this.platformId)) {
+  //     try {
+  //       const userData = sessionStorage.getItem('userData');
+  //       if (userData) {
+  //         const user = JSON.parse(userData);
+  //         return user.empresaId ? Number(user.empresaId) : null;
+  //       }
+  //     } catch (error) {
+  //       console.error('Error al obtener empresaId del sessionStorage:', error);
+  //     }
+  //   }
+  //   return null;
+  // }
 
 
 

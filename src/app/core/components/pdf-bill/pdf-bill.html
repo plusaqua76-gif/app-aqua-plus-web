@@ -146,7 +146,7 @@
                 </div>
               </div>
               <div class="consumption-item">
-                <div class="item-label">Fecha de fechaEmision</div>
+                <div class="item-label">Fecha de Emision</div>
                 <div class="item-value">
                   {{ billData()?.factura?.fechaEmision }}
                 </div>
@@ -423,9 +423,9 @@
                 margin-top: 55px;
               "
             >
-              <span style="color: #d32f2f">Fecha emision:</span>
+              <span style="color: #d32f2f">Fecha vencimiento</span>
               <span style="color: #d32f2f; font-weight: bold"
-                >{{ billData()?.factura?.fechaEmision }}</span
+                >{{ formatDate(billData()?.factura?.fechaFin) || '' }}</span
               >
             </div>
             <div
@@ -464,13 +464,12 @@
               border: 1px solid #2388ff;
               border-radius: 8px;
               padding-bottom: 20px;
-              padding-botton: 0px;
               margin: 15px 0;
               text-align: center;
             "
           >
             <span style="color: #2388ff; font-size: 13px; font-weight: 500"
-              >Fecha de vencimiento:</span
+              >Fecha emision:</span
             >
             <span
               style="
@@ -479,7 +478,7 @@
                 margin-left: 8px;
                 font-size: 14px;
               "
-              >{{ formatDate(billData()?.factura?.fechaFin) || '' }}</span
+              >{{ formatDate(billData()?.factura?.fechaEmision) || '' }}</span
             >
           </div>
 

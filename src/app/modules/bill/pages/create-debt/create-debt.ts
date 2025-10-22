@@ -38,7 +38,7 @@ export class CreateDebt  {
     plazoPagoId: [null, [Validators.required]],
     fechaDeuda: [new Date().toISOString().split('T')[0], [Validators.required]],
     valor: ['', [Validators.required, Validators.min(0.01), Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
-    descripcion: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]]
+    descripcion: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(500)]]
   });
 
   readonly userData = computed(() => {
@@ -89,87 +89,73 @@ export class CreateDebt  {
     stream: () => this.tipoDeudaService.getAllTipoDeuda()
   })
 
-  // Métodos para validar el formulario
-  isFormValid(): boolean {
-    return this.deudaForm.valid;
-  }
-
-  getFieldError(fieldName: string): string | null {
-    const field = this.deudaForm.get(fieldName);
-    if (field?.errors && field?.touched) {
-      if (field.errors['required']) return `${fieldName} es requerido`;
-      if (field.errors['min']) return `El valor debe ser mayor a 0`;
-      if (field.errors['pattern']) return `Formato de valor inválido`;
-      if (field.errors['minlength']) return `Mínimo 10 caracteres`;
-      if (field.errors['maxlength']) return `Máximo 500 caracteres`;
-    }
-    return null;
-  }
-
-  // Método para crear la deuda
-  crearDeuda(): void {
-    if (!this.isFormValid()) {
-      this.toastService.warning('Formulario inválido', 'Por favor complete todos los campos correctamente');
-      this.markAllFieldsAsTouched();
-      return;
-    }
-
-    const usuario = this.nombreUsuario();
-    if (!usuario) {
-      this.toastService.error('Error', 'No se pudo obtener la información del usuario');
+  onSubmit(): void {
+    if (this.deudaForm.invalid) {
+      this.markFormGroupTouched();
+      this.toastService.warning('Formulario inválido', 'Por favor complete todos los campos requeridos correctamente.');
       return;
     }
 
     this.procesandoDeuda.set(true);
 
-    const formValues = this.deudaForm.value;
+    const formValue = this.deudaForm.value;
+    const usuario = this.nombreUsuario();
 
-    // Validar que los IDs existen en las listas cargadas
-    // const tipoDeudaExists = this.tipodeuda.value()?.response?.find(
-    //   t => t.id === Number(formValues.tipoDeudaId)
-    // );
+    if (!usuario) {
+      this.toastService.error('Error', 'No se pudo obtener la información del usuario');
+      this.procesandoDeuda.set(false);
+      return;
+    }
 
-    // const plazoPagoExists = this.plazopago.value()?.response?.find(
-    //   p => p.id === Number(formValues.plazoPagoId)
-    // );
+    // Buscar los objetos completos para las relaciones
+    const tipoDeudaSeleccionado = this.tipodeuda.value()?.response?.find(
+      tipo => tipo.id === Number(formValue.tipoDeudaId)
+    );
 
-    // if (!tipoDeudaExists) {
-    //   this.toastService.error('Error', 'Tipo de deuda no válido');
-    //   this.procesandoDeuda.set(false);
-    //   return;
-    // }
+    const plazoPagoSeleccionado = this.plazopago.value()?.response?.find(
+      plazo => plazo.id === Number(formValue.plazoPagoId)
+    );
 
-    // if (!plazoPagoExists) {
-    //   this.toastService.error('Error', 'Plazo de pago no válido');
-    //   this.procesandoDeuda.set(false);
-    //   return;
-    // }
+    if (!tipoDeudaSeleccionado || !plazoPagoSeleccionado) {
+      this.toastService.error('Error', 'No se pudieron obtener los datos necesarios');
+      this.procesandoDeuda.set(false);
+      return;
+    }
 
-    // Construir el objeto de deuda enviando solo los IDs como en el ejemplo que funciona
+    // Buscar el cliente seleccionado para obtener el empresaClienteContadorId
+    const clienteSeleccionado = this.dataClients.value()?.response?.find(
+      cliente => cliente.id === Number(formValue.empresaClienteContadorId)
+    );
+
+    if (!clienteSeleccionado) {
+      this.toastService.error('Error', 'No se pudo obtener la información del cliente seleccionado');
+      this.procesandoDeuda.set(false);
+      return;
+    }
+
     const deuda: Partial<IDeudaCliente> = {
-      fechaDeuda: new Date(formValues.fechaDeuda!),
-      valor: formValues.valor!,
-      descripcion: formValues.descripcion!,
+      empresaClienteContador: { id: (clienteSeleccionado as any).empresaClienteContadorId } as any,
+      tipoDeuda: tipoDeudaSeleccionado,
+      plazoPago: plazoPagoSeleccionado,
+      fechaDeuda: new Date(formValue.fechaDeuda!),
+      valor: formValue.valor!,
+      descripcion: formValue.descripcion!,
       activo: true,
-      empresaClienteContador: { id: Number(formValues.empresaClienteContadorId) } as any,
-      tipoDeuda: { id: Number(formValues.tipoDeudaId) } as any,
-      plazoPago: { id: Number(formValues.plazoPagoId) } as any,
       usuarioCreacion: usuario,
-      fechaCreacion: new Date(),
+      fechaCreacion: new Date()
     };
 
     this.deudaService.saveDeuda(deuda as IDeudaCliente).subscribe({
       next: (response) => {
-        const valorFormateado = Number(formValues.valor).toLocaleString('es-CO');
         this.toastService.success(
-          'Deuda Creada Exitosamente',
-          `Se ha registrado una nueva deuda por valor de $${valorFormateado}`
+          'Deuda Creada',
+          `La deuda por valor de $${Number(formValue.valor).toLocaleString('es-CO')} ha sido creada exitosamente`
         );
         this.resetForm();
         this.procesandoDeuda.set(false);
 
-        // Opcional: redirigir o realizar alguna acción después del éxito
-        // this.router.navigate(['/bill/debt-list']);
+        // Opcional: navegar a otra página
+        // this.router.navigate(['/bills/debts']);
       },
       error: (error) => {
         console.error('Error al crear deuda:', error);
@@ -182,17 +168,22 @@ export class CreateDebt  {
     });
   }
 
-  // Método para resetear el formulario
-  resetForm(): void {
+  cancelar(): void {
+    this.resetForm();
+    this.router.navigate(['/shell/bill/customer-debt']);
+  }
+
+  private resetForm(): void {
     this.deudaForm.reset({
       fechaDeuda: new Date().toISOString().split('T')[0]
     });
+    this.procesandoDeuda.set(false);
   }
 
-  // Método para marcar todos los campos como tocados (para mostrar errores)
-  private markAllFieldsAsTouched(): void {
+  private markFormGroupTouched(): void {
     Object.keys(this.deudaForm.controls).forEach(key => {
-      this.deudaForm.get(key)?.markAsTouched();
+      const control = this.deudaForm.get(key);
+      control?.markAsTouched();
     });
   }
 

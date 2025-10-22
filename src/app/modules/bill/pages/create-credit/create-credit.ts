@@ -78,6 +78,7 @@ export class CreateCredit implements OnInit {
       this.router.navigate(['../customer-debt'], {
         relativeTo: this.route,
       });
+      this.router.navigate(['/shell/bill/customer-debt'])
     },
     error: (err) => {
       console.error('Error al guardar el abono:', err);

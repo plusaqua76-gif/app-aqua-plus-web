@@ -5,7 +5,6 @@ import { Router } from "@angular/router";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { catchError, Observable, throwError } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";
-import { IFactura } from "@interfaces/Ifactura";
 import { IDeudaCliente, IDeudaClienteResponse } from "@interfaces/IdeudaFactura";
 import { IPaginatedResponse, IPaginationParams } from "@interfaces/IpaginatedResponse";
 
@@ -73,7 +72,7 @@ export class DeudaService {
     saveDeuda(deuda: IDeudaCliente): Observable<ApiResponse<any>> {
         return this.http.post<ApiResponse<any>>(`${this.apiUrl}`, deuda)
     }
-    
+
     deleteDeudaById(id: number): Observable<ApiResponse<any>> {
         return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${id}`).pipe(
             catchError(this.handleError)

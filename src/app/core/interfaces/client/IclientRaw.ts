@@ -12,9 +12,11 @@ export interface ClientRaw {
   direccionDescripcion: string;
   departamentoNombre: string;
   ciudadNombre: string;
+  nombreCompleto: string;
   corregimientoNombre: string;
   correo: string;
   telefono: string;
+  empresaClienteContadorId: number; // ID necesario para editar cliente
 }
 
 export interface ClientsRawApiResponse {

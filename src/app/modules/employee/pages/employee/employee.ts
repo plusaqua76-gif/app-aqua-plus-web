@@ -105,7 +105,7 @@ export class Employee {
     size: 5,
   });
 
-  // Resource para datos paginados del servidor
+
   serverEmployeeData = rxResource({
     params: () => ({
       enterpriseId: this.enterpriseId(),
@@ -163,7 +163,15 @@ export class Employee {
 
 
   editar(row: any): void {
-    this.router.navigate(['shell/employee/update-employee', row.id]);
+    const id = row?.id;
+    if (id) {
+      this.router.navigate(['update-employee/', id], {
+        relativeTo: this.route,
+        state: { empleadoData: row }
+      });
+    } else {
+      this.toastService.error('Error', 'ID del empleado no válido.');
+    }
   }
 
 
