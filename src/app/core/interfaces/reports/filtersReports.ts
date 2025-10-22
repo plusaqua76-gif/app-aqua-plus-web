@@ -8,6 +8,7 @@ export interface Filtro {
   id: number;
   tipoAtributo: TipoAtributo;
   campo: string;
+  nombre?: string;
   requerido: boolean;
   lectura: boolean;
   activo: boolean;
@@ -16,4 +17,5 @@ export interface Filtro {
 export interface FiltroItem {
   id: number;
   filtro: Filtro;
+  codigo?: string; 
 }

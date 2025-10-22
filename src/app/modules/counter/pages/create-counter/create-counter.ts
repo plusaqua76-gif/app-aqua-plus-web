@@ -109,7 +109,7 @@ export class CreateCounter implements OnInit {
     }
 
     if (!this.personaData) {
-      this.router.navigate(['/shell/client/create-client']);
+      this.router.navigate(['/shell/countrer/create-counter']);
       return;
     }
 

@@ -14,3 +14,18 @@ export interface IAddress {
   usuarioModificacion: string | null;
   fechaModificacion: string | null;
 }
+
+
+export interface IAddressRequest {
+  id?: number;
+  departamento: {
+    id: number;
+  };
+  ciudad: {
+    id: number;
+  };
+  corregimiento: {
+    id: number;
+  };
+  descripcion: string;
+}

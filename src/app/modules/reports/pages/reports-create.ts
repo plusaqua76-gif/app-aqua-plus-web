@@ -226,7 +226,7 @@ import { PopupComponent } from '@shared/components/popUp';
                 <div class="mb-4">
                   <div class="flex items-start justify-between mb-2">
                     <h5 class="text-sm font-medium text-white">
-                      {{ formatFieldName(filterItem.filtro.campo) }}
+                      {{ filterItem.filtro.nombre || formatFieldName(filterItem.filtro.campo) }}
                       <span class="text-xs text-gray-400 ml-1">(Opcional)</span>
                     </h5>
                   </div>
@@ -234,15 +234,15 @@ import { PopupComponent } from '@shared/components/popUp';
 
                 <!-- Campo según tipo de atributo -->
                 <div class="space-y-3">
-                  @switch (filterItem.filtro.tipoAtributo.nombre) { @case
-                  ('TEXT') {
+                  @switch (filterItem.filtro.tipoAtributo.nombre) {
+                  @case ('TEXT') {
                   <div>
                     <input
                       type="text"
                       class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
                       [placeholder]="
                         'Ingrese ' +
-                        formatFieldName(filterItem.filtro.campo).toLowerCase()
+                        (filterItem.filtro.nombre || formatFieldName(filterItem.filtro.campo)).toLowerCase()
                       "
                       [value]="filterValues()[filterItem.filtro.campo] || ''"
                       (input)="
@@ -250,22 +250,85 @@ import { PopupComponent } from '@shared/components/popUp';
                       "
                     />
                   </div>
-                  } @case ('INTEGER') {
-                  <div>
-                    <input
-                      type="number"
-                      class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
-                      [placeholder]="
-                        'Ingrese ' +
-                        formatFieldName(filterItem.filtro.campo).toLowerCase()
-                      "
-                      [value]="filterValues()[filterItem.filtro.campo] || ''"
-                      (input)="
-                        updateFilterValue(filterItem.filtro.campo, $event)
-                      "
-                      step="1"
-                    />
-                  </div>
+                  }
+                  @case ('INTEGER') {
+                    @if (filterItem.codigo) {
+                      <!-- Campo INTEGER con lista desplegable -->
+                      <div>
+                        @if (filterItem.codigo && loadingLists()[filterItem.codigo]) {
+                          <div class="flex items-center justify-center py-3">
+                            <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400"></div>
+                            <span class="ml-2 text-gray-400 text-sm">Cargando opciones...</span>
+                          </div>
+                        } @else {
+                          <select
+                            class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
+                            [value]="filterValues()[filterItem.filtro.campo] || ''"
+                            (change)="updateFilterValue(filterItem.filtro.campo, $event)"
+                          >
+                            <option value="" class="bg-gray-800">
+                              Seleccione {{ filterItem.filtro.nombre || formatFieldName(filterItem.filtro.campo) }}
+                            </option>
+                            @if (filterItem.codigo) {
+                              @for (option of listOptions()[filterItem.codigo] || []; track option.id) {
+                                <option [value]="option.id" class="bg-gray-800">{{ option.nombre }}</option>
+                              }
+                            }
+                          </select>
+                        }
+                      </div>
+                    } @else {
+                      <!-- Campo INTEGER normal -->
+                      <div>
+                        <input
+                          type="number"
+                          class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
+                          [placeholder]="
+                            'Ingrese ' +
+                            (filterItem.filtro.nombre || formatFieldName(filterItem.filtro.campo)).toLowerCase()
+                          "
+                          [value]="filterValues()[filterItem.filtro.campo] || ''"
+                          (input)="
+                            updateFilterValue(filterItem.filtro.campo, $event)
+                          "
+                          step="1"
+                        />
+                      </div>
+                    }
+                  }
+                  @case ('DATE') {
+                    <div>
+                      <input
+                        type="date"
+                        class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
+                        [value]="filterValues()[filterItem.filtro.campo] || ''"
+                        (input)="updateFilterValue(filterItem.filtro.campo, $event)"
+                      />
+                    </div>
+                  }
+                  @case ('LIST') {
+                    <div>
+                      @if (filterItem.codigo && loadingLists()[filterItem.codigo]) {
+                        <div class="flex items-center justify-center py-3">
+                          <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400"></div>
+                          <span class="ml-2 text-gray-400 text-sm">Cargando opciones...</span>
+                        </div>
+                      } @else {
+                        <select
+                          multiple
+                          class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 min-h-[120px]"
+                          [value]="filterValues()[filterItem.filtro.campo] || []"
+                          (change)="updateMultiSelectValue(filterItem.filtro.campo, $event)"
+                        >
+                          @if (filterItem.codigo) {
+                            @for (option of listOptions()[filterItem.codigo] || []; track option.id) {
+                              <option [value]="option.id" class="bg-gray-800 py-1">{{ option.nombre }}</option>
+                            }
+                          }
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">Mantén Ctrl presionado para seleccionar múltiples opciones</p>
+                      }
+                    </div>
                   }
                   @case ('BOOLEAN') {
                           <div>
@@ -319,7 +382,7 @@ import { PopupComponent } from '@shared/components/popUp';
                 <div class="mb-4">
                   <div class="flex items-start justify-between mb-2">
                     <h5 class="text-sm font-medium text-white">
-                      {{ formatFieldName(filterItem.filtro.campo) }}
+                      {{ filterItem.filtro.nombre || formatFieldName(filterItem.filtro.campo) }}
                       <span class="text-xs text-red-400 ml-1 font-semibold">* (Requerido)</span>
                     </h5>
                   </div>
@@ -327,15 +390,15 @@ import { PopupComponent } from '@shared/components/popUp';
 
                 <!-- Campo según tipo de atributo -->
                 <div class="space-y-3">
-                  @switch (filterItem.filtro.tipoAtributo.nombre) { @case
-                  ('TEXT') {
+                  @switch (filterItem.filtro.tipoAtributo.nombre) {
+                  @case ('TEXT') {
                   <div>
                     <input
                       type="text"
                       class="w-full px-4 py-3 bg-transparent border-2 border-red-500/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40"
                       [placeholder]="
                         'Ingrese ' +
-                        formatFieldName(filterItem.filtro.campo).toLowerCase() + ' (requerido)'
+                        (filterItem.filtro.nombre || formatFieldName(filterItem.filtro.campo)).toLowerCase() + ' (requerido)'
                       "
                       [value]="filterValues()[filterItem.filtro.campo] || ''"
                       (input)="
@@ -344,23 +407,89 @@ import { PopupComponent } from '@shared/components/popUp';
                       required
                     />
                   </div>
-                  } @case ('INTEGER') {
-                  <div>
-                    <input
-                      type="number"
-                      class="w-full px-4 py-3 bg-transparent border-2 border-red-500/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40"
-                      [placeholder]="
-                        'Ingrese ' +
-                        formatFieldName(filterItem.filtro.campo).toLowerCase() + ' (requerido)'
-                      "
-                      [value]="filterValues()[filterItem.filtro.campo] || ''"
-                      (input)="
-                        updateFilterValue(filterItem.filtro.campo, $event)
-                      "
-                      step="1"
-                      required
-                    />
-                  </div>
+                  }
+                  @case ('INTEGER') {
+                    @if (filterItem.codigo) {
+                      <!-- Campo INTEGER con lista desplegable -->
+                      <div>
+                        @if (filterItem.codigo && loadingLists()[filterItem.codigo]) {
+                          <div class="flex items-center justify-center py-3">
+                            <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-red-400"></div>
+                            <span class="ml-2 text-gray-400 text-sm">Cargando opciones...</span>
+                          </div>
+                        } @else {
+                          <select
+                            class="w-full px-4 py-3 bg-transparent border-2 border-red-500/70 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40"
+                            [value]="filterValues()[filterItem.filtro.campo] || ''"
+                            (change)="updateFilterValue(filterItem.filtro.campo, $event)"
+                            required
+                          >
+                            <option value="" class="bg-gray-800">
+                              Seleccione {{ filterItem.filtro.nombre || formatFieldName(filterItem.filtro.campo) }} *
+                            </option>
+                            @if (filterItem.codigo) {
+                              @for (option of listOptions()[filterItem.codigo] || []; track option.id) {
+                                <option [value]="option.id" class="bg-gray-800">{{ option.nombre }}</option>
+                              }
+                            }
+                          </select>
+                        }
+                      </div>
+                    } @else {
+                      <!-- Campo INTEGER normal -->
+                      <div>
+                        <input
+                          type="number"
+                          class="w-full px-4 py-3 bg-transparent border-2 border-red-500/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40"
+                          [placeholder]="
+                            'Ingrese ' +
+                            (filterItem.filtro.nombre || formatFieldName(filterItem.filtro.campo)).toLowerCase() + ' (requerido)'
+                          "
+                          [value]="filterValues()[filterItem.filtro.campo] || ''"
+                          (input)="
+                            updateFilterValue(filterItem.filtro.campo, $event)
+                          "
+                          step="1"
+                          required
+                        />
+                      </div>
+                    }
+                  }
+                  @case ('DATE') {
+                    <div>
+                      <input
+                        type="date"
+                        class="w-full px-4 py-3 bg-transparent border-2 border-red-500/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40"
+                        [value]="filterValues()[filterItem.filtro.campo] || ''"
+                        (input)="updateFilterValue(filterItem.filtro.campo, $event)"
+                        required
+                      />
+                    </div>
+                  }
+                  @case ('LIST') {
+                    <div>
+                      @if (filterItem.codigo && loadingLists()[filterItem.codigo]) {
+                        <div class="flex items-center justify-center py-3">
+                          <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-red-400"></div>
+                          <span class="ml-2 text-gray-400 text-sm">Cargando opciones...</span>
+                        </div>
+                      } @else {
+                        <select
+                          multiple
+                          class="w-full px-4 py-3 bg-transparent border-2 border-red-500/70 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40 min-h-[120px]"
+                          [value]="filterValues()[filterItem.filtro.campo] || []"
+                          (change)="updateMultiSelectValue(filterItem.filtro.campo, $event)"
+                          required
+                        >
+                          @if (filterItem.codigo) {
+                            @for (option of listOptions()[filterItem.codigo] || []; track option.id) {
+                              <option [value]="option.id" class="bg-gray-800 py-1">{{ option.nombre }}</option>
+                            }
+                          }
+                        </select>
+                        <p class="text-xs text-red-300 mt-1">* Mantén Ctrl presionado para seleccionar múltiples opciones (requerido)</p>
+                      }
+                    </div>
                   }
                   @case ('BOOLEAN') {
                           <div>
@@ -498,10 +627,13 @@ export class ReportsCreate {
   shouldGenerateAfterLoad = signal(false);
   requiredFields = signal<string[]>([]);
 
+  // Nuevos estados para manejar listas dinámicas
+  listOptions = signal<Record<string, any[]>>({});
+  loadingLists = signal<Record<string, boolean>>({});
+
   billColumns = signal([
     { field: 'nombre', header: 'Nombre', type: 'text' as const },
     { field: 'descripcion', header: 'Descripción', type: 'text' as const },
-    { field: 'nombreSp', header: 'Procedimiento', type: 'text' as const },
   ]);
 
   reportData = signal<any[]>([]);
@@ -629,6 +761,9 @@ export class ReportsCreate {
     this.selectedNombreSp.set(''); // Limpiar nombreSp
     this.filterValues.set({});
     this.requiredFields.set([]);
+    // Limpiar estados de listas dinámicas
+    this.listOptions.set({});
+    this.loadingLists.set({});
   }
 
   formatFieldName(fieldName: string): string {
@@ -667,21 +802,56 @@ export class ReportsCreate {
     const initialValues: Record<string, any> = {};
     const requiredFieldsList: string[] = [];
 
-    filters.forEach((filterItem) => {
+    for (const filterItem of filters) {
       const { campo, requerido, lectura, tipoAtributo } = filterItem.filtro;
 
       // Solo procesar campos que se muestran en el UI (opcionales o requeridos editables)
-      if ((requerido && lectura) || !campo) return;
+      if ((requerido && lectura) || !campo) continue;
 
-      initialValues[campo] = this.getInitialValueByType(tipoAtributo.nombre);
+      // Inicializar valor según tipo
+      if (tipoAtributo.nombre === 'DATE') {
+        initialValues[campo] = '';
+      } else {
+        initialValues[campo] = this.getInitialValueByType(tipoAtributo.nombre);
+      }
 
       if (this.isRequiredEditableFilter(filterItem.filtro)) {
         requiredFieldsList.push(campo);
       }
-    });
+
+      // Cargar opciones para campos LIST o INTEGER con código
+      if (filterItem.codigo && (tipoAtributo.nombre === 'LIST' || tipoAtributo.nombre === 'INTEGER')) {
+        this.loadListOptions(filterItem.codigo);
+      }
+    }
 
     this.filterValues.set(initialValues);
     this.requiredFields.set(requiredFieldsList);
+  }
+
+  // Nuevo método para cargar opciones de listas dinámicas
+  loadListOptions(codigo: string): void {
+    if (this.listOptions()[codigo] || this.loadingLists()[codigo]) {
+      return; // Ya está cargado o cargando
+    }
+
+    // Marcar como cargando
+    this.loadingLists.update(current => ({ ...current, [codigo]: true }));
+
+    this.resportsService.getListOptions(codigo).subscribe({
+      next: (response) => {
+        this.listOptions.update(current => ({
+          ...current,
+          [codigo]: response.response || []
+        }));
+        this.loadingLists.update(current => ({ ...current, [codigo]: false }));
+      },
+      error: (error) => {
+        console.error(`Error cargando opciones para ${codigo}:`, error);
+        this.listOptions.update(current => ({ ...current, [codigo]: [] }));
+        this.loadingLists.update(current => ({ ...current, [codigo]: false }));
+      }
+    });
   }
 
   clearFilters(): void {
@@ -694,6 +864,16 @@ export class ReportsCreate {
     this.filterValues.set({
       ...currentValues,
       [campo]: target.value,
+    });
+  }
+
+  updateMultiSelectValue(campo: string, event: any): void {
+    const target = event.target as HTMLSelectElement;
+    const selectedValues = Array.from(target.selectedOptions).map(option => Number(option.value));
+    const currentValues = this.filterValues();
+    this.filterValues.set({
+      ...currentValues,
+      [campo]: selectedValues,
     });
   }
 
@@ -717,7 +897,8 @@ export class ReportsCreate {
     if (value === null || value === undefined || value === '') return null;
     if (value === 'true') return true;
     if (value === 'false') return false;
-    if (!isNaN(Number(value)) && value !== '') return Number(value);
+    if (Array.isArray(value)) return value; // Para campos LIST
+    if (!Number.isNaN(Number(value)) && value !== '') return Number(value);
     return value;
   }
 
@@ -890,6 +1071,9 @@ export class ReportsCreate {
     this.showFiltersPopup.set(false);
     this.filterValues.set({});
     this.requiredFields.set([]);
+    // Limpiar estados de listas dinámicas si es necesario
+    // this.listOptions.set({});
+    // this.loadingLists.set({});
   }
 
   clearReportResults(): void {
@@ -899,6 +1083,9 @@ export class ReportsCreate {
     this.selectedReportName.set('');
     this.selectedNombreSp.set('');
     this.requiredFields.set([]);
+    // Limpiar estados de listas dinámicas
+    this.listOptions.set({});
+    this.loadingLists.set({});
   }
 
   requestReportViaWhatsApp(): void {

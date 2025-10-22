@@ -2,16 +2,19 @@ import { IEnterprise } from "./Ienterprise";
 
 export interface IInventario {
   id: number;
+  idProducto: number;
   productoId: number;
-  codigo:string;
-  nombre:string;
-  cantidad:string;
-  precioUnitario:string;
-  precioVenta:string;
-  porcentaje:string;
-  descripcion:string;
+  codigo: string;
+  nombre: string;
+  cantidad: number;
+  precioUnitario: number;
+  precioVenta: number;
+  porcentaje: number;
+  descripcionProducto: string;
+  categoriaNombre: string;
+  descripcion: string;
   activo: boolean;
-  usuarioCreacion: string;
+  usuarioCreacion: string | null;
   fechaCreacion: string;
   usuarioModificacion: string | null;
   fechaModificacion: string | null;

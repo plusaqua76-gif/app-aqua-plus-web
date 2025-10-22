@@ -1,9 +1,8 @@
 import { isPlatformBrowser } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, Component, computed, inject, OnDestroy, PLATFORM_ID, signal } from '@angular/core';
-// COMENTADO: Importaciones para consumo de API
-// import { FacturasDataService } from '@services/facturas-data.service';
+import { FacturasDataService } from '@services/facturas-data.service';
 import { IFacturasData } from '@interfaces/IFacturasData';
-// import { Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 
 
 declare const ApexCharts: any;
@@ -94,13 +93,13 @@ interface ChartOptions {
       <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Estado de Facturas por Mes</h5>
       <p class="text-base font-normal text-gray-500 dark:text-gray-400">Facturas pagadas, pendientes y vencidas</p>
     </div>
-    <div
+    <!-- <div
       class="flex items-center px-2.5 py-0.5 text-base font-semibold text-green-500 dark:text-green-500 text-center">
       76%
       <svg class="w-3 h-3 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 14">
         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13V1m0 0L1 5m4-4 4 4"/>
       </svg>
-    </div>
+    </div> -->
   </div>
   <div id="legend-chart"></div>
   <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between mt-5">
@@ -171,15 +170,13 @@ interface ChartOptions {
 })
 export class Legends implements AfterViewInit, OnDestroy {
   private chart: any;
-  // COMENTADO: Para uso con API
-  // private subscription?: Subscription;
+  private subscription?: Subscription;
   protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
-  // COMENTADO: Servicio para consumo de API
-  // private readonly facturasService = inject(FacturasDataService);
+  private readonly facturasService = inject(FacturasDataService);
 
   // Signals para manejo reactivo de datos
-  private chartData = signal<IFacturasData | null>(null);
+  private readonly chartData = signal<IFacturasData | null>(null);
   public isLoading = signal<boolean>(true);
   public hasError = signal<boolean>(false);
 
@@ -230,8 +227,7 @@ export class Legends implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.chart?.destroy();
-    // COMENTADO: Para uso con API
-    // this.subscription?.unsubscribe();
+    this.subscription?.unsubscribe();
     // Remover listener
     if (isPlatformBrowser(this.platformId)) {
       document.removeEventListener('click', this.closeDropdownOnOutsideClick.bind(this));
@@ -251,55 +247,34 @@ export class Legends implements AfterViewInit, OnDestroy {
     }
   }
 
-  /**
-   * Genera datos simulados para todas las facturas del año con más variabilidad
-   */
-  private generateYearlySimulatedData(): IFacturasData {
-    return {
-      xAxis: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-              'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
-      yAxis: {
-        // Datos con más picos y bajos para mayor dinamismo
-        facturasPagadas: [650, 1200, 800, 1450, 950, 1100, 2100, 750, 1850, 1050, 1650, 2250],
-        facturasPendientes: [280, 95, 320, 140, 450, 180, 80, 380, 120, 520, 160, 90],
-        facturasVencidas: [120, 30, 180, 45, 210, 85, 15, 165, 60, 240, 95, 25]
-      }
-    };
-  }
-
-  /**
-   * Genera datos simulados aleatorios con alta variabilidad
-   */
-  private generateRandomSimulatedData(): IFacturasData {
-    return {
-      xAxis: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-              'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
-      yAxis: {
-        // Rangos más amplios para crear picos y valles más pronunciados
-        facturasPagadas: Array.from({length: 12}, () => Math.floor(Math.random() * 1500) + 600),
-        facturasPendientes: Array.from({length: 12}, () => Math.floor(Math.random() * 400) + 50),
-        facturasVencidas: Array.from({length: 12}, () => Math.floor(Math.random() * 200) + 10)
-      }
-    };
-  }
-
   private loadFacturasData(): void {
-    // DATOS SIMULADOS para desarrollo
-    // En producción, aquí iría el código para consumir la API real
-    this.isLoading.set(true);
+    const empresaId = this.empresaId();
+    const anio = this.currentYear();
 
-    // Simular delay de carga de la API
-    setTimeout(() => {
-      const simulatedData = this.generateYearlySimulatedData();
-      this.chartData.set(simulatedData);
+    if (!empresaId || !anio) {
+      console.warn('Datos incompletos para cargar facturas:', { empresaId, anio });
       this.isLoading.set(false);
-      this.hasError.set(false);
+      this.hasError.set(true);
+      return;
+    }
 
-      // Inicializar el gráfico
-      setTimeout(() => {
+    this.isLoading.set(true);
+    this.subscription = this.facturasService.getFacturasDataAnual(empresaId, anio).subscribe({
+      next: (data: IFacturasData) => {
+        this.chartData.set(data);
+        this.isLoading.set(false);
+        this.hasError.set(false);
+        setTimeout(() => {
+          this.initializeAreaChart();
+        }, 0);
+      },
+      error: (error: any) => {
+        console.error('Error loading facturas data:', error);
+        this.isLoading.set(false);
+        this.hasError.set(true);
         this.initializeAreaChart();
-      }, 0);
-    }, 500); // Simula 500ms de carga
+      }
+    });
   }
 
 
@@ -312,52 +287,68 @@ export class Legends implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Genera datos simulados para un mes específico con alta variabilidad
-   */
-  private generateMonthSimulatedData(monthName: string): IFacturasData {
-    return {
-      xAxis: [monthName],
-      yAxis: {
-        // Rangos más amplios para crear variaciones más interesantes
-        facturasPagadas: [Math.floor(Math.random() * 1500) + 600],
-        facturasPendientes: [Math.floor(Math.random() * 400) + 50],
-        facturasVencidas: [Math.floor(Math.random() * 200) + 10]
-      }
-    };
-  }
-
-  /**
    * Seleccionar mes y actualizar gráfico
    */
   selectMonth(monthName: string): void {
     this.selectedMonth = monthName;
     this.isDropdownOpen = false;
 
-    // DATOS SIMULADOS para filtrado por mes
+    const empresaId = this.empresaId();
+    const anio = this.currentYear();
+
+    if (!empresaId || !anio) {
+      console.warn('Datos incompletos para cargar facturas:', { empresaId, anio });
+      return;
+    }
+
     this.isLoading.set(true);
 
     // Convertir nombre del mes a número (1-12) o undefined para "Todos los meses"
     const monthNumber = this.getMonthNumber(monthName);
 
-    let simulatedData: IFacturasData;
-
     if (monthNumber) {
-      // Datos para un mes específico
-      simulatedData = this.generateMonthSimulatedData(monthName);
+      // Cargar datos para un mes específico
+      this.subscription?.unsubscribe(); // Cancelar subscripción anterior
+      this.subscription = this.facturasService.getFacturasMesDinamico(empresaId, anio, monthNumber).subscribe({
+        next: (response: any) => {
+          // Convertir respuesta a formato de gráfico
+          const monthData: IFacturasData = {
+            xAxis: [monthName],
+            yAxis: {
+              facturasPagadas: [response.facturasPagadas?.total || 0],
+              facturasPendientes: [response.facturasPendientes?.total || 0],
+              facturasVencidas: [response.facturasVencidas?.total || 0]
+            }
+          };
+
+          this.chartData.set(monthData);
+          this.isLoading.set(false);
+          this.hasError.set(false);
+          this.updateChart(monthData);
+        },
+        error: (error: any) => {
+          console.error('Error loading month data:', error);
+          this.isLoading.set(false);
+          this.hasError.set(true);
+        }
+      });
     } else {
-      // Datos para todos los meses
-      simulatedData = this.generateYearlySimulatedData();
+      // Cargar datos para todos los meses
+      this.subscription?.unsubscribe(); // Cancelar subscripción anterior
+      this.subscription = this.facturasService.getFacturasDataAnual(empresaId, anio).subscribe({
+        next: (data: IFacturasData) => {
+          this.chartData.set(data);
+          this.isLoading.set(false);
+          this.hasError.set(false);
+          this.updateChart(data);
+        },
+        error: (error: any) => {
+          console.error('Error loading yearly data:', error);
+          this.isLoading.set(false);
+          this.hasError.set(true);
+        }
+      });
     }
-
-    // Simular delay de carga
-    setTimeout(() => {
-      this.chartData.set(simulatedData);
-      this.isLoading.set(false);
-      this.hasError.set(false);
-
-      // Actualizar gráfico
-      this.updateChart(simulatedData);
-    }, 200);
   }
 
   private getMonthNumber(monthName: string): number | undefined {
@@ -369,34 +360,6 @@ export class Legends implements AfterViewInit, OnDestroy {
 
     return months[monthName];
   }
-
-  private filterDataByMonth(data: IFacturasData, monthNumber: number): IFacturasData {
-    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-
-    const monthIndex = monthNumber - 1;
-
-    if (monthIndex >= 0 && monthIndex < data.xAxis.length) {
-      return {
-        xAxis: [data.xAxis[monthIndex]],
-        yAxis: {
-          facturasPagadas: [data.yAxis.facturasPagadas[monthIndex] || 0],
-          facturasPendientes: [data.yAxis.facturasPendientes[monthIndex] || 0],
-          facturasVencidas: [data.yAxis.facturasVencidas[monthIndex] || 0]
-        }
-      };
-    }
-
-    return {
-      xAxis: [monthNames[monthIndex]],
-      yAxis: {
-        facturasPagadas: [0],
-        facturasPendientes: [0],
-        facturasVencidas: [0]
-      }
-    };
-  }
-
 
   private updateChart(data: IFacturasData): void {
     if (this.chart) {
@@ -480,7 +443,7 @@ export class Legends implements AfterViewInit, OnDestroy {
         enabled: true,
         x: { show: false },
         y: {
-          formatter: (v: number) => `$${v}`
+          formatter: (v: number) => `${v} facturas` // Más descriptivo
         },
       },
       legend: {
@@ -529,7 +492,7 @@ export class Legends implements AfterViewInit, OnDestroy {
             fontSize: '12px',
             fontFamily: 'Inter, sans-serif'
           },
-          formatter: (value: number) => `$${value}`,
+          formatter: (value: number) => `${value}`, // Removido el $ ya que son cantidades, no montos
           offsetX: -7, // Separa los números del eje Y hacia la izquierda
         },
       },
@@ -538,7 +501,7 @@ export class Legends implements AfterViewInit, OnDestroy {
 
   private initializeAreaChart(): void {
     const el = document.getElementById('legend-chart') as HTMLElement;
-    if (el && typeof ApexCharts !== 'undefined') {
+    if (el && ApexCharts !== undefined) {
       this.chart = new ApexCharts(el, this.getOptions());
       this.chart.render().catch((error: any) => {
         console.error('Error rendering legend chart:', error);
@@ -548,47 +511,3 @@ export class Legends implements AfterViewInit, OnDestroy {
     }
   }
 }
-
-/*
-INSTRUCCIONES PARA RESTAURAR LA FUNCIONALIDAD DE API:
-
-1. Descomentar las importaciones al inicio del archivo:
-   - import { FacturasDataService } from '@services/facturas-data.service';
-   - import { Subscription } from 'rxjs';
-
-2. Descomentar las propiedades en la clase:
-   - private subscription?: Subscription;
-   - private readonly facturasService = inject(FacturasDataService);
-
-3. Descomentar en ngOnDestroy():
-   - this.subscription?.unsubscribe();
-
-4. Reemplazar el método loadFacturasData() con:
-   const empresaId = this.empresaId();
-   const anio = this.currentYear();
-
-   if (!empresaId || !anio) {
-     console.warn('Datos incompletos para cargar facturas:', { empresaId, anio });
-     return;
-   }
-
-   this.isLoading.set(true);
-   this.subscription = this.facturasService.getFacturasDataAnual(empresaId, anio).subscribe({
-     next: (data: IFacturasData) => {
-       this.chartData.set(data);
-       this.isLoading.set(false);
-       this.hasError.set(false);
-       setTimeout(() => {
-         this.initializeAreaChart();
-       }, 0);
-     },
-     error: (error: any) => {
-       console.error('Error loading facturas data:', error);
-       this.isLoading.set(false);
-       this.hasError.set(true);
-       this.initializeAreaChart();
-     }
-   });
-
-5. Reemplazar updateChartData() y selectMonth() con sus versiones originales que consumen la API.
-*/

@@ -127,27 +127,24 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
 
 
   private initializeForm(): void {
-
-
-
-  this.registerForm = this.fb.group({
-    tipoDocumento: [null, Validators.required],
-    numeroDocumento: ['', Validators.required],
-    correo: ['', [Validators.required, Validators.email]],
-    primerApellido: ['', Validators.required],
-    segundoApellido: [''],
-    primerNombre: ['', Validators.required],
-    segundoNombre: [''],
-    idDepartamento: [null, Validators.required],
-    idCiudad: [null, Validators.required],
-    idCorregimiento: [null],
-    direccion: [''],
-    telefono: ['', Validators.required],
-    codigo: ['', Validators.required],
-    usuario_creacion: [this.nombreUsuario()],
-    id_empresa: [this.empresaId()]
-  });
-}
+    this.registerForm = this.fb.group({
+      tipoDocumento: [null, Validators.required],
+      numeroDocumento: ['', Validators.required],
+      correo: ['', [Validators.required, Validators.email]],
+      primerApellido: ['', Validators.required],
+      segundoApellido: [''],
+      primerNombre: ['', Validators.required],
+      segundoNombre: [''],
+      idDepartamento: [null, Validators.required],
+      idCiudad: [null, Validators.required],
+      idCorregimiento: [null],
+      direccion: [''],
+      telefono: ['', Validators.required],
+      codigo: ['', Validators.required],
+      usuarioCreacion: [this.nombreUsuario()],
+      idEmpresa: [this.empresaId()]
+    });
+  }
 loadTypeDocument = rxResource({
   stream: () => this.tipoDocumentoService.getAllTypeDocument()
 })
@@ -202,13 +199,25 @@ loadTypeDocument = rxResource({
       return;
     }
 
-    const formData = this.registerForm.value;
+    const formData = {
+      ...this.registerForm.value,
+      // Mapear los nombres del formulario a los nombres que espera el backend
+      idTipoDocumento: this.registerForm.value.tipoDocumento,
+      numeroCedula: this.registerForm.value.numeroDocumento,
+      descripcionDireccion: this.registerForm.value.direccion
+    };
+
+    // Remover los campos del formulario que no necesita el backend
+    delete formData.tipoDocumento;
+    delete formData.numeroDocumento;
+    delete formData.direccion;
+
     this.empleadoService.saveEmpleado(formData).subscribe({
       next: (response: any) => {
         this.toast.success('Éxito', 'Empleado registrado correctamente');
         this.registerForm.reset();
         this.initializeForm();
-        //  this.router.navigate(['']);
+       this.router.navigate(['/shell/employee']);
       },
       error: (error: any) => {
         console.error('Error al crear empleado:', error);

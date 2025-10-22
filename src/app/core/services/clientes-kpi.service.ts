@@ -1,215 +1,127 @@
-import { Injectable, inject } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { Observable, map } from 'rxjs';
+import {
+  IClienteKPIResponse,
+  IClienteKPIApiResponse,
+} from '@interfaces/IClienteKPIResponse';
+import { IBilledConsumptionApiResponse, IBilledConsumptionResponse, IColumnChartData } from '@interfaces/IBilledConsumption';
+import { environment } from '../../environments/environment.local';
 import { HttpClient } from '@angular/common/http';
-import { IClienteKPI } from '@interfaces/IClienteKPI';
-import { IClienteKPIResponse } from '@interfaces/IClienteKPIResponse';
+import { IClienteKPIParams } from '@interfaces/charts/kpi-params';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ClientesKpiService {
-  private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'https://app-aqua-plus-api.azurewebsites.net/api/v1';
+  readonly http = inject(HttpClient);
+  readonly platformId = inject(PLATFORM_ID);
+  readonly apiUrl = `${environment.apiUrl}`;
 
-  private mockData: IClienteKPI[] = [
-    {
-      id: 'clientes-nuevos',
-      titulo: 'Clientes Nuevos',
-      valor: 156,
-      porcentajeCambio: 12.5,
-      esPositivo: true,
-      progreso: 78,
-      icono: 'user-plus',
-      descripcion: 'Este mes'
-    },
-    {
-      id: 'clientes-al-dia',
-      titulo: 'Clientes al Día',
-      valor: 1847,
-      porcentajeCambio: 3.2,
-      esPositivo: true,
-      progreso: 92,
-      icono: 'check-circle',
-      descripcion: 'Pagos actualizados'
-    },
-    {
-      id: 'clientes-mora',
-      titulo: 'Clientes en Mora',
-      valor: 234,
-      porcentajeCambio: -8.1,
-      esPositivo: false,
-      progreso: 35,
-      icono: 'exclamation-triangle',
-      descripcion: 'Requieren gestión'
-    },
-    {
-      id: 'clientes-activos',
-      titulo: 'Clientes Activos',
-      valor: 2081,
-      porcentajeCambio: 2.8,
-      esPositivo: true,
-      progreso: 88,
-      icono: 'users',
-      descripcion: 'Total general'
-    }
-  ];
-
-  /**
-   * Obtiene los KPIs de clientes desde el API dinámico
-   * @param empresaId ID de la empresa
-   * @param anio Año actual
-   * @param mes Mes actual
-   * @param rangoPor Criterio de rango (emision o vencimiento)
-   * @param exclusivo Si debe ser exclusivo al día
-   * @returns Observable con la respuesta del API
-   */
   getClientesKPIDinamico(
-    empresaId: number,
-    anio: number,
-    mes: number,
-    rangoPor: 'emision' | 'vencimiento' = 'emision',
-    exclusivo: boolean = false
+    params: IClienteKPIParams
   ): Observable<IClienteKPIResponse> {
-    const params = {
-      empresaId: empresaId.toString(),
-      anio: anio.toString(),
-      mes: mes.toString(),
-      rangoPor,
-      exclusivo: exclusivo.toString()
+    const queryParams = {
+      empresaId: params.empresaId.toString(),
+      anio: params.anio.toString(),
+      mes: params.mes.toString(),
+      rangoPor: params.rangoPor,
+      exclusivo: params.exclusivo.toString(),
     };
 
-    return this.http.get<IClienteKPIResponse>(
-      `${this.baseUrl}/empresa-cliente-contador/clientes-empresa-mes`,
-      { params }
-    );
+    return this.http
+      .get<IClienteKPIApiResponse>(
+        `${this.apiUrl}/empresa-cliente-contador/clientes-empresa-mes`,
+        { params: queryParams }
+      )
+      .pipe(map((apiResponse) => apiResponse.response));
+  }
+
+  getBilledConsumption(
+    params: IClienteKPIParams
+  ): Observable<IClienteKPIResponse> {
+    return this.http
+      .get<IClienteKPIApiResponse>(
+        `${this.apiUrl}/factura/consumo-clientes`,
+        {
+          params: {
+            empresaId: params.empresaId.toString(),
+            anio: params.anio.toString(),
+            mes: params.mes.toString(),
+          },
+        }
+      )
+      .pipe(map((apiResponse) => apiResponse.response));
   }
 
   /**
-   * Convierte la respuesta del API a formato IClienteKPI[]
-   * @param response Respuesta del API
-   * @returns Array de KPIs en formato IClienteKPI
+   * Obtiene datos de consumo facturación para el gráfico de columnas
+   * Si no se proporciona mes, obtiene datos anuales
    */
-  mapResponseToKPIs(response: IClienteKPIResponse): IClienteKPI[] {
-    const resumen = response.resumen;
+  getBilledConsumptionForChart(
+    empresaId: number,
+    anio: number,
+    mes?: number
+  ): Observable<IColumnChartData> {
+    const params: any = {
+      empresaId: empresaId.toString(),
+      anio: anio.toString()
+    };
 
-    return [
-      {
-        id: 'clientes-nuevos',
-        titulo: 'Clientes Nuevos',
-        valor: resumen.clientes_nuevos,
-        porcentajeCambio: resumen.clientes_nuevos > 0 ? 15.2 : 0, // Simulado por ahora
-        esPositivo: resumen.clientes_nuevos > 0,
-        progreso: resumen.clientes_activos > 0 ?
-          Math.min(100, (resumen.clientes_nuevos / resumen.clientes_activos) * 100 * 3) : 0,
-        icono: 'user-plus',
-        descripcion: 'Este mes'
-      },
-      {
-        id: 'clientes-al-dia',
-        titulo: 'Clientes al Día',
-        valor: resumen.clientes_al_dia,
-        porcentajeCambio: 3.2, // Simulado por ahora
-        esPositivo: true,
-        progreso: resumen.clientes_activos > 0 ?
-          Math.round((resumen.clientes_al_dia / resumen.clientes_activos) * 100) : 0,
-        icono: 'check-circle',
-        descripcion: 'Pagos actualizados'
-      },
-      {
-        id: 'clientes-mora',
-        titulo: 'Clientes en Mora',
-        valor: resumen.clientes_en_mora,
-        porcentajeCambio: -8.1, // Simulado por ahora
-        esPositivo: false,
-        progreso: resumen.clientes_activos > 0 ?
-          Math.round((resumen.clientes_en_mora / resumen.clientes_activos) * 100) : 0,
-        icono: 'exclamation-triangle',
-        descripcion: 'Requieren gestión'
-      },
-      {
-        id: 'clientes-activos',
-        titulo: 'Clientes Activos',
-        valor: resumen.clientes_activos,
-        porcentajeCambio: 2.8, // Simulado por ahora
-        esPositivo: true,
-        progreso: 100, // Los clientes activos representan el 100%
-        icono: 'users',
-        descripcion: 'Total general'
+    if (mes) {
+      params.mes = mes.toString();
+    }
+
+    return this.http
+      .get<IBilledConsumptionApiResponse>(`${this.apiUrl}/factura/consumo-clientes`, { params })
+      .pipe(
+        map((apiResponse) => {
+          const mappedData = this.mapBilledConsumptionToChart(apiResponse.response);
+          return mappedData;
+        })
+      );
+  }
+
+  /**
+   * Mapea la respuesta del API a formato del gráfico de columnas
+   */
+  private mapBilledConsumptionToChart(response: IBilledConsumptionResponse): IColumnChartData {
+    const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+    const xAxis: string[] = [];
+    const consumoM3: number[] = [];
+    const facturadoPesos: number[] = [];
+
+    if (!response.porMes || response.porMes.length === 0) {
+      return { xAxis, yAxis: { consumoM3, facturadoPesos } };
+    }
+
+    // Para gráficas, mostrar todos los meses para mantener continuidad temporal
+    // Verificar si hay al menos un dato válido en todo el año
+    const hayDatosValidos = response.porMes.some(mesData =>
+      mesData.mcTotal > 0 || mesData.valorTotal > 0
+    );
+
+    if (!hayDatosValidos) {
+      // Si no hay datos válidos en todo el año, retornar estructura vacía
+      return { xAxis, yAxis: { consumoM3, facturadoPesos } };
+    }
+
+    // Mostrar todos los meses, incluso los que tienen 0
+    for (const mesData of response.porMes) {
+      const nombreMes = nombresMeses[mesData.mes - 1];
+
+      xAxis.push(nombreMes);
+      consumoM3.push(mesData.mcTotal);
+      facturadoPesos.push(mesData.valorTotal);
+    }
+
+    return {
+      xAxis,
+      yAxis: {
+        consumoM3,
+        facturadoPesos
       }
-    ];
-  }
-
-  /**
-   * Obtiene todos los KPIs de clientes
-   * @returns Observable con array de KPIs
-   */
-  getClientesKPI(): Observable<IClienteKPI[]> {
-    return of(this.mockData).pipe(
-      delay(300)
-    );
-  }
-
-  /**
-   * Obtiene un KPI específico por ID
-   * @param id - ID del KPI a obtener
-   * @returns Observable con el KPI específico
-   */
-  getClienteKPIById(id: string): Observable<IClienteKPI | undefined> {
-    const kpi = this.mockData.find(item => item.id === id);
-    return of(kpi).pipe(
-      delay(200)
-    );
-  }
-
-
-  updateMockData(): Observable<IClienteKPI[]> {
-    // Generar variaciones realistas
-    this.mockData = this.mockData.map(kpi => {
-      const variacion = (Math.random() - 0.5) * 0.1; // ±5% de variación
-      const nuevoValor = Math.floor(kpi.valor * (1 + variacion));
-      const nuevoCambio = (Math.random() - 0.3) * 20; // Tendencia más hacia positivo
-
-      return {
-        ...kpi,
-        valor: nuevoValor,
-        porcentajeCambio: Math.round(nuevoCambio * 10) / 10,
-        esPositivo: nuevoCambio > 0,
-        progreso: Math.min(100, Math.max(10, kpi.progreso + (Math.random() - 0.5) * 10))
-      };
-    });
-
-    return of(this.mockData).pipe(
-      delay(400)
-    );
-  }
-
-  /**
-   * Calcula el total de clientes activos
-   * @returns número total de clientes activos
-   */
-  getTotalClientesActivos(): number {
-    const clientesAlDia = this.mockData.find(k => k.id === 'clientes-al-dia')?.valor || 0;
-    const clientesMora = this.mockData.find(k => k.id === 'clientes-mora')?.valor || 0;
-    return clientesAlDia + clientesMora;
-  }
-
-  /**
-   * Calcula el porcentaje de clientes al día
-   * @returns porcentaje de clientes al día
-   */
-  getPorcentajeClientesAlDia(): number {
-    const clientesAlDia = this.mockData.find(k => k.id === 'clientes-al-dia')?.valor || 0;
-    const total = this.getTotalClientesActivos();
-    return total > 0 ? Math.round((clientesAlDia / total) * 100) : 0;
-  }
-
-  /**
-   * Calcula el porcentaje de morosidad
-   * @returns porcentaje de clientes en mora
-   */
-  getPorcentajeMorosidad(): number {
-    const clientesMora = this.mockData.find(k => k.id === 'clientes-mora')?.valor || 0;
-    const total = this.getTotalClientesActivos();
-    return total > 0 ? Math.round((clientesMora / total) * 100) : 0;
+    };
   }
 }

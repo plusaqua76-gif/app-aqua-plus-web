@@ -32,4 +32,9 @@ export class ResportsService {
     return this.http.post<ApiResponse<IReportResult>>(`${this.apiUrl}/reporte-filtro/fn-list/${schema}/${nombre}`, filters);
   }
 
+  // Nuevo endpoint para obtener listas dinámicas basadas en código
+  getListOptions(codigo: string): Observable<ApiResponse<any[]>> {
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/filtro-parametro/run-list/${codigo}`);
+  }
+
 }

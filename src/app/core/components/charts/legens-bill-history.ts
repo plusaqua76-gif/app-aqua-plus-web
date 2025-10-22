@@ -160,8 +160,6 @@ export class LegendsHistoryBill implements AfterViewInit, OnDestroy {
         data: processedData.series
       }]
     });
-
-    console.log('Gráfico actualizado con:', processedData);
   }
 
   private getOptions(): ChartOptions {

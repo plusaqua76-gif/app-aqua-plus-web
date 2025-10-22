@@ -47,18 +47,46 @@
       <form [formGroup]="updateForm" (ngSubmit)="onSubmit()" class="p-6 sm:p-8">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          <!-- Campo: Nombre Completo -->
-          <div class="lg:col-span-2">
-            <label for="nombreCompleto" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
-              Nombre Completo <span class="text-red-500">*</span>
+          <!-- Campo: Tipo de Documento -->
+          <div>
+            <label for="tipoDocumento" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              Tipo de Documento <span class="text-red-500">*</span>
+            </label>
+            <select
+              id="tipoDocumento"
+              formControlName="tipoDocumento"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+              required
+            >
+              <option value="" disabled>Seleccione tipo de documento</option>
+              @for (tipo of tiposDocumento(); track $index) {
+              <option
+                [value]="tipo.id"
+                class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
+              >
+                {{ tipo.nombre }}
+              </option>
+              }
+            </select>
+            @if (updateForm.get('tipoDocumento')?.invalid && updateForm.get('tipoDocumento')?.touched) {
+            <p class="text-red-500 text-sm mt-1">
+              El tipo de documento es requerido
+            </p>
+            }
+          </div>
+
+          <!-- Campo: Primer Nombre -->
+          <div>
+            <label for="primerNombre" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              Primer Nombre <span class="text-red-500">*</span>
             </label>
             <div class="relative">
               <input
-                id="nombreCompleto"
+                id="primerNombre"
                 type="text"
-                formControlName="personaNombreCompleto"
+                formControlName="primerNombre"
                 class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
-                placeholder="Nombre completo del empleado"
+                placeholder="Primer nombre del empleado"
               />
               <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,15 +94,194 @@
                 </svg>
               </div>
             </div>
-            @if (updateForm.get('personaNombreCompleto')?.invalid && updateForm.get('personaNombreCompleto')?.touched) {
+            @if (updateForm.get('primerNombre')?.invalid && updateForm.get('primerNombre')?.touched) {
               <p class="text-red-500 text-sm mt-1">
                 <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                El nombre completo es requerido
+                El primer nombre es requerido
               </p>
             }
           </div>
+
+          <!-- Campo: Segundo Nombre -->
+          <div>
+            <label for="segundoNombre" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              Segundo Nombre
+            </label>
+            <div class="relative">
+              <input
+                id="segundoNombre"
+                type="text"
+                formControlName="segundoNombre"
+                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+                placeholder="Segundo nombre (opcional)"
+              />
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Campo: Primer Apellido -->
+          <div>
+            <label for="primerApellido" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              Primer Apellido <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <input
+                id="primerApellido"
+                type="text"
+                formControlName="primerApellido"
+                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+                placeholder="Primer apellido del empleado"
+              />
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+              </div>
+            </div>
+            @if (updateForm.get('primerApellido')?.invalid && updateForm.get('primerApellido')?.touched) {
+              <p class="text-red-500 text-sm mt-1">
+                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                El primer apellido es requerido
+              </p>
+            }
+          </div>
+
+          <!-- Campo: Segundo Apellido -->
+          <div>
+            <label for="segundoApellido" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              Segundo Apellido
+            </label>
+            <div class="relative">
+              <input
+                id="segundoApellido"
+                type="text"
+                formControlName="segundoApellido"
+                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+                placeholder="Segundo apellido (opcional)"
+              />
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Campo: Departamento -->
+          <div>
+            <label for="idDepartamento" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              Departamento
+            </label>
+            <select
+              id="idDepartamento"
+              formControlName="idDepartamento"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+            >
+              <option value="" disabled>Seleccione departamento</option>
+              @for (departamento of departamentos(); track $index) {
+              <option
+                [value]="departamento.id"
+                class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
+              >
+                {{ departamento.nombre }}
+              </option>
+              }
+            </select>
+            @if (updateForm.get('idDepartamento')?.invalid && updateForm.get('idDepartamento')?.touched) {
+            <p class="text-red-500 text-sm mt-1">
+              El departamento es requerido
+            </p>
+            }
+          </div>
+
+          <!-- Campo: Ciudad -->
+          <div>
+            <label for="idCiudad" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              Ciudad
+            </label>
+            <select
+              id="idCiudad"
+              formControlName="idCiudad"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+              [disabled]="ciudades().length === 0"
+            >
+              <option value="" disabled>{{ selectedDepartmentId() ? 'Seleccione ciudad' : 'Primero seleccione departamento' }}</option>
+              @for (ciudad of ciudades(); track $index) {
+              <option
+                [value]="ciudad.id"
+                class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
+              >
+                {{ ciudad.nombre }}
+              </option>
+              }
+            </select>
+            @if (updateForm.get('idCiudad')?.invalid && updateForm.get('idCiudad')?.touched) {
+            <p class="text-red-500 text-sm mt-1">
+              La ciudad es requerida
+            </p>
+            }
+          </div>
+
+          <!-- Campo: Corregimiento -->
+          <div>
+            <label for="idCorregimiento" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              Corregimiento
+            </label>
+            <select
+              id="idCorregimiento"
+              formControlName="idCorregimiento"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+              [disabled]="corregimientos().length === 0"
+            >
+              <option value="" disabled>{{ selectedCityId() ? 'Seleccione corregimiento (opcional)' : 'Primero seleccione ciudad' }}</option>
+              @for (corregimiento of corregimientos(); track $index) {
+              <option
+                [value]="corregimiento.id"
+                class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
+              >
+                {{ corregimiento.nombre }}
+              </option>
+              }
+            </select>
+          </div>
+
+          <!-- Campo: Dirección -->
+          <!-- <div class="lg:col-span-2">
+            <label for="direccion" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              Dirección
+            </label>
+            <div class="relative">
+              <input
+                id="direccion"
+                type="text"
+                formControlName="direccion"
+                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+                placeholder="Dirección completa del empleado"
+              />
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </div>
+            </div>
+            @if (updateForm.get('direccion')?.invalid && updateForm.get('direccion')?.touched) {
+              <p class="text-red-500 text-sm mt-1">
+                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                La dirección es requerida
+              </p>
+            }
+          </div> -->
 
           <!-- Campo: Número de Cédula -->
           <div>

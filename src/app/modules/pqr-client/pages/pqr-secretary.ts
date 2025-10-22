@@ -170,136 +170,137 @@ import { rxResource } from '@angular/core/rxjs-interop';
 
     <!-- Modal para responder PQR -->
     @if (mostrarModalRespuesta()) {
-      <div class="fixed inset-0 z-[1002] overflow-y-auto">
-        <div class="fixed inset-0 z-[1002] flex items-start justify-center bg-black/50 backdrop-blur-sm pt-[75px]" (click)="cerrarModalRespuesta()">
-          <div class="relative w-full p-4 max-h-[calc(100vh-85px)] overflow-hidden max-w-md" (click)="$event.stopPropagation()">
-            <div class="relative bg-black/10 backdrop-blur-xl border-2 border-white/10 rounded-3xl shadow-xl">
-              <!-- Botón de cerrar -->
-              <button
-                (click)="cerrarModalRespuesta()"
-                aria-label="Close"
-                class="absolute top-3 end-2.5 h-8 w-8 grid place-content-center text-gray-400 hover:bg-white/10 rounded-lg backdrop-blur-sm"
-              >
-                <svg class="h-3 w-3" viewBox="0 0 14 14" fill="none">
-                  <path
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                  />
-                </svg>
-              </button>
+      <div class="fixed inset-0 z-[1002] flex items-center justify-center p-2 sm:p-4 pt-16 sm:pt-20">
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" (click)="cerrarModalRespuesta()"></div>
 
-              <!-- Contenido del modal -->
-              <div class="p-8 text-left">
-                <!-- Título del modal -->
-                <h3 class="text-xl font-semibold text-white mb-6 text-center">
-                  Responder PQR #{{ pqrSeleccionado()?.id }}
-                </h3>
+        <div class="relative w-full max-w-md max-h-[calc(100vh-5rem)] sm:max-h-[calc(100vh-6rem)] flex flex-col bg-black/10 backdrop-blur-xl border-2 border-white/10 rounded-2xl sm:rounded-3xl shadow-xl" (click)="$event.stopPropagation()">
 
-                <!-- Información del cliente -->
-                @if (pqrSeleccionado()?.empresaClienteContador) {
-                  <div class="mb-4 text-center">
-                    <p class="text-sm text-gray-400">
-                      Cliente:
-                      {{ pqrSeleccionado()!.empresaClienteContador.cliente.nombre }}
-                      {{ pqrSeleccionado()!.empresaClienteContador.cliente.segundoNombre }}
-                      {{ pqrSeleccionado()!.empresaClienteContador.cliente.apellido }}
-                      {{ pqrSeleccionado()!.empresaClienteContador.cliente.segundoApellido }}
-                    </p>
-                  </div>
-                }
+          <!-- Header fijo -->
+          <div class="flex-shrink-0 relative p-4 sm:p-6 pb-2 sm:pb-4 border-b border-white/10">
+            <!-- Botón de cerrar -->
+            <button
+              (click)="cerrarModalRespuesta()"
+              aria-label="Close"
+              class="absolute top-2 right-2 sm:top-3 sm:right-3 h-8 w-8 grid place-content-center text-gray-400 hover:bg-white/10 rounded-lg backdrop-blur-sm z-10"
+            >
+              <svg class="h-3 w-3" viewBox="0 0 14 14" fill="none">
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                />
+              </svg>
+            </button>
 
-                <!-- Información del PQR -->
-                <div class="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                  <div class="flex justify-between items-start mb-2">
-                    <span class="text-sm text-gray-300">Tipo:</span>
-                    <span [class]="getTipoBadgeClass()">
-                      {{ pqrSeleccionado()!.tipoNovedad.novedad }}
-                    </span>
-                  </div>
-                  <div class="flex justify-between items-center">
-                    <span class="text-sm text-gray-300">Estado actual:</span>
-                    <span [class]="getEstadoBadgeClass(pqrSeleccionado()!.estado.descripcion)">
-                      {{ pqrSeleccionado()!.estado.descripcion }}
-                    </span>
-                  </div>
-                  @if (pqrSeleccionado()?.descripcion) {
-                    <p class="text-xs text-blue-300 mt-2">{{ pqrSeleccionado()?.descripcion }}</p>
-                  }
-                </div>
+            <!-- Título del modal -->
+            <h3 class="text-lg sm:text-xl font-semibold text-white text-center pr-8">
+              Responder PQR #{{ pqrSeleccionado()?.id }}
+            </h3>
 
-                <div class="space-y-4">
-                  <!-- Campo de respuesta -->
-                  <div>
-                    <label for="nuevaRespuesta" class="block text-sm font-medium text-gray-300 mb-2">
-                      Nueva respuesta
-                    </label>
-                    <textarea
-                      id="nuevaRespuesta"
-                      [(ngModel)]="nuevaRespuesta"
-                      rows="6"
-                      placeholder="Escriba la respuesta al PQR..."
-                      class="w-full px-4 py-2 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 resize-none"
-                    ></textarea>
-                  </div>
-
-                  <!-- Campo de estado -->
-                  <div>
-                    <label for="nuevoEstado" class="block text-sm font-medium text-gray-300 mb-2">
-                      Nuevo estado
-                    </label>
-
-                    <select
-                      id="nuevoEstado"
-                      [(ngModel)]="nuevoEstado"
-                      class="w-full px-4 py-2 bg-transparent border border-gray-600/70 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
-                    >
-                      <option value="" class="bg-gray-900">Seleccione un estado</option>
-                      @if (statusNovelty.status() === 'loading') {
-                        <option value="" class="bg-gray-900">Cargando estados...</option>
-                      } @else if (statusNovelty.status() === 'error') {
-                        <option value="" class="bg-gray-900">Error al cargar estados</option>
-                      } @else if (statusNovelty.value()?.response && statusNovelty.value()!.response.length > 0) {
-                        @for (status of statusNovelty.value()!.response; track status.id) {
-                          <option [value]="status.codigo" class="bg-gray-900">{{ status.descripcion }}</option>
-                        }
-                      } @else {
-                        <option value="" class="bg-gray-900">No hay estados disponibles</option>
-                      }
-                    </select>
-                  </div>
-
-
-
-
-                  <!-- Información adicional -->
-                  <div class="text-xs text-gray-400">
-                    <p>• La respuesta será enviada al cliente</p>
-                    <p>• El estado del PQR se actualizará automáticamente</p>
-                  </div>
-
-                  <!-- Botones -->
-                  <div class="flex gap-3 pt-4">
-                    <button
-                      type="button"
-                      (click)="cerrarModalRespuesta()"
-                      class="flex-1 px-4 py-2 text-sm font-medium text-gray-300 bg-transparent border border-gray-600/70 rounded-lg hover:bg-gray-600/10 focus:outline-none focus:ring-2 focus:ring-gray-500/40 transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="button"
-                      (click)="actualizarPQR()"
-                      [disabled]="!nuevaRespuesta.trim() || !nuevoEstado"
-                      class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Enviar Respuesta
-                    </button>
-                  </div>
-                </div>
+            <!-- Información del cliente -->
+            @if (pqrSeleccionado()?.empresaClienteContador) {
+              <div class="mt-3 text-center">
+                <p class="text-xs sm:text-sm text-gray-400">
+                  Cliente:
+                  {{ pqrSeleccionado()!.empresaClienteContador.cliente.nombre }}
+                  {{ pqrSeleccionado()!.empresaClienteContador.cliente.segundoNombre }}
+                  {{ pqrSeleccionado()!.empresaClienteContador.cliente.apellido }}
+                  {{ pqrSeleccionado()!.empresaClienteContador.cliente.segundoApellido }}
+                </p>
               </div>
+            }
+          </div>
+
+          <!-- Contenido con scroll -->
+          <div class="flex-1 overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4">
+            <!-- Información del PQR -->
+            <div class="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-1 sm:gap-0">
+                <span class="text-sm text-gray-300">Tipo:</span>
+                <span [class]="getTipoBadgeClass()">
+                  {{ pqrSeleccionado()!.tipoNovedad.novedad }}
+                </span>
+              </div>
+              <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                <span class="text-sm text-gray-300">Estado actual:</span>
+                <span [class]="getEstadoBadgeClass(pqrSeleccionado()!.estado.descripcion)">
+                  {{ pqrSeleccionado()!.estado.descripcion }}
+                </span>
+              </div>
+              @if (pqrSeleccionado()?.descripcion) {
+                <p class="text-xs text-blue-300 mt-2">{{ pqrSeleccionado()?.descripcion }}</p>
+              }
+            </div>
+
+            <div class="space-y-4">
+              <!-- Campo de respuesta -->
+              <div>
+                <label for="nuevaRespuesta" class="block text-sm font-medium text-gray-300 mb-2">
+                  Nueva respuesta
+                </label>
+                <textarea
+                  id="nuevaRespuesta"
+                  [(ngModel)]="nuevaRespuesta"
+                  rows="4"
+                  placeholder="Escriba la respuesta al PQR..."
+                  class="w-full px-3 sm:px-4 py-2 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 resize-none text-sm"
+                ></textarea>
+              </div>
+
+              <!-- Campo de estado -->
+              <div>
+                <label for="nuevoEstado" class="block text-sm font-medium text-gray-300 mb-2">
+                  Nuevo estado
+                </label>
+
+                <select
+                  id="nuevoEstado"
+                  [(ngModel)]="nuevoEstado"
+                  class="w-full px-3 sm:px-4 py-2 bg-transparent border border-gray-600/70 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 text-sm"
+                >
+                  <option value="" class="bg-gray-900">Seleccione un estado</option>
+                  @if (statusNovelty.status() === 'loading') {
+                    <option value="" class="bg-gray-900">Cargando estados...</option>
+                  } @else if (statusNovelty.status() === 'error') {
+                    <option value="" class="bg-gray-900">Error al cargar estados</option>
+                  } @else if (statusNovelty.value()?.response && statusNovelty.value()!.response.length > 0) {
+                    @for (status of statusNovelty.value()!.response; track status.id) {
+                      <option [value]="status.codigo" class="bg-gray-900">{{ status.descripcion }}</option>
+                    }
+                  } @else {
+                    <option value="" class="bg-gray-900">No hay estados disponibles</option>
+                  }
+                </select>
+              </div>
+
+              <!-- Información adicional -->
+              <div class="text-xs text-gray-400 bg-gray-900/20 p-2 rounded-lg">
+                <p>• La respuesta será enviada al cliente</p>
+                <p>• El estado del PQR se actualizará automáticamente</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer fijo con botones -->
+          <div class="flex-shrink-0 p-4 sm:p-6 pt-2 sm:pt-4 border-t border-white/10">
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <button
+                type="button"
+                (click)="cerrarModalRespuesta()"
+                class="w-full sm:flex-1 px-4 py-2.5 sm:py-2 text-sm font-medium text-gray-300 bg-transparent border border-gray-600/70 rounded-lg hover:bg-gray-600/10 focus:outline-none focus:ring-2 focus:ring-gray-500/40 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                (click)="actualizarPQR()"
+                [disabled]="!nuevaRespuesta.trim() || !nuevoEstado"
+                class="w-full sm:flex-1 px-4 py-2.5 sm:py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Enviar Respuesta
+              </button>
             </div>
           </div>
         </div>

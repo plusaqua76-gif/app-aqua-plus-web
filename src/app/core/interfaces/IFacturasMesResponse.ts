@@ -1,5 +1,5 @@
 export interface IFacturasMesPeriodo {
-  mes: number;
+  mes: number | null;
   anio: number;
   desde: string;
   hasta: string;
@@ -16,6 +16,15 @@ export interface IFacturasMesResponse {
   facturasPagadas: IFacturasMesDetalle;
   facturasVencidas: IFacturasMesDetalle;
   facturasPendientes: IFacturasMesDetalle;
+  porMes?: IFacturasPorMesDetalle[]; // Para respuesta anual
+}
+
+// Nueva interface para los datos por mes en la respuesta anual
+export interface IFacturasPorMesDetalle {
+  mes: number;
+  pagadas: IFacturasMesDetalle;
+  vencidas: IFacturasMesDetalle;
+  pendientes: IFacturasMesDetalle;
 }
 
 export interface IFacturasAnualResponse {

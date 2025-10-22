@@ -1,5 +1,8 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+import { environment } from '../../environments/environment.local';
+import { ILecturasResponse } from '@interfaces/ILecturasResponse';
 
 export interface VeredaLectura {
   nombre: string;
@@ -27,6 +30,7 @@ export interface LecturasData {
     personasCompletadas: number;
     personasPendientes: number;
     porcentajeGeneral: number;
+    ultimaActualizacion?: string; // Fecha desde el API
   };
 }
 
@@ -34,230 +38,118 @@ export interface LecturasData {
   providedIn: 'root'
 })
 export class LecturasContadoresService {
-
-  private mockData: LecturasData = {
-    veredas: [
-      {
-        nombre: 'Pedregal',
-        contadoresTotal: 150,
-        contadoresLeidos: 150,
-        contadoresPendientes: 0,
-        porcentajeCompletado: 100,
-        estado: 'completada',
-        personasTotal: 450,
-        personasCompletadas: 450,
-        personasPendientes: 0,
-        ultimaLectura: '15/12/2024'
-      },
-      {
-        nombre: 'Libertad',
-        contadoresTotal: 120,
-        contadoresLeidos: 120,
-        contadoresPendientes: 0,
-        porcentajeCompletado: 100,
-        estado: 'completada',
-        personasTotal: 360,
-        personasCompletadas: 360,
-        personasPendientes: 0,
-        ultimaLectura: '14/12/2024'
-      },
-      {
-        nombre: 'Obrero',
-        contadoresTotal: 85,
-        contadoresLeidos: 85,
-        contadoresPendientes: 0,
-        porcentajeCompletado: 100,
-        estado: 'completada',
-        personasTotal: 255,
-        personasCompletadas: 255,
-        personasPendientes: 0,
-        ultimaLectura: '13/12/2024'
-      },
-      {
-        nombre: 'Morelia',
-        contadoresTotal: 95,
-        contadoresLeidos: 60,
-        contadoresPendientes: 35,
-        porcentajeCompletado: 63,
-        estado: 'pendiente',
-        personasTotal: 285,
-        personasCompletadas: 180,
-        personasPendientes: 105,
-        ultimaLectura: '28/08/2025'
-      },
-      {
-        nombre: 'Palmar',
-        contadoresTotal: 110,
-        contadoresLeidos: 45,
-        contadoresPendientes: 65,
-        porcentajeCompletado: 41,
-        estado: 'pendiente',
-        personasTotal: 330,
-        personasCompletadas: 135,
-        personasPendientes: 195,
-        ultimaLectura: '25/08/2025'
-      },
-      {
-        nombre: 'Cedro',
-        contadoresTotal: 75,
-        contadoresLeidos: 20,
-        contadoresPendientes: 55,
-        porcentajeCompletado: 27,
-        estado: 'pendiente',
-        personasTotal: 225,
-        personasCompletadas: 60,
-        personasPendientes: 165,
-        ultimaLectura: '20/08/2025'
-      },
-      {
-        nombre: 'Pitas',
-        contadoresTotal: 60,
-        contadoresLeidos: 35,
-        contadoresPendientes: 25,
-        porcentajeCompletado: 58,
-        estado: 'pendiente',
-        personasTotal: 180,
-        personasCompletadas: 105,
-        personasPendientes: 75,
-        ultimaLectura: '30/08/2025'
-      }
-    ],
-    resumen: {
-      totalVeredas: 7,
-      veredasCompletadas: 3,
-      veredasPendientes: 4,
-      totalContadores: 695,
-      contadoresCompletados: 515,
-      contadoresPendientes: 180,
-      totalPersonas: 2085,
-      personasCompletadas: 1545,
-      personasPendientes: 540,
-      porcentajeGeneral: 43 // 3/7 = 42.8% ≈ 43%
-    }
-  };
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}`;
 
   /**
-   * Obtiene los datos de lecturas de contadores por veredas
+   * Obtiene las lecturas dinámicamente desde el API
+   * @param empresaId ID de la empresa
+   * @param ciudadId ID de la ciudad
+   * @param corregimientoId ID del corregimiento (opcional) - se agrega como 'idCorregimiento' en la URL
+   * @param mes Mes de consulta (opcional)
+   * @param anio Año de consulta (opcional)
    */
-  getLecturasData(): Observable<LecturasData> {
-    return of(this.mockData).pipe(
-      delay(500)
-    );
-  }
-
-  /**
-   * Obtiene datos filtrados por estado de la vereda
-   */
-  getLecturasByEstado(estado: 'completada' | 'pendiente' | 'todas'): Observable<LecturasData> {
-    let veredasFiltradas = this.mockData.veredas;
-
-    if (estado !== 'todas') {
-      veredasFiltradas = this.mockData.veredas.filter(v => v.estado === estado);
-    }
-
-    const dataFiltrada: LecturasData = {
-      veredas: veredasFiltradas,
-      resumen: {
-        totalVeredas: veredasFiltradas.length,
-        veredasCompletadas: veredasFiltradas.filter(v => v.estado === 'completada').length,
-        veredasPendientes: veredasFiltradas.filter(v => v.estado === 'pendiente').length,
-        totalContadores: veredasFiltradas.reduce((acc, v) => acc + v.contadoresTotal, 0),
-        contadoresCompletados: veredasFiltradas.reduce((acc, v) => acc + v.contadoresLeidos, 0),
-        contadoresPendientes: veredasFiltradas.reduce((acc, v) => acc + v.contadoresPendientes, 0),
-        totalPersonas: veredasFiltradas.reduce((acc, v) => acc + v.personasTotal, 0),
-        personasCompletadas: veredasFiltradas.reduce((acc, v) => acc + v.personasCompletadas, 0),
-        personasPendientes: veredasFiltradas.reduce((acc, v) => acc + v.personasPendientes, 0),
-        porcentajeGeneral: veredasFiltradas.length > 0 ?
-          Math.round((veredasFiltradas.filter(v => v.estado === 'completada').length / veredasFiltradas.length) * 100) : 0
-      }
+  getLecturasDinamicas(empresaId: number, ciudadId: number, corregimientoId?: number, mes?: number, anio?: number): Observable<LecturasData> {
+    const currentDate = new Date();
+    const params: any = {
+      empresaId: empresaId,
+      anio: anio || currentDate.getFullYear(),
+      mes: mes || currentDate.getMonth() + 1,
+      idCiudad: ciudadId
     };
 
-    return of(dataFiltrada).pipe(
-      delay(300)
+    // Agregar idCorregimiento si se proporciona
+    if (corregimientoId !== undefined && corregimientoId !== null) {
+      params.idCorregimiento = corregimientoId;
+    }
+
+    // Construir query params
+    const queryParams = new URLSearchParams();
+    for (const key of Object.keys(params)) {
+      if (params[key] !== undefined && params[key] !== null) {
+        queryParams.append(key, params[key].toString());
+      }
+    }
+
+    const finalUrl = `${this.apiUrl}/lectura/lecturas-mes?${queryParams.toString()}`;
+    return this.http.get<ILecturasResponse>(finalUrl).pipe(
+      map((response: ILecturasResponse) => this.transformApiResponseToLecturasData(response))
     );
   }
 
-  actualizarLecturas(): Observable<LecturasData> {
-    const veredasActualizadas = this.mockData.veredas.map(vereda => {
-      if (vereda.estado === 'pendiente' && Math.random() > 0.5) {
-        const contadoresNuevos = Math.floor(Math.random() * vereda.contadoresTotal);
-        const contadoresLeidos = Math.min(vereda.contadoresTotal, contadoresNuevos);
-        const contadoresPendientes = vereda.contadoresTotal - contadoresLeidos;
-        const porcentajeCompletado = Math.round((contadoresLeidos / vereda.contadoresTotal) * 100);
+  /**
+   * Transforma la respuesta del API al formato LecturasData
+   */
+  private transformApiResponseToLecturasData(apiResponse: ILecturasResponse): LecturasData {
+    const { response } = apiResponse;
 
-        // Calcular personas (asumiendo 3 personas por contador)
-        const personasCompletadas = contadoresLeidos * 3;
-        const personasPendientes = contadoresPendientes * 3;
+    // Validar que totalesPorCorregimiento existe y no está vacío
+    if (!response.totalesPorCorregimiento || response.totalesPorCorregimiento.length === 0) {
+      return {
+        veredas: [],
+        resumen: {
+          totalVeredas: 0,
+          veredasCompletadas: 0,
+          veredasPendientes: 0,
+          totalContadores: 0,
+          contadoresCompletados: 0,
+          contadoresPendientes: 0,
+          totalPersonas: 0,
+          personasCompletadas: 0,
+          personasPendientes: 0,
+          porcentajeGeneral: 0,
+          ultimaActualizacion: response.resumen.ultimaActualizacion
+        }
+      };
+    }
 
-        return {
-          ...vereda,
-          contadoresLeidos,
-          contadoresPendientes,
-          porcentajeCompletado,
-          personasCompletadas,
-          personasPendientes,
-          estado: contadoresLeidos === vereda.contadoresTotal ? 'completada' as const : 'pendiente' as const
-        };
-      }
-      return vereda;
+    // Convertir totalesPorCorregimiento a veredas
+    const veredas: VeredaLectura[] = response.totalesPorCorregimiento.map(corregimiento => {
+      const contadoresTotal = corregimiento.contadoresConLectura + corregimiento.contadoresSinLectura;
+      const porcentajeCompletado = contadoresTotal > 0 ?
+        Math.round((corregimiento.contadoresConLectura / contadoresTotal) * 100) : 0;
+
+      return {
+        nombre: corregimiento.corregimiento,
+        contadoresTotal,
+        contadoresLeidos: corregimiento.contadoresConLectura,
+        contadoresPendientes: corregimiento.contadoresSinLectura,
+        porcentajeCompletado,
+        estado: porcentajeCompletado === 100 ? 'completada' : 'pendiente',
+        personasTotal: contadoresTotal * 3, // Asumiendo 3 personas por contador
+        personasCompletadas: corregimiento.contadoresConLectura * 3,
+        personasPendientes: corregimiento.contadoresSinLectura * 3,
+        ultimaLectura: response.resumen.ultimaActualizacion ?
+          new Date(response.resumen.ultimaActualizacion).toLocaleDateString('es-CO') : 'Sin lectura'
+      };
     });
 
-    // Recalcular resumen
-    const veredasCompletadas = veredasActualizadas.filter(v => v.estado === 'completada').length;
-    const veredasPendientes = veredasActualizadas.filter(v => v.estado === 'pendiente').length;
+    // Calcular resumen
+    const veredasCompletadas = veredas.filter(v => v.estado === 'completada').length;
+    const veredasPendientes = veredas.filter(v => v.estado === 'pendiente').length;
+    const totalContadores = veredas.reduce((sum, v) => sum + v.contadoresTotal, 0);
+    const contadoresCompletados = veredas.reduce((sum, v) => sum + v.contadoresLeidos, 0);
+    const contadoresPendientes = veredas.reduce((sum, v) => sum + v.contadoresPendientes, 0);
+    const totalPersonas = veredas.reduce((sum, v) => sum + v.personasTotal, 0);
+    const personasCompletadas = veredas.reduce((sum, v) => sum + v.personasCompletadas, 0);
+    const personasPendientes = veredas.reduce((sum, v) => sum + v.personasPendientes, 0);
 
-    const dataActualizada: LecturasData = {
-      veredas: veredasActualizadas,
+    return {
+      veredas,
       resumen: {
-        totalVeredas: veredasActualizadas.length,
+        totalVeredas: veredas.length,
         veredasCompletadas,
         veredasPendientes,
-        totalContadores: veredasActualizadas.reduce((acc, v) => acc + v.contadoresTotal, 0),
-        contadoresCompletados: veredasActualizadas.reduce((acc, v) => acc + v.contadoresLeidos, 0),
-        contadoresPendientes: veredasActualizadas.reduce((acc, v) => acc + v.contadoresPendientes, 0),
-        totalPersonas: veredasActualizadas.reduce((acc, v) => acc + v.personasTotal, 0),
-        personasCompletadas: veredasActualizadas.reduce((acc, v) => acc + v.personasCompletadas, 0),
-        personasPendientes: veredasActualizadas.reduce((acc, v) => acc + v.personasPendientes, 0),
-        porcentajeGeneral: Math.round((veredasCompletadas / veredasActualizadas.length) * 100)
+        totalContadores,
+        contadoresCompletados,
+        contadoresPendientes,
+        totalPersonas,
+        personasCompletadas,
+        personasPendientes,
+        porcentajeGeneral: totalContadores > 0 ?
+          Math.round((contadoresCompletados / totalContadores) * 100) : 0,
+        ultimaActualizacion: response.resumen.ultimaActualizacion
       }
     };
-
-    this.mockData = dataActualizada;
-    return of(dataActualizada).pipe(
-      delay(200)
-    );
-  }
-
-  /**
-   * Obtiene las veredas disponibles según el filtro de estado
-   */
-  getVeredasDisponibles(estado: 'completada' | 'pendiente' | 'todas'): string[] {
-    if (estado === 'todas') {
-      return this.mockData.veredas.map(v => v.nombre);
-    }
-    return this.mockData.veredas
-      .filter(v => v.estado === estado)
-      .map(v => v.nombre);
-  }
-
-  /**
-   * Obtiene datos para el gráfico radial (porcentajes por vereda)
-   */
-  getRadialChartData(): Observable<{series: number[], labels: string[], colors: string[]}> {
-    const veredasCompletadas = this.mockData.veredas.filter(v => v.estado === 'completada');
-    const veredasPendientes = this.mockData.veredas.filter(v => v.estado === 'pendiente');
-
-    const data = {
-      series: [
-        veredasCompletadas.length > 0 ? Math.round((veredasCompletadas.length / this.mockData.veredas.length) * 100) : 0,
-        veredasPendientes.length > 0 ? Math.round((veredasPendientes.length / this.mockData.veredas.length) * 100) : 0
-      ],
-      labels: ['Veredas Completadas', 'Veredas Pendientes'],
-      colors: ['#1C64F2', '#FDBA8C'] // Azul para completadas, Naranja para pendientes
-    };
-
-    return of(data).pipe(
-      delay(200)
-    );
   }
 }

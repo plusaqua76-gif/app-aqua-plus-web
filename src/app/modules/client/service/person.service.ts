@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { IPerson } from '@interfaces/Iperson';
 import { ApiResponse } from '@interfaces/Iresponse';
+import { IAddressRequest } from '@interfaces/Iaddress';
 
 
 @Injectable({
@@ -23,6 +24,14 @@ export class PersonService {
 
   getPersonById(id: number): Observable<ApiResponse<IPerson>> {
     return this.http.get<ApiResponse<IPerson>>(`${this.apiUrl}/persona/${id}`);
+  }
+
+  saveDirection(location: IAddressRequest): Observable<ApiResponse<IAddressRequest>> {
+    return this.http.post<ApiResponse<IAddressRequest>>(`${this.apiUrl}/direccion`, location);
+  }
+
+  createDireccionLocation(location: IAddressRequest): Observable<ApiResponse<IAddressRequest>> {
+    return this.http.post<ApiResponse<IAddressRequest>>(`${this.apiUrl}/direccion`, location);
   }
 
 }

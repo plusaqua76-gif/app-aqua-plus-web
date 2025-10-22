@@ -23,6 +23,10 @@ export class InventarioService {
     return this.http.get<ApiResponse<IInventario[]>>(`${this.apiUrl}/empresa/${enterpriseId}`);
   }
 
+  getAllInventary(IdEnterprice: number): Observable<ApiResponse<IInventario[]>> {
+   return this.http.get<ApiResponse<IInventario[]>>(`${this.apiUrl}/empresa/${IdEnterprice}`);
+  }
+
   getInventoryCompanyPaginated(
     empresaId: number,
     params: IPaginationParams
@@ -101,7 +105,7 @@ export class InventarioService {
     return (
       date instanceof Date &&
       !isNaN(date.getTime()) &&
-      date.toISOString().split('T')[0] === value
+      date.toISOString().split('T')[0] === value 
     );
   }
 

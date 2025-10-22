@@ -96,13 +96,12 @@ export class Client {
 
   clienteColumns = signal([
     { field: 'numeroCedula', header: 'Número Identificación', type: 'text' as const },
-    { field: 'nombre', header: 'Nombre', type: 'text' as const },
-    { field: 'apellido', header: 'Apellido', type: 'text' as const },
+    { field: 'nombreCompleto', header: 'Nombre', type: 'text' as const },
     { field: 'telefono', header: 'Teléfono', type: 'text' as const },
     { field: 'corregimientoNombre', header: 'Corregimiento', type: 'text' as const },
     { field: 'direccionDescripcion', header: 'Dirección', type: 'text' as const },
     { field: 'correo', header: 'Correo', type: 'text' as const },
-    { field: 'activo', header: 'Estado', template: 'estadoTpl', type: 'text' as const },
+    { field: 'activo', header: 'Estado', template: 'estadoTpl', type: 'text' as const }
   ]);
 
   readonly exportFileName = computed(
@@ -136,6 +135,7 @@ export class Client {
     const data = this.userData();
     return data?.nombre || null;
   });
+
 
   serverClientData = rxResource({
     params: () => ({
@@ -185,7 +185,7 @@ export class Client {
           this.serverClientData.reload?.();
         },
         error: (err) => {
-          console.error('❌ Error al cambiar estado del cliente:', err);
+          console.error('Error al cambiar estado del cliente:', err);
           this.toastService.error(
             'Error',
             'Ocurrió un error al actualizar el estado'
@@ -200,7 +200,7 @@ export class Client {
   }
 
   editar(row: any) {
-    const id = row?.id;
+    const id = row?.empresaClienteContadorId;
     if (id) {
       this.router.navigate(['update-client/', id], {
         relativeTo: this.route,

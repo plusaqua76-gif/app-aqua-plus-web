@@ -1,4 +1,3 @@
-import { DonutChartComponent } from './../../../../core/components/charts/donut-chart';
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { Legends } from '@components/charts/legends';
@@ -10,7 +9,6 @@ import { ColumnChartCardComponent } from '@components/charts/column-chart';
   selector: 'app-start',
   imports: [
     RouterModule,
-    DonutChartComponent,
     Legends,
     WebsiteTraffic,
     KpiCardComponent,
@@ -44,7 +42,7 @@ import { ColumnChartCardComponent } from '@components/charts/column-chart';
         <div class="rounded-2xl">
           <app-website-traffic></app-website-traffic>
           <div class="mt-4">
-            <app-donut-chart></app-donut-chart>
+
           </div>
         </div>
       </div>

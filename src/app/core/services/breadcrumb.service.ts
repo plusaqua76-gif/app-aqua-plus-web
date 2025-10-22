@@ -61,7 +61,7 @@ export class BreadcrumbService {
 
 
     'accounting': 'Contabilidad',
-    'inventory': 'Inventario',
+    'inventory': 'Contabilidad',
 
 
     'fee': 'Tarifas',
