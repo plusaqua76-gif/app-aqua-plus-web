@@ -42,6 +42,7 @@ export class BreadcrumbService {
     'reading': 'Lecturas',
     'update-reading': 'Actualizar Lectura',
     'reading-data': 'Lectura',
+    'history-reading': 'Histórico de Lecturas',
 
 
     'employee': 'Empleados',

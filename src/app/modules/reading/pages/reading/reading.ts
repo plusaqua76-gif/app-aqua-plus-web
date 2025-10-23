@@ -1,5 +1,5 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, computed, inject, signal, PLATFORM_ID } from '@angular/core';
+import { Component, computed, inject, signal, PLATFORM_ID, effect } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ReadingService } from '../../service/reading.service';
 import { TableComponent } from '@components/table';
@@ -12,7 +12,20 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
   selector: 'app-reading',
   imports: [CommonModule, TableComponent, RouterModule],
   template: `
-    <ng-template #toggleTpl let-row>
+    <ng-template #actionsTemplate let-row>
+      <div class="flex items-center space-x-2">
+        <button
+          type="button"
+          (click)="handleTableAction({ action: 'history', row })"
+          class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-purple-600/50 text-purple-500 hover:bg-purple-600/10 focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-colors duration-200 cursor-pointer"
+          title="Ver historial de lectura"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </button>
+      </div>
     </ng-template>
 
     <ng-template #contadorTpl let-row>
@@ -33,13 +46,15 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
     <ng-template #fechaTpl let-row>
       {{ formatDate(row.fechaLectura) }}
-    </ng-template>    <app-table-dynamic
+    </ng-template>
+
+    <app-table-dynamic
       [title]="title()"
       [columns]="readingColumns()"
       [serverMode]="true"
       [serverData]="serverReadingData.value() ?? null"
       [loading]="serverReadingData.isLoading()"
-      [actionTemplate]="toggleTpl"
+      [actionTemplate]="actionsTemplate"
       [columnTemplates]="{
         'contador.serial': contadorTpl,
         consumoAnormal: consumoAnormalTpl,
@@ -151,13 +166,13 @@ export class Reading {
       this.router.navigate(['create-reading'], {
         relativeTo: this.route,
       });
-    } else if (event.action === 'edit' && event.row) {
-      this.edit(event.row);
+    } else if (event.action === 'history' && event.row) {
+      this.viewHistory(event.row);
     }
   }
 
-  edit(row: any): void {
-    this.router.navigate(['update-reading', row.id], {
+  viewHistory(row: any): void {
+    this.router.navigate(['history-reading', row.id], {
       relativeTo: this.route,
     });
   }

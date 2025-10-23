@@ -1,4 +1,4 @@
-import { Component, effect, inject, input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LegendsHistoryBill } from '../charts/legens-bill-history';
@@ -63,15 +63,61 @@ export class PdfBill {
   }
 
   // Métodos para manejar los totales con lógica de 3 primeros
+  private reorganizarTotalesConPosicionamiento(totales: any[]): any[] {
+    const totalesCopia = [...totales];
+    const posicionesEspeciales = new Array(3).fill(null);
+    const totalesRestantes: any[] = [];
+
+    for (let i = totalesCopia.length - 1; i >= 0; i--) {
+      const total = totalesCopia[i];
+      const nombre = total.nombre.toLowerCase();
+
+      if (nombre.includes('acueducto')) {
+        posicionesEspeciales[0] = total;
+        totalesCopia.splice(i, 1);
+      } else if (nombre.includes('alcantarillado')) {
+        posicionesEspeciales[2] = total;
+        totalesCopia.splice(i, 1);
+      } else if (nombre.includes('aseo')) {
+        posicionesEspeciales[1] = total;
+        totalesCopia.splice(i, 1);
+      }
+    }
+
+    let indiceTotalRestante = 0;
+    for (let i = 0; i < 3; i++) {
+      if (
+        posicionesEspeciales[i] === null &&
+        indiceTotalRestante < totalesCopia.length
+      ) {
+        posicionesEspeciales[i] = totalesCopia[indiceTotalRestante];
+        indiceTotalRestante++;
+      }
+    }
+
+    for (let i = indiceTotalRestante; i < totalesCopia.length; i++) {
+      totalesRestantes.push(totalesCopia[i]);
+    }
+
+    const resultado = [
+      ...posicionesEspeciales.filter((total) => total !== null),
+      ...totalesRestantes,
+    ];
+
+    return resultado;
+  }
+
   getPrimeros3Totales() {
     const totales = this.getTotalesPorTipo();
-    return totales.slice(0, 3);
+    const totalesReorganizados = this.reorganizarTotalesConPosicionamiento(totales);
+    return totalesReorganizados.slice(0, 3);
   }
 
   getTotalesRestantes() {
     const totales = this.getTotalesPorTipo();
-    if (totales.length <= 3) return [];
-    return totales.slice(3);
+    const totalesReorganizados = this.reorganizarTotalesConPosicionamiento(totales);
+    if (totalesReorganizados.length <= 3) return [];
+    return totalesReorganizados.slice(3);
   }
 
   getTotalOtrosServicios(): number {

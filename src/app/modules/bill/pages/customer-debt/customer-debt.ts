@@ -5,7 +5,7 @@ import { DeudaService } from '../../service/deuda.service';
 import { ToastService } from '@services/toast.service';
 import { TableComponent } from '@components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { map, EMPTY } from 'rxjs';
+import { map, EMPTY, catchError, of } from 'rxjs';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
 @Component({
@@ -153,7 +153,21 @@ export class CustomerDebt {
             activo: deuda.activo ? 'PENDIENTE' : 'PAGO',
             plazoPagoNombre: deuda.plazoPago?.nombre || '0'
           }))
-        }))
+        })),
+        catchError(error => {
+          console.error('Error loading customer debt:', error);
+          // Retornar estructura compatible con IPaginatedResponse manteniendo la misma estructura
+          return of({
+            success: false,
+            message: 'Error al cargar deudas de clientes',
+            code: error.status || 500,
+            totalCount: 0,
+            pageSize: pagination.size,
+            currentPage: pagination.page,
+            totalPages: 0,
+            response: []
+          });
+        })
       );
     },
   });

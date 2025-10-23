@@ -21,7 +21,7 @@ import { IrateTypes } from '@interfaces/IrateTypes';
 import { ToastService } from '@services/toast.service';
 import { TypeConceptService } from '../../services/type-concept.service';
 import { ConceptRateService } from '../../services/concept-rate.service';
-import { EMPTY } from 'rxjs';
+import { EMPTY, of, catchError } from 'rxjs';
 import {
   Estrato,
   NuevoItem,
@@ -127,23 +127,54 @@ export class FeeComponent {
     return data?.nombre || null;
   });
 
+
   typeRates = rxResource({
     params: () => ({ enterpriseId: this.empresaId() }),
     stream: ({ params: { enterpriseId } }) =>
-      enterpriseId ? this.rateTypeService.getRateTypes(enterpriseId) : EMPTY,
+      enterpriseId
+        ? this.rateTypeService.getRateTypes(enterpriseId).pipe(
+            catchError(error => {
+              console.error('Error loading rate types:', error);
+              // Retornar un observable con estructura vacía pero válida
+              return of({ success: false, response: [], message: 'Error al cargar tipos de tarifa' });
+            })
+          )
+        : EMPTY,
   });
-  typeRatesData = computed(() => this.typeRates.value()?.response ?? []);
+
+  typeRatesData = computed(() => {
+    try {
+      const value = this.typeRates.value();
+      return value?.response ?? [];
+    } catch (error) {
+      console.error('Error in typeRatesData computed:', error);
+      return [];
+    }
+  });
 
   dataTypeConcepts = rxResource({
     params: () => ({ enterpriseId: this.empresaId() }),
     stream: ({ params: { enterpriseId } }) =>
       enterpriseId
-        ? this.typeConceptService.getAllTypeConcepts(enterpriseId)
+        ? this.typeConceptService.getAllTypeConcepts(enterpriseId).pipe(
+            catchError(error => {
+              console.error('Error loading type concepts:', error);
+              // Retornar un observable con estructura vacía pero válida
+              return of({ success: false, response: [], message: 'Error al cargar tipos de concepto' });
+            })
+          )
         : EMPTY,
   });
-  typeConceptsData = computed(
-    () => this.dataTypeConcepts.value()?.response ?? []
-  );
+
+  typeConceptsData = computed(() => {
+    try {
+      const value = this.dataTypeConcepts.value();
+      return value?.response ?? [];
+    } catch (error) {
+      console.error('Error in typeConceptsData computed:', error);
+      return [];
+    }
+  });
 
   private resetFormularioItem(): NuevoItem {
     return { nombre: '', descripcion: '' };
@@ -356,9 +387,8 @@ export class FeeComponent {
 
           // Verificar si es un error 404
           if (error.status === 404) {
-            // No mostrar toast de error para 404, es normal que no existan datos
-            // El usuario puede crear nuevos si lo desea
           } else {
+            console.error('Error al verificar datos existentes:', error);
             this.toastService.error('Error', 'Error al verificar datos existentes');
           }
 
@@ -681,10 +711,22 @@ export class FeeComponent {
   }
 
   // Métodos para el popup de conceptos de tarifa por empresa
+  // Métodos para el popup de conceptos de tarifa por empresa
   abrirPopupConceptosTarifaEmpresa(): void {
     this.showPopupConceptosTarifaEmpresa.set(true);
-        this.conceptRateService.getConceptRateByEnterprise(this.empresaId()).subscribe();
 
+    const empresaId = this.empresaId();
+    if (empresaId) {
+      this.conceptRateService.getConceptRateByEnterprise(empresaId).subscribe({
+        next: (response) => {
+          // Manejar respuesta exitosa si es necesario
+        },
+        error: (error) => {
+          console.error('Error al cargar conceptos de tarifa por empresa:', error);
+          // El interceptor ya muestra el toast, no necesitamos duplicar el mensaje
+        }
+      });
+    }
   }
 
   cerrarPopupConceptosTarifaEmpresa(): void {
@@ -770,7 +812,7 @@ export class FeeComponent {
     if (estratoId && estratoId > 0) {
       this.conceptRateService.deleteConceptStratum(estratoId).subscribe({
         next: (response) => {
-          if (response?.success !== false) {
+          if (response?.success === true) {
             // Eliminar del array local solo si la petición fue exitosa
             this.estratosActuales = this.estratosActuales.filter(
               (estrato) => estrato.id !== estratoId
