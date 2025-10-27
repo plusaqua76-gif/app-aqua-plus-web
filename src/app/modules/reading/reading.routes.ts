@@ -6,7 +6,7 @@ export default [
     loadComponent: () => import('./pages/reading/reading').then(m => m.Reading)
   },
   {
-    path: 'update-reading/:id',
-    loadComponent: () => import('./pages/update-reading/update-reading').then(m => m.UpdateReading)
+    path: 'history-reading/:id',
+    loadComponent: () => import('./pages/history-reading/history-reading').then(m => m.HistoryReading)
   }
 ] as Routes;

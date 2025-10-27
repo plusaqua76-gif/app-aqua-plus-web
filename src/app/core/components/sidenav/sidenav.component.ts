@@ -67,7 +67,7 @@ interface SideNavToggle {
   ],
 })
 export class SidenavComponent implements OnInit {
-  @Output() onToggleSideNav: EventEmitter<SideNavToggle> = new EventEmitter();
+  @Output() toggleSideNav: EventEmitter<SideNavToggle> = new EventEmitter();
   collapsed = false;
   screenWidth = 0;
 
@@ -77,7 +77,7 @@ export class SidenavComponent implements OnInit {
     if (this.screenWidth <= 768) {
       this.collapsed = false;
     }
-    this.onToggleSideNav.emit({
+    this.toggleSideNav.emit({
       collapsed: this.collapsed,
       screenWidth: this.screenWidth,
     });
@@ -142,22 +142,22 @@ export class SidenavComponent implements OnInit {
 
     // Crear un mapa para acceso rápido a los elementos
     const itemsMap = new Map<string, NavItem>();
-    navItems.forEach(item => {
+    for (const item of navItems) {
       itemsMap.set(item.routeLink, item);
-    });
+    }
 
     const orderedItems: NavItem[] = [];
 
-    this.menuOrder.forEach(routeLink => {
+    for (const routeLink of this.menuOrder) {
       if (itemsMap.has(routeLink)) {
         orderedItems.push(itemsMap.get(routeLink) as NavItem);
         itemsMap.delete(routeLink); // Remover del mapa para evitar duplicados
       }
-    });
+    }
 
-    itemsMap.forEach(item => {
+    for (const item of itemsMap.values()) {
       orderedItems.push(item);
-    });
+    }
 
     return orderedItems;
   }
@@ -201,7 +201,7 @@ export class SidenavComponent implements OnInit {
     this.screenWidth = window.innerWidth;
     this.collapsed = false;
 
-    this.onToggleSideNav.emit({
+    this.toggleSideNav.emit({
       collapsed: this.collapsed,
       screenWidth: this.screenWidth,
     });
@@ -209,7 +209,7 @@ export class SidenavComponent implements OnInit {
 
   toggleCollapse(): void {
     this.collapsed = !this.collapsed;
-    this.onToggleSideNav.emit({
+    this.toggleSideNav.emit({
       collapsed: this.collapsed,
       screenWidth: this.screenWidth,
     });
@@ -217,7 +217,7 @@ export class SidenavComponent implements OnInit {
 
   closeSidenav(): void {
     this.collapsed = false;
-    this.onToggleSideNav.emit({
+    this.toggleSideNav.emit({
       collapsed: this.collapsed,
       screenWidth: this.screenWidth,
     });

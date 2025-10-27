@@ -14,7 +14,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FacturaService } from '../../service/factura.service';
 import { ToastService } from '@services/toast.service';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { EMPTY, firstValueFrom } from 'rxjs';
+import { EMPTY, firstValueFrom, of, catchError } from 'rxjs';
 import { TableComponent } from '@components/table';
 import { PopupComponent } from '@shared/components/popUp';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
@@ -176,6 +176,21 @@ export class Bill  {
       return this.facturaService.getAllBillByIdPaginated(
         enterpriseId,
         pagination
+      ).pipe(
+        catchError(error => {
+          console.error('Error loading bills:', error);
+          // Retornar un observable con estructura compatible con IPaginatedResponse
+          return of({
+            success: false,
+            message: 'Error al cargar facturas',
+            code: error.status || 500,
+            totalCount: 0,
+            pageSize: pagination.size,
+            currentPage: pagination.page,
+            totalPages: 0,
+            response: []
+          });
+        })
       );
     },
   });
@@ -270,7 +285,7 @@ export class Bill  {
       }
 
       // 5. Generar el PDF
-      const filename = `factura-aquaplus-${billCode}-${new Date().getTime()}.pdf`;
+      const filename = `factura-aquaplus-${billCode}-${Date.now()}.pdf`;
       await this.pdfService.convertElementToPdf(billElement, filename);
 
       // 6. Esperar un momento antes de mostrar el éxito para asegurar que el PDF se descargó
@@ -289,6 +304,7 @@ export class Bill  {
       }, 1500);
 
     } catch (error) {
+      console.error('Error generating PDF:', error);
       this.toastService.error('Error en la descarga', 'No se pudo generar el PDF de la factura');
       // Limpiar los datos en caso de error
       this.billDataForPdf.set(null);

@@ -31,3 +31,37 @@ export interface IdNombre {
   id: number;
   nombre: string;
 }
+
+// Interfaces para el historial de lecturas
+export interface HistoryReadingResponse {
+  id: number;
+  lectura: {
+    id: number;
+  };
+  contador: {
+    id: number;
+    cliente: {
+      id: number;
+      nombre: string;
+      segundoNombre: string;
+      apellido: string;
+      segundoApellido: string;
+    };
+    serial: string;
+  };
+  consumo: number;
+  fechaLectura: string;
+  consumoAnormal: boolean;
+  descripcion: string;
+  activo: boolean;
+  usuarioCreacion: string;
+  usuarioModificacion: string;
+}
+
+export interface HistoryReadingApiResponse {
+  success: boolean;
+  message: string;
+  code: number;
+  totalCount: number;
+  response: HistoryReadingResponse[];
+}

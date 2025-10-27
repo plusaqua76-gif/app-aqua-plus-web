@@ -228,64 +228,94 @@
     }
 }
 
-.sidenav-nav {
-    list-style: none;
-    padding: 1.5rem 0.938rem;
-    margin: 0;
+// Contenedor principal del navegador
+.nav-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    flex: 1; // Usa todo el espacio disponible
-    min-height: 0; // Permite que el flex funcione correctamente
-    max-height: calc(100vh - 120px); // Altura máxima fija para asegurar scroll
-    cursor: pointer;
-    gap: 0.5rem;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
 
-    // Agregar scroll cuando sea necesario - IMPORTANTE
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-
-    // Mejorar el scroll en móvil
+// Wrapper scrolleable para el contenido del menú
+.nav-scrollable-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
 
-    // Forzar el comportamiento de scroll
-    contain: layout style;
-    overscroll-behavior: contain;    // Estilos del scrollbar para mejor apariencia
+    // Estilos del scrollbar mejorados
     &::-webkit-scrollbar {
         width: 4px;
     }
 
     &::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.05);
         border-radius: 2px;
     }
 
     &::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.2);
         border-radius: 2px;
         transition: background 0.3s ease;
 
         &:hover {
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.4);
         }
     }
 
     // Para Firefox
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
 
-    // Mejoras específicas para móvil
-    @media (max-width: 768px) {
-        // Asegurar altura máxima correcta en móvil
-        max-height: calc(100vh - 100px);
+    // Configuración específica para móvil
+    &.mobile-scrollable {
+        // Asegurar scroll fluido en móvil
+        scroll-behavior: smooth;
+        overscroll-behavior: contain;
 
-        // Padding adicional en la parte inferior para evitar cortes
+        // Mejor rendimiento en móvil
+        will-change: scroll-position;
+        transform: translateZ(0);
+
+        // Padding extra en la parte inferior para evitar cortes
         padding-bottom: 2rem;
 
-        // Asegurar que todos los items sean visibles
+        // Gradiente sutil para indicar más contenido
+        &::after {
+            content: '';
+            position: sticky;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1.5rem;
+            background: linear-gradient(transparent, rgba(38, 50, 56, 0.9));
+            pointer-events: none;
+            margin-top: -1.5rem;
+            z-index: 10;
+        }
+    }
+}
+
+.sidenav-nav {
+    list-style: none;
+    padding: 1.5rem 0.938rem 0 0.938rem;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: min-content;
+
+    @media (max-width: 768px) {
+        // Padding reducido en móvil para más espacio
+        padding: 1rem 0.938rem 0 0.938rem;
+
+        // Asegurar que todos los items tengan espacio suficiente
         .sidenav-nav-item {
-            flex-shrink: 0; // Evita que los items se compriman
-            min-height: 3.5rem; // Altura mínima garantizada
+            flex-shrink: 0;
+            min-height: 3.5rem;
+            width: 100%;
         }
     }
 
@@ -293,7 +323,9 @@
         width: 100%;
         display: flex;
         justify-content: center;
-        flex-shrink: 0; // IMPORTANTE: Evita que se compriman        // Cuando el sidenav está expandido
+        flex-shrink: 0; // IMPORTANTE: Evita que se compriman
+
+        // Cuando el sidenav está expandido
         .sidenav-collapsed & {
             justify-content: stretch;
         }

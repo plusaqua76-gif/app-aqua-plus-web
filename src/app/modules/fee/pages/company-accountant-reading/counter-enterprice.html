@@ -1,0 +1,620 @@
+<!-- Gestión de Contadores Empresariales -->
+<div class="px-4 sm:px-6 lg:px-8 py-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1
+      class="text-2xl sm:text-3xl font-bold text-gray-700 dark:text-gray-200 mb-4"
+    >
+      Gestión de Contadores Empresariales
+    </h1>
+    <p class="text-gray-600 dark:text-gray-400">
+      Visualice y gestione los contadores asignados a su empresa
+    </p>
+  </div>
+
+  <!-- Contenedor principal -->
+  <div
+    class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30"
+  >
+    <div class="p-6 sm:p-8">
+      <!-- Loading State -->
+      @if (dataCounterEnterprice.isLoading()) {
+      <div class="text-center py-12">
+        <div
+          class="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 mb-4"
+        >
+          <svg
+            class="animate-spin h-8 w-8 text-blue-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+        </div>
+        <p class="text-lg font-medium text-gray-700 dark:text-gray-300">
+          Cargando datos del contador...
+        </p>
+      </div>
+      }
+      <!-- Contador existente -->
+      @if (dataCounterEnterprice.value()?.success &&
+      dataCounterEnterprice.value()?.response) {
+      <div class="space-y-6">
+        <!-- Icono de éxito -->
+        <div class="text-center">
+          <div
+            class="mx-auto w-20 h-20 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20"
+          >
+            <i
+              class="fas fa-tachometer-alt text-3xl text-green-600 dark:text-green-400"
+            ></i>
+          </div>
+        </div>
+        <!-- Información del contador -->
+        <div
+          class="bg-white/10 dark:bg-slate-700/20 rounded-xl border border-white/20 dark:border-slate-600/30 backdrop-blur-md p-6"
+        >
+          <h3
+            class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center"
+          >
+            Contador Empresarial Activo
+          </h3>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="space-y-2">
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Serial del Contador:
+              </p>
+              <p class="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                {{ dataCounterEnterprice.value()?.response?.contador?.serial ||
+                'N/A' }}
+              </p>
+            </div>
+            <div class="space-y-2">
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Tipo de Contador:
+              </p>
+              <p class="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                {{
+                dataCounterEnterprice.value()?.response?.contador?.tipoContador?.nombre
+                || 'N/A' }}
+              </p>
+            </div>
+            @if
+            (dataCounterEnterprice.value()?.response?.contador?.descripcion?.descripcion)
+            {
+            <div class="space-y-2 sm:col-span-2">
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Dirección:
+              </p>
+              <p class="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                {{
+                dataCounterEnterprice.value()?.response?.contador?.descripcion?.descripcion
+                }}
+              </p>
+            </div>
+            } @if
+            (dataCounterEnterprice.value()?.response?.contador?.fechaInstalacion)
+            {
+            <div class="space-y-2 sm:col-span-2">
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Fecha de Instalación:
+              </p>
+              <p class="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                {{
+                dataCounterEnterprice.value()?.response?.contador?.fechaInstalacion
+                | date:'dd/MM/yyyy' }}
+              </p>
+            </div>
+            }
+          </div>
+          <!-- Estado activo -->
+          <div class="mt-6 flex items-center justify-center">
+            <div
+              class="inline-flex items-center gap-2 px-4 py-2 bg-green-500/20 border border-green-500/30 rounded-xl backdrop-blur-md"
+            >
+              <i
+                class="fas fa-check-circle text-green-600 dark:text-green-400"
+              ></i>
+              <span
+                class="text-sm font-medium text-green-700 dark:text-green-300"
+              >
+                Contador Activo
+              </span>
+            </div>
+          </div>
+
+          <!-- Botón para agregar lectura -->
+          <div class="mt-6 flex justify-center">
+            <button
+              type="button"
+              (click)="openReadingModal()"
+              class="px-6 py-3 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-medium rounded-xl hover:border-blue-500/50 transition-all duration-300 ease-in-out hover:scale-105 flex items-center gap-2"
+            >
+              <i class="fas fa-plus"></i>
+              Registrar Lectura
+            </button>
+          </div>
+        </div>
+      </div>
+      }
+      <!-- No hay contador - Mostrar opción para crear -->
+      @if (!dataCounterEnterprice.isLoading() &&
+      (!dataCounterEnterprice.value()?.success ||
+      !dataCounterEnterprice.value()?.response)) {
+      <div class="text-center space-y-6">
+        <!-- Icono informativo -->
+        <div
+          class="mx-auto w-20 h-20 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20"
+        >
+          <i
+            class="fas fa-exclamation-circle text-3xl text-yellow-600 dark:text-yellow-400"
+          ></i>
+        </div>
+        <!-- Título y descripción -->
+        <div>
+          <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+            No hay contador asignado
+          </h2>
+          <p class="text-gray-600 dark:text-gray-400 mb-6">
+            Su empresa no tiene un contador asignado. Cree uno nuevo para
+            comenzar a gestionar las lecturas.
+          </p>
+        </div>
+        <!-- Botón para crear contador -->
+        <button
+          type="button"
+          (click)="openModal()"
+          class="inline-flex items-center gap-3 px-6 py-3 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-semibold rounded-xl hover:border-blue-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 active:scale-95"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+          Crear Contador
+        </button>
+      </div>
+      }
+
+      <!-- Error state -->
+      @if (dataCounterEnterprice.error()) {
+      <div class="text-center py-12">
+        <div
+          class="mx-auto w-16 h-16 bg-gradient-to-br from-red-500/20 to-pink-500/20 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 mb-4"
+        >
+          <i
+            class="fas fa-exclamation-triangle text-3xl text-red-600 dark:text-red-400"
+          ></i>
+        </div>
+        <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Error al cargar datos
+        </h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-4">
+          No se pudieron cargar los datos del contador
+        </p>
+        <button
+          type="button"
+          (click)="dataCounterEnterprice.reload()"
+          class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-medium rounded-lg hover:border-blue-500/50 transition-all duration-300"
+        >
+          Reintentar
+        </button>
+      </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Modal para crear contador -->
+@if (isModalOpen()) {
+<div class="fixed inset-0 z-50 overflow-y-auto">
+  <!-- Backdrop con blur -->
+  <div
+    class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+    (click)="closeModal()"
+    (keydown)="$event.key === 'Escape' && closeModal()"
+  ></div>
+
+  <!-- Modal container -->
+  <div class="flex min-h-full items-center justify-center p-4">
+    <div
+      class="relative w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border border-white/20 dark:border-slate-700/30 shadow-2xl transition-all"
+    >
+      <!-- Modal Header -->
+      <div class="border-b border-white/10 dark:border-slate-700/30 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200">
+            Crear Contador Empresarial
+          </h3>
+          <button
+            type="button"
+            (click)="closeModal()"
+            [disabled]="isCreating()"
+            class="rounded-lg p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-white/10 dark:hover:bg-slate-600/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="px-6 py-6">
+        <form [formGroup]="counterForm" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Tipo de Contador -->
+            <div class="md:col-span-2">
+              <label
+                for="tipoContador"
+                class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+              >
+                Tipo de Contador <span class="text-red-500">*</span>
+              </label>
+              <select
+                id="tipoContador"
+                formControlName="tipoContador"
+                [disabled]="isCreating()"
+                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                required
+              >
+                @if (loadTypeCounter.isLoading()) {
+                <option value="" disabled selected>Cargando tipos de contador...</option>
+                } @else if (loadTypeCounter.error()) {
+                <option value="" disabled selected>
+                  Error al cargar tipos de contador
+                </option>
+                } @else if (!loadTypeCounter.value()?.response ||
+                (loadTypeCounter.value()?.response &&
+                loadTypeCounter.value()!.response!.length === 0)) {
+                <option value="" disabled selected>
+                  No hay tipos de contador disponibles
+                </option>
+                } @else {
+                <option value="" disabled selected>Seleccione tipo de contador</option>
+                @for (tipo of loadTypeCounter.value()?.response ; track tipo.id)
+                {
+                <option
+                  [value]="tipo.id"
+                  class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4"
+                >
+                  {{ tipo.nombre || tipo.descripcion || 'Tipo sin nombre' }}
+                </option>
+                } }
+              </select>
+            </div>
+
+            <!-- Serial -->
+            <div class="md:col-span-2">
+              <label
+                for="serial"
+                class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+              >
+                Serial <span class="text-red-500">*</span>
+              </label>
+              <input
+                id="serial"
+                type="text"
+                formControlName="serial"
+                [disabled]="isCreating()"
+                placeholder="Ingrese el serial del contador"
+                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+            </div>
+
+            <!-- Departamento -->
+            <div>
+              <label
+                for="idDepartamento"
+                class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+              >
+                Departamento <span class="text-red-500">*</span>
+              </label>
+              <select
+                id="idDepartamento"
+                formControlName="idDepartamento"
+                [disabled]="isCreating()"
+                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                required
+              >
+                <option value="" disabled>
+                  @if (counterDepartmentsLoading()) { Cargando departamentos...
+                  } @else { Seleccione departamento }
+                </option>
+                @for (departamento of counterDepartaments(); track
+                departamento.id) {
+                <option
+                  [value]="departamento.id"
+                  class="text-gray-900 dark:text-white bg-white dark:bg-gray-700"
+                >
+                  {{ departamento.nombre }}
+                </option>
+                }
+              </select>
+            </div>
+
+            <!-- Ciudad -->
+            <div>
+              <label
+                for="idCiudad"
+                class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+              >
+                Ciudad <span class="text-red-500">*</span>
+              </label>
+              <select
+                id="idCiudad"
+                formControlName="idCiudad"
+                [disabled]="isCreating()"
+                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                required
+              >
+                <option value="" disabled>
+                  @if (counterCitiesLoading()) { Cargando ciudades... } @else if
+                  (counterCities().length === 0) { Primero seleccione un
+                  departamento } @else { Seleccione ciudad }
+                </option>
+                @for (ciudad of counterCities(); track ciudad.id) {
+                <option
+                  [value]="ciudad.id"
+                  class="text-gray-900 dark:text-white bg-white dark:bg-gray-700"
+                >
+                  {{ ciudad.nombre }}
+                </option>
+                }
+              </select>
+            </div>
+
+            <!-- Corregimiento -->
+            <div>
+              <label
+                for="idCorregimiento"
+                class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+              >
+                Corregimiento
+              </label>
+              <select
+                id="idCorregimiento"
+                formControlName="idCorregimiento"
+                [disabled]="isCreating()"
+                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="" disabled>
+                  @if (counterCorregimientosLoading()) { Cargando
+                  corregimientos... } @else if (counterCorregimientos().length
+                  === 0) { Primero seleccione una ciudad } @else { Seleccione
+                  corregimiento }
+                </option>
+                @for (corregimiento of counterCorregimientos(); track
+                corregimiento.id) {
+                <option
+                  [value]="corregimiento.id"
+                  class="text-gray-900 dark:text-white bg-white dark:bg-gray-700"
+                >
+                  {{ corregimiento.nombre }}
+                </option>
+                }
+              </select>
+            </div>
+
+            <!-- Dirección -->
+            <div>
+              <label
+                for="direccion"
+                class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+              >
+                Dirección <span class="text-red-500">*</span>
+              </label>
+              <input
+                id="direccion"
+                type="text"
+                formControlName="direccion"
+                [disabled]="isCreating()"
+                placeholder="Ingrese la dirección del contador"
+                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="border-t border-white/10 dark:border-slate-700/30 px-6 py-4">
+        <div class="flex items-center justify-end gap-3">
+          <button
+            type="button"
+            (click)="closeModal()"
+            [disabled]="isCreating()"
+            class="px-6 py-2 bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:border-gray-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="button"
+            (click)="createCounter()"
+            [disabled]="isCreating()"
+            class="px-6 py-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 backdrop-blur-md text-green-700 dark:text-green-300 font-medium rounded-lg hover:border-green-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
+          >
+            @if (isCreating()) {
+            <svg
+              class="animate-spin h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            Creando... } @else { Crear Contador }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Modal para registrar lectura -->
+@if (isReadingModalOpen()) {
+<div class="fixed inset-0 z-50 overflow-y-auto">
+  <!-- Backdrop con blur -->
+  <div
+    class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+    (click)="closeReadingModal()"
+    (keydown)="$event.key === 'Escape' && closeReadingModal()"
+  ></div>
+
+  <!-- Modal container -->
+  <div class="flex min-h-full items-center justify-center p-4">
+    <div
+      class="relative w-full max-w-xl transform overflow-hidden rounded-2xl bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border border-white/20 dark:border-slate-700/30 shadow-2xl transition-all"
+    >
+      <!-- Modal Header -->
+      <div class="border-b border-white/10 dark:border-slate-700/30 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200">
+            Registrar Lectura del Contador
+          </h3>
+          <button
+            type="button"
+            (click)="closeReadingModal()"
+            [disabled]="isCreatingReading()"
+            class="rounded-lg p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-white/10 dark:hover:bg-slate-600/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="px-6 py-6">
+        <form [formGroup]="readingForm" class="space-y-6">
+          <!-- Metros Cúbicos -->
+          <div>
+            <label for="lectura" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              Metros Cúbicos <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="lectura"
+              type="number"
+              formControlName="lectura"
+              [disabled]="isCreatingReading()"
+              placeholder="Ingrese la lectura en metros cúbicos"
+              min="0"
+              step="0.01"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            @if (readingForm.get('lectura')?.invalid && readingForm.get('lectura')?.touched) {
+            <p class="mt-2 text-sm text-red-500">
+              @if (readingForm.get('lectura')?.errors?.['required']) {
+              La lectura es requerida.
+              }
+              @if (readingForm.get('lectura')?.errors?.['min']) {
+              La lectura debe ser mayor o igual a 0.
+              }
+            </p>
+            }
+          </div>
+
+          <!-- Consumo Anormal -->
+          <div>
+            <label for="consumoAnormal" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              ¿Consumo Anormal? <span class="text-red-500">*</span>
+            </label>
+            <select
+              id="consumoAnormal"
+              formControlName="consumoAnormal"
+              [disabled]="isCreatingReading()"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              required
+            >
+              <option value="false" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">No</option>
+              <option value="true" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">Sí</option>
+            </select>
+          </div>
+
+          <!-- Observaciones -->
+          <div>
+            <label for="descripcion" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              Observaciones <span class="text-red-500">*</span>
+            </label>
+            <textarea
+              id="descripcion"
+              formControlName="descripcion"
+              [disabled]="isCreatingReading()"
+              placeholder="Ingrese observaciones sobre la lectura"
+              rows="3"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+            ></textarea>
+            @if (readingForm.get('descripcion')?.invalid && readingForm.get('descripcion')?.touched) {
+            <p class="mt-2 text-sm text-red-500">
+              Las observaciones son requeridas.
+            </p>
+            }
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="border-t border-white/10 dark:border-slate-700/30 px-6 py-4">
+        <div class="flex items-center justify-end gap-3">
+          <button
+            type="button"
+            (click)="closeReadingModal()"
+            [disabled]="isCreatingReading()"
+            class="px-6 py-2 bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:border-gray-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="button"
+            (click)="createReading()"
+            [disabled]="isCreatingReading()"
+            class="px-6 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-medium rounded-lg hover:border-blue-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
+          >
+            @if (isCreatingReading()) {
+            <svg class="animate-spin h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Registrando...
+            } @else {
+            Registrar Lectura
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+}

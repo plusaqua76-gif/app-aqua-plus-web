@@ -75,16 +75,10 @@ import { Account } from '../accounts/account';
 
     <!-- Sistema de Navegación por Tabs -->
     <div class="px-4 sm:px-6 lg:px-8 py-6">
-      <!-- Header -->
-      <div class="mb-6">
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-700 dark:text-gray-200 mb-4">
-          Gestión Contable
-        </h1>
-        <p class="text-gray-600 dark:text-gray-400">Sistema integral para la administración contable</p>
-      </div>
+
 
       <!-- Tabs Navigation -->
-      <div class="mb-6">
+      <div class="">
         <div class="relative overflow-hidden shadow-xl sm:rounded-2xl bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl border border-white/20 dark:border-slate-700/30">
           <!-- Tab Headers -->
           <div class="flex overflow-x-auto scrollbar-hide border-b border-white/20 dark:border-slate-700/30">

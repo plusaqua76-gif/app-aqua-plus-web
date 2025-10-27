@@ -13,7 +13,7 @@ export const serverRoutes: ServerRoute[] = [
     'shell/bill/update-bill/:id',
     'shell/bill/create-credit/:id',
     'shell/bill/update-debt/:id',
-    'shell/reading/update-reading/:id',
+    'shell/reading/history-reading/:id',
     'shell/employee/update-employee/:id',
     'shell/enterprise/update-enterprise/:id',
     'shell/bill/print-bill/:id'

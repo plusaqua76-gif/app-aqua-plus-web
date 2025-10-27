@@ -6,7 +6,7 @@ import { PlazoPagoService } from '../../service/plazoPago.service';
 import { ToastService } from '@services/toast.service';
 import { PqrEnterprisesService } from '../../../pqr-client/services/pqr-enterprices.service';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { of } from 'rxjs';
+import { of, catchError } from 'rxjs';
 import { TipoDeudaService } from '../../service/tipoDeuda.service';
 import { DeudaService } from '../../service/deuda.service';
 import { IDeudaCliente } from '@interfaces/IdeudaFactura';
@@ -77,16 +77,31 @@ export class CreateDebt  {
       if (!empresaId) {
         return of(null);
       }
-      return this.enterpriseClientCounterService.getAllClientsByIdEnterprise(empresaId);
+      return this.enterpriseClientCounterService.getAllClientsByIdEnterprise(empresaId).pipe(
+        catchError(error => {
+          console.error('Error loading clients:', error);
+          return of({ success: false, response: [], message: 'Error al cargar clientes' });
+        })
+      );
     }
   })
 
   plazopago = rxResource({
-    stream: () => this.plazoPagoService.getAllPlazoPago()
+    stream: () => this.plazoPagoService.getAllPlazoPago().pipe(
+      catchError(error => {
+        console.error('Error loading payment terms:', error);
+        return of({ success: false, response: [], message: 'Error al cargar plazos de pago' });
+      })
+    )
   })
 
   tipodeuda = rxResource({
-    stream: () => this.tipoDeudaService.getAllTipoDeuda()
+    stream: () => this.tipoDeudaService.getAllTipoDeuda().pipe(
+      catchError(error => {
+        console.error('Error loading debt types:', error);
+        return of({ success: false, response: [], message: 'Error al cargar tipos de deuda' });
+      })
+    )
   })
 
   onSubmit(): void {
@@ -181,10 +196,10 @@ export class CreateDebt  {
   }
 
   private markFormGroupTouched(): void {
-    Object.keys(this.deudaForm.controls).forEach(key => {
+    for (const key of Object.keys(this.deudaForm.controls)) {
       const control = this.deudaForm.get(key);
       control?.markAsTouched();
-    });
+    }
   }
 
 }

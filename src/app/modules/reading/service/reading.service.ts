@@ -2,11 +2,10 @@ import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment.local';
 import { END_POINT_SERVICE } from '../../../environments/environment.variables';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { catchError, map, Observable, throwError } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { ApiResponse } from '@interfaces/Iresponse';
-import { IEstado, ILectura } from '@interfaces/Ifactura';
-import { Router } from '@angular/router';
-import { LecturaResponse } from '@interfaces/reading/Ireading';
+import { ILectura } from '@interfaces/Ifactura';
+import { LecturaResponse, HistoryReadingApiResponse } from '@interfaces/reading/Ireading';
 import { IPaginatedResponse, IPaginationParams } from '@interfaces/IpaginatedResponse';
 
 @Injectable({
@@ -14,8 +13,13 @@ import { IPaginatedResponse, IPaginationParams } from '@interfaces/IpaginatedRes
 })
 export class ReadingService {
   readonly apiUrl = `${environment.apiUrl}/${END_POINT_SERVICE.GET_LECTURA}`;
-
+  readonly  apirUrlhistory = environment.apiUrl
   protected readonly http = inject(HttpClient);
+
+  getHistoryReading(idReading: number): Observable<HistoryReadingApiResponse> {
+    return this.http.get<HistoryReadingApiResponse>(`${this.apirUrlhistory}/historico-lectura/lecturas/${idReading}`);
+  }
+
 
   getReadingsPaginated(
     empresaId: number,
