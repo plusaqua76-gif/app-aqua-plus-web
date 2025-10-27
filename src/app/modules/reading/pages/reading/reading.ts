@@ -48,6 +48,10 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       {{ formatDate(row.fechaLectura) }}
     </ng-template>
 
+    <ng-template #nombreCompletoTpl let-row>
+      {{ getFullName(row.contador?.cliente) }}
+    </ng-template>
+
     <app-table-dynamic
       [title]="title()"
       [columns]="readingColumns()"
@@ -57,6 +61,7 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       [actionTemplate]="actionsTemplate"
       [columnTemplates]="{
         'contador.serial': contadorTpl,
+        'contador.cliente.nombreCompleto': nombreCompletoTpl,
         consumoAnormal: consumoAnormalTpl,
         fechaLectura: fechaTpl
       }"
@@ -95,6 +100,7 @@ export class Reading {
 
   readingColumns = signal([
     { field: 'contador.serial', header: 'Contador', type: 'text' as const, template: 'contadorTpl' },
+    { field: 'contador.cliente.nombreCompleto', header: 'Nombre Completo', type: 'text' as const, template: 'nombreCompletoTpl' },
     { field: 'lectura', header: 'Lectura(m³)', type: 'number' as const },
     { field: 'fechaLectura', header: 'Fecha Lectura', type: 'date' as const, template: 'fechaTpl' },
     { field: 'consumoAnormal', header: 'Consumo Anormal', type: 'text' as const, template: 'consumoAnormalTpl' },
@@ -107,7 +113,12 @@ export class Reading {
     size: 5,
   });
 
-  // Resource para datos paginados del servidor
+  constructor() {
+    effect(() => {
+      console.log('esta es la data mi pez', this.serverReadingData.value());
+    })
+  }
+
   serverReadingData = rxResource({
     params: () => ({
       enterpriseId: this.enterpriseId(),
@@ -148,7 +159,10 @@ export class Reading {
     if (!dateString) return '';
 
     try {
-      const date = new Date(dateString);
+      const datePart = dateString.split('T')[0];
+      const [year, month, day] = datePart.split('-');
+      const date = new Date(Number.parseInt(year), Number.parseInt(month) - 1, Number.parseInt(day));
+
       // Formatear como DD/MM/YYYY
       return date.toLocaleDateString('es-ES', {
         day: '2-digit',
@@ -159,6 +173,22 @@ export class Reading {
       console.error('Error formatting date:', error);
       return dateString;
     }
+  }
+
+  /**
+   * Concatena el nombre completo del cliente
+   */
+  getFullName(cliente: any): string {
+    if (!cliente) return 'N/A';
+
+    const partes = [
+      cliente.nombre,
+      cliente.segundoNombre,
+      cliente.apellido,
+      cliente.segundoApellido
+    ].filter(parte => parte && parte.trim() !== ''); // Filtrar valores vacíos o null
+
+    return partes.join(' ') || 'N/A';
   }
 
   handleTableAction(event: { action: string; row?: any }): void {

@@ -1,5 +1,5 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, computed, inject, PLATFORM_ID, signal } from '@angular/core';
+import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { catchError, EMPTY, of } from 'rxjs';
@@ -131,6 +131,12 @@ export class HistoryReading {
     () => `historial_lectura_${this.readingId()}_${new Date().toISOString().split('T')[0]}`
   );
 
+  constructor() {
+    effect(() => {
+      console.log('la data mi pez del historial', this.dataHistoryReading.value());
+    })
+  }
+
 
   dataHistoryReading = rxResource({
     params: () => ({
@@ -159,7 +165,9 @@ export class HistoryReading {
     if (!dateString) return '';
 
     try {
-      const date = new Date(dateString);
+      const datePart = dateString.split('T')[0];
+      const [year, month, day] = datePart.split('-');
+      const date = new Date(Number.parseInt(year), Number.parseInt(month) - 1, Number.parseInt(day));
 
       return date.toLocaleDateString('es-ES', {
         weekday: 'long',
@@ -187,7 +195,13 @@ export class HistoryReading {
   formatDateComplete(dateString: string): string {
     if (!dateString) return '';
     try {
-      const date = new Date(dateString);
+      // Extraer la parte de la fecha sin la zona horaria para evitar problemas de UTC
+      const datePart = dateString.split('T')[0];
+      const [year, month, day] = datePart.split('-');
+
+      // Crear la fecha usando los componentes individuales para evitar problemas de zona horaria
+      const date = new Date(Number.parseInt(year), Number.parseInt(month) - 1, Number.parseInt(day));
+
       return date.toLocaleDateString('es-ES', {
         weekday: 'long',
         year: 'numeric',
@@ -197,6 +211,7 @@ export class HistoryReading {
         minute: '2-digit'
       });
     } catch (error) {
+      console.error('Error formatting complete date:', error);
       return dateString;
     }
   }
@@ -204,13 +219,20 @@ export class HistoryReading {
   formatDateOnly(dateString: string): string {
     if (!dateString) return '';
     try {
-      const date = new Date(dateString);
+      // Extraer la parte de la fecha sin la zona horaria para evitar problemas de UTC
+      const datePart = dateString.split('T')[0];
+      const [year, month, day] = datePart.split('-');
+
+      // Crear la fecha usando los componentes individuales para evitar problemas de zona horaria
+      const date = new Date(Number.parseInt(year), Number.parseInt(month) - 1, Number.parseInt(day));
+
       return date.toLocaleDateString('es-ES', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
       });
     } catch (error) {
+      console.error('Error formatting date only:', error);
       return dateString;
     }
   }

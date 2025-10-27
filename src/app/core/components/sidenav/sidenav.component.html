@@ -43,22 +43,23 @@
     }
   </div>
 
-  <nav aria-label="Menú principal">
-    <ul class="sidenav-nav">
-    <!-- @for (data of navData; track $index) { -->
-         @for (data of dataNavsUser.value()?.response || []; track $index) {
-    <li class="sidenav-nav-item" *hasRole="data.allowedRoles">
-      <a
-        class="sidenav-nav-link"
-        [routerLink]="[data.routeLink]"
-        routerLinkActive="active"
-        [attr.aria-label]="data.label"
-        [attr.title]="collapsed ? null : data.label"
-        role="menuitem"
-        [attr.data-tooltip-target]="collapsed ? null : 'tooltip-' + $index"
-        data-tooltip-placement="right"
-        (click)="onItemClick()"
-      >
+  <nav aria-label="Menú principal" class="nav-container">
+    <div class="nav-scrollable-wrapper" [class.mobile-scrollable]="screenWidth <= 768">
+      <ul class="sidenav-nav">
+      <!-- @for (data of navData; track $index) { -->
+           @for (data of dataNavsUser.value()?.response || []; track $index) {
+      <li class="sidenav-nav-item" *hasRole="data.allowedRoles">
+        <a
+          class="sidenav-nav-link"
+          [routerLink]="[data.routeLink]"
+          routerLinkActive="active"
+          [attr.aria-label]="data.label"
+          [attr.title]="collapsed ? null : data.label"
+          role="menuitem"
+          [attr.data-tooltip-target]="collapsed ? null : 'tooltip-' + $index"
+          data-tooltip-placement="right"
+          (click)="onItemClick()"
+        >
         <div class="sidenav-link-icon">
           @switch (data.icon) { @case ('heroicon-chart-bar') {
           <svg
@@ -258,36 +259,22 @@
       </a>
     </li>
     }
-  </ul>
- @if (!collapsed) {
-    @for (data of dataNavsUser.value()?.response || []; track $index) {
-      @if (data.allowedRoles) {
-        <div
-          [id]="'tooltip-' + $index"
-          role="tooltip"
-          class="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
-        >
-          {{ data.label }}
-          <div class="tooltip-arrow" data-popper-arrow></div>
-        </div>
+    </ul>
+    </div>
+
+    @if (!collapsed) {
+      @for (data of dataNavsUser.value()?.response || []; track $index) {
+        @if (data.allowedRoles) {
+          <div
+            [id]="'tooltip-' + $index"
+            role="tooltip"
+            class="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
+          >
+            {{ data.label }}
+            <div class="tooltip-arrow" data-popper-arrow></div>
+          </div>
+        }
       }
     }
-  }
-
-
-  <!-- @if (!collapsed) {
-    @for (data of navData; track $index) {
-      @if (data.allowedRoles) {
-        <div
-          [id]="'tooltip-' + $index"
-          role="tooltip"
-          class="absolute z-50 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
-        >
-          {{ data.label }}
-          <div class="tooltip-arrow" data-popper-arrow></div>
-        </div>
-      }
-    }
-  } -->
   </nav>
 </div>
