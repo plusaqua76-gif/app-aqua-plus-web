@@ -9,7 +9,9 @@
     "build:ssr": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:aqua-plus": "node dist/aqua-plus/server/server.mjs"
+    "serve:ssr:aqua-plus": "node dist/aqua-plus/server/server.mjs",
+    "build:prod": "ng build --configuration=production",
+    "start-pwa-ssl": "npm run build:prod && copy dist\\aqua-plus\\browser\\index.csr.html dist\\aqua-plus\\browser\\index.html && http-server dist/aqua-plus/browser -p 8080 -c-1 -S -C localhost+2.pem -K localhost+2-key.pem --spa"
   },
   "private": true,
   "engines": {
@@ -25,6 +27,7 @@
     "@angular/platform-browser": "^20.0.0",
     "@angular/platform-server": "^20.0.0",
     "@angular/router": "^20.0.0",
+    "@angular/service-worker": "^20.1.6",
     "@angular/ssr": "^20.0.1",
     "@tailwindcss/postcss": "^4.1.8",
     "apexcharts": "^3.46.0",
@@ -48,6 +51,7 @@
     "@types/html2canvas": "^0.5.35",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^20.17.19",
+    "http-server": "^14.1.1",
     "jasmine-core": "~5.7.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",

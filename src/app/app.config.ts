@@ -1,6 +1,7 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection, isDevMode } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideServiceWorker } from '@angular/service-worker';
 
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay, withIncrementalHydration } from '@angular/platform-browser';
@@ -24,5 +25,9 @@ export const appConfig: ApplicationConfig = {
       withEventReplay(),
       withIncrementalHydration()
     ),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: true, // Habilitado tanto en desarrollo como producción
+      registrationStrategy: 'registerWhenStable:30000'
+    }),
   ]
 };
