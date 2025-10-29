@@ -53,6 +53,17 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "azure": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                }
+              ],
+              "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json"
             }
           },
           "defaultConfiguration": "production"
