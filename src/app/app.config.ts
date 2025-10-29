@@ -26,7 +26,7 @@ export const appConfig: ApplicationConfig = {
       withIncrementalHydration()
     ),
     provideServiceWorker('ngsw-worker.js', {
-      enabled: true, // Habilitado tanto en desarrollo como producción
+      enabled: !isDevMode(), // Solo habilitado en producción => para poder probar en desarrollo cambiar a 'true'
       registrationStrategy: 'registerWhenStable:30000'
     }),
   ]

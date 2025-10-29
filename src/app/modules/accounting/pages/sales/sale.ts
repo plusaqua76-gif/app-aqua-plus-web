@@ -10,7 +10,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { SalesService } from '../../service/sales.service';
 import { ToastService } from '@services/toast.service';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { EMPTY } from 'rxjs';
+import { EMPTY, catchError, of } from 'rxjs';
 import { TableComponent } from '@components/table';
 import { PopupComponent } from '@shared/components/popUp';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
@@ -152,6 +152,28 @@ export class Sale {
         enterpriseId,
         pagination,
         filters
+      ).pipe(
+        catchError(error => {
+          console.error('Error loading sales:', error);
+          // Mostrar toast solo en entorno de navegador
+          if (this.isBrowser) {
+            try {
+              this.toastService.error('Error', 'No se pudieron cargar las ventas');
+            } catch {}
+          }
+
+          // Devolver un objeto paginado consistente para evitar que rxResource entre en estado de error
+          return of({
+            success: false,
+            message: 'Error al cargar ventas',
+            code: error?.status || 500,
+            totalCount: 0,
+            pageSize: pagination?.size ?? 0,
+            currentPage: pagination?.page ?? 0,
+            totalPages: 0,
+            response: []
+          });
+        })
       );
     },
   });

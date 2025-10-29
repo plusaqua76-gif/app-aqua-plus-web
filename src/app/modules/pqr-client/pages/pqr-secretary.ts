@@ -6,6 +6,7 @@ import { IClienteNovedad } from '@interfaces/INovelty/IClienteNovedad';
 import { IUpdateNoveltyRequest } from '@interfaces/INovelty/IStatusNovelty';
 import { PqrEnterprisesService } from '../services/pqr-enterprices.service';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { catchError, of, EMPTY } from 'rxjs';
 
 @Component({
   selector: 'app-pqr-secretary',
@@ -355,15 +356,28 @@ export class PqrSecretary implements OnInit {
   });
 
   statusNovelty = rxResource({
-    stream: () => this.pqrService.getStatusPqrById()
+    stream: () => this.pqrService.getStatusPqrById().pipe(
+      catchError(error => {
+        console.error('Error loading status novelty:', error);
+        this.toastService.error('Error', 'No se pudieron cargar los estados de PQR');
+        return of({ success: false, response: [], message: 'Error al cargar estados' });
+      })
+    )
   });
 
   ngOnInit() {
+    // Verificar que tenemos datos de usuario válidos antes de cargar PQRs
+    const empresaId = this.empresaId();
+    if (!empresaId) {
+      console.warn('No se pudo obtener empresaId en ngOnInit');
+      this.toastService.error('Error', 'Datos de sesión inválidos. Por favor, inicie sesión nuevamente.');
+      return;
+    }
+
     this.cargarPQRs();
   }
 
   cargarPQRs(): void {
-    this.cargandoPQRs.set(true);
     const empresaId = this.empresaId();
 
     if (!empresaId) {
@@ -372,21 +386,41 @@ export class PqrSecretary implements OnInit {
       return;
     }
 
-    this.pqrService.getPqrsForSecretary(empresaId).subscribe({
+    this.cargandoPQRs.set(true);
+
+    this.pqrService.getPqrsForSecretary(empresaId).pipe(
+      catchError(error => {
+        this.cargandoPQRs.set(false);
+        return of({ success: false, response: [], message: 'Error al cargar PQRs' });
+      })
+    ).subscribe({
       next: (response) => {
-        this.pqrs = response.response;
-        this.aplicarFiltros();
+        if (response.success !== false) {
+          this.pqrs = response.response || [];
+          this.aplicarFiltros();
+        } else {
+          this.pqrs = [];
+          this.pqrsFiltrados = [];
+        }
         this.cargandoPQRs.set(false);
       },
       error: (error) => {
-        console.error('Error cargando PQRs:', error);
-        this.toastService.error('Error', 'No se pudieron cargar los PQRs');
+        console.error('Error en subscribe cargando PQRs:', error);
+        this.toastService.error('Error', 'Error inesperado al cargar los PQRs');
         this.cargandoPQRs.set(false);
+        this.pqrs = [];
+        this.pqrsFiltrados = [];
       }
     });
   }
 
   actualizarLista(): void {
+    const empresaId = this.empresaId();
+    if (!empresaId) {
+      this.toastService.error('Error', 'No se pudo obtener el ID de la empresa para actualizar');
+      return;
+    }
+
     this.cargarPQRs();
     this.toastService.success('Actualizado', 'Lista de PQRs actualizada correctamente');
   }
@@ -448,14 +482,23 @@ export class PqrSecretary implements OnInit {
       }
     };
 
-    this.pqrService.updateNovelty(updateRequest).subscribe({
+    this.pqrService.updateNovelty(updateRequest).pipe(
+      catchError(error => {
+        console.error('Error updating PQR:', error);
+        this.toastService.error('Error', 'No se pudo actualizar el PQR');
+        return of({ success: false, response: null, message: 'Error al actualizar PQR' });
+      })
+    ).subscribe({
       next: (response) => {
-        this.toastService.success('Éxito', 'PQR actualizado correctamente');
-        this.cerrarModalRespuesta();
-        this.cargarPQRs();
+        if (response.success !== false) {
+          this.toastService.success('Éxito', 'PQR actualizado correctamente');
+          this.cerrarModalRespuesta();
+          this.cargarPQRs();
+        }
       },
       error: (error) => {
-        this.toastService.error('Error', 'No se pudo actualizar el PQR');
+        console.error('Error en subscribe actualizando PQR:', error);
+        this.toastService.error('Error', 'Error inesperado al actualizar el PQR');
       }
     });
   }

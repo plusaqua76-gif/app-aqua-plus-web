@@ -239,8 +239,6 @@ export class ChartCounter implements AfterViewInit, OnDestroy {
         }, 0);
       },
       error: (error: any) => {
-        console.error('Error loading consumo data:', error);
-        // Fallback a datos por defecto
         this.initializeColumnChart();
       }
     });
