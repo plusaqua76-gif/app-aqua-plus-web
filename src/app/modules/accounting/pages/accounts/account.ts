@@ -10,7 +10,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AccountsService } from '../../service/accounts.service';
 import { ToastService } from '@services/toast.service';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { EMPTY } from 'rxjs';
+import { EMPTY, catchError, of } from 'rxjs';
 import { TableComponent } from '@components/table';
 import { PopupComponent } from '@shared/components/popUp';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
@@ -170,6 +170,28 @@ export class Account {
         enterpriseId,
         pagination,
         filters
+      ).pipe(
+        catchError(error => {
+          console.error('Error loading accounts:', error);
+          // Mostrar toast solo en entorno de navegador
+          if (this.isBrowser) {
+            try {
+              this.toastService.error('Error', 'No se pudieron cargar las cuentas');
+            } catch {}
+          }
+
+          // Devolver un objeto paginado consistente para evitar que rxResource entre en estado de error
+          return of({
+            success: false,
+            message: 'Error al cargar cuentas',
+            code: error?.status || 500,
+            totalCount: 0,
+            pageSize: pagination?.size ?? 0,
+            currentPage: pagination?.page ?? 0,
+            totalPages: 0,
+            response: []
+          });
+        })
       );
     },
   });
@@ -200,17 +222,27 @@ export class Account {
 
   confirmDelete(): void {
     if (this.itemToDelete !== null) {
-      this.accountsService.deleteAccountById(this.itemToDelete).subscribe({
-        next: () => {
-          this.toastService.success(
-            'Eliminado',
-            'Cuenta eliminada correctamente.'
-          );
-          this.serverAccountData.reload?.();
+      this.accountsService.deleteAccountById(this.itemToDelete).pipe(
+        catchError(error => {
+          console.error('Error deleting account:', error);
+          this.toastService.error('Error', 'No se pudo eliminar la cuenta.');
+          this.itemToDelete = null;
+          return of({ success: false, response: null, message: 'Error al eliminar cuenta' });
+        })
+      ).subscribe({
+        next: (response) => {
+          if (response.success !== false) {
+            this.toastService.success(
+              'Eliminado',
+              'Cuenta eliminada correctamente.'
+            );
+            this.serverAccountData.reload?.();
+          }
           this.itemToDelete = null;
         },
-        error: () => {
-          this.toastService.error('Error', 'No se pudo eliminar la cuenta.');
+        error: (error) => {
+          console.error('Error en subscribe deleteAccount:', error);
+          this.toastService.error('Error', 'Error inesperado al eliminar la cuenta.');
           this.itemToDelete = null;
         },
       });

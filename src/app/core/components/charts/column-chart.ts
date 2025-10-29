@@ -306,7 +306,6 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
         }, 0);
       },
       error: (error: any) => {
-        console.error('❌ Error loading consumo data:', error);
         this.isLoading.set(false);
         this.hasError.set(true);
         this.initializeColumnChart();

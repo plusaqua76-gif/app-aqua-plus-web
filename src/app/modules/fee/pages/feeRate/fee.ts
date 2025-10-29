@@ -135,7 +135,6 @@ export class FeeComponent {
         ? this.rateTypeService.getRateTypes(enterpriseId).pipe(
             catchError(error => {
               console.error('Error loading rate types:', error);
-              // Retornar un observable con estructura vacía pero válida
               return of({ success: false, response: [], message: 'Error al cargar tipos de tarifa' });
             })
           )
@@ -228,12 +227,12 @@ export class FeeComponent {
     const usuario = this.nombreUsuario();
 
     if (!empresaId) {
-      this.toastService.error('Error', 'No se pudo obtener la empresa actual');
+      console.error('Empresa ID no disponible');
       return;
     }
 
     if (!usuario) {
-      this.toastService.error('Error', 'No se pudo obtener el usuario actual');
+      console.error('Nombre de usuario no disponible');
       return;
     }
 

@@ -3,7 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfigRolesService } from '../services/config-roles.service';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { EMPTY } from 'rxjs';
+import { EMPTY, catchError, of } from 'rxjs';
 import { TableComponent } from '@components/table';
 import { ToastService } from '@services/toast.service';
 
@@ -385,22 +385,39 @@ export class AdminRoles {
     if (!this.isBrowser) return null;
     try {
       const userDataString = sessionStorage.getItem('userData');
-      if (!userDataString) return null;
-      return JSON.parse(userDataString);
+      if (!userDataString) {
+        console.warn('No userData found in sessionStorage');
+        return null;
+      }
+      const parsed = JSON.parse(userDataString);
+      if (!parsed || typeof parsed !== 'object') {
+        console.warn('Invalid userData format in sessionStorage');
+        return null;
+      }
+      return parsed;
     } catch (e) {
       console.error('Error parsing userData from sessionStorage:', e);
+      sessionStorage.removeItem('userData'); // Limpiar datos corruptos
       return null;
     }
   });
 
   readonly empresaId = computed(() => {
     const data = this.userData();
-    return data?.empresaId || null;
+    const id = data?.empresaId;
+    if (!id) {
+      console.warn('No empresaId found in userData');
+    }
+    return id || null;
   });
 
     readonly rolId = computed(() => {
     const data = this.userData();
-    return data?.rolId || null;
+    const id = data?.rolId;
+    if (!id) {
+      console.warn('No rolId found in userData');
+    }
+    return id || null;
   });
 
   readonly username = computed(() => {
@@ -421,7 +438,15 @@ export class AdminRoles {
       if (!empresaId) {
         return EMPTY;
       }
-      return this.configRolesService.getUsersEnterprice(empresaId);
+      return this.configRolesService.getUsersEnterprice(empresaId).pipe(
+        catchError(error => {
+          console.error('Error loading users:', error);
+          if (error.status === 404) {
+            console.warn(`No users found for enterprise ${empresaId}`);
+          }
+          return of({ success: false, response: [], message: 'Error al cargar usuarios' });
+        })
+      );
     },
   });
 
@@ -435,12 +460,20 @@ export class AdminRoles {
       if (!empresaId || !rolId) {
         return EMPTY;
       }
-      return this.configRolesService.getmenuByRole(empresaId, rolId);
+      return this.configRolesService.getmenuByRole(empresaId, rolId).pipe(
+        catchError(error => {
+          console.error('Error loading menus by role:', error);
+          return of({ success: false, response: [], message: 'Error al cargar menús del rol' });
+        })
+      );
     }
   })
 
   usersData = computed(() => {
     const data = this.serverUsersData.value();
+    if (data?.success === false) {
+      return []; // Retornar array vacío en caso de error
+    }
     return data?.response || [];
   });
 
@@ -454,36 +487,57 @@ export class AdminRoles {
       if (!empresaId || !rolId) {
         return EMPTY;
       }
-      return this.configRolesService.getmenuByRole(empresaId, rolId);
+      return this.configRolesService.getmenuByRole(empresaId, rolId).pipe(
+        catchError(error => {
+          console.error('Error loading role menu data:', error);
+          return of({ success: false, response: [], message: 'Error al cargar menús del rol' });
+        })
+      );
     },
   });
 
   menuItems = computed(() => {
     const data = this.roleMenuData.value();
+    if (data?.success === false) {
+      return []; // Retornar array vacío en caso de error
+    }
     return data?.response || [];
   });
 
   allMenusData = rxResource({
-    stream: () => this.configRolesService.getMenusAll()
+    stream: () => this.configRolesService.getMenusAll().pipe(
+      catchError(error => {
+        console.error('Error loading all menus:', error);
+        return of({ success: false, response: [], message: 'Error al cargar menús' });
+      })
+    )
   });
 
   allRolesData = rxResource({
-    stream: () => this.configRolesService.getAllRoles()
+    stream: () => this.configRolesService.getAllRoles().pipe(
+      catchError(error => {
+        console.error('Error loading all roles:', error);
+        return of({ success: false, response: [], message: 'Error al cargar roles' });
+      })
+    )
   });
 
   availableRoles = computed(() => {
     const data = this.allRolesData.value();
+    if (data?.success === false) {
+      return []; // Retornar array vacío en caso de error
+    }
     return data?.response || [];
   });
 
   availableMenus = computed(() => {
     const data = this.allMenusData.value();
-    if (!data?.response) return [];
+    if (!data?.response || data?.success === false) return [];
 
     // Extraer menús únicos
     const uniqueMenus = new Map();
     data.response.forEach(item => {
-      if (!uniqueMenus.has(item.menu.id)) {
+      if (item?.menu && !uniqueMenus.has(item.menu.id)) {
         uniqueMenus.set(item.menu.id, item.menu);
       }
     });
@@ -553,16 +607,24 @@ export class AdminRoles {
       return;
     }
 
-    this.configRolesService.updateUserRole(usuario.id, nuevoRolId).subscribe({
-      next: () => {
-        this.toastService.success('Éxito', 'Rol actualizado correctamente');
-        this.cerrarModalRoles();
-        // Recargar la data de usuarios
-        this.serverUsersData.reload?.();
-      },
-      error: (error) => {
+    this.configRolesService.updateUserRole(usuario.id, nuevoRolId).pipe(
+      catchError(error => {
         console.error('Error al cambiar rol:', error);
         this.toastService.error('Error', 'No se pudo cambiar el rol del usuario');
+        return of({ success: false, response: null, message: 'Error al cambiar rol' });
+      })
+    ).subscribe({
+      next: (response) => {
+        if (response.success !== false) {
+          this.toastService.success('Éxito', 'Rol actualizado correctamente');
+          this.cerrarModalRoles();
+          // Recargar la data de usuarios
+          this.serverUsersData.reload?.();
+        }
+      },
+      error: (error) => {
+        console.error('Error en subscribe cambiarRolUsuario:', error);
+        this.toastService.error('Error', 'Error inesperado al cambiar el rol');
       }
     });
   }
@@ -598,11 +660,27 @@ export class AdminRoles {
       nombre,
       usuarioCreacion: this.username(),
       activo: true
-    }).subscribe({
+    }).pipe(
+      catchError(error => {
+        console.error('Error al crear tipo de rol:', error);
+        this.toastService.error('Error', 'No se pudo crear el rol');
+        return of({ success: false, response: null, message: 'Error al crear rol' });
+      })
+    ).subscribe({
       next: (responseCreateType) => {
+        if (responseCreateType.success === false) return;
+
         // Paso 2: Obtener todos los roles para encontrar el ID del rol recién creado
-        this.configRolesService.getAllRoles().subscribe({
+        this.configRolesService.getAllRoles().pipe(
+          catchError(error => {
+            console.error('Error al obtener roles:', error);
+            this.toastService.error('Error', 'No se pudo obtener el ID del rol creado');
+            return of({ success: false, response: [], message: 'Error al obtener roles' });
+          })
+        ).subscribe({
           next: (responseAllRoles) => {
+            if (responseAllRoles.success === false) return;
+
             const roles = responseAllRoles?.response || [];
             // Buscar el rol recién creado por nombre
             const rolCreado = roles.find(rol => rol.nombre === nombre);
@@ -618,28 +696,36 @@ export class AdminRoles {
               empresaId: empresaId,
               menuIds: menuIds,
               usuarioCreacion: usuarioCreacion
-            }).subscribe({
-              next: () => {
-                this.toastService.success('Éxito', 'Rol creado correctamente');
-                this.cerrarModalAgregarRol();
-                this.serverUsersData.reload?.();
-                this.allRolesData.reload?.();
-              },
-              error: (error) => {
+            }).pipe(
+              catchError(error => {
                 console.error('Error al asociar menús al rol:', error);
                 this.toastService.error('Error', 'No se pudieron asociar los menús al rol');
+                return of({ success: false, response: null, message: 'Error al asociar menús' });
+              })
+            ).subscribe({
+              next: (response) => {
+                if (response.success !== false) {
+                  this.toastService.success('Éxito', 'Rol creado correctamente');
+                  this.cerrarModalAgregarRol();
+                  this.serverUsersData.reload?.();
+                  this.allRolesData.reload?.();
+                }
+              },
+              error: (error) => {
+                console.error('Error en subscribe createRole:', error);
+                this.toastService.error('Error', 'Error inesperado al asociar menús');
               }
             });
           },
           error: (error) => {
-            console.error('Error al obtener roles:', error);
-            this.toastService.error('Error', 'No se pudo obtener el ID del rol creado');
+            console.error('Error en subscribe getAllRoles:', error);
+            this.toastService.error('Error', 'Error inesperado al obtener roles');
           }
         });
       },
       error: (error) => {
-        console.error('Error al crear tipo de rol:', error);
-        this.toastService.error('Error', 'No se pudo crear el rol');
+        console.error('Error en subscribe createTypeRol:', error);
+        this.toastService.error('Error', 'Error inesperado al crear el rol');
       }
     });
   }
