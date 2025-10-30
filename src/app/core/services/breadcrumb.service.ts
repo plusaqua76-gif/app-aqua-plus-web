@@ -17,13 +17,15 @@ export class BreadcrumbService {
 
   private readonly routeLabels: { [key: string]: string } = {
     // Rutas principales
-    'home': 'Inicio',
-    'start': 'Comenzar',
+    'shell': 'Home',
+    'home': 'Home',
+    'start': 'Métricas',
 
     // Módulo de clientes
     'client': 'Clientes',
     'create-client': 'Crear Cliente',
-    'update-client': 'Actualizar cliente',
+    'update-client': 'Actualizar Cliente',
+    'client-data': 'Cliente',
 
     // Módulo de facturas/bills
     'bill': 'Facturas',
@@ -32,27 +34,59 @@ export class BreadcrumbService {
     'create-debt': 'Crear Deuda',
     'create-credit': 'Crear Abono',
     'update-bill': 'Actualizar Factura',
+    'print-bill': 'Imprimir Factura',
+    'bill-data': 'Factura',
+    'Update-debt': 'Actualizar Deuda',
 
-    // Módulo de lecturas
+
     'reading': 'Lecturas',
     'update-reading': 'Actualizar Lectura',
+    'reading-data': 'Lectura',
+    'history-reading': 'Histórico de Lecturas',
 
-    // Módulo de empleados
+
     'employee': 'Empleados',
     'create-employee': 'Crear Empleado',
+    'update-employee': 'Actualizar Empleado',
+    'employee-data': 'Empleado',
 
-    // Modulo de contador
-    'create-counter': 'Crear contador',
-    'update-counter': 'Actualizar contador',
 
-    // Módulo de autenticación
+    'counter': 'Contadores',
+    'create-counter': 'Crear Contador',
+    'update-counter': 'Actualizar Contador',
+    'counter-data': 'Contador',
+
+    'enterprise': 'Empresa',
+    'create-enterprise': 'Crear Empresa',
+    'update-enterprise': 'Actualizar Empresa',
+
+
+    'accounting': 'Contabilidad',
+    'inventory': 'Contabilidad',
+    'sales': 'Ventas',
+    'accounts': 'Cuentas',
+    'create': 'Crear',
+    'update': 'Actualizar',
+    'edit': 'Editar',
+
+
+    'fee': 'Tarifas',
+    'create-fee': 'Crear Tarifa',
+    'update-fee': 'Actualizar Tarifa',
+
+
+    'user-access': 'Acceso de Usuarios',
+    'configuration-roles': 'Configuración de Roles',
+    'pqr-client': 'PQR Cliente',
+
+
     'auth': 'Autenticación',
     'login': 'Iniciar Sesión',
     'register': 'Registrarse',
     'forgot-password': 'Olvidé mi Contraseña',
     'recover-password': 'Recuperar Contraseña',
 
-    // Rutas adicionales comunes
+
     'profile': 'Perfil',
     'settings': 'Configuración',
     'dashboard': 'Panel de Control',
@@ -83,28 +117,60 @@ export class BreadcrumbService {
     const children: ActivatedRoute[] = route.children;
 
     if (children.length === 0) {
-      return breadcrumbs;
+      return this.addHomeBreadcrumb(breadcrumbs);
     }
 
     for (const child of children) {
-      const routeURL: string = child.snapshot.url.map(segment => segment.path).join('/');
-      if (routeURL !== '') {
-        url += `/${routeURL}`;
+      const segments = child.snapshot.url;
 
-        // Obtener el label del objeto configurado o usar el path capitalizado
-        const routeKey = routeURL.toLowerCase();
-        const label = this.routeLabels[routeKey] || this.capitalizeFirst(routeURL);
+      for (let i = 0; i < segments.length; i++) {
+        const segment = segments[i];
+        url += `/${segment.path}`;
 
-        const breadcrumb: IBreadcrumb = {
-          label,
-          url,
-          isActive: false
-        };
+        // Solo crear breadcrumb para el primer segmento o segmentos que no sean números (IDs)
+        if (i === 0 || !this.isNumeric(segment.path)) {
+          // Obtener el label del objeto configurado o usar el path capitalizado
+          const routeKey = segment.path.toLowerCase();
+          const label = this.routeLabels[routeKey] || this.capitalizeFirst(segment.path);
 
-        breadcrumbs.push(breadcrumb);
+          const breadcrumb: IBreadcrumb = {
+            label,
+            url,
+            isActive: false
+          };
+
+          breadcrumbs.push(breadcrumb);
+        }
       }
 
-      return this.createBreadcrumbs(child, url, breadcrumbs);
+      // Procesar recursivamente cada child
+      breadcrumbs = this.createBreadcrumbs(child, url, breadcrumbs);
+    }
+
+    return this.addHomeBreadcrumb(breadcrumbs);
+  }
+
+  private addHomeBreadcrumb(breadcrumbs: IBreadcrumb[]): IBreadcrumb[] {
+    // Verificar si ya existe un breadcrumb para shell o start
+    const hasShell = breadcrumbs.some(b => b.url.includes('/shell'));
+
+    // Si no hay ningún breadcrumb relacionado con shell, agregar Home
+    if (!hasShell) {
+      breadcrumbs.unshift({
+        label: 'Home',
+        url: '/shell',
+        isActive: false
+      });
+    } else {
+      // Si hay breadcrumbs, verificar si el primero es start, entonces agregar Home antes
+      const firstIsStart = breadcrumbs.length > 0 && breadcrumbs[0].url === '/shell/start';
+      if (firstIsStart) {
+        breadcrumbs.unshift({
+          label: 'Home',
+          url: '/shell',
+          isActive: false
+        });
+      }
     }
 
     // Marcar el último como activo
@@ -117,5 +183,9 @@ export class BreadcrumbService {
 
   private capitalizeFirst(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  private isNumeric(str: string): boolean {
+    return /^\d+$/.test(str);
   }
 }

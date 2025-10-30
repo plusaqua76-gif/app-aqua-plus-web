@@ -1,5 +1,4 @@
 import { Directive, inject, TemplateRef, ViewContainerRef, input, effect, PLATFORM_ID } from '@angular/core';
-import { Role } from '../guards/guard-role/has-role-guard';
 import { isPlatformBrowser } from '@angular/common';
 
 @Directive({
@@ -7,11 +6,11 @@ import { isPlatformBrowser } from '@angular/common';
 })
 export class HasRoleDirective {
 
-  private templateRef = inject(TemplateRef);
-  private viewContainerRef = inject(ViewContainerRef);
-  private platformId = inject(PLATFORM_ID);
+  private readonly templateRef = inject(TemplateRef);
+  private readonly viewContainerRef = inject(ViewContainerRef);
+  private readonly platformId = inject(PLATFORM_ID);
 
-  roles = input.required<Role[]>({
+  roles = input.required<string[]>({
     alias: 'hasRole'
   });
 
@@ -26,7 +25,7 @@ export class HasRoleDirective {
     });
   }
 
-  private hasPermission(allowedRoles: Role[]): boolean {
+  private hasPermission(allowedRoles: string[]): boolean {
     const isBrowser = isPlatformBrowser(this.platformId);
 
     if (!isBrowser) return false;
@@ -40,7 +39,10 @@ export class HasRoleDirective {
 
       if (!userRole) return false;
 
-      const hasAccess = allowedRoles.includes(userRole);
+      // Comparación case-insensitive (ignorando mayúsculas/minúsculas)
+      const userRoleUpper = userRole.toUpperCase();
+      const allowedRolesUpper = allowedRoles.map(role => role.toUpperCase());
+      const hasAccess = allowedRolesUpper.includes(userRoleUpper);
 
       return hasAccess;
     } catch (error) {

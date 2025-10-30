@@ -11,8 +11,8 @@ import { ApiResponse } from '@interfaces/Iresponse';
 
 @Injectable({ providedIn: 'root' })
 export class LocationService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}`;
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}`;
 
   getDepartamentos(): Observable<ApiResponse<IDepartament[]>> {
     return this.http.get<ApiResponse<IDepartament[]>>(`${this.apiUrl}/departamento/all`).pipe(map((response) => response));

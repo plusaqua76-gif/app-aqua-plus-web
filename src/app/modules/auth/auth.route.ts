@@ -1,7 +1,7 @@
 
 import { Routes } from '@angular/router';
 export default [
-  { path: '', pathMatch: 'full', redirectTo: 'login' }, 
+  { path: '', pathMatch: 'full', redirectTo: 'login' },
   {
     path: 'login',
     loadComponent: () => import('./pages/login/login').then(m => m.LoginComponent),

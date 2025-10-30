@@ -5,6 +5,7 @@ import { Auth } from '@interfaces/IAuth';
 
 @Component({
   selector: 'app-login-form',
+  standalone: true,
   imports: [ReactiveFormsModule, CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [`
@@ -192,7 +193,6 @@ export class LoginFormComponent {
   errorMessage = input<string | null>(null);
   readonly #formBuilder = inject(FormBuilder);
   public message = "";
-
   readonly showPassword = signal(false);
 
   public loginForm: FormGroup =  this.#formBuilder.group({
@@ -206,7 +206,7 @@ export class LoginFormComponent {
 
   login() {
     if(this.loginForm.invalid){
-      this.message = "Please correct all errors and resubmit the form";
+      this.message = "Por favor corrige todos los errores y vuelve a enviar el formulario";
     }else{
       const login: Auth = this.loginForm.value;
       this.sendLogin.emit(login);

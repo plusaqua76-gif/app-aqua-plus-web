@@ -1,20 +1,17 @@
 import { UserService } from './../../modules/auth/service/user.service';
 import { Component, inject, HostListener, input, PLATFORM_ID, computed, effect } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY, map } from 'rxjs';
+import { BreadcrumbService } from '@services/breadcrumb.service';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   template: `
     <nav
-      [ngClass]="{
-        'shadow-lg border-gray-300 dark:border-gray-800': isScrolled,
-        'border-transparent': !isScrolled
-      }"
-      class="fixed top-0 z-[999] bg-white/70 dark:bg-gray-900/60 backdrop-blur-md border-b transition-all duration-300"
+      class="fixed top-0 z-[999] bg-white/70 dark:bg-gray-900/60 backdrop-blur-md  transition-all duration-300"
       [style.left]="
         screenWidth() > 768 ? (collapsed() ? '16.5625rem' : '5rem') : '0'
       "
@@ -25,7 +22,60 @@ import { EMPTY, map } from 'rxjs';
       "
     >
     @let user = dataUser.value();
-      <div class="flex items-center justify-end h-16 px-6">
+      <div class="flex items-center justify-end h-16 pr-6 pl-3.5">
+        <!-- Breadcrumb Section -->
+        <div class="hidden md:flex items-center min-w-0 flex-[4] max-w-[85%] mt-0 md:mt-0" [class.mt-[86px]]="screenWidth() <= 768">
+          @if (breadcrumbService.breadcrumbs().length > 0) {
+            <nav class="flex w-full" aria-label="Breadcrumb">
+              <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
+                @for (item of breadcrumbService.breadcrumbs(); track $index) {
+                  <li [class]="$index === 0 ? 'inline-flex items-center' : ''">
+                    @if ($index === 0) {
+                      @if (!item.isActive) {
+                        <a
+                          [routerLink]="item.url"
+                          class="inline-flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                          <svg class="w-3 h-3 me-2.5 text-gray-600 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
+                          </svg>
+                          <span>{{ item.label }}</span>
+                        </a>
+                      } @else {
+                        <span class="inline-flex items-center text-sm font-medium text-gray-500 dark:text-gray-400">
+                          <svg class="w-3 h-3 me-2.5 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
+                          </svg>
+                          <span>{{ item.label }}</span>
+                        </span>
+                      }
+                    } @else {
+                      <div class="flex items-center">
+                        <svg class="rtl:rotate-180 w-3 h-3 text-gray-400 dark:text-gray-500 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+                        </svg>
+                        @if (!item.isActive) {
+                          <a
+                            [routerLink]="item.url"
+                            class="ms-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 md:ms-2 transition-colors duration-200">
+                            <span>{{ item.label }}</span>
+                          </a>
+                        } @else {
+                          <span
+                            class="ms-1 text-sm font-medium text-gray-500 dark:text-gray-400 md:ms-2"
+                            aria-current="page">
+                            <span>{{ item.label }}</span>
+                          </span>
+                        }
+                      </div>
+                    }
+                  </li>
+                }
+              </ol>
+            </nav>
+          }
+        </div>
+
+        <!-- User Section -->
         <div class="flex items-center gap-2">
           <button
             id="dropdownAvatarNameButton"
@@ -34,11 +84,6 @@ import { EMPTY, map } from 'rxjs';
             type="button"
           >
             <span class="sr-only">Open user menu</span>
-            <img
-              class="w-8 h-8 me-2 rounded-full object-cover"
-              src=""
-              alt="user photo"
-            />
             <span>{{ user?.nombre || 'Usuario' }}</span>
             <svg
               class="w-2.5 h-2.5 ms-3"
@@ -58,31 +103,41 @@ import { EMPTY, map } from 'rxjs';
           </button>
           <div
             id="dropdownAvatarName"
-            class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600"
+            class="z-10 hidden bg-gray-800/95 dark:bg-gray-800/95 backdrop-blur-sm divide-y divide-gray-600/30 rounded-xl shadow-2xl w-56 border border-gray-600/50"
           >
-            <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
-              <div class="font-medium">{{ user?.nombre || 'Usuario' }}</div>
-              <!-- <div class="truncate">{{ user?.correo || 'email@example.com' }}</div> -->
+            <div class="px-4 py-3 text-sm text-white">
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <div class="font-medium">{{ user?.nombre || 'Usuario' }}</div>
+              </div>
             </div>
             <ul
-              class="py-2 text-sm text-gray-700 dark:text-gray-200"
+              class="py-2 text-sm"
               aria-labelledby="dropdownAvatarNameButton"
             >
               <li>
                 <a
-                  href="/profile"
-                  class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                  [routerLink]="['profile']"
+                  class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-700/60 hover:text-white transition-all duration-200"
                 >
-                  Mi Perfil
+                  <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span>Mi Perfil</span>
                 </a>
               </li>
             </ul>
             <div class="py-2">
               <button
                 (click)="logout()"
-                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                class="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-600/10 hover:text-red-300 transition-all duration-200"
               >
-                Cerrar sesión
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Cerrar sesión</span>
               </button>
             </div>
           </div>
@@ -98,21 +153,18 @@ export class Header {
   onWindowScroll(): void {
     this.isScrolled = window.scrollY > 0;
   }
-  private router = inject(Router);
-  private userService = inject(UserService);
+  readonly router = inject(Router);
+  readonly userService = inject(UserService);
+  readonly platformId = inject(PLATFORM_ID);
+  readonly isBrowser = isPlatformBrowser(this.platformId);
+  readonly breadcrumbService = inject(BreadcrumbService);
+
 
   collapsed = input<boolean>(false);
   screenWidth = input<number>(0);
   isScrolled = false;
 
-  constructor(){
-    effect(() => {
-      console.log("la data de mi usuario mi pez", this.dataUser.value());
-    });
-  }
 
-  private platformId = inject(PLATFORM_ID);
-  private isBrowser = isPlatformBrowser(this.platformId);
 
   readonly userId = computed(() => {
     if (!this.isBrowser) return null;
@@ -124,7 +176,6 @@ export class Header {
       const parsedUserData = JSON.parse(userData);
       return parsedUserData.id ? Number(parsedUserData.id) : null;
     } catch (error) {
-      console.error('Error parsing userData from sessionStorage:', error);
       return null;
     }
   });

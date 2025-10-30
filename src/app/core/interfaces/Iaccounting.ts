@@ -2,19 +2,45 @@ import { IEnterprise } from "./Ienterprise";
 
 export interface IInventario {
   id: number;
+  idProducto: number;
   productoId: number;
-  codigo:string;
-  nombre:string;
-  cantidad:string;
-  precioUnitario:string;
-  precioVenta:string;
-  porcentaje:string;
-  descripcion:string;
+  codigo: string;
+  nombre: string;
+  cantidad: number;
+  precioUnitario: number;
+  precioVenta: number;
+  porcentaje: number;
+  descripcionProducto: string;
+  categoriaNombre: string;
+  descripcion: string;
   activo: boolean;
-  usuarioCreacion: string;
+  usuarioCreacion: string | null;
   fechaCreacion: string;
   usuarioModificacion: string | null;
   fechaModificacion: string | null;
+}
+
+export interface IInventarioCreate {
+  id?: number;
+  producto: {
+    id: number;
+    empresa?: {
+      id: number;
+    };
+    categoria?: {
+      id: number;
+    };
+  };
+  cantidad: number;
+  precioUnitario: number;
+  precioVenta: number;
+  porcentaje: number;
+  descripcion: string;
+  activo: boolean;
+  usuarioCreacion: string;
+  fechaCreacion?: string;
+  usuarioModificacion?: string | null;
+  fechaModificacion?: string | null;
 }
 
 export interface IProducto{
@@ -23,7 +49,7 @@ export interface IProducto{
   categoria:ICategoria;
   codigo:string;
   nombre:string;
-  descripcion:string; 
+  descripcion:string;
   activo: boolean;
   usuarioCreacion: string;
   fechaCreacion: string;
@@ -34,10 +60,11 @@ export interface IProducto{
 export interface ICategoria{
     id: number;
     nombre: string;
-    decripcion: string;
+    descripcion: string; // Corregido: era 'decripcion'
     activo: boolean;
-    usuaruioCreacion: string;
+    usuarioCreacion: string; // Corregido: era 'usuaruioCreacion'
     fechaCreacion: Date;
     usuarioModificacion: string;
     fechaModificacion: Date;
 }
+

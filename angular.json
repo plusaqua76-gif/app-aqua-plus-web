@@ -31,7 +31,9 @@
             "outputMode": "server",
             "ssr": {
               "entry": "src/server.ts"
-            }
+            },
+            "outputPath": "dist/aqua-plus",
+            "index": "src/index.html"
           },
           "configurations": {
             "production": {
@@ -43,6 +45,18 @@
                 }
               ],
               "outputHashing": "all"
+            },
+            "azure": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                }
+              ],
+              "outputHashing": "all",
+              "outputMode": "static",
+              "outputPath": "dist/aqua-plus"
             },
             "development": {
               "optimization": false,

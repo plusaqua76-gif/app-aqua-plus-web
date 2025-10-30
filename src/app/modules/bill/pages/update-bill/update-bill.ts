@@ -5,6 +5,7 @@ import { IEstado, IFactura } from '@interfaces/Ifactura';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EstadoService } from '../../service/estado.service';
+import { ToastService } from '@services/toast.service';
 
 @Component({
   selector: 'app-update-bill',
@@ -17,12 +18,13 @@ export class UpdateBill implements OnInit {
   estado: IEstado[] = [];
   estadoName: string[] = [];
   selectedEstadoId: number | null = null;
-  
-  factura: IFactura | null = null;
 
+  factura: IFactura | null = null;
+    protected readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   private readonly facturaService = inject(FacturaService);
   private readonly estadoService = inject(EstadoService);
+
 
   ngOnInit(): void {
 
@@ -70,16 +72,12 @@ export class UpdateBill implements OnInit {
 
   loadAllEstados(): void {
     this.estadoService.getAllEstado().subscribe((response) => {
-      console.log('Tipos de estado:', response.response);
       this.estado = response.response;
       this.estadoName = response.response.map((tipoDocumento) => tipoDocumento.nombre)
     })
   }
 
   onSubmit(): void {
-  console.log('Submit ejecutado');
-  console.log('Factura antes de enviar:', this.factura);
-
   if (this.factura) {
     const estadoSeleccionado = this.estado.find(e => e.id === this.factura!.estado.id);
     if (estadoSeleccionado) {
@@ -91,16 +89,14 @@ export class UpdateBill implements OnInit {
 
     this.facturaService.updateFactura(this.factura).subscribe({
       next: (res) => {
-        console.log('Respuesta del servidor:', res);
-        alert('Factura actualizada correctamente');
+        this.toast.success('Éxito','Factura actualizada correctamente');
       },
       error: (err) => {
-        console.error('Error al actualizar la factura:', err);
-        alert('Error al actualizar la factura');
+        this.toast.error('Error','No se pudo actualizar la factura');
       }
     });
   } else {
-    console.warn('No hay factura cargada');
+    this.toast.error('Error','No hay factura para actualizar');
   }
 }
   private formatDateToInput(fecha: string | Date): string {

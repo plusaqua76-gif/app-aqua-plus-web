@@ -1,101 +1,130 @@
-import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { EnterpriseClientCounterService } from '../../../client/service/enterpriseClientCounter.service';
-import { TableComponent } from '@components/table';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+// import { Action } from './../../../../core/components/table';
+// import { CommonModule, isPlatformBrowser } from '@angular/common';
+// import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
+// import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+// import { TableComponent } from '@components/table';
+// import { rxResource } from '@angular/core/rxjs-interop';
+// import { catchError, EMPTY, of } from 'rxjs';
+// import { ToastService } from '@services/toast.service';
+// import { CounterService } from '../../service/counter.service';
+// import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
-@Component({
-  selector: 'app-counter',
-  imports: [CommonModule, RouterModule],
-  template: `
+// @Component({
+//   selector: 'app-counter',
+//   imports: [CommonModule, RouterModule, TableComponent],
+//   template: `
+//       <ng-template #toggleTpl let-row>
+//         <button
+//           type="button"
+//           (click)="edit(row)"
+//           class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-blue-600/50 text-blue-400 hover:bg-blue-600/10 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors duration-200"
+//           title="Editar contador">
+//           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+//             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+//               d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+//           </svg>
+//         </button>
+//       </ng-template>
 
-      <!-- <ng-template #toggleTpl let-row>
-        <a
-          (click)="edit(row)"
-          class="text-green-600 hover:text-green-900 text-sm cursor-pointer"
-        >
-          <i class="fas fa-edit"></i>
-        </a>
-      </ng-template>
+//       <app-table-dynamic
+//         [title]="title()"
+//         [columns]="counterColumns()"
+//         [serverMode]="true"
+//         [serverData]="serverCounterData.value() ?? null"
+//         [loading]="serverCounterData.isLoading()"
+//         [actionTemplate]="toggleTpl"
+//         [showAddButton]="true"
+//         [addButtonText]="'Agregar Cliente'"
+//         [showExportButton]="true"
+//         [exportFileName]="exportFileName()"
+//         [showColumnFilters]="true"
+//         (action)="onTableAction($event)"
+//         (serverPaginationChange)="onPaginationChange($event)"
+//       />
+//   `,
+// })
+// export class Counter {
 
-      <app-table-dynamic
-        [title]="title()"
-        [datasource]="counterData()"
-        [columns]="counterColumns()"
-        [actionTemplate]="toggleTpl"
-      /> -->
-  `,
-})
-export class Counter {
-  // enterpriseId = signal<number | undefined>(
-  //   Number(localStorage.getItem('enterpriseId')) || undefined
-  // );
-  // idDef: string | null = localStorage.getItem('enterpriseId');
+//   title = signal('Gestión de Contadores');
+//   showDeleteConfirm = signal(false);
+//   itemToDelete: number | null = null;
+//   readonly platformId = inject(PLATFORM_ID);
+//   readonly isBrowser = isPlatformBrowser(this.platformId);
 
-  // counterColumns = signal([
-  //   { field: 'serial', header: 'Serial' },
-  //   { field: 'tipoContador', header: 'Tipo Contador' },
-  //   { field: 'direccion', header: 'Direccion' },
-  //   { field: 'cliente', header: 'Cliente' },
-  //   { field: 'cedula', header: 'Cedula' },
-  // ]);
-  // counterData = computed(() => this.dataEnterpriseClientCounter.value() ?? []);
-  // title = signal('Gestión de Contadores');
+//   protected readonly counterService = inject(CounterService);
+//   protected readonly toastService = inject(ToastService);
+//   protected readonly router = inject(Router);
+//   protected readonly route = inject(ActivatedRoute);
 
-  // private readonly enterpriseClientCounterService = inject(
-  //   EnterpriseClientCounterService
-  // );
-  // private readonly router = inject(Router);
-  // protected readonly route = inject(ActivatedRoute);
+//   counterColumns = signal([
+//     { field: 'serial', header: 'Serial', type: 'text' as const },
+//     { field: 'tipoContadorNombre', header: 'Tipo Contador', type: 'text' as const },
+//     { field: 'direccionDescripcion', header: 'Dirección', type: 'text' as const },
+//   ]);
 
-  // constructor() {
-  //   const enterpriseId = localStorage.getItem('enterpriseId');
-  //   console.log('ID de la empresa:', enterpriseId);
+//   readonly enterpriseId = computed(() => {
+//     if (!this.isBrowser) return null;
+//     try {
+//       return Number(JSON.parse(sessionStorage.getItem('userData')!)?.empresaId) || null;
+//     } catch (e) {
+//       console.error('Error parsing userData from sessionStorage:', e);
+//       return null;
+//     }
+//   });
 
-  //   effect(() => {
-  //     console.log(
-  //       'Data loaded______:',
-  //       this.dataEnterpriseClientCounter.value()
-  //     );
-  //   });
-  // }
+//   constructor() {
+//     effect(() => {
+//       console.log("este es el contador mi pez", this.serverCounterData.value())
+//     })
+//   }
 
-  // dataEnterpriseClientCounter = rxResource({
-  //   stream: () => {
-  //     const id = this.enterpriseId();
-  //     if (!id) {
-  //       throw new Error('Enterprise ID is required');
-  //     }
-  //     return this.enterpriseClientCounterService
-  //       .getAllCounterByIdEnterprise(id)
-  //       .pipe(
-  //         map((data) =>
-  //           data.response.map((item) => ({
-  //             id: item.id,
-  //             serial: item.contador.serial,
-  //             tipoContador: item.contador.tipoContador.nombre,
-  //             cliente: [
-  //               item.contador.cliente?.nombre || '',
-  //               item.contador.cliente?.segundoNombre || '',
-  //               item.contador.cliente?.apellido || '',
-  //               item.contador.cliente?.segundoApellido || '',
-  //             ]
-  //               .filter((name) => name.trim() !== '')
-  //               .join(' '),
-  //             cedula: item.contador.cliente.numeroCedula,
-  //             direccion: item.contador.descripcion.descripcion,
-  //           }))
-  //         )
-  //       );
-  //   },
-  // });
+//   // Signal para parámetros de paginación
+//   readonly paginationParams = signal<IPaginationParams>({
+//     page: 0,
+//     size: 5,
+//   });
 
-  // edit(row: any) {
-  //   this.router.navigate(['/counter/actualizar-contador', row.id], {
-  //     relativeTo: this.route,
-  //   });
-  //   console.log('Editar contador con ID:', row.id);
-  // }
-}
+//   // Resource para datos paginados del servidor
+//   serverCounterData = rxResource({
+//     params: () => ({
+//       enterpriseId: this.enterpriseId(),
+//       pagination: this.paginationParams(),
+//     }),
+//     stream: ({ params }) => {
+//       const { enterpriseId, pagination } = params;
+//       if (!enterpriseId) {
+//         return EMPTY;
+//       }
+//       return this.counterService.getAllCounterByIdEnterprisePaginated(
+//         enterpriseId,
+//         pagination
+//       ).pipe(
+//               catchError((error) => {
+//                 return of(null);
+//               })
+//             );
+//     },
+//   });
+
+//   // Computed para el nombre del archivo de exportación
+//   readonly exportFileName = computed(
+//     () => `contadores_${new Date().toISOString().split('T')[0]}`
+//   );
+
+
+//   onPaginationChange(params: IPaginationParams): void {
+//     this.paginationParams.set(params);
+//   }
+
+//   edit(row: any) {
+//     this.router.navigate(['actualizar-contador', row.id], {
+//       relativeTo: this.route,
+//     });
+//   }
+
+//   onTableAction(event: Action) {
+//     if (event.action === 'add') {
+//       this.router.navigate(['/shell/client/create-client'], { relativeTo: this.route });
+//     }
+//   }
+// }

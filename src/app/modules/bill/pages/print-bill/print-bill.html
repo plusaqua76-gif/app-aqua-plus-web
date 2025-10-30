@@ -1,0 +1,822 @@
+<section class="w-full bg-transparent text-gray-200">
+
+  @if (isLoading()) {
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div class="bg-gray-800/90 backdrop-blur-md rounded-2xl p-8 border border-gray-600/50 shadow-2xl max-w-md w-full mx-4">
+        <div class="flex flex-col items-center space-y-6">
+          <div class="relative">
+            <div class="w-16 h-16 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin"></div>
+            <div class="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-blue-400 rounded-full animate-spin" style="animation-delay: 0.15s;"></div>
+          </div>
+
+          <div class="text-center">
+            <h3 class="text-lg font-semibold text-gray-200 mb-4">Cargando Información de Factura</h3>
+          </div>
+
+          <div class="w-full space-y-3">
+            <div class="flex items-center space-x-3">
+              @if (getStatus.isLoading()) {
+                <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-sm text-blue-400">Cargando estados de factura...</span>
+              } @else {
+                <div class="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                  <svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+                <span class="text-sm text-gray-300">Estados cargados</span>
+              }
+            </div>
+
+            <div class="flex items-center space-x-3">
+              @if (billDetails.isLoading()) {
+                <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-sm text-blue-400">Cargando detalles de factura...</span>
+              } @else {
+                <div class="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                  <svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+                <span class="text-sm text-gray-300">Detalles de factura cargados</span>
+              }
+            </div>
+
+            <div class="flex items-center space-x-3">
+              @if (clienteDeudas.isLoading()) {
+                <div class="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-sm text-yellow-400">Consultando deudas del cliente...</span>
+              } @else if (clienteDeudas.error()) {
+                <div class="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
+                  <svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+                <span class="text-sm text-yellow-300">Sin datos de deudas (continuando...)</span>
+              } @else {
+                <div class="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                  <svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+                <span class="text-sm text-gray-300">Consulta de deudas completada</span>
+              }
+            </div>
+
+            <div class="flex items-center space-x-3">
+              @if (tiposDeuda.isLoading()) {
+                <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-sm text-blue-400">Cargando tipos de deuda...</span>
+              } @else {
+                <div class="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                  <svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+                <span class="text-sm text-gray-300">Tipos de deuda cargados</span>
+              }
+            </div>
+
+          </div>
+          <div class="w-full">
+            <div class="bg-gray-700 rounded-full h-2">
+              <div class="bg-gradient-to-r from-blue-500 to-blue-400 h-2 rounded-full transition-all duration-300"
+                   [style.width]="getLoadingProgress() + '%'"></div>
+            </div>
+            <p class="text-xs text-gray-400 mt-2 text-center">{{ getLoadingProgress() }}% completado</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (hasErrors() && !isLoading()) {
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div class="bg-red-800/90 backdrop-blur-md rounded-2xl p-8 border border-red-600/50 shadow-2xl max-w-md w-full mx-4">
+        <div class="flex flex-col items-center space-y-6">
+          <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
+            <svg class="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+            </svg>
+          </div>
+          <div class="text-center">
+            <h3 class="text-lg font-semibold text-red-200 mb-2">Error al Cargar Datos</h3>
+            <p class="text-sm text-red-300">No se pudieron cargar algunos datos necesarios para mostrar la factura.</p>
+          </div>
+          <div class="w-full space-y-2 text-xs text-red-300">
+            @if (getStatus.error()) {
+              <p>• Error al cargar estados de factura</p>
+            }
+            @if (billDetails.error()) {
+              <p>• Error al cargar detalles de factura</p>
+            }
+
+            @if (tiposDeuda.error()) {
+              <p>• Error al cargar tipos de deuda</p>
+            }
+          </div>
+          <button
+            type="button"
+            (click)="reloadAllResources()"
+            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="mx-auto max-w-7xl px-4 py-8">
+    <div class="mb-8">
+      <div #billContainer>
+        @if (isDataReady() && billDetails.value()?.response) {
+          <app-pdf-bill
+            [selectedStatus]="selectedStatus()"
+            [billData]="billDetails.value()?.response ?? null"
+            [valorDeuda]="valorDeuda()">
+          </app-pdf-bill>
+        } @else if (!isLoading() && !hasErrors()) {
+          <div class="p-8 text-center text-gray-400">
+            <p>No se encontraron datos de la factura</p>
+          </div>
+        }
+      </div>
+    </div>
+    <div class="flex justify-center">
+      <div class="w-full max-w-6xl">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2">
+            <div class="rounded-xl border border-gray-600/70 bg-transparent p-6 space-y-6">
+              <h3 class="text-xl font-semibold text-gray-200 mb-6">Control de Factura</h3>
+              <div>
+                <div class="block mb-2 text-sm font-medium text-gray-300">
+                  Estado actual de la factura
+                </div>
+                <div class="px-4 py-3 rounded-xl border border-gray-600/70 bg-gray-800/50 text-sm text-gray-100">
+                  @if (selectedStatus()) {
+                    <span class="inline-flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+                      {{ selectedStatus() }}
+                    </span>
+                  } @else {
+                    <span class="text-gray-400">Cargando estado...</span>
+                  }
+                </div>
+              </div>
+              <div>
+                <fieldset>
+                  <legend class="block mb-3 text-sm font-medium text-gray-300">
+                    Tipo de pago
+                  </legend>
+                  <div class="space-y-3">
+                    <label class="flex items-center gap-3 text-sm text-gray-300 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition-colors">
+                      <input
+                        type="radio"
+                        name="tipoPago"
+                        value="total"
+                        [(ngModel)]="tipoPago"
+                        (ngModelChange)="onTipoPagoChange()"
+                        class="w-4 h-4 text-blue-600 bg-transparent border border-gray-600 focus:ring-blue-500 focus:ring-2"
+                      />
+                      <span>Valor Total</span>
+                    </label>
+
+                    <label class="flex items-center gap-3 text-sm text-gray-300 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition-colors">
+                      <input
+                        type="radio"
+                        name="tipoPago"
+                        value="parcial"
+                        [(ngModel)]="tipoPago"
+                        (ngModelChange)="onTipoPagoChange()"
+                        class="w-4 h-4 text-blue-600 bg-transparent border border-gray-600 focus:ring-blue-500 focus:ring-2"
+                      />
+                      <span>Valor Parcial</span>
+                    </label>
+                  </div>
+                </fieldset>
+                @if (tipoPago === 'parcial') {
+                <div class="mt-4 animate-slideDown">
+                  <label for="valor-pago" class="block mb-2 text-sm font-medium text-gray-300">
+                    Valor a pagar
+                  </label>
+                  <input
+                    id="valor-pago"
+                    type="number"
+                    [(ngModel)]="valorPago"
+                    placeholder="Ingrese el valor a pagar"
+                    class="block w-full rounded-xl border border-gray-600/70 bg-transparent px-4 py-3 text-sm text-gray-100 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-400/40"
+                    step="0.01"
+                    min="0"
+                    [max]="valorFactura()"
+                  />
+                </div>
+                }
+              </div>
+              <div class="space-y-4">
+                <button
+                  type="button"
+                  (click)="confirmarPago()"
+                  [disabled]="!canConfirmarPago()"
+                  class="inline-flex items-center justify-center rounded-xl border border-green-600/70 bg-green-500/10 px-6 py-3 text-sm text-green-400 hover:bg-green-500/20 focus:outline-none focus:ring-2 focus:ring-green-400/40 transition-colors w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  Confirmar Pago
+                </button>
+
+                <!-- Mensaje de ayuda cuando no se puede confirmar -->
+                @if (!canConfirmarPago()) {
+                <div class="text-xs text-center p-2 rounded bg-yellow-500/10 border border-yellow-500/20">
+                  @if (!tipoPago) {
+                    <span class="text-yellow-400">Seleccione un tipo de pago</span>
+                  } @else if (!selectedStatus()) {
+                    <span class="text-yellow-400">Cargando estado de la factura...</span>
+                  } @else {
+                    <div class="space-y-1">
+                      <span class="text-yellow-400">{{ getMensajeEstadoNoPermitido() }}</span>
+                      @if (tipoPago === 'parcial' && (valorPago === null || valorPago <= 0 || valorPago > valorFactura())) {
+                        <div class="text-red-400">
+                          @if (valorPago === null || valorPago <= 0) {
+                            Ingrese un valor mayor a 0
+                          } @else {
+                            El valor no puede ser mayor al total de la factura
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+                }
+
+                <button
+                  type="button"
+                  (click)="guardarEImprimir()"
+                  [disabled]="!selectedStatus() || procesandoPDF()"
+                  class="inline-flex items-center justify-center rounded-xl border border-gray-600/70 bg-transparent px-6 py-3 text-sm font-medium text-gray-200 hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-gray-400/40 disabled:opacity-50 disabled:cursor-not-allowed w-full"
+                >
+                  @if (procesandoPDF()) {
+                    <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Procesando...
+                  } @else {
+                    <svg class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+                    </svg>
+                    Imprimir Factura
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel de información de deuda -->
+          <div class="lg:col-span-1">
+            <div class="rounded-xl border border-gray-600/70 bg-transparent p-6">
+              <h3 class="text-lg font-semibold text-gray-200 mb-4">Información Adicional</h3>
+
+              <!-- Información de deuda -->
+              <div class="space-y-4">
+                @if (isLoadingDeudas()) {
+                <!-- Estado de carga de deudas -->
+                <div class="p-4 rounded-lg border border-yellow-500/50 bg-yellow-500/10">
+                  <div class="flex items-center gap-2 mb-2">
+                    <svg class="h-5 w-5 text-yellow-400 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span class="text-sm font-medium text-yellow-400">Verificando deudas...</span>
+                  </div>
+                </div>
+                } @else if (hasDeudaErrors()) {
+                <!-- Error en deudas (no crítico) -->
+                <div class="p-4 rounded-xl border border-green-500 bg-green-50 dark:bg-green-900/20">
+                  <div class="flex items-center gap-3 mb-2">
+                    <svg class="h-6 w-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-base font-semibold text-green-700 dark:text-green-300">Sin Deudas</span>
+                  </div>
+                  <p class="text-sm text-green-600 dark:text-green-400 ml-9">
+                    El cliente no tiene deudas pendientes
+                  </p>
+                </div>
+                } @else if (tieneDeuda()) {
+                <!-- Tiene deuda - Nueva UI con resumen -->
+                <div class="p-4 rounded-lg border border-red-500/50 bg-red-500/10">
+                  <div class="flex items-center gap-2 mb-3">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                    <span class="text-sm font-medium text-red-400">Deudas Pendientes</span>
+                  </div>
+
+                  <!-- Total de deudas -->
+                  <div class="mb-3">
+                    <p class="text-2xl font-bold text-red-400">
+                      ${{ valorDeuda().toLocaleString('es-CO') }}
+                    </p>
+                    <p class="text-sm text-red-300 mt-1">
+                      {{ textoInformativoDeuda() }}
+                    </p>
+                  </div>
+
+                  <!-- Botones de acción -->
+                  <div class="flex gap-2 justify-between items-center">
+                    <button
+                      type="button"
+                      (click)="openDeudasPopup()"
+                      class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-blue-600/50 text-blue-400 hover:bg-blue-600/10 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors duration-200"
+                      title="Ver detalles de todas las deudas"
+                    >
+                      <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                      </svg>
+                      Ver Detalles
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="confirmarPagoTotalDeudas()"
+                      [disabled]="!canPagarDeudas()"
+                      class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-green-600/50 text-green-400 hover:bg-green-600/10 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Pagar todas las deudas pendientes"
+                    >
+                      @if (procesandoAbonoMasivo()) {
+                        <div class="w-3 h-3 border border-green-400 border-t-transparent rounded-full animate-spin"></div>
+                      } @else {
+                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                      }
+                      {{ procesandoAbonoMasivo() ? 'Procesando...' : 'Pago Total' }}
+                    </button>
+                  </div>
+                </div>
+                        } @else {
+                <!-- Sin deudas -->
+                <div class="p-4 rounded-xl border border-green-500 bg-green-50 dark:bg-green-900/20">
+                  <div class="flex items-center gap-3 mb-2">
+                    <svg class="h-6 w-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-base font-semibold text-green-700 dark:text-green-300">Sin Deudas</span>
+                  </div>
+                  <p class="text-sm text-green-600 dark:text-green-400 ml-9">
+                    El cliente no tiene deudas pendientes
+                  </p>
+                </div>
+                }
+
+                <!-- Resumen de pago de la factura -->
+                @if (tipoPago) {
+                <div class="p-4 rounded-lg border border-blue-500/50 bg-blue-500/10">
+                  <h4 class="text-sm font-medium text-blue-400 mb-2">Resumen de Pago - Factura</h4>
+                  <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                      <span class="text-gray-300">Valor factura:</span>
+                      <span class="text-white">${{ valorFactura().toLocaleString('es-CO') }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-gray-300">Tipo de pago:</span>
+                      <span class="text-white">{{ tipoPago === 'total' ? 'Total' : 'Parcial' }}</span>
+                    </div>
+                    <div class="flex justify-between border-t border-blue-500/30 pt-2">
+                      <span class="text-blue-300 font-medium">A pagar:</span>
+                      <span class="text-blue-300 font-bold">
+                        ${{ getValorAPagar().toLocaleString('es-CO') }}
+                      </span>
+                    </div>
+                    @if (tipoPago === 'parcial' && valorPago !== null && valorPago < valorFactura()) {
+                    <div class="flex justify-between border-t border-red-500/30 pt-2 mt-2">
+                      <span class="text-red-300 font-medium">Deuda a generar:</span>
+                      <span class="text-red-300 font-bold">
+                        ${{ (valorFactura() - valorPago).toLocaleString('es-CO') }}
+                      </span>
+                    </div>
+                    }
+                  </div>
+                </div>
+                }
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup para agregar abono -->
+  <app-pop-up
+    [open]="showAbonoPopup"
+    [isConfirmation]="false"
+    [title]="'Agregar Abono a la Deuda'"
+    (closePopup)="closeAbonoPopup()"
+  >
+    <div class="p-4">
+      <form [formGroup]="abonoForm" (ngSubmit)="onSubmitAbono()" class="space-y-4">
+        <!-- Información de la deuda -->
+        <div class="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-300">Deuda pendiente:</span>
+            <span class="text-lg font-bold text-red-400">
+              ${{ valorDeuda().toLocaleString('es-CO') }}
+            </span>
+          </div>
+          @if (deudaInfo()?.descripcion) {
+          <p class="text-xs text-red-300 mt-1">{{ deudaInfo()?.descripcion }}</p>
+          }
+        </div>
+        <div>
+          <label for="valorAbono" class="block text-sm font-medium text-gray-300 mb-2">
+            Valor del Abono
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+            <input
+              type="number"
+              id="valorAbono"
+              formControlName="valor"
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+              [max]="valorDeuda()"
+              class="w-full pl-8 pr-4 py-2 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
+            >
+          </div>
+          @if (abonoForm.get('valor')?.invalid && abonoForm.get('valor')?.touched) {
+          <div class="mt-1 text-xs text-red-400">
+            @if (abonoForm.get('valor')?.errors?.['required']) {
+            El valor del abono es requerido
+            } @else if (abonoForm.get('valor')?.errors?.['pattern']) {
+            Ingrese un valor numérico válido
+            }
+          </div>
+          }
+        </div>
+        <div class="text-xs text-gray-400">
+          <p>• El abono no puede ser mayor a la deuda pendiente</p>
+          <p>• El valor debe ser mayor a 0</p>
+        </div>
+
+        <!-- Botones -->
+        <div class="flex gap-3 pt-4">
+          <button
+            type="button"
+            (click)="closeAbonoPopup()"
+            class="flex-1 px-4 py-2 text-sm font-medium text-gray-300 bg-transparent border border-gray-600/70 rounded-lg hover:bg-gray-600/10 focus:outline-none focus:ring-2 focus:ring-gray-500/40 transition-colors"
+            [disabled]="procesandoAbono()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="abonoForm.invalid || procesandoAbono()"
+          >
+            @if (procesandoAbono()) {
+            <span class="flex items-center justify-center gap-2">
+              <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/>
+              </svg>
+              Procesando...
+            </span>
+            } @else {
+            Agregar Abono
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </app-pop-up>
+
+  <!-- Popup para confirmar pago -->
+  <app-pop-up
+    [open]="showConfirmPagoPopup"
+    [isConfirmation]="false"
+    [title]="'Confirmar Pago de Factura'"
+    [maxWidth]="'max-w-lg'"
+  >
+    <div class="space-y-4">
+      <!-- Estado actual de la factura -->
+      <div class="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-300">Estado actual:</span>
+          <span class="text-sm font-medium text-blue-400">{{ selectedStatus() }}</span>
+        </div>
+      </div>
+
+      <!-- Información del pago -->
+      <div class="p-3 rounded-lg bg-gray-600/10 border border-gray-600/20">
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-300">Valor de la factura:</span>
+            <span class="text-sm font-medium text-white">{{ valorFactura() | colombianCurrency }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-300">Tipo de pago:</span>
+            <span class="text-sm font-medium text-white">{{ tipoPago === 'total' ? 'Total' : 'Parcial' }}</span>
+          </div>
+          <div class="flex justify-between items-center border-t border-gray-600/30 pt-2">
+            <span class="text-sm font-medium text-green-300">Valor a pagar:</span>
+            <span class="text-lg font-bold text-green-400">{{ getValorAPagar() | colombianCurrency }}</span>
+          </div>
+
+          <!-- Mostrar información de deuda a generar si es pago parcial -->
+          @if (tipoPago === 'parcial' && valorPago !== null && valorPago < valorFactura()) {
+          <div class="flex justify-between items-center border-t border-red-500/30 pt-2 mt-2">
+            <span class="text-sm font-medium text-red-300">Deuda a generar:</span>
+            <span class="text-sm font-bold text-red-400">
+              {{ (valorFactura() - valorPago) | colombianCurrency }}
+            </span>
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Mensaje de confirmación -->
+      <div class="text-center p-3 rounded-lg bg-white/5">
+        <p class="text-sm text-gray-300 leading-relaxed font-medium">
+          ¿Está seguro de confirmar el pago {{ tipoPago === 'total' ? 'total' : 'parcial' }} de
+          <span class="text-green-400 font-bold">${{ getValorAPagar().toLocaleString('es-CO') }}</span>?
+        </p>
+        @if (tipoPago === 'parcial' && valorPago !== null && valorPago < valorFactura()) {
+        <p class="text-xs text-red-300 mt-2">
+          Se generará una deuda de {{ (valorFactura() - valorPago) | colombianCurrency }} por el saldo pendiente.
+        </p>
+        }
+      </div>
+
+      <!-- Advertencia si hay deuda existente -->
+      @if (tieneDeuda()) {
+      <div class="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+        <div class="flex items-start gap-2">
+          <svg class="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+          </svg>
+          <div>
+            <p class="text-sm text-yellow-400 font-medium">Deuda existente</p>
+            <p class="text-xs text-yellow-300 mt-1">
+              El cliente tiene una deuda pendiente de ${{ valorDeuda().toLocaleString('es-CO') }}.
+              Esta deuda se mantendrá independiente del pago de esta factura.
+            </p>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Botones de acción -->
+      <div class="flex gap-3 pt-4">
+        <button
+          type="button"
+          (click)="closeConfirmPagoPopup()"
+          class="flex-1 px-4 py-2 text-sm font-medium text-gray-300 bg-transparent border border-gray-600/70 rounded-lg hover:bg-gray-600/10 focus:outline-none focus:ring-2 focus:ring-gray-500/40 transition-colors"
+          [disabled]="procesandoPago()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="ejecutarConfirmacionPago()"
+          class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          [disabled]="procesandoPago()"
+        >
+          @if (procesandoPago()) {
+          <span class="flex items-center justify-center gap-2">
+            <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/>
+            </svg>
+            Procesando Pago...
+          </span>
+          } @else {
+          Confirmar Pago
+          }
+        </button>
+      </div>
+    </div>
+  </app-pop-up>
+
+  <!-- Popup para mostrar detalles de todas las deudas -->
+  <app-pop-up
+    [open]="showDeudasPopup"
+    title="Detalle de Deudas Pendientes"
+    maxWidth="max-w-4xl"
+  >
+    <div class="overflow-y-auto" style="max-height: calc(100vh - 330px);">
+      <div class="space-y-6">
+        <!-- Resumen -->
+        <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-semibold text-red-400">Resumen de Deudas</h3>
+              <p class="text-sm text-red-300 mt-1">{{ textoInformativoDeuda() }}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-2xl font-bold text-red-400">
+                ${{ valorDeuda().toLocaleString('es-CO') }}
+              </p>
+              <p class="text-xs text-red-300">Total adeudado</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de deudas con inputs de valor -->
+        <div class="space-y-4">
+          @for (deuda of todasLasDeudas(); track $index) {
+            <div class="bg-gray-800/50 border border-gray-600/50 rounded-lg p-4">
+              <div class="flex justify-between items-start mb-3">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-900/50 text-red-300">
+                      {{ getTipoDeudaNombre(deuda) }}
+                    </span>
+                    @if (getFacturaCodigo(deuda)) {
+                      <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-900/50 text-blue-300">
+                        {{ getFacturaCodigo(deuda) }}
+                      </span>
+                    }
+                  </div>
+                  <h4 class="text-sm font-medium text-gray-200 mb-1">
+                    {{ deuda.descripcion }}
+                  </h4>
+                  <p class="text-xs text-gray-400">
+                    Fecha: {{ deuda.fechaDeuda | date:'dd/MM/yyyy' }}
+                  </p>
+                  @if (getPlazoPagoNombre(deuda)) {
+                    <p class="text-xs text-gray-400">
+                      Plazo: {{ getPlazoPagoNombre(deuda) }}
+                      @if (hasMesesInfo(deuda)) {
+                        {{ getMesesInfo(deuda) }}
+                      }
+                    </p>
+                  }
+                </div>
+                <div class="text-right">
+                  <p class="text-lg font-bold text-red-400 mb-2">
+                    ${{ getValorDeuda(deuda).toLocaleString('es-CO') }}
+                  </p>
+                  <p class="text-xs text-gray-400 mb-3">Valor total de la deuda</p>
+
+                  <!-- Input para el valor a pagar -->
+                  <div class="w-32">
+                    <label for="valor-deuda-{{ $index }}" class="block text-xs font-medium text-gray-300 mb-1">
+                      Valor a pagar
+                    </label>
+                    <input
+                      id="valor-deuda-{{ $index }}"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      [max]="getValorDeuda(deuda)"
+                      [value]="getValorAbonoIndividual($index)"
+                      (input)="setValorAbonoIndividual($index, +$any($event.target).value)"
+                      placeholder="Ingrese el valor a pagar"
+                      class="w-full px-2 py-1.5 text-xs bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500/40 focus:border-blue-500/50"
+                    />
+                    <div class="mt-1">
+                      <p class="text-xs text-gray-400">
+                        Máximo: ${{ getValorDeuda(deuda).toLocaleString('es-CO') }}
+                      </p>
+                      @if (getValorAbonoIndividual($index) > 0) {
+                        <p class="text-xs text-blue-400">
+                          A pagar: ${{ getValorAbonoIndividual($index).toLocaleString('es-CO') }}
+                        </p>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="space-y-3 pt-4 mt-4 border-t border-gray-600/50">
+      <!-- Botones de pago -->
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <!-- Botón Pagar (valores ingresados) -->
+        <button
+          type="button"
+          (click)="confirmarPagoParcial()"
+          [disabled]="procesandoAbonoMasivo() || cantidadDeudas() === 0 || cantidadDeudasConValores() === 0"
+          class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-blue-600/50 text-blue-400 hover:bg-blue-600/10 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Pagar solo las deudas con valores ingresados"
+        >
+          @if (procesandoAbonoMasivo()) {
+            <div class="w-4 h-4 border border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+            Procesando...
+          } @else {
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0z"/>
+            </svg>
+            @if (cantidadDeudasConValores() > 0) {
+              Pagar {{ cantidadDeudasConValores() }} deuda(s) (${{ totalAbonosParciales().toLocaleString('es-CO') }})
+            } @else {
+              Pagar Valores Ingresados
+            }
+          }
+        </button>
+        <button
+          type="button"
+          (click)="confirmarPagoTotal()"
+          [disabled]="procesandoAbonoMasivo() || cantidadDeudas() === 0"
+          class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-green-600/50 text-green-400 hover:bg-green-600/10 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Pagar el valor completo de todas las deudas"
+        >
+          @if (procesandoAbonoMasivo()) {
+            <div class="w-4 h-4 border border-green-400 border-t-transparent rounded-full animate-spin"></div>
+            Procesando...
+          } @else {
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Pagar Todo (${{ valorDeuda().toLocaleString('es-CO') }})
+          }
+        </button>
+      </div>
+
+      <!-- Botón para cerrar -->
+      <div class="flex justify-center">
+        <button
+          type="button"
+          (click)="closeDeudasPopup()"
+          class="px-6 py-2 text-sm font-medium text-gray-300 bg-transparent border border-gray-600/70 rounded-lg hover:bg-gray-600/10 focus:outline-none focus:ring-2 focus:ring-gray-500/40 transition-colors"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </app-pop-up>
+
+  <!-- Popup para confirmar pago total de deudas -->
+  <app-pop-up
+    [open]="showConfirmPagoTotalPopup"
+    [isConfirmation]="false"
+    [title]="'Confirmar Pago Total de Deudas'"
+    [maxWidth]="'max-w-lg'"
+  >
+    <div class="space-y-4">
+      <!-- Información de las deudas -->
+      <div class="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-300">Cantidad de deudas:</span>
+            <span class="text-sm font-medium text-red-400">{{ cantidadDeudas() }}</span>
+          </div>
+          <div class="flex justify-between items-center border-t border-red-500/20 pt-2">
+            <span class="text-sm font-medium text-red-300">Total a pagar:</span>
+            <span class="text-lg font-bold text-red-400">{{ valorDeuda() | colombianCurrency }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensaje de confirmación -->
+      <div class="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+        <div class="flex items-start gap-3">
+          <svg class="h-5 w-5 text-yellow-400 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-yellow-400 mb-1">Confirmación requerida</p>
+            <p class="text-sm text-gray-300">
+              {{ getMensajeConfirmacionPagoTotal() }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="flex gap-3 pt-4">
+        <button
+          type="button"
+          (click)="closeConfirmPagoTotalPopup()"
+          class="flex-1 px-4 py-2 text-sm font-medium text-gray-300 bg-gray-600 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500/40 transition-colors"
+          [disabled]="procesandoAbonoMasivo()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="ejecutarPagoTotal()"
+          class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          [disabled]="procesandoAbonoMasivo()"
+        >
+          @if (procesandoAbonoMasivo()) {
+            <div class="flex items-center justify-center gap-2">
+              <div class="w-4 h-4 border border-white border-t-transparent rounded-full animate-spin"></div>
+              Procesando...
+            </div>
+          } @else {
+            Confirmar Pago
+          }
+        </button>
+      </div>
+    </div>
+  </app-pop-up>
+</section>

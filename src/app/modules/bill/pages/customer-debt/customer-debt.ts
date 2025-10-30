@@ -1,118 +1,187 @@
-import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { IDeudaCliente } from '@interfaces/IdeudaFactura';
-import { TableColumn } from '@interfaces/ItableColumn';
 import { DeudaService } from '../../service/deuda.service';
-import { ApiResponse } from '@interfaces/Iresponse';
 import { ToastService } from '@services/toast.service';
 import { TableComponent } from '@components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { map, EMPTY, catchError, of } from 'rxjs';
+import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
 @Component({
   selector: 'app-customer-debt',
   imports: [CommonModule, TableComponent, RouterModule],
   template: `
     <ng-template #actionsTemplate let-row>
-    <div class="flex items-center space-x-2">
-      <button (click)="handleTableAction({ action: 'edit', row })"
-        class="text-green-600 hover:text-green-900 text-sm">
-        <i class="fas fa-edit"></i>
-      </button>
-      <button (click)="redirigirCrearAbono(row.id)"
-        class="text-yellow-600 hover:text-yellow-900 text-sm">
-        <i class="fas fa-coins"></i>
-      </button>
-      <button (click)="handleTableAction({ action: 'delete', row })"
-        class="text-red-600 hover:text-red-900 text-sm">
-        <i class="fas fa-trash"></i>
-      </button>
-    </div>
-  </ng-template>
+      <div class="flex items-center space-x-2">
+        <button
+          type="button"
+          (click)="handleTableAction({ action: 'edit', row })"
+          class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-blue-600/50 text-blue-400 hover:bg-blue-600/10 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors duration-200 cursor-pointer"
+          title="Editar deuda"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          (click)="redirigirCrearAbono(row.id)"
+          class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-yellow-600/50 text-yellow-500 hover:bg-yellow-600/10 focus:outline-none focus:ring-2 focus:ring-yellow-500/40 transition-colors duration-200 cursor-pointer"
+          title="Crear abono"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          (click)="handleTableAction({ action: 'delete', row })"
+          class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-red-600/50 text-red-500 hover:bg-red-600/10 focus:outline-none focus:ring-2 focus:ring-red-500/40 transition-colors duration-200 cursor-pointer"
+          title="Eliminar deuda"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    </ng-template>
 
   <app-table-dynamic
   [title]="title()"
   [columns]="debtColumns()"
-  [datasource]="debtData()"
+  [serverMode]="true"
+  [serverData]="debtData()"
+  [loading]="serverDebtData.isLoading()"
   [actionTemplate]="actionsTemplate"
   [showAddButton]="true"
   [addButtonText]="'Abono factura'"
+  secondaryButtonText="Crear deuda"
   [showSecondaryButton]="true"
+  [showExportButton]="true"
+  [exportFileName]="exportFileName()"
+  [showColumnFilters]="true"
   (secondaryButtonAction)="createdebt()"
-  (action)="handleTableAction($event)">
+  (action)="handleTableAction($event)"
+  (serverPaginationChange)="onPaginationChange($event)">
   </app-table-dynamic>
 
   `
 })
 export class CustomerDebt {
 
-  debtColumns = signal<{ field: string; header: string }[]>([
-    { field: 'clienteNombreCompleto', header: 'Cliente' },
-    { field: 'facturaCodigo', header: 'Factura' },
-    { field: 'fechaDeudaTexto', header: 'Fecha deuda' },
-    { field: 'descripcion', header: 'Descripción' },
-    { field: 'tipoDeudaNombre', header: 'Tipo deuda' },
-    { field: 'valorTexto', header: 'Valor' },
-    { field: 'activo', header: 'Estado' },
-    { field: 'plazoPagoNombre', header: 'N° de cuotas' }
+  debtColumns = signal([
+    { field: 'clienteNombreCompleto', header: 'Cliente', type: 'text' as const },
+    { field: 'facturaCodigo', header: 'Factura', type: 'text' as const },
+    { field: 'fechaDeudaTexto', header: 'Fecha deuda', type: 'date' as const },
+    { field: 'descripcion', header: 'Descripción', type: 'text' as const },
+    { field: 'tipoDeudaNombre', header: 'Tipo deuda', type: 'text' as const },
+    { field: 'valorTexto', header: 'Valor', type: 'text' as const },
+    { field: 'activo', header: 'Estado', type: 'text' as const },
+    { field: 'plazoPagoNombre', header: 'N° de cuotas', type: 'text' as const }
   ]);
 
   protected readonly deudaService = inject(DeudaService);
   protected readonly toastService = inject(ToastService);
   protected readonly router = inject(Router);
   protected readonly route = inject(ActivatedRoute);
+    protected platformId = inject(PLATFORM_ID);
+  protected isBrowser = isPlatformBrowser(this.platformId);
 
-  constructor() {
-    effect(() => {
-      console.log(
-        'Data loaded______:',
-        this.dataDebts.value()
-      );
-    });
-  }
+    readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      console.error('Error parsing userData from sessionStorage:', e);
+      return null;
+    }
+  });
+
+  readonly empresaId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
+  });
+
+  readonly exportFileName = computed(
+    () => `deudas_clientes_${new Date().toISOString().split('T')[0]}`
+  );
+
+  readonly paginationParams = signal<IPaginationParams>({
+    page: 0,
+    size: 5,
+  });
 
 
   /** commentNg
- * @author [PipeChavarro]
- *
- * @remarks
- * El componente no debería realizar ninguna lógica para mostrar la data; toda la lógica de transformación debe hacerse en el backend.
- * Si existe alguna lógica que no se pueda realizar desde el backend, debe implementarse en el service de Angular, no en el componente.
- */
+   * @author [PipeChavarro]
+   *
+   * @remarks
+   * El componente no debería realizar ninguna lógica para mostrar la data; toda la lógica de transformación debe hacerse en el backend.
+   * Si existe alguna lógica que no se pueda realizar desde el backend, debe implementarse en el service de Angular, no en el componente.
+   */
 
-  dataDebts = rxResource({
-    stream: () => this.deudaService.getAllDeuda(
-    ).pipe(
-      map((apiRes: ApiResponse<IDeudaCliente[]>) =>
-        apiRes.response.map(deuda => ({
-          id: deuda.id,
-          clienteNombreCompleto: [
-            deuda.empresaClienteContador?.cliente?.nombre ?? '',
-            deuda.empresaClienteContador?.cliente?.segundoNombre ?? '',
-            deuda.empresaClienteContador?.cliente?.apellido ?? '',
-            deuda.empresaClienteContador?.cliente?.segundoApellido ?? ''
-          ].filter(Boolean).join(' '),
-          facturaCodigo: deuda.factura?.codigo ?? '',
-          fechaDeudaTexto: new Date(deuda.fechaDeuda!).toLocaleDateString('es-CO'),
-          descripcion: deuda.descripcion ?? '',
-          tipoDeudaNombre: deuda.tipoDeuda?.nombre ?? '',
-          valorTexto: `$${parseFloat(deuda.valor).toLocaleString('es-CO')}`,
-          activo: deuda.activo ? 'PENDIENTE' : 'PAGO',
-          plazoPagoNombre: deuda.plazoPago?.nombre ?? ''
-        }))
-      )
-    )
+  serverDebtData = rxResource({
+    params: () => ({
+      empresaId: this.empresaId(),
+      pagination: this.paginationParams(),
+    }),
+    stream: ({ params }) => {
+      const { empresaId, pagination } = params;
+      if (!empresaId) {
+        return EMPTY;
+      }
+      return this.deudaService.getAllDeudaPaginated(
+        empresaId,
+        pagination
+      ).pipe(
+        map((response) => ({
+          ...response,
+          response: response.response.map(deuda => ({
+            id: deuda.id,
+            clienteNombreCompleto: deuda.clienteNombre,
+            facturaCodigo: deuda.facturaCodigo,
+            fechaDeudaTexto: new Date(deuda.fechaDeuda).toLocaleDateString('es-CO'),
+            descripcion: deuda.descripcion,
+            tipoDeudaNombre: deuda.tipoDeuda?.nombre ?? '',
+            valorTexto: `$${deuda.valor.toLocaleString('es-CO')}`,
+            activo: deuda.activo ? 'PENDIENTE' : 'PAGO',
+            plazoPagoNombre: deuda.plazoPago?.nombre || '0'
+          }))
+        })),
+        catchError(error => {
+          console.error('Error loading customer debt:', error);
+          // Retornar estructura compatible con IPaginatedResponse manteniendo la misma estructura
+          return of({
+            success: false,
+            message: 'Error al cargar deudas de clientes',
+            code: error.status || 500,
+            totalCount: 0,
+            pageSize: pagination.size,
+            currentPage: pagination.page,
+            totalPages: 0,
+            response: []
+          });
+        })
+      );
+    },
   });
 
-  debtData = computed(() => this.dataDebts.value() ?? []);
+  debtData = computed(() => this.serverDebtData.value() ?? null);
   title = signal('Deuda de clientes');
 
 
   handleTableAction(event: { action: string; row?: any }) {
   switch (event.action) {
     case 'edit':
-      this.router.navigate(['/bill/update-debt', event.row.id]);
+      this.router.navigate(['../update-debt', event.row.id], {
+        relativeTo: this.route,
+      });
       break;
     case 'delete':
       this.confirmDelete(event.row?.id);
@@ -129,16 +198,34 @@ export class CustomerDebt {
       this.deudaService.deleteDeudaById(id).subscribe({
         next: () => {
           this.toastService.success('Éxito', 'Deuda eliminada');
-          this.dataDebts.reload?.();
+          this.serverDebtData.reload?.();
         },
         error: () => this.toastService.error('Error', 'No se pudo eliminar')
       });
     }
   }
 
-  createdebt() { this.router.navigate(['/bill/create-debt']); }
-  irAbonoFactura() { this.router.navigate(['/bill/credit-customer']); }
-  redirigirCrearAbono(id: number) { this.router.navigate(['/bill/create-credit', id]); }
+  onPaginationChange(params: IPaginationParams): void {
+    this.paginationParams.set(params);
+  }
+
+  createdebt() {
+    this.router.navigate(['../create-debt'], {
+      relativeTo: this.route,
+    });
+  }
+
+  irAbonoFactura() {
+    this.router.navigate(['../credit-customer'], {
+      relativeTo: this.route,
+    });
+  }
+
+  redirigirCrearAbono(id: number) {
+    this.router.navigate(['../create-credit', id], {
+      relativeTo: this.route,
+    });
+  }
 
 
 }

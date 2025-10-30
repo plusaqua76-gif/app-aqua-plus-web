@@ -1,13 +1,13 @@
 import { EnterpriseClientCounterService } from './../../service/enterpriseClientCounter.service';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, inject, signal, computed, effect, PLATFORM_ID } from '@angular/core';
+import { Component, inject, signal, computed, PLATFORM_ID, effect } from '@angular/core';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { Action, TableComponent } from '../../../../core/components/table';
-import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { ToastService } from '@services/toast.service';
-import { EMPTY, map, of } from 'rxjs';
+import { EMPTY, catchError, of } from 'rxjs';
 import { PopupComponent } from '@shared/components/popUp';
-import { ClientRow } from '@interfaces/client/IclientRow';
+import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
 @Component({
   selector: 'app-client',
@@ -16,17 +16,14 @@ import { ClientRow } from '@interfaces/client/IclientRow';
     <ng-template #actionsTemplate let-row>
       <div class="flex items-center space-x-4">
         <button
+          type="button"
           (click)="editar(row)"
-          class="text-green-600 hover:text-green-900 text-sm cursor-pointer"
-        >
-          <i class="fas fa-edit"></i>
-        </button>
-
-        <button
-          (click)="onDelete(row.id)"
-          class="text-red-600 hover:text-red-900 text-sm cursor-pointer"
-        >
-          <i class="fas fa-trash"></i>
+          class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-blue-600/50 text-blue-400 hover:bg-blue-600/10 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors duration-200"
+          title="Editar cliente">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
         </button>
       </div>
     </ng-template>
@@ -36,20 +33,16 @@ import { ClientRow } from '@interfaces/client/IclientRow';
         <label class="inline-flex items-center cursor-pointer">
           <input
             type="checkbox"
+            [checked]="row.activo"
             class="sr-only peer"
-            [checked]="row.estado"
             (change)="onToggle(row)"
           />
           <div
-            class="relative w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full
-                peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full
-                after:content-[''] after:absolute after:top-[2px] after:start-[2px]
-                after:bg-white after:border-gray-300 after:border after:rounded-full
-                after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
+            class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"
           ></div>
         </label>
-        <span class="text-sm font-medium">
-          {{ row.estado ? 'Activo' : 'Inactivo' }}
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+          {{ row.activo ? 'Activo' : 'Inactivo' }}
         </span>
       </div>
     </ng-template>
@@ -57,12 +50,18 @@ import { ClientRow } from '@interfaces/client/IclientRow';
     <app-table-dynamic
       [title]="title"
       [columns]="clienteColumns()"
-      [datasource]="transformedData()"
+      [serverMode]="true"
+      [serverData]="serverClientData.value() ?? null"
+      [loading]="serverClientData.isLoading()"
       [actionTemplate]="actionsTemplate"
-      [columnTemplates]="{ estado: estadoTpl }"
+      [columnTemplates]="{ activo: estadoTpl }"
       [showAddButton]="true"
       [addButtonText]="'Agregar Cliente'"
+      [showColumnFilters]="true"
+      [showExportButton]="true"
+      [exportFileName]="exportFileName()"
       (action)="onTableAction($event)"
+      (serverPaginationChange)="onPaginationChange($event)"
     >
     </app-table-dynamic>
 
@@ -85,25 +84,10 @@ export class Client {
   itemToDelete: number | null = null;
   title = 'Gestion de clientes';
 
-  private platformId = inject(PLATFORM_ID);
-  private isBrowser = isPlatformBrowser(this.platformId);
+  readonly platformId = inject(PLATFORM_ID);
+  readonly isBrowser = isPlatformBrowser(this.platformId);
 
-  readonly enterpriseId = computed(() => {
-    if (!this.isBrowser) return null;
-
-    try {
-      const userData = sessionStorage.getItem('userData');
-      if (!userData) return null;
-
-      const parsedUserData = JSON.parse(userData);
-      return parsedUserData.empresaId ? Number(parsedUserData.empresaId) : null;
-    } catch (error) {
-      console.error('Error parsing userData from sessionStorage:', error);
-      return null;
-    }
-  });
-
-  private enterpriseClientCounterService = inject(
+  readonly enterpriseClientCounterService = inject(
     EnterpriseClientCounterService
   );
   protected readonly router = inject(Router);
@@ -111,83 +95,97 @@ export class Client {
   protected readonly toastService = inject(ToastService);
 
   clienteColumns = signal([
-    { field: 'idContador', header: 'ID Contador' },
-    { field: 'codigoVereda', header: 'Vereda' },
-    { field: 'numeroIdentificacion', header: 'Número Identificación' },
-    // { field: 'razonSocial', header: 'Razón Social' },
-    { field: 'nombreCliente', header: 'Nombre cliente' },
-    { field: 'telefono', header: 'Teléfono' },
-    { field: 'direccion', header: 'Dirección' },
-    { field: 'correo', header: 'Correo' },
-    { field: 'estado', header: 'Estado', template: 'estadoTpl' },
+    { field: 'numeroCedula', header: 'Número Identificación', type: 'text' as const },
+    { field: 'nombreCompleto', header: 'Nombre', type: 'text' as const },
+    { field: 'telefono', header: 'Teléfono', type: 'text' as const },
+    { field: 'corregimientoNombre', header: 'Corregimiento', type: 'text' as const },
+    { field: 'direccionDescripcion', header: 'Dirección', type: 'text' as const },
+    { field: 'correo', header: 'Correo', type: 'text' as const },
+    { field: 'activo', header: 'Estado', template: 'estadoTpl', type: 'text' as const }
   ]);
 
+  readonly exportFileName = computed(
+    () => `clientes_${new Date().toISOString().split('T')[0]}`
+  );
 
-  // constructor() {
-  //   effect(() => {
-  //     const id = this.enterpriseId();
-  //     console.log('Enterprise ID changed:', id);
-  //     console.log('Enterprise ID from sessionStorage:', this.enterpriseId);
-  //     if (id === null) {
-  //       console.warn('Enterprise ID is null - checking sessionStorage userData');
-  //     }
-  //   });
+  readonly paginationParams = signal<IPaginationParams>({
+    page: 0,
+    size: 5,
+  });
 
-  //   effect(() => {
-  //     const resourceState = this.dataClientCounter.status();
-  //     console.log('Resource status:', resourceState);
-  //     console.log('esta es la data de mi pez', this.dataClientCounter.value());
-
-  //     if (resourceState === 'error') {
-  //       console.error('Resource error:', this.dataClientCounter.error());
-  //     }
-  //   });
-  // }
-
-  dataClientCounter = rxResource({
-    params: () => ({ enterpriseId: this.enterpriseId() }),
-    stream: ({ params }) => {
-      const { enterpriseId } = params;
-
-      if (!enterpriseId) {
-        console.warn('No enterprise ID available');
-        return of({
-          success: true,
-          message: 'No enterprise ID available',
-          code: 200,
-          response: [] as ClientRow[]
-        });
-      }
-
-      return this.enterpriseClientCounterService.getAllCounterByIdEnterprise(enterpriseId);
+      readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      console.error('Error parsing userData from sessionStorage:', e);
+      return null;
     }
   });
 
-  transformedData = computed(() => {
-    const apiResponse = this.dataClientCounter.value();
-    return apiResponse?.response || [];
+    readonly enterpriseId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
   });
 
+
+  readonly nombreUsuario = computed(() => {
+    const data = this.userData();
+    return data?.nombre || null;
+  });
+
+
+  serverClientData = rxResource({
+    params: () => ({
+      enterpriseId: this.enterpriseId(),
+      pagination: this.paginationParams(),
+    }),
+    stream: ({ params }) => {
+      const { enterpriseId, pagination } = params;
+
+      if (!enterpriseId) {
+        console.warn('No enterprise ID available');
+        return EMPTY;
+      }
+
+      return this.enterpriseClientCounterService.getAllClientsByIdEnterprisePaginated(
+        enterpriseId,
+        pagination
+      ).pipe(
+        catchError((error) => {
+          return of(null);
+        })
+      );
+    }
+  });
+
+
+
+  transformedData = computed(() => this.serverClientData.value() ?? null);
+
   onToggle(row: any) {
-    const nuevoEstado = !row.estado;
+    const nuevoEstado = !row.activo;
 
     this.enterpriseClientCounterService
       .updateEstado({
         id_persona: row.id,
         activo: nuevoEstado,
-        usuario_cambio: localStorage.getItem('nameUser') || 'admin',
+        usuario_cambio: this.nombreUsuario()
       })
       .subscribe({
         next: (response) => {
-          row.estado = nuevoEstado;
+          row.activo = nuevoEstado;
           this.toastService.success(
             'Éxito',
             'Estado actualizado correctamente'
           );
+          // Recargar los datos para sincronizar
+          this.serverClientData.reload?.();
         },
         error: (err) => {
-          console.error('Error al cambiar estado del empleado:', err.message);
-          row.estado = !nuevoEstado;
+          console.error('Error al cambiar estado del cliente:', err);
           this.toastService.error(
             'Error',
             'Ocurrió un error al actualizar el estado'
@@ -202,10 +200,11 @@ export class Client {
   }
 
   editar(row: any) {
-    const id = row?.id;
+    const id = row?.empresaClienteContadorId;
     if (id) {
-      this.router.navigate(['/client/update-client/', id], {
+      this.router.navigate(['update-client/', id], {
         relativeTo: this.route,
+        state: { clienteData: row }
       });
     } else {
       this.toastService.error('Error', 'ID del cliente no válido.');
@@ -222,7 +221,7 @@ export class Client {
               'Eliminado',
               'Cliente eliminado correctamente.'
             );
-            this.dataClientCounter.reload?.();
+            this.serverClientData.reload?.();
           },
           error: () => {
             this.toastService.error('Error', 'No se pudo eliminar el cliente.');
@@ -241,5 +240,9 @@ export class Client {
     } else if (event.action === 'edit' && event.row) {
       this.editar(event.row);
     }
+  }
+
+  onPaginationChange(params: IPaginationParams): void {
+    this.paginationParams.set(params);
   }
 }

@@ -1,147 +1,169 @@
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment.local';
-import { HttpClient } from '@angular/common/http';
-import { catchError, forkJoin, map, Observable, throwError } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { ApiResponse } from '@interfaces/Iresponse';
-import { END_POINT_SERVICE, ENTERPRISE_CLIENT_COUNT } from '../../../environments/environment.variables';
+import {
+  END_POINT_SERVICE,
+  ENTERPRISE_CLIENT_COUNT,
+} from '../../../environments/environment.variables';
 import { IEnterpriseClientCounter } from '@interfaces/IenterpriseClientCounter';
 import { Router } from '@angular/router';
-import { ICorreoPerson, IPerson } from '@interfaces/Iperson';
-import { ITelefonoGeneral } from '@interfaces/ItelefonoGeneral';
-import { CorreoPersonaService } from './correoPersona.service';
-import { TelefonoGeneralService } from './telefonoPersona.service';
-import { ClienteApi } from '@interfaces/client/IclienteApi';
-import { ClientRow } from '@interfaces/client/IclientRow';
-import { toClientRow } from '@shared/mappers/clientRow';
+import {
+  IPaginationParams,
+  IPaginatedResponse,
+} from '@interfaces/IpaginatedResponse';
+import {
+  ClientRaw,
+  ClientsRawApiResponse,
+} from '@interfaces/client/IclientRaw';
+import { IClienteDetalleApiResponse } from '@interfaces/client/IclientDetail';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class EnterpriseClientCounterService {
-
   private readonly apiUrl = `${environment.apiUrl}/${ENTERPRISE_CLIENT_COUNT.ENT_CLI_COU}`;
-
-  protected readonly router = inject(Router)
-  protected readonly correoService = inject(CorreoPersonaService)
-  protected readonly telefonoService = inject(TelefonoGeneralService)
-  protected readonly http = inject(HttpClient)
+  protected readonly router = inject(Router);
+  protected readonly http = inject(HttpClient);
 
   getAllCLiente(): Observable<ApiResponse<IEnterpriseClientCounter[]>> {
     const url = `${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_ALL_CLI}`;
-    return this.http.get<ApiResponse<IEnterpriseClientCounter[]>>(url)
+    return this.http.get<ApiResponse<IEnterpriseClientCounter[]>>(url);
   }
 
-  getAllClienteEnterprises(): Observable<IEnterpriseClientCounter[]> {
-    const url = `${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_ALL_CLI}`;
-    return this.http.get<ApiResponse<IEnterpriseClientCounter[]>>(url).pipe(
-      map((response: ApiResponse<IEnterpriseClientCounter[]>) => {
-        return response.response;
-      })
+  getClientBySerial(
+    serial: string
+  ): Observable<ApiResponse<IEnterpriseClientCounter>> {
+    return this.http.get<ApiResponse<IEnterpriseClientCounter>>(
+      `${environment.apiUrl}/contador/serial?serial=${serial}`
     );
   }
-  getAllClienteEnterprise(): Observable<{
-    clientes: IEnterpriseClientCounter[],
-    correos: ICorreoPerson[],
-    telefonos: ITelefonoGeneral[]
-  }> {
-    const clientes$ = this.http
-      .get<ApiResponse<IEnterpriseClientCounter[]>>(`${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_ALL_CLI}`)
-      .pipe(map(resp => resp.response));
 
-    const correos$ = this.correoService.getAllCorreo().pipe(
-      map(resp => resp.response)
-    );
+  // Método que obtiene todos los clientes sin transformación
+  getAllClientsByIdEnterprise(
+    enterpriseId: number
+  ): Observable<ClientsRawApiResponse> {
+    const url = `${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_CLIENT}/${enterpriseId}`;
+    return this.http.get<ClientsRawApiResponse>(url);
+  }
 
-    const telefonos$ = this.telefonoService.getAllTelefono().pipe(
-      map(resp => resp.response)
-    );
+  getAllClientsByIdEnterprisePaginated(
+    enterpriseId: number,
+    params: IPaginationParams
+  ): Observable<IPaginatedResponse<ClientRaw>> {
+    const url = `${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_CLIENT}/${enterpriseId}`;
 
-    return forkJoin({
-      clientes: clientes$,
-      correos: correos$,
-      telefonos: telefonos$
+    let httpParams = new HttpParams()
+      .set('page', params.page.toString())
+      .set('size', params.size.toString());
+
+    if (params.search) {
+      httpParams = httpParams.set('search', params.search);
+    }
+
+    if (params.filters) {
+      httpParams = this.mapFiltersToHttpParams(httpParams, params.filters);
+    }
+
+    return this.http.get<IPaginatedResponse<ClientRaw>>(url, {
+      params: httpParams,
     });
   }
 
-
-
-  private handleError(error: any): Observable<never> {
-    let errorMessage = 'An unknown error occurred while loading enterprise client counters.';
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = `Client Error: ${error.error.message}`;
-    } else {
-      errorMessage = `Server Error: ${error.status} - ${error.message || ''}`;
-      if (error.error && error.error.message) {
-        errorMessage = `${errorMessage} - ${error.error.message}`;
-      }
-    }
-    console.error('Error in EnterpriseClientCounterService:', errorMessage);
-    return throwError(() => new Error(errorMessage));
-  }
-
-  // Método original que devuelve ClienteApi[] (mantener para compatibilidad)
-  getAllCounterByIdEnterpriseRaw(enterpriseId: number): Observable<ApiResponse<ClienteApi[]>> {
-    const url = `${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_CLIENT}/${enterpriseId}`;
-    return this.http.get<ApiResponse<ClienteApi[]>>(url);
-  }
-
-  // Método optimizado que aplica el mapper directamente y devuelve ClientRow[]
-  getAllCounterByIdEnterprise(enterpriseId: number): Observable<ApiResponse<ClientRow[]>> {
-    const url = `${this.apiUrl}/${ENTERPRISE_CLIENT_COUNT.GET_CLIENT}/${enterpriseId}`;
-    return this.http.get<ApiResponse<ClienteApi[]>>(url).pipe(
-      map(response => ({
-        ...response,
-        response: response.response.map(client => toClientRow(client))
-      }))
-    );
-  }
-
-  getEntClientCounterById(id: number): Observable<ApiResponse<IEnterpriseClientCounter>> {
+  getEntClientCounterById(
+    id: number
+  ): Observable<ApiResponse<IEnterpriseClientCounter>> {
     const url = `${this.apiUrl}/${id}`;
-    return this.http.get<ApiResponse<IEnterpriseClientCounter>>(url).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.get<ApiResponse<IEnterpriseClientCounter>>(url);
   }
-  updateEstado(data: { id_persona: number, activo: boolean, usuario_cambio: string }): Observable<Map<string, any>> {
+  updateEstado(data: {
+    id_persona: number;
+    activo: boolean;
+    usuario_cambio: string;
+  }): Observable<Map<string, any>> {
     const url = `${environment.apiUrl}/${ENTERPRISE_CLIENT_COUNT.ENT_CLI_COU}/${END_POINT_SERVICE.POST_UPD_ESTADO}`;
-    return this.http.post<Map<string, any>>(url, data).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.post<Map<string, any>>(url, data);
   }
 
   saveClient(data: any): Observable<any> {
     const url = `${environment.apiUrl}/${ENTERPRISE_CLIENT_COUNT.ENT_CLI_COU}/${ENTERPRISE_CLIENT_COUNT.POST_SAVE_CLI}`;
-    return this.http.post<any>(url, data).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.post<any>(url, data);
   }
 
   deleteClienteById(id: number): Observable<ApiResponse<any>> {
     const url = `${this.apiUrl}/${id}`;
-    return this.http.delete<ApiResponse<any>>(url).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.delete<ApiResponse<any>>(url);
   }
 
   deleteClient(idPersona: number): Observable<any> {
-  const url = `${environment.apiUrl}/${ENTERPRISE_CLIENT_COUNT.ENT_CLI_COU}/${ENTERPRISE_CLIENT_COUNT.DELETE_CLI}/${idPersona}`;
-  return this.http.delete<any>(url).pipe(
-    catchError(this.handleError)
-  );
-}
+    const url = `${environment.apiUrl}/${ENTERPRISE_CLIENT_COUNT.ENT_CLI_COU}/${ENTERPRISE_CLIENT_COUNT.DELETE_CLI}/${idPersona}`;
+    return this.http.delete<any>(url);
+  }
 
-  getClienteById(id: number): Observable<ApiResponse<IEnterpriseClientCounter>> {
+  getClienteById(
+    id: number
+  ): Observable<ApiResponse<IEnterpriseClientCounter>> {
     const url = `${this.apiUrl}/${id}`;
-    return this.http.get<ApiResponse<IEnterpriseClientCounter>>(url).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.get<ApiResponse<IEnterpriseClientCounter>>(url);
   }
 
-   updateClient(data: any): Observable<any> {
+  // Nuevo método para obtener cliente detallado por empresaClienteContadorId
+  getClientByEmpresaClienteContadorId(
+    empresaClienteContadorId: number
+  ): Observable<IClienteDetalleApiResponse> {
+    const url = `${this.apiUrl}/${empresaClienteContadorId}`;
+    return this.http.get<IClienteDetalleApiResponse>(url);
+  }
+
+  updateClient(data: any): Observable<any> {
     const url = `${environment.apiUrl}/${ENTERPRISE_CLIENT_COUNT.ENT_CLI_COU}/${ENTERPRISE_CLIENT_COUNT.UPDATE_CLI}`;
-    return this.http.post<any>(url, data).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.post<any>(url, data);
   }
 
+  private mapFiltersToHttpParams(
+    httpParams: HttpParams,
+    filters: Record<string, string>
+  ): HttpParams {
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value?.trim()) {
+        const trimmedValue = value.trim();
+        httpParams = this.applyFilter(httpParams, key, trimmedValue);
+      }
+    });
+    return httpParams;
+  }
+
+  private applyFilter(
+    httpParams: HttpParams,
+    key: string,
+    value: string
+  ): HttpParams {
+    switch (key) {
+      case 'nombre':
+      case 'apellido':
+        return httpParams.set('nombreCompleto', value);
+      case 'numeroCedula':
+        return httpParams.set('cedula', value);
+      case 'codigo':
+        return httpParams.set('codigo', value);
+      case 'corregimientoNombre':
+        return httpParams.set('corregimiento', value);
+      case 'telefono':
+        return httpParams.set('telefono', value);
+      case 'correo':
+        return httpParams.set('correo', value);
+      case 'direccionDescripcion':
+        return httpParams.set('direccion', value);
+      case 'departamentoNombre':
+        return httpParams.set('departamento', value);
+      default:
+        return httpParams.set(key, value);
+    }
+  }
+
+  private isValidNumber(value: string): boolean {
+    const numericValue = parseFloat(value);
+    return !isNaN(numericValue) && isFinite(numericValue);
+  }
 }

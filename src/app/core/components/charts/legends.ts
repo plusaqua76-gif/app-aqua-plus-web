@@ -1,23 +1,24 @@
 import { isPlatformBrowser } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, computed, inject, OnDestroy, PLATFORM_ID, signal } from '@angular/core';
+import { FacturasDataService } from '@services/facturas-data.service';
+import { IFacturasData } from '@interfaces/IFacturasData';
+import { Subscription } from 'rxjs';
 
 
-// Declaración global (igual a tu donut)
-declare var ApexCharts: any;
+declare const ApexCharts: any;
 
-// Tipos mínimos para el área con ejes
-interface AreaSeries {
+interface ChartSeries {
   name: string;
   data: number[];
   color?: string;
 }
 
-interface AreaChartOptions {
-  series: AreaSeries[];
+interface ChartOptions {
+  series: ChartSeries[];
   chart: {
     height: number | string;
     maxWidth?: string;
-    type: 'area';
+    type: 'line' | 'area';
     fontFamily?: string;
     dropShadow?: { enabled: boolean };
     toolbar: { show: boolean };
@@ -27,7 +28,12 @@ interface AreaChartOptions {
     x: { show: boolean };
     y?: { formatter?: (value: number) => string };
   };
-  legend: { show: boolean };
+  legend: {
+    show: boolean;
+    position?: 'bottom' | 'top' | 'left' | 'right';
+    horizontalAlign?: 'center' | 'left' | 'right';
+    fontFamily?: string;
+  };
   fill: {
     type: 'gradient' | 'solid';
     gradient?: {
@@ -38,21 +44,40 @@ interface AreaChartOptions {
     };
   };
   dataLabels: { enabled: boolean };
-  stroke: { width: number };
+  stroke: {
+    width: number;
+    curve?: 'smooth' | 'straight' | 'stepline';
+  };
   grid: {
     show: boolean;
     strokeDashArray: number;
     padding: { left: number; right: number; top: number };
+    borderColor?: string;
   };
   xaxis: {
     categories: string[];
-    labels: { show: boolean };
+    labels: {
+      show: boolean;
+      style?: {
+        colors: string;
+        fontSize: string;
+        fontFamily: string;
+      };
+    };
     axisBorder: { show: boolean };
     axisTicks: { show: boolean };
   };
   yaxis: {
     show: boolean;
-    labels: { formatter: (v: number) => string };
+    labels: {
+      formatter: (v: number) => string;
+      offsetX?: number;
+      style?: {
+        colors: string;
+        fontSize: string;
+        fontFamily: string;
+      };
+    };
   };
 }
 
@@ -62,65 +87,80 @@ interface AreaChartOptions {
   imports: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-
-
 <div class="w-full bg-white rounded-lg shadow-sm dark:bg-gray-800 p-4 md:p-6">
   <div class="flex justify-between mb-5">
     <div>
-      <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Ingresos vs Gastos</h5>
-      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Ventas este mes</p>
+      <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Estado de Facturas por Mes</h5>
+      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Facturas pagadas, pendientes y vencidas</p>
     </div>
-    <div
+    <!-- <div
       class="flex items-center px-2.5 py-0.5 text-base font-semibold text-green-500 dark:text-green-500 text-center">
-      23%
+      76%
       <svg class="w-3 h-3 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 14">
         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13V1m0 0L1 5m4-4 4 4"/>
       </svg>
-    </div>
+    </div> -->
   </div>
   <div id="legend-chart"></div>
   <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between mt-5">
     <div class="flex justify-between items-center pt-5">
-      <!-- Button -->
-      <button
-        id="dropdownDefaultButton"
-        data-dropdown-toggle="lastDaysdropdown"
-        data-dropdown-placement="bottom"
-        class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
-        type="button">
-        Últimos 30 días
-        <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
-        </svg>
-      </button>
-      <!-- Dropdown menu -->
-      <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700">
-          <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Ayer</a>
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Hoy</a>
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Últimos 7 días</a>
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Últimos 30 días</a>
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Últimos 90 días</a>
-            </li>
-          </ul>
+      <!-- Dropdown Container -->
+      <div class="dropdown-container relative">
+        <!-- Button -->
+        <button
+          (click)="toggleDropdown()"
+          class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
+          type="button">
+          {{ selectedMonth }}
+          <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+          </svg>
+        </button>
+        <!-- Dropdown menu -->
+        <div [class.hidden]="!isDropdownOpen" class="absolute z-10 bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 mt-1">
+            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
+              <li>
+                <button (click)="selectMonth('Todos los meses')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Todos los meses</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Enero')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Enero</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Febrero')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Febrero</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Marzo')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Marzo</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Abril')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Abril</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Mayo')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Mayo</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Junio')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Junio</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Julio')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Julio</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Agosto')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Agosto</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Septiembre')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Septiembre</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Octubre')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Octubre</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Noviembre')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Noviembre</button>
+              </li>
+              <li>
+                <button (click)="selectMonth('Diciembre')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Diciembre</button>
+              </li>
+            </ul>
+        </div>
       </div>
-      <a
-        href="#"
-        class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
-        Ver más
-        <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-        </svg>
-      </a>
     </div>
   </div>
 </div>
@@ -128,41 +168,269 @@ interface AreaChartOptions {
 
   `,
 })
-export class Legends {
- private chart: any;
+export class Legends implements AfterViewInit, OnDestroy {
+  private chart: any;
+  private subscription?: Subscription;
+  protected platformId = inject(PLATFORM_ID);
+  protected isBrowser = isPlatformBrowser(this.platformId);
+  private readonly facturasService = inject(FacturasDataService);
 
-  private readonly platformId = inject(PLATFORM_ID);
+  // Signals para manejo reactivo de datos
+  private readonly chartData = signal<IFacturasData | null>(null);
+  public isLoading = signal<boolean>(true);
+  public hasError = signal<boolean>(false);
 
+  // Propiedades para el dropdown de meses
+  public isDropdownOpen = false;
+  public selectedMonth = 'Todos los meses';
 
-  constructor() {
+  readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      return null;
+    }
+  });
+
+  readonly empresaId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
+  });
+
+  readonly currentDate = computed(() => {
+    if (!this.isBrowser) return new Date();
+    return new Date();
+  });
+
+  readonly currentYear = computed(() => {
+    return this.currentDate().getFullYear();
+  });
+
+  // Signal computed que se actualiza cuando cambian empresaId o año
+  readonly shouldRefreshData = computed(() => {
+    const empresaId = this.empresaId();
+    const anio = this.currentYear();
+    return { empresaId, anio };
+  });
+
+  ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.initializeAreaChart();
+      this.loadFacturasData();
+      // Agregar listener para cerrar dropdown al hacer clic fuera
+      document.addEventListener('click', this.closeDropdownOnOutsideClick.bind(this));
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.chart?.destroy();
+    this.subscription?.unsubscribe();
+    // Remover listener
+    if (isPlatformBrowser(this.platformId)) {
+      document.removeEventListener('click', this.closeDropdownOnOutsideClick.bind(this));
     }
   }
 
 
-  ngOnDestroy(): void {
-    this.chart?.destroy();
+
+  /**
+   * Cerrar dropdown al hacer clic fuera
+   */
+  private closeDropdownOnOutsideClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    const dropdown = target.closest('.dropdown-container');
+    if (!dropdown) {
+      this.isDropdownOpen = false;
+    }
   }
 
-  private getOptions(): AreaChartOptions {
+  private loadFacturasData(): void {
+    const empresaId = this.empresaId();
+    const anio = this.currentYear();
+
+    if (!empresaId || !anio) {
+      console.warn('Datos incompletos para cargar facturas:', { empresaId, anio });
+      this.isLoading.set(false);
+      this.hasError.set(true);
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.subscription = this.facturasService.getFacturasDataAnual(empresaId, anio).subscribe({
+      next: (data: IFacturasData) => {
+        this.chartData.set(data);
+        this.isLoading.set(false);
+        this.hasError.set(false);
+        setTimeout(() => {
+          this.initializeAreaChart();
+        }, 0);
+      },
+      error: (error: any) => {
+
+        this.isLoading.set(false);
+        this.hasError.set(true);
+        this.initializeAreaChart();
+      }
+    });
+  }
+
+
+
+  /**
+   * Toggle del dropdown
+   */
+  toggleDropdown(): void {
+    this.isDropdownOpen = !this.isDropdownOpen;
+  }
+
+  /**
+   * Seleccionar mes y actualizar gráfico
+   */
+  selectMonth(monthName: string): void {
+    this.selectedMonth = monthName;
+    this.isDropdownOpen = false;
+
+    const empresaId = this.empresaId();
+    const anio = this.currentYear();
+
+    if (!empresaId || !anio) {
+      console.warn('Datos incompletos para cargar facturas:', { empresaId, anio });
+      return;
+    }
+
+    this.isLoading.set(true);
+
+    // Convertir nombre del mes a número (1-12) o undefined para "Todos los meses"
+    const monthNumber = this.getMonthNumber(monthName);
+
+    if (monthNumber) {
+      // Cargar datos para un mes específico
+      this.subscription?.unsubscribe(); // Cancelar subscripción anterior
+      this.subscription = this.facturasService.getFacturasMesDinamico(empresaId, anio, monthNumber).subscribe({
+        next: (response: any) => {
+          // Convertir respuesta a formato de gráfico
+          const monthData: IFacturasData = {
+            xAxis: [monthName],
+            yAxis: {
+              facturasPagadas: [response.facturasPagadas?.total || 0],
+              facturasPendientes: [response.facturasPendientes?.total || 0],
+              facturasVencidas: [response.facturasVencidas?.total || 0]
+            }
+          };
+
+          this.chartData.set(monthData);
+          this.isLoading.set(false);
+          this.hasError.set(false);
+          this.updateChart(monthData);
+        },
+        error: (error: any) => {
+          this.isLoading.set(false);
+          this.hasError.set(true);
+        }
+      });
+    } else {
+      // Cargar datos para todos los meses
+      this.subscription?.unsubscribe(); // Cancelar subscripción anterior
+      this.subscription = this.facturasService.getFacturasDataAnual(empresaId, anio).subscribe({
+        next: (data: IFacturasData) => {
+          this.chartData.set(data);
+          this.isLoading.set(false);
+          this.hasError.set(false);
+          this.updateChart(data);
+        },
+        error: (error: any) => {
+          this.isLoading.set(false);
+          this.hasError.set(true);
+        }
+      });
+    }
+  }
+
+  private getMonthNumber(monthName: string): number | undefined {
+    const months: { [key: string]: number } = {
+      'Enero': 1, 'Febrero': 2, 'Marzo': 3, 'Abril': 4,
+      'Mayo': 5, 'Junio': 6, 'Julio': 7, 'Agosto': 8,
+      'Septiembre': 9, 'Octubre': 10, 'Noviembre': 11, 'Diciembre': 12
+    };
+
+    return months[monthName];
+  }
+
+  private updateChart(data: IFacturasData): void {
+    if (this.chart) {
+      const newSeries = [
+        {
+          name: 'Facturas Pagadas',
+          data: data.yAxis.facturasPagadas,
+        },
+        {
+          name: 'Facturas Pendientes',
+          data: data.yAxis.facturasPendientes,
+        },
+        {
+          name: 'Facturas Vencidas',
+          data: data.yAxis.facturasVencidas,
+        }
+      ];
+
+      this.chart.updateSeries(newSeries);
+      this.chart.updateOptions({
+        xaxis: {
+          categories: data.xAxis
+        }
+      });
+    }
+  }
+
+  private getOptions(): ChartOptions {
+    // signal
+    const currentData = this.chartData();
+
+    const series: ChartSeries[] = currentData ? [
+      {
+        name: 'Facturas Pagadas',
+        data: currentData.yAxis.facturasPagadas,
+        color: '#10B981', // Verde para pagadas
+      },
+      {
+        name: 'Facturas Pendientes',
+        data: currentData.yAxis.facturasPendientes,
+        color: '#3B82F6', // Azul para pendientes
+      },
+      {
+        name: 'Facturas Vencidas',
+        data: currentData.yAxis.facturasVencidas,
+        color: '#EF4444', // Rojo para vencidas
+      },
+    ] : [
+      {
+        name: 'Facturas Pagadas',
+        data: [],
+        color: '#10B981',
+      },
+      {
+        name: 'Facturas Pendientes',
+        data: [],
+        color: '#3B82F6',
+      },
+      {
+        name: 'Facturas Vencidas',
+        data: [],
+        color: '#EF4444',
+      },
+    ];
+
+    const categories = currentData ?
+      currentData.xAxis :
+      [];
+
     return {
-      // series: array de objetos (bar/line/area)
-      series: [
-        {
-          name: 'Ingresos',
-          data: [1500, 1418, 1456, 1526, 1356, 1256],
-          color: '#1A56DB',
-        },
-        {
-          name: 'Gastos',
-          data: [643, 413, 765, 412, 1423, 1731],
-          color: '#7E3BF2',
-        },
-      ],
+      series,
       chart: {
-        height: 200,        // respeta tu ejemplo
-        maxWidth: '800px',
+        height: 280,
+        maxWidth: '100%',
         type: 'area',
         fontFamily: 'Inter, sans-serif',
         dropShadow: { enabled: false },
@@ -171,39 +439,58 @@ export class Legends {
       tooltip: {
         enabled: true,
         x: { show: false },
-        // si quieres formato de moneda en tooltip:
-        y: { formatter: (v: number) => `$${v}` },
+        y: {
+          formatter: (v: number) => `${v} facturas` // Más descriptivo
+        },
       },
-      legend: { show: true },
+      legend: {
+        show: true,
+        position: 'bottom',
+        horizontalAlign: 'center',
+        fontFamily: 'Inter, sans-serif'
+      },
       fill: {
         type: 'gradient',
         gradient: {
           opacityFrom: 0.55,
-          opacityTo: 0,
-          shade: '#1C64F2',
-          gradientToColors: ['#1C64F2'],
+          opacityTo: 0.1,
+          shade: 'light',
         },
       },
       dataLabels: { enabled: false },
-      stroke: { width: 6 },
+      stroke: {
+        width: 3,
+        curve: 'smooth'
+      },
       grid: {
-        show: false,
-        strokeDashArray: 4,
-        padding: { left: 2, right: 2, top: -26 },
+        show: true,
+        strokeDashArray: 3,
+        padding: { left: 20, right: 2, top: 0 }, // Aumentar padding izquierdo para más espacio
+        borderColor: '#374151'
       },
       xaxis: {
-        categories: [
-          'Enero','Febrero','Marzo',
-          'Abril','Mayo','Junio','Julio'
-        ],
-        labels: { show: false },
+        categories,
+        labels: {
+          show: true,
+          style: {
+            colors: '#9CA3AF',
+            fontSize: '12px',
+            fontFamily: 'Inter, sans-serif'
+          }
+        },
         axisBorder: { show: false },
         axisTicks: { show: false },
       },
       yaxis: {
-        show: false,
+        show: true,
         labels: {
-          formatter: (value: number) => `$${value}`,
+          style: {
+            colors: '#9CA3AF',
+            fontSize: '12px',
+            fontFamily: 'Inter, sans-serif'
+          },
+          formatter: (value: number) => `${value}`, // Removido el $ ya que son cantidades, no montos
+          offsetX: -7, // Separa los números del eje Y hacia la izquierda
         },
       },
     };
@@ -211,11 +498,10 @@ export class Legends {
 
   private initializeAreaChart(): void {
     const el = document.getElementById('legend-chart') as HTMLElement;
-    if (el && typeof ApexCharts !== 'undefined') {
+    if (el && ApexCharts !== undefined) {
       this.chart = new ApexCharts(el, this.getOptions());
-      this.chart.render();
-    } else {
-      console.error('ApexCharts no está cargado o falta el elemento #legend-chart');
+      this.chart.render().catch((error: any) => {
+      });
     }
   }
 }

@@ -3,17 +3,22 @@
 @import "flowbite/src/themes/default";
 @plugin "flowbite/plugin";
 @source "../node_modules/flowbite";
+@source "../node_modules/flowbite-datepicker";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --primary-text-color: #000;
-  --bg-color: #ffffff;
-  color-scheme: light dark;
+  --primary-text-color: #fff;
+  --bg-color: #0f1115;
+  color-scheme: dark;
 }
 
 html {
   scroll-behavior: smooth;
+}
+
+body.modal-open {
+  overflow: hidden;
 }
 
 body.modal-open {
@@ -34,21 +39,18 @@ body.modal-open {
   }
 }
 
-/* Fondo base más oscuro + viñeta suave */
 :root {
   --bg-a: #0b0c10;
   --bg-b: #0f1115;
   --white: #fff;
   --black: #000;
 
-  /* paleta fría + toque cálido (como la referencia) */
   --blue-500: #3b82f6;
   --indigo-400: #6366f1;
   --blue-300: #93c5fd;
   --slate-700: #334155;
   --amber-500: #f59e0b;
 
-  /* patrón aurora */
   --aurora: repeating-linear-gradient(
     100deg,
     var(--blue-500) 8%,

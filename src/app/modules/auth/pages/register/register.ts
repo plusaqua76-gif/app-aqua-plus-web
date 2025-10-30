@@ -203,9 +203,7 @@ export class Register implements OnInit, OnDestroy {
         this.departaments.set(departaments.response);
         this.departmentsLoading.set(false);
       },
-      error: (err) => {
-        console.error('Error al cargar departamentos:', err);
-        this.toast.error('Error', 'No se pudieron cargar los departamentos');
+      complete: () => {
         this.departmentsLoading.set(false);
       }
     });
@@ -218,9 +216,7 @@ export class Register implements OnInit, OnDestroy {
         this.cities.set(cities.response);
         this.citiesLoading.set(false);
       },
-      error: (err) => {
-        console.error('Error al cargar ciudades:', err);
-        this.toast.error('Error', 'No se pudieron cargar las ciudades');
+      complete: () => {
         this.citiesLoading.set(false);
       }
     });
@@ -233,75 +229,57 @@ export class Register implements OnInit, OnDestroy {
         this.corregimientos.set(corregimientos.response);
         this.corregimientosLoading.set(false);
       },
-      error: (err) => {
-        this.toast.error('Error', 'No se pudieron cargar los corregimientos');
+      complete: () => {
         this.corregimientosLoading.set(false);
       }
     });
   }
 
   async onSubmit(): Promise<void> {
-    if (this.registerForm.valid) {
-      this.isLoading = true;
+    if (!this.registerForm.valid) return;
 
-      try {
-        const formData = this.registerForm.value;
+    this.isLoading = true;
 
-        // Preparar datos base
-        const empresaData: any = {
-          usuario: formData.usuario,
-          password: formData.password,
-          nombreEmpresa: formData.nombreEmpresa,
-          nit: formData.nit,
-          correo: formData.correo,
-          telefono: formData.telefono,
-          idDepartamento: formData.idDepartamento,
-          idCiudad: formData.idCiudad,
-          idCorregimiento: formData.idCorregimiento || null,
-          descripcionDireccion: formData.descripcionDireccion || null,
-        };
+    try {
+      const formData = this.registerForm.value;
 
-        if (this.selectedFile) {
-          try {
-            const bytes = await this.fileToBytes(this.selectedFile);
-            const base64Image = await this.fileToBase64(bytes);
-            empresaData.imagen = base64Image;
-          } catch (error) {
-            console.error('Error al convertir imagen a base64:', error);
-            this.toast.error('Error', 'No se pudo procesar la imagen seleccionada');
-            this.isLoading = false;
-            return;
-          }
+      // Preparar datos base
+      const empresaData: any = {
+        usuario: formData.usuario,
+        password: formData.password,
+        nombreEmpresa: formData.nombreEmpresa,
+        nit: formData.nit,
+        correo: formData.correo,
+        telefono: formData.telefono,
+        idDepartamento: formData.idDepartamento,
+        idCiudad: formData.idCiudad,
+        idCorregimiento: formData.idCorregimiento || null,
+        descripcionDireccion: formData.descripcionDireccion || null,
+      };
+
+      if (this.selectedFile) {
+        try {
+          const bytes = await this.fileToBytes(this.selectedFile);
+          const base64Image = await this.fileToBase64(bytes);
+          empresaData.imagen = base64Image;
+        } catch (error) {
+          console.error('Error al convertir imagen a base64:', error);
+          this.toast.error('Error', 'No se pudo procesar la imagen seleccionada');
+          this.isLoading = false;
+          return;
         }
-
-        // console.log('Datos a enviar para registrar empresa:', empresaData);
-
-        this.enterpriseService.registerEnterprise(empresaData).subscribe({
-          next: (response) => {
-            this.isLoading = false;
-            // console.log('Registro de empresa exitoso:', response);
-
-            this.toast.success('Empresa registrada', 'Registro exitoso. Usuario por activar.');
-
-            setTimeout(() => {
-              this.router.navigate(['/auth/login']);
-            }, 1500);
-          },
-          error: (err) => {
-            this.isLoading = false;
-            console.error('Error al registrar empresa:', err);
-
-            this.toast.error(
-              'Error al registrar empresa',
-              err?.error?.message || err?.message || 'Ocurrió un error inesperado.'
-            );
-          },
-        });
-      } catch (error) {
-        this.isLoading = false;
-        console.error('Error inesperado:', error);
-        this.toast.error('Error', 'Ocurrió un error inesperado al procesar el formulario');
       }
+
+      this.enterpriseService.registerEnterprise(empresaData).subscribe({
+        next: (response) => {
+          this.toast.success('Empresa registrada', 'Registro exitoso. Usuario por activar.');
+          setTimeout(() => {
+            this.router.navigate(['/auth/login']);
+          }, 1500);
+        }
+      });
+    } finally {
+      this.isLoading = false;
     }
   }
 

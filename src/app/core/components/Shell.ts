@@ -17,7 +17,7 @@ interface SideNavToggle {
       [collapsed]="isSideNavCollapsed()"
       [screenWidth]="screenWidth()"
     ></app-header>
-    <app-sidenav (onToggleSideNav)="onToggleSideNav($event)"></app-sidenav>
+    <app-sidenav (toggleSideNav)="onToggleSideNav($event)"></app-sidenav>
     <app-body
       [collapsed]="isSideNavCollapsed()"
       [screenWidth]="screenWidth()"

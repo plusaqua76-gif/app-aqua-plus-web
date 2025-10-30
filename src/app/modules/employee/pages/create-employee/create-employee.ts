@@ -1,9 +1,8 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, inject, OnInit, effect, signal, PLATFORM_ID, computed } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ICity } from '@interfaces/Icity';
 import { ICorregimiento } from '@interfaces/icorregimiento';
-import { ApiResponse } from '@interfaces/Iresponse';
 import { DepartamentService } from '../../../auth/service/departament.service';
 import { CityService } from '../../../auth/service/city.service';
 import { CorregimientoService } from '../../../auth/service/corregimiento.service';
@@ -11,10 +10,11 @@ import { TypeDocumentService } from '../../../client/service/typeDocument.servic
 import { IDepartament } from '@interfaces/Idepartament';
 import { ITipoDocumento } from '@interfaces/Iuser';
 import { EmpleadoService } from '../../service/empleado.service';
-import { IEmpleadoEmpresaRequest, IEmpleadoResponse } from '@interfaces/Iemployee';
 import { ToastService } from '@services/toast.service';
 import { Router } from '@angular/router';
 import { UserService } from '../../../auth/service/user.service';
+import { LocationService } from '@shared/services/location.service';
+import { rxResource } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-create-employee',
@@ -24,19 +24,17 @@ import { UserService } from '../../../auth/service/user.service';
 export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el codigo, el settimeOut afecta demasiado el performnace de la aplicacion, el consumo de servicios no en entendible, por uqe se genera un objeto empresa si tenemos la interfaz , por uqe se le hace una promise a los metodos es mejor utilizar un observable
   registerForm!: FormGroup;
 
-  departaments: IDepartament[] = [];
-  cities: ICity[] = [];
-  corregimientos: ICorregimiento[] = [];
+  selectedDepartmentId = signal<number | null>(null);
+  selectedCityId = signal<number | null>(null);
+  departaments = signal<IDepartament[]>([]);
+  cities = signal<ICity[]>([]);
+  corregimientos = signal<ICorregimiento[]>([]);
+  departmentsLoading = signal<boolean>(false);
+  citiesLoading = signal<boolean>(false);
+  corregimientosLoading = signal<boolean>(false);
+
   typeDocument: ITipoDocumento[] = [];
   typeDocumentName: string[] = [];
-
-  selectedDepartamentId: number | null = null;
-  selectCitiesId: number | null = null;
-  selectCorregimientoId: number | null = null;
-  selectedTipoDocumentoId: number | null = null;
-
-  filteredCities: ICity[] = [];
-  filteredCorregimientos: ICorregimiento[] = [];
 
   protected readonly departamentService = inject(DepartamentService);
   protected readonly fb = inject(FormBuilder);
@@ -47,131 +45,152 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
   protected readonly toast = inject(ToastService);
   protected readonly router = inject(Router);
   protected readonly userService = inject(UserService);
+  protected readonly locationService = inject(LocationService);
+    protected platformId = inject(PLATFORM_ID);
+  protected isBrowser = isPlatformBrowser(this.platformId);
+
+  constructor() {
+    effect(() => {
+      const deptId = this.selectedDepartmentId();
+      if (deptId) {
+        this.loadCities(deptId);
+      } else {
+        this.cities.set([]);
+        this.corregimientos.set([]);
+      }
+    });
+
+    effect(() => {
+      const cityId = this.selectedCityId();
+      if (cityId) {
+        this.loadCorregimientos(cityId);
+      } else {
+        this.corregimientos.set([]);
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.initializeForm();
-    this.loadDepartamentData();
-    this.loadAllCities();
-    this.loadAllCorregimiento();
-    this.loadTypeDocument();
+    this.loadDepartments();
 
     this.registerForm
       .get('idDepartamento')
       ?.valueChanges.subscribe((departamentoId) => {
-        console.log('valueChanges idDepartamento:', departamentoId);
-        this.selectedDepartamentId = departamentoId;
-        this.onDepartamentChange();
+        const numericDeptId = departamentoId ? Number(departamentoId) : null;
+
+        if (this.selectedDepartmentId() !== numericDeptId) {
+          this.selectedDepartmentId.set(numericDeptId);
+          this.registerForm.patchValue({
+            idCiudad: '',
+            idCorregimiento: ''
+          }, { emitEvent: false });
+
+          this.cities.set([]);
+          this.corregimientos.set([]);
+        }
       });
 
-    this.registerForm.get('idCiudad')?.valueChanges.subscribe(() => {
-      this.onCitiesChange();
+    this.registerForm.get('idCiudad')?.valueChanges.subscribe((cityId) => {
+      const numericCityId = cityId ? Number(cityId) : null;
+      if (this.selectedCityId() !== numericCityId) {
+        this.selectedCityId.set(numericCityId);
+        this.registerForm.patchValue({
+          idCorregimiento: ''
+        }, { emitEvent: false });
+        this.corregimientos.set([]);
+      }
     });
   }
-  private initializeForm(): void {
-  const usuarioCreacion = localStorage.getItem('nameUser') || 'admin';
-  const idEmpresa = localStorage.getItem('enterpriseId')
-    ? +localStorage.getItem('enterpriseId')!
-    : null;
 
-  this.registerForm = this.fb.group({
-    tipoDocumento: [null, Validators.required],
-    numeroDocumento: ['', Validators.required],
-    correo: ['', [Validators.required, Validators.email]],
-    primerApellido: ['', Validators.required],
-    segundoApellido: [''],
-    primerNombre: ['', Validators.required],
-    segundoNombre: [''],
-    idDepartamento: [null, Validators.required],
-    idCiudad: [null, Validators.required],
-    idCorregimiento: [null],
-    direccion: [''],
-    telefono: ['', Validators.required],
-    codigo: ['', Validators.required],
-    usuario_creacion: [usuarioCreacion],
-    id_empresa: [idEmpresa, Validators.required]
+    readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      console.error('Error parsing userData from sessionStorage:', e);
+      return null;
+    }
   });
-}
-  loadTypeDocument(): void {
-    this.tipoDocumentoService.getAllTypeDocument().subscribe((response) => {
-      console.log('Tipos de documento:', response.response);
-      this.typeDocument = response.response;
-      this.typeDocumentName = response.response.map((tipoDocumento) => tipoDocumento.nombre)
-    })
-  }
-  loadDepartamentData(): void {
-    this.departamentService.getAllDepartaments().subscribe((response) => {
-      console.log('Departamentos:', response.response);
-      this.departaments = response.response;
+
+  readonly empresaId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
+  });
+
+  readonly nombreUsuario = computed(() => {
+    const data = this.userData();
+    return data?.nombre || null;
+  });
+
+
+  private initializeForm(): void {
+    this.registerForm = this.fb.group({
+      tipoDocumento: [null, Validators.required],
+      numeroDocumento: ['', Validators.required],
+      correo: ['', [Validators.required, Validators.email]],
+      primerApellido: ['', Validators.required],
+      segundoApellido: [''],
+      primerNombre: ['', Validators.required],
+      segundoNombre: [''],
+      idDepartamento: [null, Validators.required],
+      idCiudad: [null, Validators.required],
+      idCorregimiento: [null],
+      direccion: [''],
+      telefono: ['', Validators.required],
+      codigo: ['', Validators.required],
+      usuarioCreacion: [this.nombreUsuario()],
+      idEmpresa: [this.empresaId()]
     });
   }
+loadTypeDocument = rxResource({
+  stream: () => this.tipoDocumentoService.getAllTypeDocument()
+})
 
-  loadAllCities(): void {
-    this.cityService.getAllCitys().subscribe({
-      next: (resp: ApiResponse<ICity[]>) => {
-        if (resp.success) {
-          this.cities = resp.response;
-          console.log('Ciudades cargados:', this.cities);
-        } else {
-          console.error('Error al cargar ciudades:', resp.message);
-        }
+  loadDepartments(): void {
+    this.departmentsLoading.set(true);
+    this.locationService.getDepartamentos().subscribe({
+      next: (departaments) => {
+        this.departaments.set(departaments.response);
+        this.departmentsLoading.set(false);
       },
       error: (err) => {
-        console.error('Error de red al cargar ciudades:', err);
+        console.error('Error al cargar departamentos:', err);
+        this.toast.error('Error', 'No se pudieron cargar los departamentos');
+        this.departmentsLoading.set(false);
       }
     });
   }
 
-  loadAllCorregimiento(): void {
-    this.corregimientoService.getAllCorregimientos().subscribe({
-      next: (resp: ApiResponse<ICorregimiento[]>) => {
-        if (resp.success) {
-          this.corregimientos = resp.response;
-          console.log('Corregimientos cargados:', this.corregimientos);
-        } else {
-          console.error('Error al cargar corregimientos:', resp.message);
-        }
+  loadCities(departmentId: number): void {
+    this.citiesLoading.set(true);
+    this.locationService.getCiudades(departmentId).subscribe({
+      next: (cities) => {
+        this.cities.set(cities.response);
+        this.citiesLoading.set(false);
       },
       error: (err) => {
-        console.error('Error de red al cargar corregimientos:', err);
+        console.error('Error al cargar ciudades:', err);
+        this.toast.error('Error', 'No se pudieron cargar las ciudades');
+        this.citiesLoading.set(false);
       }
     });
   }
 
-  onDepartamentChange(): void {
-    console.log('selectedDepartamentId:', this.selectedDepartamentId);
-    console.log(
-      'departamentoId de cada ciudad:',
-      this.cities.map((c) => c.departamento?.id)
-    );
-    this.selectCitiesId = null;
-    this.selectCorregimientoId = null;
-    this.filteredCorregimientos = [];
-
-    if (this.selectedDepartamentId) {
-      this.filteredCities = this.cities.filter(
-        (cyt) =>
-          cyt.departamento &&
-          Number(cyt.departamento.id) === Number(this.selectedDepartamentId)
-      );
-      console.log('filteredCities:', this.filteredCities);
-    } else {
-      this.filteredCities = [];
-    }
-  }
-
-  onCitiesChange(): void {
-    const selectedCityId = this.registerForm.get('idCiudad')?.value;
-    this.selectCorregimientoId = null;
-
-    if (selectedCityId) {
-      this.filteredCorregimientos = this.corregimientos.filter(
-        (cor) => cor.ciudad && String(cor.ciudad.id) === String(selectedCityId)
-      );
-      console.log('filteredCorregimientos:', this.filteredCorregimientos);
-    } else {
-      this.filteredCorregimientos = [];
-      console.log('filteredCorregimientos: []');
-    }
+  loadCorregimientos(cityId: number): void {
+    this.corregimientosLoading.set(true);
+    this.locationService.getCorregimientos(cityId).subscribe({
+      next: (corregimientos) => {
+        this.corregimientos.set(corregimientos.response);
+        this.corregimientosLoading.set(false);
+      },
+      error: (err) => {
+        this.toast.error('Error', 'No se pudieron cargar los corregimientos');
+        this.corregimientosLoading.set(false);
+      }
+    });
   }
   onSubmit(): void {
     if (this.registerForm.invalid) {
@@ -180,65 +199,30 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
       return;
     }
 
-    const formValue = this.registerForm.value;
-
-    const payload: IEmpleadoEmpresaRequest = {
-      id_tipo_documento: formValue.tipoDocumento,
-      numero_cedula: formValue.numeroDocumento,
-      codigo: formValue.codigo,
-      primer_nombre: formValue.primerNombre,
-      segundo_nombre: formValue.segundoNombre,
-      primer_apellido: formValue.primerApellido,
-      segundo_apellido: formValue.segundoApellido,
-      id_departamento: formValue.idDepartamento,
-      id_ciudad: formValue.idCiudad,
-      id_corregimiento: formValue.idCorregimiento,
-      descripcion_direccion: formValue.direccion,
-      correo: formValue.correo,
-      telefono: formValue.telefono,
-      usuario_creacion: formValue.usuario_creacion,
-      id_empresa: formValue.id_empresa
+    const formData = {
+      ...this.registerForm.value,
+      // Mapear los nombres del formulario a los nombres que espera el backend
+      idTipoDocumento: this.registerForm.value.tipoDocumento,
+      numeroCedula: this.registerForm.value.numeroDocumento,
+      descripcionDireccion: this.registerForm.value.direccion
     };
 
-    console.log('📤 Payload a enviar:', payload);
+    // Remover los campos del formulario que no necesita el backend
+    delete formData.tipoDocumento;
+    delete formData.numeroDocumento;
+    delete formData.direccion;
 
-    this.empleadoService.saveEmpleado(payload).subscribe({
-      next: (res) => {
-        console.log('✅ Empleado guardado correctamente:', res);
-        this.toast.success('Éxito', 'El empleado se registró correctamente.');
-
-        const personaDTO = {
-          id: (res as any).id_persona,
-          nombre: (res as any).primer_nombre,
-          segundoNombre: (res as any).segundo_nombre,
-          apellido: (res as any).primer_apellido,
-          segundoApellido: (res as any).segundo_apellido,
-          numeroCedula: (res as any).numero_cedula,
-          activo: true
-        };
-        this.userService.sendEmailUsuario(personaDTO).subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.toast.success('Correo enviado', 'Se ha enviado el correo al usuario.');
-            } else {
-              this.toast.warning('Advertencia', 'Empleado creado, pero el correo no se pudo enviar.');
-            }
-          },
-          error: (err) => {
-            console.error('Error al enviar correo:', err);
-            this.toast.error('Error al enviar el correo', 'Intente nuevamente o contacte a soporte.');
-          }
-        });
-
-        this.router.navigate(['/employee']);
+    this.empleadoService.saveEmpleado(formData).subscribe({
+      next: (response: any) => {
+        this.toast.success('Éxito', 'Empleado registrado correctamente');
+        this.registerForm.reset();
+        this.initializeForm();
+       this.router.navigate(['/shell/employee']);
       },
-      error: (err) => {
-        console.error(' Error al guardar el empleado:', err);
-        this.toast.error('Error al guardar', 'No se pudo registrar el empleado. Intente más tarde.');
+      error: (error: any) => {
+        console.error('Error al crear empleado:', error);
       }
     });
   }
 
-
 }
-

@@ -1,11 +1,11 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection, isDevMode } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideServiceWorker } from '@angular/service-worker';
 
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay, withIncrementalHydration } from '@angular/platform-browser';
 import { provideHttpClient, withFetch, withInterceptors} from '@angular/common/http';
-import { provideServerRendering } from '@angular/ssr';
 import { authorizationInterceptor } from './interceptors/token-interceptor';
 import { loaderInterceptor } from './interceptors/loader-interceptor';
 import { errorInterceptor } from './interceptors/error-interceptor';
@@ -16,7 +16,7 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideHttpClient(
       withFetch(),
-      withInterceptors([authorizationInterceptor, loaderInterceptor, errorInterceptor])
+      withInterceptors([ authorizationInterceptor, loaderInterceptor, errorInterceptor])
     ),
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
@@ -25,5 +25,9 @@ export const appConfig: ApplicationConfig = {
       withEventReplay(),
       withIncrementalHydration()
     ),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(), // Solo habilitado en producción => para poder probar en desarrollo cambiar a 'true'
+      registrationStrategy: 'registerWhenStable:30000'
+    }),
   ]
 };

@@ -1,11 +1,10 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, computed, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { AbonoService } from '../../service/abono.service';
 import { IAbonoFactura } from '@interfaces/IdeudaFactura';
-import { AuthService } from '../../../auth/service/auth.service';
 import { ToastService } from '@services/toast.service';
 
 @Component({
@@ -23,8 +22,9 @@ export class CreateCredit implements OnInit {
   protected readonly router = inject(Router);
   protected readonly fb = inject(FormBuilder);
   protected readonly abonoService = inject(AbonoService);
-  protected readonly authService = inject(AuthService);
   protected readonly toast = inject(ToastService);
+    protected platformId = inject(PLATFORM_ID);
+  protected isBrowser = isPlatformBrowser(this.platformId);
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
@@ -36,33 +36,50 @@ export class CreateCredit implements OnInit {
     });
   }
 
+    readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      return null;
+    }
+  });
+
+    readonly empresaId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
+  });
+
+
+  readonly nombreUsuario = computed(() => {
+    const data = this.userData();
+    return data?.nombre || null;
+  });
+
  onSubmit(): void {
   if (this.abonoForm.invalid) {
     this.toast.warning('Formulario inválido', 'Por favor complete los campos correctamente.');
     return;
   }
 
-  const currentUser = this.authService.getUser();
-
-  if (!currentUser) {
-    console.error('Usuario no autenticado');
-    this.toast.error('Error', 'Debe iniciar sesión para registrar un abono.');
-    return;
-  }
 
   const abono: Partial<IAbonoFactura> = {
     valor: this.abonoForm.value.valor,
     deudaCliente: { id: this.deudaId } as any,
-    usuarioCreacion: currentUser.nombre
+    usuarioCreacion: this.nombreUsuario()
   };
 
   this.abonoService.saveAbono(abono as IAbonoFactura).subscribe({
     next: () => {
       this.toast.success('Éxito', 'El abono se registró correctamente.');
-      this.router.navigate(['/bill/customer-debt']);
+      this.router.navigate(['../customer-debt'], {
+        relativeTo: this.route,
+      });
+      this.router.navigate(['/shell/bill/customer-debt'])
     },
     error: (err) => {
-      console.error('Error al guardar el abono:', err);
       this.toast.error('Error al guardar', 'No se pudo registrar el abono. Intente más tarde.');
     }
   });

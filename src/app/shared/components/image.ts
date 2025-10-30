@@ -6,7 +6,7 @@ import { NgOptimizedImage } from '@angular/common'
   standalone: true,
   imports: [NgOptimizedImage],
   template: `
-  <img
+  <img loading="lazy"
     [ngSrc]="images()?.imgPath ?? ''"
     [alt]="images()?.name"
     [class]="class()"
