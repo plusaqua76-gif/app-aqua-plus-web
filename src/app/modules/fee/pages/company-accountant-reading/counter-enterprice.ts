@@ -203,8 +203,6 @@ export class CounterEnterprice implements OnInit {
         this.counterDepartmentsLoading.set(false);
       },
       error: (err) => {
-        console.error('Error al cargar departamentos para contador:', err);
-        this.toast.error('Error', 'No se pudieron cargar los departamentos');
         this.counterDepartmentsLoading.set(false);
       },
     });
@@ -218,8 +216,6 @@ export class CounterEnterprice implements OnInit {
         this.counterCitiesLoading.set(false);
       },
       error: (err) => {
-        console.error('Error al cargar ciudades para contador:', err);
-        this.toast.error('Error', 'No se pudieron cargar las ciudades');
         this.counterCitiesLoading.set(false);
       },
     });
@@ -336,9 +332,6 @@ export class CounterEnterprice implements OnInit {
           return this.counterEnterpriceService.createEmpresaCounter(enterpriseCounterPayload);
         }),
         catchError((error) => {
-          console.error('❌ Error en el proceso de creación:', error);
-          console.error('❌ Detalle del error:', error.message || error);
-          console.error('❌ Stack del error:', error.stack);
           this.isCreating.set(false);
           this.toast.error('Error', `Error en creación: ${error.message || 'Error desconocido'}`);
           return of(null);
@@ -359,8 +352,6 @@ export class CounterEnterprice implements OnInit {
         },
         error: (err) => {
           this.isCreating.set(false);
-          console.error('❌ Error final al crear contador empresarial:', err);
-          this.toast.error('Error', `No se pudo crear el contador empresarial: ${err.message || 'Error desconocido'}`);
         },
       });
   }
@@ -410,7 +401,6 @@ export class CounterEnterprice implements OnInit {
           this.dataCounterEnterprice.reload();
         },
         error: (error) => {
-          console.error('❌ Error al crear lectura:', error);
           this.isCreatingReading.set(false);
           this.toast.error('Error', 'No se pudo registrar la lectura');
         }

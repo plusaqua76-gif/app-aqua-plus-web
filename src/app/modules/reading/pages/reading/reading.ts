@@ -93,7 +93,6 @@ export class Reading {
       const parsedUserData = JSON.parse(userData);
       return parsedUserData.empresaId ? Number(parsedUserData.empresaId) : null;
     } catch (error) {
-      console.error('Error parsing userData from sessionStorage:', error);
       return null;
     }
   });
@@ -112,12 +111,6 @@ export class Reading {
     page: 0,
     size: 5,
   });
-
-  constructor() {
-    effect(() => {
-      console.log('esta es la data mi pez', this.serverReadingData.value());
-    })
-  }
 
   serverReadingData = rxResource({
     params: () => ({

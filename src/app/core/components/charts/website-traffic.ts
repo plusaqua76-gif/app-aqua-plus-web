@@ -187,7 +187,6 @@ export class WebsiteTraffic implements AfterViewInit, OnDestroy {
       if (!userDataString) return null;
       return JSON.parse(userDataString);
     } catch (e) {
-      console.error('Error parsing userData from sessionStorage:', e);
       return null;
     }
   });
@@ -289,8 +288,6 @@ export class WebsiteTraffic implements AfterViewInit, OnDestroy {
         }
       },
       error: (error: any) => {
-        console.error('Error loading lecturas data from API:', error);
-        // Mostrar gráfica vacía en lugar de datos mock
         this.datosLecturas = null;
         this.cantidad = 0; // Resetear cantidad en caso de error
 
@@ -361,8 +358,6 @@ export class WebsiteTraffic implements AfterViewInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('Error cargando corregimientos:', error);
-        // Si falla la carga de corregimientos, mostrar gráfica vacía
         this.veredasDisponibles = [];
         this.datosLecturas = null;
 
@@ -529,8 +524,6 @@ export class WebsiteTraffic implements AfterViewInit, OnDestroy {
         }
       },
       error: (error: any) => {
-        console.error('Error loading data for corregimiento:', error);
-        // En caso de error, resetear cantidad y usar la gráfica con datos existentes
         this.cantidad = 0;
         if (this.chart) {
           this.actualizarGraficoRadialParaVereda();
@@ -584,7 +577,6 @@ export class WebsiteTraffic implements AfterViewInit, OnDestroy {
         }
       },
       error: (error: any) => {
-        console.error('Error updating lecturas data from API:', error);
         this.cargandoActualizacion = false;
         // No mostrar datos mock en caso de error
         this.datosLecturas = null;
@@ -782,7 +774,6 @@ export class WebsiteTraffic implements AfterViewInit, OnDestroy {
     const el = document.getElementById('radial-chart') as HTMLElement;
 
     if (!el) {
-      console.error('Elemento #radial-chart no encontrado, reintentando...');
       setTimeout(() => {
         this.initRadial();
       }, 100);
@@ -807,7 +798,6 @@ export class WebsiteTraffic implements AfterViewInit, OnDestroy {
       await this.chart.render();
 
     } catch (error) {
-      console.error(' Error al crear la gráfica:', error);
       setTimeout(() => {
         this.initRadial();
       }, 1000);

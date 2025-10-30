@@ -62,7 +62,6 @@ export class Datepicker implements AfterViewInit, OnDestroy {
       const { Datepicker } = await import('flowbite-datepicker');
       const inputElement = this.datepickerInput()?.nativeElement;
       if (!inputElement) {
-        console.error('Datepicker: Input element not found');
         return;
       }
 
@@ -79,7 +78,7 @@ export class Datepicker implements AfterViewInit, OnDestroy {
       });
 
     } catch (error) {
-      console.error('Error loading Datepicker:', error);
+      console.error('Datepicker: Error loading Datepicker library', error);
     }
   }
 

@@ -285,8 +285,6 @@ export class DonutChartComponent implements AfterViewInit, OnDestroy {
         }, 0);
       },
       error: (error: any) => {
-        console.error('Error loading facturas estado data:', error);
-        // Fallback a datos por defecto
         this.initializeDonutChart();
       }
     });
@@ -310,9 +308,6 @@ export class DonutChartComponent implements AfterViewInit, OnDestroy {
             ];
             this.chart.updateSeries(newSeries);
           }
-        },
-        error: (error: any) => {
-          console.error('Error updating chart data:', error);
         }
       });
     }
@@ -350,9 +345,6 @@ export class DonutChartComponent implements AfterViewInit, OnDestroy {
           ];
           this.chart.updateSeries(newSeries);
         }
-      },
-      error: (error: any) => {
-        console.error('Error loading data by period:', error);
       }
     });
   }
@@ -454,10 +446,7 @@ export class DonutChartComponent implements AfterViewInit, OnDestroy {
     if (chartElement && typeof ApexCharts !== 'undefined') {
       this.chart = new ApexCharts(chartElement, this.getChartOptions());
       this.chart.render().catch((error: any) => {
-        console.error('Error rendering donut chart:', error);
       });
-    } else {
-      console.error('ApexCharts is not loaded or donut-chart element not found');
     }
   }
 }

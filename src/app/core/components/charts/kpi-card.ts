@@ -254,7 +254,6 @@ export class KpiCardComponent implements OnInit, OnDestroy {
       if (!userDataString) return null;
       return JSON.parse(userDataString);
     } catch (e) {
-      console.error('Error parsing userData from sessionStorage:', e);
       return null;
     }
   });
@@ -284,7 +283,6 @@ export class KpiCardComponent implements OnInit, OnDestroy {
 
     const empresaId = this.empresaId();
     if (!empresaId) {
-      console.error('No se encontró empresaId en sessionStorage');
       this.isLoading = false;
       return;
     }
@@ -308,7 +306,6 @@ export class KpiCardComponent implements OnInit, OnDestroy {
           }, 100);
         },
         error: (error) => {
-          console.error('Error al cargar datos KPI:', error);
           this.isLoading = false;
           this.cdr.detectChanges();
         },

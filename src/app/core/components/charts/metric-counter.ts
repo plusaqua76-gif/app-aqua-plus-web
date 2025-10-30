@@ -279,9 +279,6 @@ export class ChartCounter implements AfterViewInit, OnDestroy {
             ];
             this.chart.updateSeries(newSeries);
           }
-        },
-        error: (error: any) => {
-          console.error('Error updating chart data:', error);
         }
       });
     }
@@ -325,9 +322,6 @@ export class ChartCounter implements AfterViewInit, OnDestroy {
           ];
           this.chart.updateSeries(newSeries);
         }
-      },
-      error: (error: any) => {
-        console.error('Error loading period data:', error);
       }
     });
   }
@@ -474,10 +468,7 @@ export class ChartCounter implements AfterViewInit, OnDestroy {
     if (el && typeof ApexCharts !== 'undefined') {
       this.chart = new ApexCharts(el, this.getOptions());
       this.chart.render().catch((error: any) => {
-        console.error('Error rendering column chart:', error);
       });
-    } else {
-      console.error('ApexCharts no está cargado o falta el elemento #column-chart');
     }
   }
 }

@@ -45,9 +45,5 @@ export interface ICreateAccount {
   fechaModificacion?: string;
 }
 
-export interface IAccountDetail extends IAccount {
-  descripcion?: string;
-  activa: boolean;
-  empresaId: number;
-  tipoId: number;
-}
+export interface IAccountDetail extends IAccount {}
+

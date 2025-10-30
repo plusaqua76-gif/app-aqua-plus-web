@@ -112,7 +112,6 @@ export class FeeComponent {
       if (!userDataString) return null;
       return JSON.parse(userDataString);
     } catch (e) {
-      console.error('Error parsing userData from sessionStorage:', e);
       return null;
     }
   });
@@ -134,7 +133,6 @@ export class FeeComponent {
       enterpriseId
         ? this.rateTypeService.getRateTypes(enterpriseId).pipe(
             catchError(error => {
-              console.error('Error loading rate types:', error);
               return of({ success: false, response: [], message: 'Error al cargar tipos de tarifa' });
             })
           )
@@ -146,7 +144,6 @@ export class FeeComponent {
       const value = this.typeRates.value();
       return value?.response ?? [];
     } catch (error) {
-      console.error('Error in typeRatesData computed:', error);
       return [];
     }
   });
@@ -157,7 +154,6 @@ export class FeeComponent {
       enterpriseId
         ? this.typeConceptService.getAllTypeConcepts(enterpriseId).pipe(
             catchError(error => {
-              console.error('Error loading type concepts:', error);
               // Retornar un observable con estructura vacía pero válida
               return of({ success: false, response: [], message: 'Error al cargar tipos de concepto' });
             })
@@ -170,7 +166,6 @@ export class FeeComponent {
       const value = this.dataTypeConcepts.value();
       return value?.response ?? [];
     } catch (error) {
-      console.error('Error in typeConceptsData computed:', error);
       return [];
     }
   });
@@ -283,11 +278,6 @@ export class FeeComponent {
         }
         this.guardandoTarifa.set(false);
       },
-      error: (error) => {
-        console.error('Error al guardar la tarifa:', error);
-        this.toastService.error('Error', 'Error al guardar la tarifa. Por favor, inténtelo de nuevo.');
-        this.guardandoTarifa.set(false);
-      },
       complete: () => {
         this.guardandoTarifa.set(false);
         this.dataTypeConcepts.reload();
@@ -380,22 +370,6 @@ export class FeeComponent {
             this.valorTarifa = null;
             this.indCalcularMc.set(true);
           }
-        },
-        error: (error) => {
-          console.error('Error al verificar estratos:', error);
-
-          // Verificar si es un error 404
-          if (error.status === 404) {
-          } else {
-            console.error('Error al verificar datos existentes:', error);
-            this.toastService.error('Error', 'Error al verificar datos existentes');
-          }
-
-          // En caso de error, permitir al usuario decidir y agregar los datos
-          this.mostrarTablaEstratos = false;
-          this.estratosActuales = [];
-          this.valorTarifa = null;
-          this.indCalcularMc.set(true);
         },
         complete: () => {
           this.cargandoEstratos.set(false);
@@ -529,14 +503,6 @@ export class FeeComponent {
         }
         this.guardandoTipoTarifa.set(false);
       },
-      error: (error) => {
-        this.toastService.error(
-          'error',
-          'El tipo de Tarifa no se pudo Guardar'
-        );
-
-        this.guardandoTipoTarifa.set(false);
-      },
       complete: () => {
         this.guardandoTipoTarifa.set(false);
       },
@@ -591,13 +557,6 @@ export class FeeComponent {
               'El tipo de tarifa no se pudo eliminar'
             );
           }
-        },
-        error: (error) => {
-          this.toastService.success(
-            'error',
-            'El tipo de tarifa no se pudo eliminar intente nuevamente'
-          );
-          console.error('Error al eliminar el tipo de tarifa:', error);
         },
         complete: () => {
           this.showDeleteConfirm.set(false);
@@ -686,15 +645,6 @@ export class FeeComponent {
 
         this.guardandoTipoConcepto.set(false);
       },
-      error: (error) => {
-        console.error('Error en la operación concepto:', error);
-        const errorMsg = this.editandoTipoConcepto()
-          ? 'Error al actualizar el tipo de concepto. Por favor, inténtelo de nuevo.'
-          : 'Error al guardar el tipo de concepto. Por favor, inténtelo de nuevo.';
-        this.toastService.success('error', errorMsg);
-
-        this.guardandoTipoConcepto.set(false);
-      },
       complete: () => {
         this.guardandoTipoConcepto.set(false);
       },
@@ -719,10 +669,6 @@ export class FeeComponent {
       this.conceptRateService.getConceptRateByEnterprise(empresaId).subscribe({
         next: (response) => {
           // Manejar respuesta exitosa si es necesario
-        },
-        error: (error) => {
-          console.error('Error al cargar conceptos de tarifa por empresa:', error);
-          // El interceptor ya muestra el toast, no necesitamos duplicar el mensaje
         }
       });
     }
@@ -771,12 +717,6 @@ export class FeeComponent {
                 'El tipo de concepto no se pudo eliminar'
               );
             }
-          },
-          error: (error) => {
-            this.toastService.error(
-              'error',
-              'El tipo de concepto no se pudo eliminar intente nuevamente'
-            );
           },
           complete: () => {
             this.showDeleteConfirmConcept.set(false);
@@ -828,14 +768,6 @@ export class FeeComponent {
               response?.message || 'No se pudo eliminar el estrato'
             );
           }
-        },
-        error: (error) => {
-          console.error('Error al eliminar estrato:', error);
-          const errorMessage = error?.error?.message || error?.message || 'Error de conexión';
-          this.toastService.error(
-            'Error',
-            `No se pudo eliminar el estrato ${estratoInfo}: ${errorMessage}`
-          );
         },
         complete: () => {
           this.cancelDeleteEstrato();

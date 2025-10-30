@@ -191,7 +191,6 @@ export class Legends implements AfterViewInit, OnDestroy {
       if (!userDataString) return null;
       return JSON.parse(userDataString);
     } catch (e) {
-      console.error('Error parsing userData from sessionStorage:', e);
       return null;
     }
   });
@@ -269,7 +268,7 @@ export class Legends implements AfterViewInit, OnDestroy {
         }, 0);
       },
       error: (error: any) => {
-        console.error('Error loading facturas data:', error);
+
         this.isLoading.set(false);
         this.hasError.set(true);
         this.initializeAreaChart();
@@ -327,7 +326,6 @@ export class Legends implements AfterViewInit, OnDestroy {
           this.updateChart(monthData);
         },
         error: (error: any) => {
-          console.error('Error loading month data:', error);
           this.isLoading.set(false);
           this.hasError.set(true);
         }
@@ -343,7 +341,6 @@ export class Legends implements AfterViewInit, OnDestroy {
           this.updateChart(data);
         },
         error: (error: any) => {
-          console.error('Error loading yearly data:', error);
           this.isLoading.set(false);
           this.hasError.set(true);
         }
@@ -504,10 +501,7 @@ export class Legends implements AfterViewInit, OnDestroy {
     if (el && ApexCharts !== undefined) {
       this.chart = new ApexCharts(el, this.getOptions());
       this.chart.render().catch((error: any) => {
-        console.error('Error rendering legend chart:', error);
       });
-    } else {
-      console.error('ApexCharts no está cargado o falta el elemento #legend-chart');
     }
   }
 }

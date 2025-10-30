@@ -46,7 +46,6 @@ export class HasRoleDirective {
 
       return hasAccess;
     } catch (error) {
-      console.error('Error parsing user data from sessionStorage:', error);
       return false;
     }
   }

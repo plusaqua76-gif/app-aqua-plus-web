@@ -233,7 +233,6 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
       if (!userDataString) return null;
       return JSON.parse(userDataString);
     } catch (e) {
-      console.error('Error parsing userData from sessionStorage:', e);
       return null;
     }
   });
@@ -369,7 +368,6 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
           this.updateChart(data);
         },
         error: (error: any) => {
-          console.error('Error loading month data:', error);
           this.isLoading.set(false);
           this.hasError.set(true);
         }
@@ -386,7 +384,6 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
           this.updateChart(data);
         },
         error: (error: any) => {
-          console.error('Error loading yearly data:', error);
           this.isLoading.set(false);
           this.hasError.set(true);
         }
@@ -552,13 +549,10 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
     if (el && ApexCharts !== undefined && hasData) {
       this.chart = new ApexCharts(el, this.getOptions());
       this.chart.render().catch((error: any) => {
-        console.error('Error rendering column chart:', error);
       });
     } else if (el && !hasData) {
       // Si no hay datos, limpiar el elemento del gráfico
       el.innerHTML = '<div class="flex items-center justify-center h-64 text-gray-500">No hay datos disponibles</div>';
-    } else {
-      console.error('ApexCharts no está cargado o falta el elemento #column-chart');
     }
   }
 }

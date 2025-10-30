@@ -98,7 +98,6 @@ export class CreateClient implements OnInit {
       if (!userDataString) return null;
       return JSON.parse(userDataString);
     } catch (e) {
-      console.error('Error parsing userData from sessionStorage:', e);
       return null;
     }
   });
@@ -285,7 +284,6 @@ export class CreateClient implements OnInit {
         .pipe(
           finalize(() => this.isSearching.set(false)),
           catchError((error) => {
-            console.error('Error al buscar serial:', error);
             this.isSearching.set(false);
             return of(null);
           })
@@ -313,11 +311,9 @@ export class CreateClient implements OnInit {
         this.departaments.set(departaments.response);
         this.departmentsLoading.set(false);
       },
-      error: (err) => {
-        console.error('Error al cargar departamentos:', err);
-        this.toast.error('Error', 'No se pudieron cargar los departamentos');
+      complete: () => {
         this.departmentsLoading.set(false);
-      },
+      }
     });
   }
 
@@ -328,11 +324,9 @@ export class CreateClient implements OnInit {
         this.cities.set(cities.response);
         this.citiesLoading.set(false);
       },
-      error: (err) => {
-        console.error('Error al cargar ciudades:', err);
-        this.toast.error('Error', 'No se pudieron cargar las ciudades');
+      complete: () => {
         this.citiesLoading.set(false);
-      },
+      }
     });
   }
 
@@ -343,10 +337,9 @@ export class CreateClient implements OnInit {
         this.corregimientos.set(corregimientos.response);
         this.corregimientosLoading.set(false);
       },
-      error: (err) => {
-        this.toast.error('Error', 'No se pudieron cargar los corregimientos');
+      complete: () => {
         this.corregimientosLoading.set(false);
-      },
+      }
     });
   }
 
@@ -358,11 +351,9 @@ export class CreateClient implements OnInit {
         this.counterDepartaments.set(departaments.response);
         this.counterDepartmentsLoading.set(false);
       },
-      error: (err) => {
-        console.error('Error al cargar departamentos para contador:', err);
-        this.toast.error('Error', 'No se pudieron cargar los departamentos');
+      complete: () => {
         this.counterDepartmentsLoading.set(false);
-      },
+      }
     });
   }
 
@@ -373,11 +364,9 @@ export class CreateClient implements OnInit {
         this.counterCities.set(cities.response);
         this.counterCitiesLoading.set(false);
       },
-      error: (err) => {
-        console.error('Error al cargar ciudades para contador:', err);
-        this.toast.error('Error', 'No se pudieron cargar las ciudades');
+      complete: () => {
         this.counterCitiesLoading.set(false);
-      },
+      }
     });
   }
 
@@ -388,10 +377,9 @@ export class CreateClient implements OnInit {
         this.counterCorregimientos.set(corregimientos.response);
         this.counterCorregimientosLoading.set(false);
       },
-      error: (err) => {
-        this.toast.error('Error', 'No se pudieron cargar los corregimientos');
+      complete: () => {
         this.counterCorregimientosLoading.set(false);
-      },
+      }
     });
   }
 
@@ -408,12 +396,9 @@ export class CreateClient implements OnInit {
         this.employees.set(response.response || []);
         this.employeesLoading.set(false);
       },
-      error: (err) => {
-        console.error('Error al cargar empleados:', err);
-        this.toast.error('Error', 'No se pudieron cargar los empleados');
-        this.employees.set([]);
+      complete: () => {
         this.employeesLoading.set(false);
-      },
+      }
     });
   }
 
@@ -511,19 +496,7 @@ export class CreateClient implements OnInit {
         this.selectedSerials.set([]);
         this.closeModal();
         this.router.navigate(['/shell/client']);
-      },
-      error: (err: any) => {
-        console.error('Error al crear cliente con contadores:', err);
-        if (err.status === 200 || err.status === 201 || err.status === 204) {
-          this.toast.success('Éxito', 'Cliente y contadores asignados correctamente');
-          this.registerForm.reset();
-          this.selectedSerials.set([]);
-          this.closeModal();
-          this.router.navigate(['/shell/client']);
-        } else {
-          this.toast.error('Error', 'No se pudo crear el cliente con los contadores');
-        }
-      },
+      }
     });
   }
 
@@ -562,10 +535,6 @@ export class CreateClient implements OnInit {
             usuarioCreacion: usuarioCreacion,
           };
           return this.counterService.saveCounter(counterPayload);
-        }),
-        catchError((error) => {
-          console.error('Error en el proceso de creación:', error);
-          return of(null);
         })
       )
       .subscribe({
@@ -575,11 +544,7 @@ export class CreateClient implements OnInit {
             this.counterForm.reset();
             this.closeModal();
           }
-        },
-        error: (err) => {
-          console.error('Error al crear contador:', err);
-          this.toast.error('Error', 'No se pudo crear el contador');
-        },
+        }
       });
   }
 

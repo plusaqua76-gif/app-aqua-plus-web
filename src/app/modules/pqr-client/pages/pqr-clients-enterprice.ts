@@ -338,7 +338,6 @@ export class PqrClientsEnterprice {
       if (!userDataString) return null;
       return JSON.parse(userDataString);
     } catch (e) {
-      console.error('Error parsing userData from sessionStorage:', e);
       return null;
     }
   });
@@ -449,10 +448,6 @@ export class PqrClientsEnterprice {
           } else {
             this.toastService.error('Error', response.message || 'Error al crear el PQR');
           }
-        },
-        error: (error) => {
-          console.error('Error al crear PQR:', error);
-          this.toastService.error('Error', 'Error al comunicarse con el servidor');
         },
         complete: () => {
           this.guardandoPQR.set(false);

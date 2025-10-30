@@ -43,7 +43,6 @@ export class CreateCredit implements OnInit {
       if (!userDataString) return null;
       return JSON.parse(userDataString);
     } catch (e) {
-      console.error('Error parsing userData from sessionStorage:', e);
       return null;
     }
   });
@@ -81,7 +80,6 @@ export class CreateCredit implements OnInit {
       this.router.navigate(['/shell/bill/customer-debt'])
     },
     error: (err) => {
-      console.error('Error al guardar el abono:', err);
       this.toast.error('Error al guardar', 'No se pudo registrar el abono. Intente más tarde.');
     }
   });

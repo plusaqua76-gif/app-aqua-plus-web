@@ -52,7 +52,8 @@ export class AccountsService {
   }
 
   getAccountById(id: number): Observable<ApiResponse<IAccountDetail>> {
-    return this.http.get<ApiResponse<IAccountDetail>>(`${this.apiUrl}/cuenta/${id}`)
+    const url = `${this.apiUrl}/cuenta/${id}`;
+    return this.http.get<ApiResponse<IAccountDetail>>(url);
   }
 
   deleteAccountById(id: number): Observable<ApiResponse<void>> {
@@ -63,7 +64,4 @@ export class AccountsService {
     return this.http.post<ApiResponse<any>>(`${this.apiUrl}/cuenta`, account)
   }
 
-  updateAccount(id: number, account: Partial<ICreateAccount>): Observable<ApiResponse<any>> {
-    return this.http.put<ApiResponse<any>>(`${this.apiUrl}/cuenta/${id}`, account)
-  }
 }

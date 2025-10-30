@@ -176,7 +176,6 @@ export class Header {
       const parsedUserData = JSON.parse(userData);
       return parsedUserData.id ? Number(parsedUserData.id) : null;
     } catch (error) {
-      console.error('Error parsing userData from sessionStorage:', error);
       return null;
     }
   });

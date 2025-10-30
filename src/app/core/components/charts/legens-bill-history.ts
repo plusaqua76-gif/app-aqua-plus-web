@@ -232,10 +232,7 @@ export class LegendsHistoryBill implements AfterViewInit, OnDestroy {
     if (el && typeof ApexCharts !== 'undefined') {
       this.chart = new ApexCharts(el, this.getOptions());
       this.chart.render().catch((error: any) => {
-        console.error('Error rendering consumption chart:', error);
       });
-    } else {
-      console.error('ApexCharts no está cargado o falta el elemento #consumption-chart');
     }
   }
 }

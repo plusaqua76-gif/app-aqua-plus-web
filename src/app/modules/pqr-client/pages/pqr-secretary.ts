@@ -340,7 +340,6 @@ export class PqrSecretary implements OnInit {
       if (!userDataString) return null;
       return JSON.parse(userDataString);
     } catch (e) {
-      console.error('Error parsing userData from sessionStorage:', e);
       return null;
     }
   });
@@ -358,7 +357,6 @@ export class PqrSecretary implements OnInit {
   statusNovelty = rxResource({
     stream: () => this.pqrService.getStatusPqrById().pipe(
       catchError(error => {
-        console.error('Error loading status novelty:', error);
         this.toastService.error('Error', 'No se pudieron cargar los estados de PQR');
         return of({ success: false, response: [], message: 'Error al cargar estados' });
       })
@@ -405,8 +403,6 @@ export class PqrSecretary implements OnInit {
         this.cargandoPQRs.set(false);
       },
       error: (error) => {
-        console.error('Error en subscribe cargando PQRs:', error);
-        this.toastService.error('Error', 'Error inesperado al cargar los PQRs');
         this.cargandoPQRs.set(false);
         this.pqrs = [];
         this.pqrsFiltrados = [];
@@ -484,8 +480,6 @@ export class PqrSecretary implements OnInit {
 
     this.pqrService.updateNovelty(updateRequest).pipe(
       catchError(error => {
-        console.error('Error updating PQR:', error);
-        this.toastService.error('Error', 'No se pudo actualizar el PQR');
         return of({ success: false, response: null, message: 'Error al actualizar PQR' });
       })
     ).subscribe({
@@ -495,10 +489,6 @@ export class PqrSecretary implements OnInit {
           this.cerrarModalRespuesta();
           this.cargarPQRs();
         }
-      },
-      error: (error) => {
-        console.error('Error en subscribe actualizando PQR:', error);
-        this.toastService.error('Error', 'Error inesperado al actualizar el PQR');
       }
     });
   }

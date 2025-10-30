@@ -48,7 +48,6 @@ export class CreateDebt  {
       if (!userDataString) return null;
       return JSON.parse(userDataString);
     } catch (e) {
-      console.error('Error parsing userData from sessionStorage:', e);
       return null;
     }
   });
@@ -79,7 +78,6 @@ export class CreateDebt  {
       }
       return this.enterpriseClientCounterService.getAllClientsByIdEnterprise(empresaId).pipe(
         catchError(error => {
-          console.error('Error loading clients:', error);
           return of({ success: false, response: [], message: 'Error al cargar clientes' });
         })
       );

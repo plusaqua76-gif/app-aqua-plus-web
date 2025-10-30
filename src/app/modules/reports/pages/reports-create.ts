@@ -669,7 +669,6 @@ export class ReportsCreate {
       if (!userDataString) return null;
       return JSON.parse(userDataString);
     } catch (e) {
-      console.error('Error parsing userData from sessionStorage:', e);
       return null;
     }
   });
@@ -847,7 +846,6 @@ export class ReportsCreate {
         this.loadingLists.update(current => ({ ...current, [codigo]: false }));
       },
       error: (error) => {
-        console.error(`Error cargando opciones para ${codigo}:`, error);
         this.listOptions.update(current => ({ ...current, [codigo]: [] }));
         this.loadingLists.update(current => ({ ...current, [codigo]: false }));
       }

@@ -75,7 +75,6 @@ export class UserAccess {
       if (!userDataString) return null;
       return JSON.parse(userDataString);
     } catch (e) {
-      console.error('Error parsing userData from sessionStorage:', e);
       return null;
     }
   });
@@ -160,24 +159,9 @@ export class UserAccess {
               `Usuario ${nuevoEstado ? 'activado' : 'desactivado'} correctamente`
             );
 
-
             this.usersInactives.reload?.();
-          },
-          error: (err) => {
-            console.error('❌ Error al cambiar estado del usuario:', err);
-            this.toastService.error(
-              'Error',
-              'Ocurrió un error al actualizar el estado del usuario'
-            );
-          },
+          }
         });
-      },
-      error: (error: any) => {
-        console.error('❌ Error al obtener ID de empresa:', error);
-        this.toastService.error(
-          'Error',
-          'No se pudo obtener el ID de empresa para el usuario'
-        );
       }
     });
   }

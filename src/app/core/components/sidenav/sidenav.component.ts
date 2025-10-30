@@ -95,7 +95,6 @@ export class SidenavComponent implements OnInit {
       if (!userDataString) return null;
       return JSON.parse(userDataString);
     } catch (e) {
-      console.error('Error parsing userData from sessionStorage:', e);
       return null;
     }
   });
@@ -232,7 +231,6 @@ export class SidenavComponent implements OnInit {
   }
 
   onImageError(event: any): void {
-    console.error('Error al cargar la imagen de la empresa:', event);
     event.target.style.display = 'none';
   }
 }
