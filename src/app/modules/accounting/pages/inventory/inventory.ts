@@ -11,7 +11,6 @@ import { ProductCategoryService } from '../../service/product-category.service';
 import { PopupComponent } from '../../../../shared/components/popUp';
 import { IProducto, ICategoria } from '@interfaces/Iaccounting';
 import { ProductoService } from '../../service/producto.service';
-import { Toast } from '../../../../shared/components/toast';
 import { ToastService } from '@services/toast.service';
 import { Sale } from '../sales/sale';
 import { Account } from '../accounts/account';
@@ -566,8 +565,8 @@ import { Account } from '../accounts/account';
                 @if (inventoryForm.get('porcentaje')?.errors?.['min']) {
                   El porcentaje debe ser mayor o igual a 0
                 }
-                @if (inventoryForm.get('porcentaje')?.errors?.['max']) {
-                  El porcentaje no puede ser mayor a 100
+                @if (inventoryForm.get('porcentaje')?.errors?.['min']) {
+                    El porcentaje debe ser mayor o igual a 0
                 }
               </p>
             }
@@ -695,7 +694,7 @@ export class InventoryCompany {
       cantidad: [0, [Validators.required, Validators.min(0)]],
       precioUnitario: [0, [Validators.required, Validators.min(0)]],
       precioVenta: [0, [Validators.min(0)]], // Removido required ya que se calcula automáticamente
-      porcentaje: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
+      porcentaje: [0, [Validators.required, Validators.min(0)]],
       descripcion: [''],
       activo: [true]
     });
@@ -745,6 +744,7 @@ export class InventoryCompany {
     page: 0,
     size: 5,
   });
+
 
   serverInventoryData = rxResource({
     params: () => ({
@@ -853,9 +853,6 @@ export class InventoryCompany {
           this.serverInventoryData.reload();
           this.getAllProducts.reload();
           this.getAllCategories.reload();
-        },
-        error: (error) => {
-          this.toast.error('error','Error al crear producto');
         }
       });
     }
@@ -878,10 +875,6 @@ export class InventoryCompany {
           this.closeAddPopup();
           this.getAllCategories.reload();
           this.toast.success('success','Categoría creada exitosamente');
-        },
-        error: (error) => {
-          this.toast.error('error','Error al crear categoría');
-          console.error('Error al crear categoría:', error);
         }
       });
     }
@@ -962,9 +955,6 @@ export class InventoryCompany {
         next: (response) => {
           this.closeInventoryPopup();
           this.serverInventoryData.reload();
-        },
-        error: (error) => {
-          console.error('Error al crear inventario:', error);
         }
       });
     }

@@ -131,13 +131,6 @@ export class HistoryReading {
     () => `historial_lectura_${this.readingId()}_${new Date().toISOString().split('T')[0]}`
   );
 
-  constructor() {
-    effect(() => {
-      console.log('la data mi pez del historial', this.dataHistoryReading.value());
-    })
-  }
-
-
   dataHistoryReading = rxResource({
     params: () => ({
       readingId: this.readingId(),
@@ -149,11 +142,6 @@ export class HistoryReading {
       }
       return this.readingService.getHistoryReading(readingId).pipe(
         catchError((error) => {
-          console.error('Error loading history reading:', error);
-          this.toastService.error(
-            'Error',
-            'No se pudo cargar el historial de la lectura'
-          );
           return of(null);
         })
       );
@@ -187,7 +175,6 @@ export class HistoryReading {
       // return `${day}/${month}/${year} a las ${hours}:${minutes}`;
 
     } catch (error) {
-      console.error('Error formatting date:', error);
       return dateString;
     }
   }
@@ -211,7 +198,6 @@ export class HistoryReading {
         minute: '2-digit'
       });
     } catch (error) {
-      console.error('Error formatting complete date:', error);
       return dateString;
     }
   }
@@ -232,7 +218,6 @@ export class HistoryReading {
         year: 'numeric'
       });
     } catch (error) {
-      console.error('Error formatting date only:', error);
       return dateString;
     }
   }

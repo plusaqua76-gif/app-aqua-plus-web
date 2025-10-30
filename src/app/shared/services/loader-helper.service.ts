@@ -19,7 +19,6 @@ export class LoaderHelperService {
 
     return source$.pipe(
       catchError((error) => {
-        console.error('Error en petición:', error);
         return throwError(() => error);
       }),
       finalize(() => {

@@ -229,8 +229,6 @@ private chart: any;
     if (el && typeof ApexCharts !== 'undefined') {
       this.chart = new ApexCharts(el, this.getChartOptions());
       this.chart.render();
-    } else {
-      console.error('ApexCharts no está cargado o falta el elemento #bar-chart');
     }
   }
 }

@@ -75,7 +75,6 @@ export class UpdateClient implements OnInit {
       if (!userDataString) return null;
       return JSON.parse(userDataString);
     } catch (e) {
-      console.error('Error parsing userData from sessionStorage:', e);
       return null;
     }
   });
@@ -588,7 +587,6 @@ export class UpdateClient implements OnInit {
         this.router.navigate(['/shell/client']);
       },
       error: (err: any) => {
-        console.error('Error al actualizar cliente:', err);
         if (err.status === 200 || err.status === 201 || err.status === 204) {
           this.toast.success('Éxito', 'Cliente actualizado correctamente');
           this.router.navigate(['/shell/client']);

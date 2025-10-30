@@ -63,8 +63,6 @@ export class UpdateEnterprise implements OnInit {
       const id = Number(this.route.snapshot.paramMap.get('id'));
       if (id) this.loadEmpresa(id);
     }).catch(err => {
-      console.error('❌ Error cargando datos iniciales:', err);
-      this.toast.error('Error', 'No se pudieron cargar los datos iniciales');
     });
   }
 
@@ -87,10 +85,6 @@ export class UpdateEnterprise implements OnInit {
         };
         this.onDepartamentChange();
         setTimeout(() => this.onCitiesChange(), 0);
-      },
-      error: (err) => {
-        console.error('❌ Error al cargar la empresa:', err);
-        this.toast.error('Error', 'No se pudo cargar la empresa.');
       }
     });
   }
@@ -168,10 +162,6 @@ export class UpdateEnterprise implements OnInit {
       next: () => {
         this.toast.success('Éxito', 'Empresa actualizada correctamente');
         this.router.navigate(['/enterprise']);
-      },
-      error: (err) => {
-        console.error('❌ Error al actualizar la empresa:', err);
-        this.toast.error('Error', 'No se pudo actualizar la empresa.');
       }
     });
   }

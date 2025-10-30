@@ -63,6 +63,11 @@ export class BreadcrumbService {
 
     'accounting': 'Contabilidad',
     'inventory': 'Contabilidad',
+    'sales': 'Ventas',
+    'accounts': 'Cuentas',
+    'create': 'Crear',
+    'update': 'Actualizar',
+    'edit': 'Editar',
 
 
     'fee': 'Tarifas',

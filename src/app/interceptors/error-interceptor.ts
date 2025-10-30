@@ -46,25 +46,27 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         console.error('Not Found:', error.error?.message || errorMessage);
         errorMessage = error.error?.message || 'Recurso no encontrado.';
         toastTitle = 'Recurso no encontrado';
+        toastService.info(toastTitle, errorMessage);
       } else if (error.status === 408) {
         console.error('Request Timeout:', error.error?.message || errorMessage);
         errorMessage = 'Tiempo de espera agotado. Intenta nuevamente.';
         toastTitle = 'Tiempo agotado';
+        toastService.error(toastTitle, errorMessage);
       } else if (error.status === 422) {
         console.error('Unprocessable Entity:', error.error?.message || errorMessage);
         errorMessage = error.error?.message || 'Error de validación en los datos.';
         toastTitle = 'Error de validación';
+        toastService.error(toastTitle, errorMessage);
       } else if (error.status >= 500) {
         console.error('Server Error:', error.error?.message || errorMessage);
         errorMessage = 'Ha ocurrido un error interno del servidor. Por favor, intenta más tarde.';
         toastTitle = 'Error del servidor';
+        toastService.error(toastTitle, errorMessage);
       } else {
         console.error('Error:', error.error?.message || errorMessage);
         errorMessage = error.error?.message || errorMessage;
+        toastService.error(toastTitle, errorMessage);
       }
-
-      // Mostrar el toast con el error
-      toastService.error(toastTitle, errorMessage);
 
       // Crear un error personalizado que preserve el error original
       const customError = {

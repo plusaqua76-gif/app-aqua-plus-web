@@ -304,7 +304,6 @@ export class Bill  {
       }, 1500);
 
     } catch (error) {
-      console.error('Error generating PDF:', error);
       this.toastService.error('Error en la descarga', 'No se pudo generar el PDF de la factura');
       // Limpiar los datos en caso de error
       this.billDataForPdf.set(null);

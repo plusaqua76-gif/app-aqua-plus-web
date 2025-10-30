@@ -711,9 +711,7 @@ conceptRatesData = computed(() => {
         }
       },
       error: (error) => {
-        this.updatingConceptRate.set(false); // Resetear loading state aquí también
-        console.error('Error al actualizar concepto de tarifa:', error);
-        this.toastService.error('Error', 'Error al actualizar el concepto de tarifa');
+        this.updatingConceptRate.set(false); 
       }
     });
   }

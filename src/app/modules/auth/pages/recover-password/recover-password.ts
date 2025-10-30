@@ -98,22 +98,18 @@ export class RecoverPassword implements OnInit {
   async onSubmit(): Promise<void> {
     if (!this.isFormValid || this.isLoading) return;
 
+    if (!this.recoveryToken) {
+      this.toast.error('Error', 'No se encontró el token de activación en la URL');
+      return;
+    }
+
+    this.isLoading = true;
+    const password = this.passwordCtrl?.value as string;
+
     try {
-      this.isLoading = true;
-      const password = this.passwordCtrl?.value as string;
-
-      // Si no hay token en la URL, mostrar error pero no redirigir
-      if (!this.recoveryToken) {
-        this.toast.error('Error', 'No se encontró el token de activación en la URL');
-        this.isLoading = false;
-        return;
-      }
-
       const res = await firstValueFrom(
         this.passwordRecoveryService.updatePasswordWithToken(this.recoveryToken, password)
       );
-
-      this.isLoading = false;
 
       if (res?.success) {
         this.toast.success(
@@ -130,21 +126,8 @@ export class RecoverPassword implements OnInit {
           res?.message || 'Error al configurar la contraseña'
         );
       }
-    } catch (e: any) {
+    } finally {
       this.isLoading = false;
-      const status = e?.status;
-
-      let message = 'Ocurrió un error al configurar la contraseña';
-
-      if (status === 401) {
-        message = 'El enlace de activación ha expirado o es inválido. Contacta al administrador.';
-      } else if (status === 400) {
-        message = 'Los datos enviados no son válidos';
-      } else if (e?.error?.message) {
-        message = e.error.message;
-      }
-
-      this.toast.error('Error', message);
     }
   }
 }

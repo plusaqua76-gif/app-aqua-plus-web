@@ -14,6 +14,13 @@ export default [
       ),
   },
   {
+    path: 'inventory/edit/:id',
+    loadComponent: () =>
+      import('./pages/inventory/update-inventary').then(
+        (m) => m.UpdateInventary
+      ),
+  },
+  {
     path: 'sales',
     loadComponent: () =>
       import('./pages/sales/sale').then(
@@ -39,6 +46,13 @@ export default [
     loadComponent: () =>
       import('./pages/accounts/create-account').then(
         (m) => m.CreateAccount
+      ),
+  },
+  {
+    path: 'accounts/edit/:id',
+    loadComponent: () =>
+      import('./pages/accounts/update-counter').then(
+        (m) => m.UpdateAccount
       ),
   }
 ] as Routes;
