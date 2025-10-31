@@ -16,6 +16,7 @@ export class PreconnetManager {
    */
   setDomainPreconnet(): void {
     const domains = [
+      'https://cdnjs.cloudflare.com',
       'https://cdn.jsdelivr.net',
       'https://unpkg.com'
     ]

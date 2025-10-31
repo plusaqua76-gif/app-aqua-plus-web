@@ -14,7 +14,7 @@ export class ToastService {
     const toast: IToast = { id: crypto.randomUUID(), type, title, message, timeout };
     this._toasts$.next([toast, ...this._toasts$.value]);
 
-  setTimeout(() => this.dismiss(toast.id), timeout);
+    setTimeout(() => this.dismiss(toast.id), timeout);
   }
   success(t: string, m: string) {
     this.show('success', t, m);

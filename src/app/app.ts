@@ -22,8 +22,9 @@ import { GlobalLoader } from '@components/global-loader';
   imports: [RouterOutlet, Toast, GlobalLoader],
   template: `
     <router-outlet></router-outlet>
+      <app-toast></app-toast>
 @defer (on idle) {
-  <app-toast></app-toast>
+
 
   @if (shouldShowGlobalLoader()) {
     <app-global-loader></app-global-loader>
