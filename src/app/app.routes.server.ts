@@ -16,7 +16,11 @@ export const serverRoutes: ServerRoute[] = [
     'shell/reading/history-reading/:id',
     'shell/employee/update-employee/:id',
     'shell/enterprise/update-enterprise/:id',
-    'shell/bill/print-bill/:id'
+    'shell/bill/print-bill/:id',
+    'shell/accounting/inventory/edit/:id',
+    'shell/accounting/accounts/edit/:id',
+    'shell/Inventory/inventory/edit/:id',
+    'shell/Inventory/accounts/edit/:id',
   ].map(createUpdateRoute),
 
   {
@@ -24,3 +28,16 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Prerender,
   },
 ];
+
+
+
+// X [ERROR] The 'shell/accounting/inventory/edit/:id' route uses prerendering and includes parameters, but 'getPrerenderParams' is missing. Please define 'getPrerenderParams' function for this route in your server routing configuration or specify a different 'renderMode'.
+
+
+// X [ERROR] The 'shell/accounting/accounts/edit/:id' route uses prerendering and includes parameters, but 'getPrerenderParams' is missing. Please define 'getPrerenderParams' function for this route in your server routing configuration or specify a different 'renderMode'.
+
+
+// X [ERROR] The 'shell/Inventory/inventory/edit/:id' route uses prerendering and includes parameters, but 'getPrerenderParams' is missing. Please define 'getPrerenderParams' function for this route in your server routing configuration or specify a different 'renderMode'.
+
+
+// X [ERROR] The 'shell/Inventory/accounts/edit/:id' route uses prerendering and includes parameters, but 'getPrerenderParams' is missing. Please define 'getPrerenderParams' function for this route in your server routing configuration or specify a different 'renderMode'.

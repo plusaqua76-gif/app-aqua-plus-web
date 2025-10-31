@@ -869,47 +869,54 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
 
       <app-logo-carousel></app-logo-carousel>
 
-      <section
-        class="relative flex  w-full min-h-[100vh] max-lg:min-h-[80vh] flex-col place-content-center place-items-center overflow-hidden"
-      >
-        <div
-          class="w-full  place-content-center items-center
-                        flex flex-col max-w-[900px] gap-4 p-4"
+      @defer (on viewport) {
+        <section
+          class="relative flex  w-full min-h-[100vh] max-lg:min-h-[80vh] flex-col place-content-center place-items-center overflow-hidden"
         >
           <div
-            class="purple-bg-grad  reveal-up absolute right-[20%] top-[20%] h-[200px] w-[200px]"
-          ></div>
-          <h2
-            class="reveal-up text-6xl max-lg:text-4xl text-center leading-normal uppercase"
+            class="w-full  place-content-center items-center
+                          flex flex-col max-w-[900px] gap-4 p-4"
           >
-            <span class="font-semibold">Construye la gestión de </span>
-            <br />
-            <span class="font-serif"> tu acueducto en un solo sistema</span>
-          </h2>
-          <p
-            class="reveal-up mt-8 max-w-[650px] text-gray-900 dark:text-gray-200 text-center max-md:text-sm"
-          >
-            AquaPlus centraliza clientes, lecturas, facturas y pagos en una
-            plataforma en la nube. Automatiza tus procesos y gana tiempo en cada
-            ciclo de facturación.
-          </p>
-          <div class="reveal-up flex mt-8">
-            <a
-              href="#nosotros"
-              rel="noopener"
-              class="shadow-md hover:shadow-xl dark:shadow-gray-800 transition-all duration-300
-                                        border-[1px] p-3 px-4 border-black dark:border-white rounded-md"
+            <div
+              class="purple-bg-grad  reveal-up absolute right-[20%] top-[20%] h-[200px] w-[200px]"
+            ></div>
+            <h2
+              class="reveal-up text-6xl max-lg:text-4xl text-center leading-normal uppercase"
             >
-              Explorar módulos
-            </a>
+              <span class="font-semibold">Construye la gestión de </span>
+              <br />
+              <span class="font-serif"> tu acueducto en un solo sistema</span>
+            </h2>
+            <p
+              class="reveal-up mt-8 max-w-[650px] text-gray-900 dark:text-gray-200 text-center max-md:text-sm"
+            >
+              AquaPlus centraliza clientes, lecturas, facturas y pagos en una
+              plataforma en la nube. Automatiza tus procesos y gana tiempo en cada
+              ciclo de facturación.
+            </p>
+            <div class="reveal-up flex mt-8">
+              <a
+                href="#nosotros"
+                rel="noopener"
+                class="shadow-md hover:shadow-xl dark:shadow-gray-800 transition-all duration-300
+                                          border-[1px] p-3 px-4 border-black dark:border-white rounded-md"
+              >
+                Explorar módulos
+              </a>
+            </div>
           </div>
+        </section>
+      } @placeholder {
+        <div class="flex justify-center items-center min-h-[50vh]">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
         </div>
-      </section>
+      }
 
-      <section
-      id="galeria"
-        class="relative flex max-w-[100vw] flex-col place-content-center place-items-center overflow-hidden"
-      >
+      @defer (on viewport) {
+        <section
+        id="galeria"
+          class="relative flex max-w-[100vw] flex-col place-content-center place-items-center overflow-hidden"
+        >
         <div class="mt-8 flex flex-col w-full h-full place-items-center gap-5">
           <div class="reveal-up mt-5 flex flex-col gap-3 text-center">
             <h2 class="text-6xl font-medium max-md:text-3xl p-2">
@@ -1145,6 +1152,11 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
           </div>
         </div>
       </section>
+      } @placeholder {
+        <div class="flex justify-center items-center min-h-[50vh]">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      }
 
     @defer (on viewport) {
             <section
@@ -1366,10 +1378,12 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
         </div>
       </section>
     }@placeholder {
-      <div>Cargando informacion</div>
+      <div class="flex justify-center items-center min-h-[50vh]">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      </div>
     }
 
-
+    @defer (on viewport) {
       <section
       id="nosotros"
         class="relative flex  w-full min-h-[110vh] max-md:min-h-[80vh] flex-col place-content-center place-items-center overflow-hidden"
@@ -1554,7 +1568,13 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
           </div>
         </div>
       </section>
+    } @placeholder {
+      <div class="flex justify-center items-center min-h-[50vh]">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      </div>
+    }
 
+    @defer (on viewport) {
       <footer
       id="contactanos"
         class="mt-auto flex flex-col w-full gap-4 text-sm pt-[5%] pb-10 px-[10%]
@@ -1634,6 +1654,11 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
           <span>Todos los derechos reservados.</span>
         </div>
       </footer>
+    } @placeholder {
+      <div class="flex justify-center items-center min-h-[30vh]">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      </div>
+    }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -8,6 +8,8 @@ import {
 } from '@angular/core';
 import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
 import { FlowbiteService } from './core/services/flowbite.service';
+import { PreconnetManager } from './core/utils/preconnet';
+import { Seo } from './core/utils/SEO';
 import { initFlowbite } from 'flowbite';
 import { isPlatformBrowser, JsonPipe } from '@angular/common';
 import { SwPush } from '@angular/service-worker';
@@ -20,12 +22,26 @@ import { GlobalLoader } from '@components/global-loader';
   imports: [RouterOutlet, Toast, GlobalLoader],
   template: `
     <router-outlet></router-outlet>
-    <app-toast></app-toast>
-    @if (shouldShowGlobalLoader()) {
-    <app-global-loader></app-global-loader>
-    }
+@defer (on idle) {
+  <app-toast></app-toast>
 
-  <!-- <button (click)="subscribeToNotifications()">
+  @if (shouldShowGlobalLoader()) {
+    <app-global-loader></app-global-loader>
+  }
+} @placeholder {
+  <!-- Muestra mientras carga el bloque defer -->
+  <div class="flex justify-center items-center h-screen bg-white">
+    <span class="text-gray-500 text-sm animate-pulse">
+      Cargando aplicación...
+    </span>
+  </div>
+} @error {
+  <div class="text-center text-red-500 mt-4">
+    Ocurrió un error al cargar la aplicación.
+  </div>
+}
+
+    <!-- <button (click)="subscribeToNotifications()">
   Solicitar persmisos
   </button>
 
@@ -40,7 +56,16 @@ export class App implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly injector = inject(Injector);
   private readonly notificationsService = inject(NotificationsService);
+  private readonly preconnetManager = inject(PreconnetManager);
+  private readonly seoService = inject(Seo);
 
+constructor() {
+   // Configurar preconnect para CDNs
+   this.preconnetManager.setDomainPreconnet();
+
+   // Inicializar SEO automático
+   this.seoService.init();
+}
   title = 'app-aqua-plus-web';
 
   public readonly VAPID_PUBLIC_KEY =
@@ -85,6 +110,9 @@ export class App implements OnInit {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
+      // Cargar scripts externos de forma dinámica
+      this.preconnetManager.loadExternalScripts();
+
       // Solo inyectar SwPush en el navegador usando el injector con manejo de errores
       this.subscribeToNotifications();
       try {

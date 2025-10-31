@@ -7,7 +7,8 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'welcome',
+    loadComponent: () =>
+      import('./core/components/welcome').then((m) => m.Welcome),
   },
   {
     path: 'welcome',
