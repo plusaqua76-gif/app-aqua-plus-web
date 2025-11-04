@@ -58,6 +58,12 @@ import { Account } from '../accounts/account';
         </button>
       </div>
     </ng-template>
+
+    <!-- Template para formateo de fecha -->
+    <ng-template #fechaTpl let-row>
+      {{ formatDate(row.fechaCreacion) }}
+    </ng-template>
+
     <div class="px-4 sm:px-6 lg:px-8 py-6">
       <div class="">
         <div class="relative overflow-hidden shadow-xl sm:rounded-2xl bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl border border-white/20 dark:border-slate-700/30">
@@ -114,6 +120,9 @@ import { Account } from '../accounts/account';
       [serverData]="serverInventoryData.value() ?? null"
       [loading]="serverInventoryData.isLoading()"
       [actionTemplate]="actionsTemplate"
+      [columnTemplates]="{
+        fechaCreacion: fechaTpl
+      }"
       [showAddButton]="true"
       [addButtonText]="'Agregar Producto Categoria'"
       [showSecondaryButton]="true"
@@ -637,7 +646,7 @@ export class InventoryCompany {
     { field: 'precioUnitario', header: 'Precio Unitario', type: 'text' as const },
     { field: 'precioVenta', header: 'Precio Venta', type: 'text' as const },
     { field: 'porcentaje', header: 'Porcentaje', type: 'text' as const },
-    { field: 'fechaCreacion', header: 'Fecha Creación', type: 'date' as const  },
+    { field: 'fechaCreacion', header: 'Fecha Creación', type: 'date' as const, template: 'fechaTpl' },
   ]);
 
   readonly enterpriseId = computed(() => {
@@ -949,5 +958,27 @@ export class InventoryCompany {
   getTabClasses(tabId: string): string {
     const isActive = this.navigationTab() === tabId;
     return isActive ? 'active' : '';
+  }
+
+  // Método simplificado para formatear fechas
+  formatDate(dateString: string): string {
+    if (!dateString) return '';
+
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+
+      // Formato: dd/mm/yyyy HH:mm
+      return date.toLocaleString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    } catch (error) {
+      return dateString;
+    }
   }
 }
