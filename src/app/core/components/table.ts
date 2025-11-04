@@ -8,7 +8,13 @@ import {
   signal,
   computed,
   HostListener,
+  effect,
+  DestroyRef,
+  inject,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { IPaginatedResponse, IPaginationParams } from '../interfaces/IpaginatedResponse';
 import { Datepicker } from '../../shared/components/datepicker';
 
@@ -396,6 +402,9 @@ export interface TableColumn {
   `,
 })
 export class TableComponent {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly filterSubject = new Subject<{ field: string; value: string }>();
+
   readonly buttonFilter = signal<boolean>(false);
   columns = input<TableColumn[]>([]);
   title = input<string>('');
@@ -426,6 +435,21 @@ export class TableComponent {
   readonly pageSize = signal<number>(this.pageSizeOptions[0]);
   readonly pageIndex = signal<number>(0);
 
+  constructor() {
+    // Configurar el debounce para los filtros
+    this.filterSubject
+      .pipe(
+        debounceTime(600), // Esperar después del último cambio
+        distinctUntilChanged((prev, curr) =>
+          prev.field === curr.field && prev.value === curr.value
+        ),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(({ field, value }) => {
+        this.applyColumnFilter(field, value);
+      });
+  }
+
   readonly currentPageSize = computed(() => {
     if (this.serverMode()) {
       return this.serverData()?.pageSize || this.pageSize();
@@ -443,11 +467,18 @@ export class TableComponent {
 
   onColumnFilterInput(column: string, event: Event) {
     const value = (event.target as HTMLInputElement | null)?.value ?? '';
+
+    // Actualizar inmediatamente el signal para la UI
     this.columnFilters.update(filters => ({
       ...filters,
       [column]: value
     }));
 
+    // Enviar al subject para aplicar debounce
+    this.filterSubject.next({ field: column, value });
+  }
+
+  private applyColumnFilter(field: string, value: string) {
     if (this.serverMode()) {
       const currentFilters = this.columnFilters();
       const currentSize = this.serverData()?.pageSize || this.pageSize();
@@ -460,30 +491,20 @@ export class TableComponent {
         search: currentSearch
       });
     } else {
+      // Para modo cliente, resetear la página
       this.pageIndex.set(0);
     }
   }
 
   onColumnFilterChange(column: string, value: string) {
+    // Actualizar inmediatamente el signal para la UI
     this.columnFilters.update(filters => ({
       ...filters,
       [column]: value
     }));
 
-    if (this.serverMode()) {
-      const currentFilters = this.columnFilters();
-      const currentSize = this.serverData()?.pageSize || this.pageSize();
-      const currentSearch = this.search();
-
-      this.emitServerPaginationChange({
-        filters: currentFilters,
-        page: 0,
-        size: currentSize,
-        search: currentSearch
-      });
-    } else {
-      this.pageIndex.set(0);
-    }
+    // Enviar al subject para aplicar debounce
+    this.filterSubject.next({ field: column, value });
   }
 
   onPageSizeChange(event: Event) {

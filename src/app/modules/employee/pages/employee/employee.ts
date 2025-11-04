@@ -99,7 +99,6 @@ export class Employee {
   });
 
 
-  // Signal para parámetros de paginación
   readonly paginationParams = signal<IPaginationParams>({
     page: 0,
     size: 5,
