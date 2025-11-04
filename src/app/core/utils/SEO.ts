@@ -105,7 +105,7 @@ export class Seo {
    */
   private setDefaultSEO() {
     this.setSEO({
-      title: 'Sistema de Gestión de Agua',
+      title: 'AquaPlus',
       description: 'AquaPlus - Sistema integral para la gestión de servicios de agua. Facturación, lecturas, reportes y gestión de clientes de forma eficiente y moderna.',
       keywords: 'agua, facturación, gestión, servicios públicos, lecturas, reportes, clientes, AquaPlus, sistema integral'
     })
@@ -126,6 +126,78 @@ export class Seo {
         title: 'Gestión de Clientes',
         description: 'Administra la información de clientes, historial de consumo y datos personales. Gestión completa de la base de clientes.',
         keywords: 'clientes, gestión, información personal, historial, consumo, AquaPlus'
+      })
+    } else if (url.includes('/reading')) {
+      this.setSEO({
+        title: 'Gestión de Lecturas',
+        description: 'Registro y consulta de lecturas de contadores de agua. Control y seguimiento del consumo de agua de todos los clientes.',
+        keywords: 'lecturas, contadores, consumo, agua, medición, registro, AquaPlus'
+      })
+    } else if (url.includes('/counter')) {
+      this.setSEO({
+        title: 'Gestión de Contadores',
+        description: 'Administración de contadores de agua. Registro, mantenimiento y control de dispositivos de medición de consumo.',
+        keywords: 'contadores, medidores, agua, dispositivos, medición, mantenimiento, AquaPlus'
+      })
+    } else if (url.includes('/employee')) {
+      this.setSEO({
+        title: 'Gestión de Empleados',
+        description: 'Administración del personal y empleados. Control de roles, asignaciones y gestión del equipo de trabajo.',
+        keywords: 'empleados, personal, roles, asignaciones, equipo, gestión, AquaPlus'
+      })
+    } else if (url.includes('/enterprise')) {
+      this.setSEO({
+        title: 'Gestión de Empresas',
+        description: 'Administración de empresas y entidades. Configuración de datos corporativos y gestión empresarial.',
+        keywords: 'empresas, entidades, corporativo, gestión empresarial, configuración, AquaPlus'
+      })
+    } else if (url.includes('/accounting')) {
+      this.setSEO({
+        title: 'Contabilidad',
+        description: 'Módulo de contabilidad y gestión financiera. Control de ingresos, gastos y balance financiero del sistema.',
+        keywords: 'contabilidad, finanzas, ingresos, gastos, balance, gestión financiera, AquaPlus'
+      })
+    } else if (url.includes('/user-access')) {
+      this.setSEO({
+        title: 'Administración de Usuarios',
+        description: 'Panel de super administrador para gestión de usuarios. Control de accesos, permisos y administración del sistema.',
+        keywords: 'super admin, usuarios, accesos, permisos, administración, control, AquaPlus'
+      })
+    } else if (url.includes('/fee')) {
+      this.setSEO({
+        title: 'Gestión de Tarifas',
+        description: 'Configuración y administración de tarifas de agua. Establecimiento de precios y estructura tarifaria.',
+        keywords: 'tarifas, precios, agua, configuración, estructura tarifaria, costos, AquaPlus'
+      })
+    } else if (url.includes('/Inventory')) {
+      this.setSEO({
+        title: 'Inventario',
+        description: 'Control de inventario y materiales. Gestión de existencias, equipos y recursos del sistema.',
+        keywords: 'inventario, materiales, existencias, equipos, recursos, control, AquaPlus'
+      })
+    } else if (url.includes('/pqr-client')) {
+      this.setSEO({
+        title: 'PQR Clientes',
+        description: 'Gestión de Peticiones, Quejas y Reclamos de clientes. Atención al cliente y resolución de solicitudes.',
+        keywords: 'PQR, peticiones, quejas, reclamos, atención cliente, solicitudes, AquaPlus'
+      })
+    } else if (url.includes('/configuration-roles')) {
+      this.setSEO({
+        title: 'Configuración de Roles',
+        description: 'Administración y configuración de roles de usuario. Gestión de permisos y niveles de acceso.',
+        keywords: 'roles, permisos, configuración, acceso, niveles, administración, AquaPlus'
+      })
+    } else if (url.includes('/profile')) {
+      this.setSEO({
+        title: 'Perfil de Usuario',
+        description: 'Gestión del perfil personal. Actualización de datos, configuración de cuenta y preferencias del usuario.',
+        keywords: 'perfil, usuario, datos personales, configuración, cuenta, preferencias, AquaPlus'
+      })
+    } else if (url.includes('/bills-users')) {
+      this.setSEO({
+        title: 'Facturas de Usuarios',
+        description: 'Consulta de facturas por usuario. Historial de facturación y estado de pagos de clientes específicos.',
+        keywords: 'facturas usuarios, historial facturación, pagos, consulta, clientes, AquaPlus'
       })
     } else if (url.includes('/reports')) {
       this.setSEO({
