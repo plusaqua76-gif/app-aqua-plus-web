@@ -22,25 +22,10 @@ import { GlobalLoader } from '@components/global-loader';
   imports: [RouterOutlet, Toast, GlobalLoader],
   template: `
     <router-outlet></router-outlet>
-      <app-toast></app-toast>
-@defer (on idle) {
-
-
-  @if (shouldShowGlobalLoader()) {
-    <app-global-loader></app-global-loader>
-  }
-} @placeholder {
-  <!-- Muestra mientras carga el bloque defer -->
-  <div class="flex justify-center items-center h-screen bg-white">
-    <span class="text-gray-500 text-sm animate-pulse">
-      Cargando aplicación...
-    </span>
-  </div>
-} @error {
-  <div class="text-center text-red-500 mt-4">
-    Ocurrió un error al cargar la aplicación.
-  </div>
-}
+    <app-toast></app-toast>
+    @if (shouldShowGlobalLoader()) {
+      <app-global-loader></app-global-loader>
+    }
 
     <!-- <button (click)="subscribeToNotifications()">
   Solicitar persmisos
