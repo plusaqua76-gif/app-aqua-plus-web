@@ -34,14 +34,17 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
                       error.error?.msg ||
                       'Error de solicitud. Verifica los datos enviados.';
         toastTitle = 'Error de solicitud';
+        toastService.error(toastTitle, errorMessage);
       } else if (error.status === 401) {
         console.error('Unauthorized:', error.error?.message || errorMessage);
         errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
         toastTitle = 'No autorizado';
+        toastService.error(toastTitle, errorMessage);
       } else if (error.status === 403) {
         console.error('Forbidden:', error.error?.message || errorMessage);
         errorMessage = 'No tienes permisos para realizar esta acción.';
         toastTitle = 'Acceso denegado';
+        toastService.error(toastTitle, errorMessage);
       } else if (error.status === 404) {
         console.error('Not Found:', error.error?.message || errorMessage);
         errorMessage = error.error?.message || 'Recurso no encontrado.';
