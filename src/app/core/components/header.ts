@@ -1,5 +1,5 @@
 import { UserService } from './../../modules/auth/service/user.service';
-import { Component, inject, HostListener, input, PLATFORM_ID, computed, effect } from '@angular/core';
+import { Component, inject, HostListener, input, PLATFORM_ID, computed, effect, signal, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -78,15 +78,17 @@ import { BreadcrumbService } from '@services/breadcrumb.service';
         <!-- User Section -->
         <div class="flex items-center gap-2">
           <button
+            #dropdownButton
             id="dropdownAvatarNameButton"
-            data-dropdown-toggle="dropdownAvatarName"
-            class="flex items-center text-sm pe-1 font-medium text-gray-900 rounded-full hover:text-blue-600 dark:hover:text-blue-500 md:me-0 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:text-white"
+            (click)="toggleDropdown()"
+            class="flex items-center text-sm pe-1 font-medium text-gray-900 rounded-full hover:text-blue-600 dark:hover:text-blue-500 md:me-0 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:text-white transition-all duration-200"
             type="button"
           >
             <span class="sr-only">Open user menu</span>
             <span>{{ user?.nombre || 'Usuario' }}</span>
             <svg
-              class="w-2.5 h-2.5 ms-3"
+              class="w-2.5 h-2.5 ms-3 transition-transform duration-200"
+              [class.rotate-180]="isDropdownOpen()"
               aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -102,10 +104,13 @@ import { BreadcrumbService } from '@services/breadcrumb.service';
             </svg>
           </button>
           <div
+            #dropdownMenu
             id="dropdownAvatarName"
-            class="z-10 hidden bg-gray-800/95 dark:bg-gray-800/95 backdrop-blur-sm divide-y divide-gray-600/30 rounded-xl shadow-2xl w-56 border border-gray-600/50"
+            [class]="isDropdownOpen()
+              ? 'absolute top-14 right-6 bg-white/90 dark:bg-gray-800/95 backdrop-blur-lg divide-y divide-gray-200/50 dark:divide-gray-600/30 rounded-xl shadow-2xl w-56 border border-gray-200/50 dark:border-gray-600/50 transform opacity-100 scale-100 transition-all duration-200 ease-out'
+              : 'absolute top-14 right-6 bg-white/90 dark:bg-gray-800/95 backdrop-blur-lg divide-y divide-gray-200/50 dark:divide-gray-600/30 rounded-xl shadow-2xl w-56 border border-gray-200/50 dark:border-gray-600/50 transform opacity-0 scale-95 pointer-events-none transition-all duration-200 ease-in'"
           >
-            <div class="px-4 py-3 text-sm text-white">
+            <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
               <div class="flex items-center gap-2">
                 <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -120,9 +125,10 @@ import { BreadcrumbService } from '@services/breadcrumb.service';
               <li>
                 <a
                   [routerLink]="['profile']"
-                  class="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-gray-700/60 hover:text-white transition-all duration-200"
+                  (click)="closeDropdown()"
+                  class="flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100/60 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-white transition-all duration-200"
                 >
-                  <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   <span>Mi Perfil</span>
@@ -132,7 +138,7 @@ import { BreadcrumbService } from '@services/breadcrumb.service';
             <div class="py-2">
               <button
                 (click)="logout()"
-                class="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-600/10 hover:text-red-300 transition-all duration-200"
+                class="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-red-500 dark:text-red-400 hover:bg-red-50/60 dark:hover:bg-red-600/10 hover:text-red-700 dark:hover:text-red-300 transition-all duration-200"
               >
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -148,10 +154,28 @@ import { BreadcrumbService } from '@services/breadcrumb.service';
   styles: [],
 })
 export class Header {
+  @ViewChild('dropdownButton') dropdownButton!: ElementRef;
+  @ViewChild('dropdownMenu') dropdownMenu!: ElementRef;
+
+  // Estado del dropdown
+  isDropdownOpen = signal<boolean>(false);
 
   @HostListener('window:scroll', [])
   onWindowScroll(): void {
     this.isScrolled = window.scrollY > 0;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    if (this.dropdownButton && this.dropdownMenu) {
+      const target = event.target as HTMLElement;
+      const isClickInsideButton = this.dropdownButton.nativeElement.contains(target);
+      const isClickInsideMenu = this.dropdownMenu.nativeElement.contains(target);
+
+      if (!isClickInsideButton && !isClickInsideMenu) {
+        this.closeDropdown();
+      }
+    }
   }
   readonly router = inject(Router);
   readonly userService = inject(UserService);
@@ -194,7 +218,21 @@ export class Header {
     }
   });
 
+  // Métodos para controlar el dropdown
+  toggleDropdown(): void {
+    this.isDropdownOpen.set(!this.isDropdownOpen());
+  }
+
+  closeDropdown(): void {
+    this.isDropdownOpen.set(false);
+  }
+
+  openDropdown(): void {
+    this.isDropdownOpen.set(true);
+  }
+
   logout() {
+    this.closeDropdown();
     sessionStorage.clear();
     this.router.navigate(['/welcome']);
   }
