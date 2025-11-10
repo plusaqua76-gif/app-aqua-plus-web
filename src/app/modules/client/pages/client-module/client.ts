@@ -153,12 +153,6 @@ export class Client {
     size: 5,
   });
 
-  constructor() {
-    effect(() => {
-      console.log('la data de la empresa', this.serverClientData.value());
-    });
-  }
-
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
     try {
