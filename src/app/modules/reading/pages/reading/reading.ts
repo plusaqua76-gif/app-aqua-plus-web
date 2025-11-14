@@ -172,7 +172,7 @@ export class Reading {
    * Concatena el nombre completo del cliente
    */
   getFullName(cliente: any): string {
-    if (!cliente) return 'N/A';
+    if (!cliente) return '';
 
     const partes = [
       cliente.nombre,
@@ -181,7 +181,7 @@ export class Reading {
       cliente.segundoApellido
     ].filter(parte => parte && parte.trim() !== ''); // Filtrar valores vacíos o null
 
-    return partes.join(' ') || 'N/A';
+    return partes.join(' ') || '';
   }
 
   handleTableAction(event: { action: string; row?: any }): void {

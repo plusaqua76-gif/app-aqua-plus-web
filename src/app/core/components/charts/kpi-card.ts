@@ -57,6 +57,12 @@ import { IClienteKPIResponse } from '@interfaces/IClienteKPIResponse';
 
       .kpi-card {
         animation: slideInUp 0.6s ease-out;
+        transition: all 0.3s ease;
+      }
+
+      .kpi-card:hover {
+        filter: brightness(0.9);
+        transform: translateY(-2px);
       }
 
       @keyframes slideInUp {
@@ -88,10 +94,40 @@ import { IClienteKPIResponse } from '@interfaces/IClienteKPIResponse';
           transform: translateX(100%);
         }
       }
+
+      .icon-circle {
+        transition: all 0.3s ease;
+      }
+
+      .kpi-card:hover .icon-circle {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+      }
+
+      .bottom-glow {
+        transition: all 0.3s ease;
+      }
+
+      .kpi-card:hover .bottom-glow {
+        filter: blur(20px);
+      }
+
+      .bottom-line {
+        transition: all 0.3s ease;
+        width: 70%;
+      }
+
+      .kpi-card:hover .bottom-line {
+        width: 100%;
+      }
+
+      .icon-blur {
+        backdrop-filter: blur(8px);
+      }
     `,
   ],
   template: `
-    <div class="rounded-xl bg-slate-800 text-slate-100 p-4 shadow-sm kpi-card">
+    <div class="rounded-xl  bg-white/20 dark:bg-slate-800/20 backdrop-blur-2xl text-slate-100 p-4 shadow-sm cursor-pointer group relative overflow-hidden border-r-2 border-t-2 border-[#1f2937] kpi-card">
       <div class="flex items-start justify-between">
         <div class="space-y-1">
           @if (isLoading) {
@@ -107,83 +143,94 @@ import { IClienteKPIResponse } from '@interfaces/IClienteKPIResponse';
           }
         </div>
 
-        <div
-          class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-700/60"
-        >
+        <!-- Ícono en la esquina superior derecha -->
+        <div>
           @if (isLoading) {
-          <div class="h-4 w-4 bg-slate-600 rounded animate-pulse"></div>
-          } @else { @if (kpiData?.icono === 'user-plus') {
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4 text-green-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-            />
-          </svg>
-          } @else if (kpiData?.icono === 'check-circle') {
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4 text-blue-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          } @else if (kpiData?.icono === 'exclamation-triangle') {
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4 text-amber-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-            />
-          </svg>
-          } @else if (kpiData?.icono === 'users') {
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4 text-purple-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-            />
-          </svg>
+          <div class="w-10 h-10 bg-slate-700/30 rounded-full rounded-tl-none animate-pulse icon-blur"></div>
           } @else {
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4 text-gray-400"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path
-              d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.16 7.16 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 14.4 1h-3.8a.5.5 0 0 0-.49.41l-.36 2.54c-.58.24-1.13.55-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.62 7.97a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L2.74 13.6a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.31.6.22l2.39-.96c.5.39 1.05.7 1.63.94l.36 2.54c.05.24.25.41.49.41h3.8c.24 0 .45-.17.49-.41l.36-2.54c.58-.24 1.13-.55 1.63-.94l2.39.96c.21.09.47 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"
-            />
-          </svg>
-          } }
+            @if (kpiData?.icono === 'user-plus') {
+              <div class="w-10 h-10 bg-green-500/30 rounded-full rounded-tl-none flex items-center justify-center icon-circle icon-blur shadow-lg shadow-green-500/20">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-green-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                  />
+                </svg>
+              </div>
+            } @else if (kpiData?.icono === 'check-circle') {
+              <div class="w-10 h-10 bg-blue-500/30 rounded-full rounded-tl-none flex items-center justify-center icon-circle icon-blur shadow-lg shadow-blue-500/20">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-blue-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+            } @else if (kpiData?.icono === 'exclamation-triangle') {
+              <div class="w-10 h-10 bg-orange-500/30 rounded-full rounded-tl-none flex items-center justify-center icon-circle icon-blur shadow-lg shadow-orange-500/20">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-orange-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+              </div>
+            } @else if (kpiData?.icono === 'users') {
+              <div class="w-10 h-10 bg-purple-500/30 rounded-full rounded-tl-none flex items-center justify-center icon-circle icon-blur shadow-lg shadow-purple-500/20">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-purple-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+              </div>
+            } @else {
+              <div class="w-10 h-10 bg-slate-500/30 rounded-full rounded-tl-none flex items-center justify-center icon-circle icon-blur shadow-lg shadow-slate-500/20">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-slate-400"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.16 7.16 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 14.4 1h-3.8a.5.5 0 0 0-.49.41l-.36 2.54c-.58.24-1.13.55-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.62 7.97a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L2.74 13.6a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.31.6.22l2.39-.96c.5.39 1.05.7 1.63.94l.36 2.54c.05.24.25.41.49.41h3.8c.24 0 .45-.17.49-.41l.36-2.54c.58-.24 1.13-.55 1.63-.94l2.39.96c.21.09.47 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"
+                  />
+                </svg>
+              </div>
+            }
+          }
         </div>
       </div>
 
@@ -198,7 +245,7 @@ import { IClienteKPIResponse } from '@interfaces/IClienteKPIResponse';
         }
       </div>
 
-      <!-- Progress -->
+      <!-- Barra de progreso -->
       <div class="mt-3 progress-container">
         @if (isLoading) {
         <div
@@ -207,21 +254,56 @@ import { IClienteKPIResponse } from '@interfaces/IClienteKPIResponse';
           <div class="absolute inset-0 loading-shimmer"></div>
         </div>
         } @else {
-        <div class="h-2 w-full rounded-full bg-slate-700 overflow-hidden">
-          @if (kpiData?.esPositivo) {
+        <div class="h-2 w-full rounded-full bg-slate-700/50 overflow-hidden">
+          @if (kpiData?.icono === 'user-plus') {
           <div
-            class="h-2 rounded-full bg-gradient-to-r from-green-500 to-blue-400 progress-bar"
+            class="h-2 rounded-full bg-gradient-to-r from-green-500 to-green-500/0 progress-bar"
+            [style.width.%]="progressWidth"
+          ></div>
+          } @else if (kpiData?.icono === 'check-circle') {
+          <div
+            class="h-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-500/0 progress-bar"
+            [style.width.%]="progressWidth"
+          ></div>
+          } @else if (kpiData?.icono === 'exclamation-triangle') {
+          <div
+            class="h-2 rounded-full bg-gradient-to-r from-orange-500 to-orange-500/0 progress-bar"
+            [style.width.%]="progressWidth"
+          ></div>
+          } @else if (kpiData?.icono === 'users') {
+          <div
+            class="h-2 rounded-full bg-gradient-to-r from-purple-500 to-purple-500/0 progress-bar"
             [style.width.%]="progressWidth"
           ></div>
           } @else {
           <div
-            class="h-2 rounded-full bg-gradient-to-r from-rose-500 to-orange-400 progress-bar"
+            class="h-2 rounded-full bg-gradient-to-r from-slate-500 to-slate-500/0 progress-bar"
             [style.width.%]="progressWidth"
           ></div>
           }
         </div>
         }
       </div>
+
+      <!-- Efectos de brillo inferior -->
+      @if (!isLoading) {
+        @if (kpiData?.icono === 'user-plus') {
+        <div class="h-2 w-full bg-gradient-to-l from-transparent via-green-500 to-transparent blur-2xl m-auto absolute bottom-0 bottom-glow"></div>
+        <div class="h-0.5 bg-gradient-to-l from-transparent via-green-500 to-transparent m-auto absolute bottom-0 bottom-line"></div>
+        } @else if (kpiData?.icono === 'check-circle') {
+        <div class="h-2 w-full bg-gradient-to-l from-transparent via-blue-500 to-transparent blur-2xl m-auto absolute bottom-0 bottom-glow"></div>
+        <div class="h-0.5 bg-gradient-to-l from-transparent via-blue-500 to-transparent m-auto absolute bottom-0 bottom-line"></div>
+        } @else if (kpiData?.icono === 'exclamation-triangle') {
+        <div class="h-2 w-full bg-gradient-to-l from-transparent via-orange-500 to-transparent blur-2xl m-auto absolute bottom-0 bottom-glow"></div>
+        <div class="h-0.5 bg-gradient-to-l from-transparent via-orange-500 to-transparent m-auto absolute bottom-0 bottom-line"></div>
+        } @else if (kpiData?.icono === 'users') {
+        <div class="h-2 w-full bg-gradient-to-l from-transparent via-purple-500 to-transparent blur-2xl m-auto absolute bottom-0 bottom-glow"></div>
+        <div class="h-0.5 bg-gradient-to-l from-transparent via-purple-500 to-transparent m-auto absolute bottom-0 bottom-line"></div>
+        } @else {
+        <div class="h-2 w-full bg-gradient-to-l from-transparent via-slate-500 to-transparent blur-2xl m-auto absolute bottom-0 bottom-glow"></div>
+        <div class="h-0.5 bg-gradient-to-l from-transparent via-slate-500 to-transparent m-auto absolute bottom-0 bottom-line"></div>
+        }
+      }
     </div>
   `,
 })

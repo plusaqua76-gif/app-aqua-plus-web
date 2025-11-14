@@ -18,7 +18,6 @@ export class BreadcrumbService {
   private readonly routeLabels: { [key: string]: string } = {
     // Rutas principales
     'shell': 'Home',
-    'home': 'Home',
     'start': 'Métricas',
 
     // Módulo de clientes

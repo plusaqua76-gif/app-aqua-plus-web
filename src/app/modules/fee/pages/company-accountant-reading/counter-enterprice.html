@@ -1,18 +1,5 @@
 <!-- Gestión de Contadores Empresariales -->
 <div class="px-4 sm:px-6 lg:px-8 py-6">
-  <!-- Header -->
-  <div class="mb-6">
-    <h1
-      class="text-2xl sm:text-3xl font-bold text-gray-700 dark:text-gray-200 mb-4"
-    >
-      Gestión del contador empresarial
-    </h1>
-    <p class="text-gray-600 dark:text-gray-400">
-      Visualice y gestione los contadores asignados a su empresa
-    </p>
-  </div>
-
-  <!-- Contenedor principal -->
   <div
     class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30"
   >
@@ -46,100 +33,126 @@
       @if (dataCounterEnterprice.value()?.success &&
       dataCounterEnterprice.value()?.response) {
       <div class="space-y-6">
-        <!-- Icono de éxito -->
-        <div class="text-center">
-          <div
-            class="mx-auto w-20 h-20 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20"
-          >
-            <i
-              class="fas fa-tachometer-alt text-3xl text-green-600 dark:text-green-400"
-            ></i>
+        <!-- Header Card con estado y título -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-green-500/10 via-emerald-500/10 to-teal-500/10 dark:from-green-500/5 dark:via-emerald-500/5 dark:to-teal-500/5 rounded-2xl border border-green-500/20 dark:border-green-500/30 backdrop-blur-md p-6">
+          <div class="flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center gap-4">
+              <div class="w-16 h-16 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl flex items-center justify-center backdrop-blur-md border border-green-500/30 shadow-lg shadow-green-500/10">
+                <i class="fas fa-tachometer-alt text-2xl text-green-600 dark:text-green-400"></i>
+              </div>
+              <div>
+                <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-1">
+                  Contador Empresarial
+                </h3>
+                <div class="inline-flex items-center gap-2 px-3 py-1 bg-green-500/20 border border-green-500/30 rounded-lg backdrop-blur-sm">
+                  <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span class="text-xs font-semibold text-green-700 dark:text-green-300 uppercase tracking-wide">
+                    Activo
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="flex items-center gap-3">
+              <button
+                type="button"
+                (click)="viewHistory()"
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 backdrop-blur-md text-purple-700 dark:text-purple-300 font-medium rounded-xl hover:border-purple-500/50 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20"
+                title="Ver historial de lecturas"
+              >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="hidden sm:inline">Historial</span>
+              </button>
+              <button
+                type="button"
+                (click)="openReadingModal()"
+                class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-semibold rounded-xl hover:border-blue-500/50 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20"
+              >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                <span>Registrar Lectura</span>
+              </button>
+            </div>
           </div>
         </div>
-        <!-- Información del contador -->
-        <div
-          class="bg-white/10 dark:bg-slate-700/20 rounded-xl border border-white/20 dark:border-slate-600/30 backdrop-blur-md p-6"
-        >
-          <h3
-            class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center"
-          >
-            Contador Empresarial Activo
-          </h3>
-          <div class="grid gap-4 sm:grid-cols-2">
-            <div class="space-y-2">
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Serial del Contador:
-              </p>
-              <p class="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                {{ dataCounterEnterprice.value()?.response?.contador?.serial ||
-                'N/A' }}
-              </p>
-            </div>
-            <div class="space-y-2">
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Tipo de Contador:
-              </p>
-              <p class="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                {{
-                dataCounterEnterprice.value()?.response?.contador?.tipoContador?.nombre
-                || 'N/A' }}
-              </p>
-            </div>
-            @if
-            (dataCounterEnterprice.value()?.response?.contador?.descripcion?.descripcion)
-            {
-            <div class="space-y-2 sm:col-span-2">
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Dirección:
-              </p>
-              <p class="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                {{
-                dataCounterEnterprice.value()?.response?.contador?.descripcion?.descripcion
-                }}
-              </p>
-            </div>
-            } @if
-            (dataCounterEnterprice.value()?.response?.contador?.fechaInstalacion)
-            {
-            <div class="space-y-2 sm:col-span-2">
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Fecha de Instalación:
-              </p>
-              <p class="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                {{
-                dataCounterEnterprice.value()?.response?.contador?.fechaInstalacion
-                | date:'dd/MM/yyyy' }}
-              </p>
-            </div>
-            }
-          </div>
-          <!-- Estado activo -->
-          <div class="mt-6 flex items-center justify-center">
-            <div
-              class="inline-flex items-center gap-2 px-4 py-2 bg-green-500/20 border border-green-500/30 rounded-xl backdrop-blur-md"
-            >
-              <i
-                class="fas fa-check-circle text-green-600 dark:text-green-400"
-              ></i>
-              <span
-                class="text-sm font-medium text-green-700 dark:text-green-300"
-              >
-                Contador Activo
-              </span>
+
+        <!-- Información del contador en cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Serial -->
+          <div class="group bg-white/10 dark:bg-slate-700/20 rounded-xl border border-white/20 dark:border-slate-600/30 backdrop-blur-md p-5 hover:bg-white/15 dark:hover:bg-slate-700/25 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/5 hover:border-blue-500/30">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 bg-blue-500/10 dark:bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <i class="fas fa-barcode text-blue-600 dark:text-blue-400"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
+                  Serial
+                </p>
+                <p class="text-lg font-bold text-gray-800 dark:text-gray-200 truncate">
+                  {{ dataCounterEnterprice.value()?.response?.contador?.serial || 'N/A' }}
+                </p>
+              </div>
             </div>
           </div>
 
-          <!-- Botón para agregar lectura -->
-          <div class="mt-6 flex justify-center">
-            <button
-              type="button"
-              (click)="openReadingModal()"
-              class="px-6 py-3 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-medium rounded-xl hover:border-blue-500/50 transition-all duration-300 ease-in-out hover:scale-105 flex items-center gap-2"
-            >
-              <i class="fas fa-plus"></i>
-              Registrar Lectura
-            </button>
+          <!-- Tipo de Contador -->
+          <div class="group bg-white/10 dark:bg-slate-700/20 rounded-xl border border-white/20 dark:border-slate-600/30 backdrop-blur-md p-5 hover:bg-white/15 dark:hover:bg-slate-700/25 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/5 hover:border-purple-500/30">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 bg-purple-500/10 dark:bg-purple-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <i class="fas fa-tag text-purple-600 dark:text-purple-400"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
+                  Tipo
+                </p>
+                <p class="text-lg font-bold text-gray-800 dark:text-gray-200 truncate">
+                  {{ dataCounterEnterprice.value()?.response?.contador?.tipoContador?.nombre || 'N/A' }}
+                </p>
+              </div>
+            </div>
           </div>
+
+          <!-- Fecha de Instalación -->
+          @if (dataCounterEnterprice.value()?.response?.contador?.fechaInstalacion) {
+          <div class="group bg-white/10 dark:bg-slate-700/20 rounded-xl border border-white/20 dark:border-slate-600/30 backdrop-blur-md p-5 hover:bg-white/15 dark:hover:bg-slate-700/25 transition-all duration-300 hover:shadow-lg hover:shadow-green-500/5 hover:border-green-500/30">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 bg-green-500/10 dark:bg-green-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <i class="fas fa-calendar-check text-green-600 dark:text-green-400"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
+                  Instalación
+                </p>
+                <p class="text-lg font-bold text-gray-800 dark:text-gray-200">
+                  {{ dataCounterEnterprice.value()?.response?.contador?.fechaInstalacion | date:'dd/MM/yyyy' }}
+                </p>
+              </div>
+            </div>
+          </div>
+          }
+
+          <!-- Dirección -->
+          @if (dataCounterEnterprice.value()?.response?.contador?.descripcion?.descripcion) {
+          <div class="group bg-white/10 dark:bg-slate-700/20 rounded-xl border border-white/20 dark:border-slate-600/30 backdrop-blur-md p-5 hover:bg-white/15 dark:hover:bg-slate-700/25 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/5 hover:border-orange-500/30 md:col-span-2 lg:col-span-3">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 bg-orange-500/10 dark:bg-orange-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <i class="fas fa-map-marker-alt text-orange-600 dark:text-orange-400"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
+                  Dirección
+                </p>
+                <p class="text-lg font-bold text-gray-800 dark:text-gray-200">
+                  {{ dataCounterEnterprice.value()?.response?.contador?.descripcion?.descripcion }}
+                </p>
+              </div>
+            </div>
+          </div>
+          }
         </div>
       </div>
       }
@@ -264,7 +277,7 @@
       </div>
 
       <!-- Modal Body -->
-      <div class="px-6 py-6">
+      <div class="py-6">
         <form [formGroup]="counterForm" class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Tipo de Contador -->
@@ -483,41 +496,7 @@
 }
 
 <!-- Modal para registrar lectura -->
-@if (isReadingModalOpen()) {
-<div class="fixed inset-0 z-50 overflow-y-auto">
-  <!-- Backdrop con blur -->
-  <div
-    class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-    (click)="closeReadingModal()"
-    (keydown)="$event.key === 'Escape' && closeReadingModal()"
-  ></div>
-
-  <!-- Modal container -->
-  <div class="flex min-h-full items-center justify-center p-4">
-    <div
-      class="relative w-full max-w-xl transform overflow-hidden rounded-2xl bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border border-white/20 dark:border-slate-700/30 shadow-2xl transition-all"
-    >
-      <!-- Modal Header -->
-      <div class="border-b border-white/10 dark:border-slate-700/30 px-6 py-4">
-        <div class="flex items-center justify-between">
-          <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200">
-            Registrar Lectura del Contador
-          </h3>
-          <button
-            type="button"
-            (click)="closeReadingModal()"
-            [disabled]="isCreatingReading()"
-            class="rounded-lg p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-white/10 dark:hover:bg-slate-600/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Modal Body -->
-      <div class="px-6 py-6">
+<app-pop-up [open]="isReadingModalOpen" [title]="'Registrar Lectura del Contador'" [maxWidth]="'max-w-xl'" [contentPadding]="'px-6 py-6'">
         <form [formGroup]="readingForm" class="space-y-6">
           <!-- Metros Cúbicos -->
           <div>
@@ -583,38 +562,160 @@
             }
           </div>
         </form>
+
+        <!-- Modal Footer -->
+        <div class="border-t border-white/10 dark:border-slate-700/30 px-6 py-4 -mx-6 -mb-6 mt-6">
+          <div class="flex items-center justify-end gap-3">
+            <button
+              type="button"
+              (click)="closeReadingModal()"
+              [disabled]="isCreatingReading()"
+              class="px-6 py-2 bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:border-gray-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="button"
+              (click)="createReading()"
+              [disabled]="isCreatingReading()"
+              class="px-6 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-medium rounded-lg hover:border-blue-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
+            >
+              @if (isCreatingReading()) {
+              <svg class="animate-spin h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Registrando...
+              } @else {
+              Registrar Lectura
+              }
+            </button>
+          </div>
+        </div>
+</app-pop-up>
+
+@if (isHistoryModalOpen()) {
+<div
+  class="fixed inset-0 z-[1002] flex items-center justify-center p-2 sm:p-4 pt-16 sm:pt-20 bg-black/50 backdrop-blur-sm"
+  [style.margin-left]="getHistoryModalLeftMargin()"
+  [style.width]="getHistoryModalWidth()"
+  (click)="closeHistoryModal()"
+  (keydown)="$event.key === 'Escape' && closeHistoryModal()"
+>
+  <div
+    class="relative w-full max-w-6xl max-h-[calc(100vh-5rem)] sm:max-h-[calc(100vh-6rem)] flex flex-col bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border border-white/20 dark:border-slate-700/30 rounded-2xl sm:rounded-3xl shadow-2xl"
+    (click)="$event.stopPropagation()"
+  >
+      <div class="border-b border-white/10 dark:border-slate-700/30 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 rounded-xl flex items-center justify-center backdrop-blur-md border border-purple-500/30">
+              <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200">
+                Historial de Lecturas
+              </h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Contador: <span class="font-semibold">{{ serialCounter() || 'N/A' }}</span>
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            (click)="closeHistoryModal()"
+            class="rounded-lg p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-white/10 dark:hover:bg-slate-600/20 transition-colors"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="px-6 py-3">
+        <!-- Templates para las columnas -->
+        <ng-template #consumoAnormalTpl let-row>
+          <span
+            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium"
+            [ngClass]="{
+              'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800': row.consumoAnormal === true,
+              'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800': row.consumoAnormal === false
+            }"
+          >
+            @if (row.consumoAnormal) {
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+              </svg>
+              Sí
+            } @else {
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              No
+            }
+          </span>
+        </ng-template>
+
+        <ng-template #fechaTpl let-row>
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ formatDate(row.fechaLectura) }}
+          </span>
+        </ng-template>
+
+        <ng-template #contadorTpl let-row>
+          <span class="inline-flex items-center gap-2 px-2.5 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-lg text-sm font-mono border border-blue-200 dark:border-blue-800">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            {{ row.contador?.serial || 'N/A' }}
+          </span>
+        </ng-template>
+
+        <ng-template #lecturaTpl let-row>
+          <span class="inline-flex items-center gap-1 text-sm font-semibold text-gray-800 dark:text-gray-200">
+            {{ row.lectura }}
+            <span class="text-xs text-gray-500 dark:text-gray-400">m³</span>
+          </span>
+        </ng-template>
+        <ng-template #emptyActionsTpl>
+        </ng-template>
+        <app-table-dynamic
+          [title]="''"
+          [columns]="historyColumns()"
+          [serverMode]="true"
+          [serverData]="readingCounterEnterprice.value() ?? null"
+          [loading]="readingCounterEnterprice.isLoading()"
+          [columnTemplates]="{
+            'contador.serial': contadorTpl,
+            'lectura': lecturaTpl,
+            'consumoAnormal': consumoAnormalTpl,
+            'fechaLectura': fechaTpl
+          }"
+          [actionTemplate]="emptyActionsTpl"
+          [showExportButton]="true"
+          [exportFileName]="'historial-lecturas-' + serialCounter()"
+          [showColumnFilters]="false"
+          [showAddButton]="false"
+          (serverPaginationChange)="onHistoryPaginationChange($event)"
+        />
       </div>
 
       <!-- Modal Footer -->
       <div class="border-t border-white/10 dark:border-slate-700/30 px-6 py-4">
-        <div class="flex items-center justify-end gap-3">
+        <div class="flex items-center justify-end">
           <button
             type="button"
-            (click)="closeReadingModal()"
-            [disabled]="isCreatingReading()"
-            class="px-6 py-2 bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:border-gray-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            (click)="closeHistoryModal()"
+            class="px-6 py-2 bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:border-gray-500/50 transition-all duration-300 ease-in-out hover:scale-105"
           >
-            Cancelar
-          </button>
-
-          <button
-            type="button"
-            (click)="createReading()"
-            [disabled]="isCreatingReading()"
-            class="px-6 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-medium rounded-lg hover:border-blue-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
-          >
-            @if (isCreatingReading()) {
-            <svg class="animate-spin h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-            Registrando...
-            } @else {
-            Registrar Lectura
-            }
+            Cerrar
           </button>
         </div>
       </div>
     </div>
   </div>
-</div>
 }

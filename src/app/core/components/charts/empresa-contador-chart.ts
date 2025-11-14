@@ -1,10 +1,10 @@
-import { isPlatformBrowser, DecimalPipe, registerLocaleData } from '@angular/common';
+import { DecimalPipe, isPlatformBrowser, registerLocaleData } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, Component, computed, inject, OnDestroy, PLATFORM_ID, signal } from '@angular/core';
-import { ClientesKpiService } from '@services/clientes-kpi.service';
-import { IColumnChartData } from '@interfaces/IBilledConsumption';
+import localeEs from '@angular/common/locales/es';
 import { Subscription } from 'rxjs';
-import { ColombianCurrencyPipe } from '@shared/index';
-import localeEs from '@angular/common/locales/es-CO';
+import { ColombianCurrencyPipe } from '@shared/pipes/colombian-currency.pipe';
+import { ClientesKpiService } from '@services/clientes-kpi.service';
+import { IEmpresaContadorChartData } from '@interfaces/IEmpresaContadorConsumption';
 
 declare const ApexCharts: any;
 
@@ -95,25 +95,17 @@ interface ColumnChartOptions {
 }
 
 @Component({
-  selector: 'app-column-chart-card',
+  selector: 'app-empresa-contador-chart',
   standalone: true,
   imports: [DecimalPipe, ColombianCurrencyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div class="w-full shadow-sm rounded-lg  bg-white/20 dark:bg-slate-800/20 backdrop-blur-2xl p-4 md:p-6">
+<div class="relative z-10 w-full shadow-sm rounded-lg bg-white/20 dark:bg-slate-800/20 backdrop-blur-2xl p-4 md:p-6">
   <div class="flex justify-between mb-5">
     <div>
-      <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Consumo vs Facturación</h5>
-      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Comparación entre consumo en m³ y monto facturado</p>
+      <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Consumo Empresa</h5>
+      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Consumo y facturación de empresa por mes</p>
     </div>
-    <!-- <div class="flex items-center px-2.5 py-0.5 text-base font-semibold text-center"
-         [ngClass]="eficienciaPercentage() >= 80 ? 'text-green-500 dark:text-green-500' : eficienciaPercentage() >= 60 ? 'text-yellow-500 dark:text-yellow-500' : 'text-red-500 dark:text-red-500'">
-      {{ eficienciaPercentage() }}%
-      <svg class="w-3 h-3 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 14"
-           [ngClass]="eficienciaPercentage() >= 70 ? 'rotate-0' : 'rotate-180'">
-        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13V1m0 0L1 5m4-4 4 4"/>
-      </svg>
-    </div> -->
   </div>
 
   @if (chartData() && chartData()!.xAxis.length > 0) {
@@ -128,7 +120,7 @@ interface ColumnChartOptions {
       </dl>
     </div>
 
-    <div id="column-chart"></div>
+    <div id="empresa-contador-chart"></div>
   } @else {
     <div class="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
       <div class="text-center">
@@ -136,16 +128,14 @@ interface ColumnChartOptions {
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
         <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No hay datos disponibles</h3>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No se encontraron datos de consumo y facturación para mostrar.</p>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No se encontraron datos de consumo de empresa para mostrar.</p>
       </div>
     </div>
   }
 
   <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between mt-5">
     <div class="flex justify-between items-center pt-5">
-      <!-- Dropdown Container -->
       <div class="dropdown-container relative">
-        <!-- Button -->
         <button
           (click)="toggleDropdown()"
           class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
@@ -155,7 +145,6 @@ interface ColumnChartOptions {
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
           </svg>
         </button>
-        <!-- Dropdown menu -->
         <div [class.hidden]="!isDropdownOpen" class="absolute z-10 bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 mt-1">
             <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
               <li>
@@ -200,12 +189,41 @@ interface ColumnChartOptions {
             </ul>
         </div>
       </div>
+      @if (selectedMonth === 'Todos los meses' && getTotalPages() > 1) {
+        <div class="flex items-center gap-2">
+          <button
+            (click)="previousPage()"
+            [disabled]="currentPage() === 0"
+            [class.opacity-50]="currentPage() === 0"
+            [class.cursor-not-allowed]="currentPage() === 0"
+            class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:hover:text-gray-500"
+            type="button">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+          </button>
+          <span class="text-sm text-gray-500 dark:text-gray-400">
+            {{ currentPage() + 1 }} / {{ getTotalPages() }}
+          </span>
+          <button
+            (click)="nextPage()"
+            [disabled]="currentPage() >= getTotalPages() - 1"
+            [class.opacity-50]="currentPage() >= getTotalPages() - 1"
+            [class.cursor-not-allowed]="currentPage() >= getTotalPages() - 1"
+            class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:hover:text-gray-500"
+            type="button">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      }
     </div>
   </div>
 </div>
   `
 })
-export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
+export class EmpresaContadorChartComponent implements AfterViewInit, OnDestroy {
   private chart: any;
   private subscription?: Subscription;
   protected platformId = inject(PLATFORM_ID);
@@ -213,7 +231,7 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
   private readonly clientesKpiService = inject(ClientesKpiService);
 
   // Signals para manejo reactivo de datos
-  public readonly chartData = signal<IColumnChartData | null>(null);
+  public readonly chartData = signal<IEmpresaContadorChartData | null>(null);
   public isLoading = signal<boolean>(true);
   public hasError = signal<boolean>(false);
 
@@ -224,7 +242,11 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
   // Propiedades calculadas como signals
   public totalConsumo = signal<number>(0);
   public totalFacturado = signal<number>(0);
-  public eficienciaPercentage = signal<number>(0);
+
+  // Propiedades para paginación
+  public currentPage = signal<number>(0);
+  public itemsPerPage = 6;
+  public fullChartData = signal<IEmpresaContadorChartData | null>(null);
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -249,15 +271,15 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
 
   readonly currentYear = computed(() => {
     return this.currentDate().getFullYear();
-  });  constructor() {
-    // Registrar locale colombiano
+  });
+
+  constructor() {
     registerLocaleData(localeEs);
   }
 
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.loadConsumoData();
-      // Agregar listener para cerrar dropdown al hacer clic fuera
       document.addEventListener('click', this.closeDropdownOnOutsideClick.bind(this));
     }
   }
@@ -265,15 +287,11 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.chart?.destroy();
     this.subscription?.unsubscribe();
-    // Remover listener
     if (isPlatformBrowser(this.platformId)) {
       document.removeEventListener('click', this.closeDropdownOnOutsideClick.bind(this));
     }
   }
 
-  /**
-   * Cerrar dropdown al hacer clic fuera
-   */
   private closeDropdownOnOutsideClick(event: Event): void {
     const target = event.target as HTMLElement;
     const dropdown = target.closest('.dropdown-container');
@@ -287,58 +305,91 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
     const anio = this.currentYear();
 
     if (!empresaId || !anio) {
-      console.warn('Datos incompletos para cargar consumo:', { empresaId, anio });
+      console.warn('Datos incompletos para cargar consumo empresa:', { empresaId, anio });
       this.isLoading.set(false);
       this.hasError.set(true);
       return;
     }
 
     this.isLoading.set(true);
-    this.subscription = this.clientesKpiService.getBilledConsumptionForChart(empresaId, anio).subscribe({
-      next: (data: IColumnChartData) => {
-        this.chartData.set(data);
+    this.subscription = this.clientesKpiService.getEmpresaContadorConsumption(empresaId, anio).subscribe({
+      next: (data: IEmpresaContadorChartData) => {
+        this.fullChartData.set(data);
+        this.currentPage.set(0);
+        const paginatedData = this.getPaginatedData(data);
+        this.chartData.set(paginatedData);
         this.calculateTotals(data);
         this.isLoading.set(false);
         this.hasError.set(false);
         setTimeout(() => {
-          this.initializeColumnChart();
+          this.initializeChart();
         }, 0);
       },
       error: (error: any) => {
+        console.error('Error al cargar datos de empresa-contador:', error);
         this.isLoading.set(false);
         this.hasError.set(true);
-        this.initializeColumnChart();
+        this.initializeChart();
       }
     });
   }
 
-  /**
-   * Calcular totales y eficiencia
-   */
-  private calculateTotals(data: IColumnChartData): void {
+  private getPaginatedData(data: IEmpresaContadorChartData): IEmpresaContadorChartData {
+    const start = this.currentPage() * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+
+    return {
+      xAxis: data.xAxis.slice(start, end),
+      yAxis: {
+        consumoM3: data.yAxis.consumoM3.slice(start, end),
+        facturadoPesos: data.yAxis.facturadoPesos.slice(start, end)
+      }
+    };
+  }
+
+  getTotalPages(): number {
+    const fullData = this.fullChartData();
+    if (!fullData || fullData.xAxis.length === 0) return 1;
+    return Math.ceil(fullData.xAxis.length / this.itemsPerPage);
+  }
+
+  nextPage(): void {
+    if (this.currentPage() < this.getTotalPages() - 1) {
+      this.currentPage.set(this.currentPage() + 1);
+      this.updatePaginatedChart();
+    }
+  }
+
+  previousPage(): void {
+    if (this.currentPage() > 0) {
+      this.currentPage.set(this.currentPage() - 1);
+      this.updatePaginatedChart();
+    }
+  }
+
+  private updatePaginatedChart(): void {
+    const fullData = this.fullChartData();
+    if (fullData) {
+      const paginatedData = this.getPaginatedData(fullData);
+      this.chartData.set(paginatedData);
+      this.updateChart(paginatedData);
+    }
+  }
+
+  private calculateTotals(data: IEmpresaContadorChartData): void {
     if (data) {
       const totalConsumo = data.yAxis.consumoM3.reduce((a: number, b: number) => a + b, 0);
       const totalFacturado = data.yAxis.facturadoPesos.reduce((a: number, b: number) => a + b, 0);
 
       this.totalConsumo.set(totalConsumo);
       this.totalFacturado.set(totalFacturado);
-
-      // Calcular eficiencia básica (esto puede ajustarse según la lógica de negocio)
-      const eficiencia = totalConsumo > 0 ? Math.min(100, Math.round((totalFacturado / totalConsumo) / 100)) : 0;
-      this.eficienciaPercentage.set(eficiencia);
     }
   }
 
-  /**
-   * Toggle del dropdown
-   */
   toggleDropdown(): void {
     this.isDropdownOpen = !this.isDropdownOpen;
   }
 
-  /**
-   * Seleccionar mes y actualizar gráfico
-   */
   selectMonth(monthName: string): void {
     this.selectedMonth = monthName;
     this.isDropdownOpen = false;
@@ -347,20 +398,18 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
     const anio = this.currentYear();
 
     if (!empresaId || !anio) {
-      console.warn('Datos incompletos para cargar consumo:', { empresaId, anio });
+      console.warn('Datos incompletos para cargar consumo empresa:', { empresaId, anio });
       return;
     }
 
     this.isLoading.set(true);
-
-    // Convertir nombre del mes a número (1-12) o undefined para "Todos los meses"
     const monthNumber = this.getMonthNumber(monthName);
 
     if (monthNumber) {
-      // Cargar datos para un mes específico
       this.subscription?.unsubscribe();
-      this.subscription = this.clientesKpiService.getBilledConsumptionForChart(empresaId, anio, monthNumber).subscribe({
-        next: (data: IColumnChartData) => {
+      this.subscription = this.clientesKpiService.getEmpresaContadorConsumption(empresaId, anio, monthNumber).subscribe({
+        next: (data: IEmpresaContadorChartData) => {
+          this.fullChartData.set(null);
           this.chartData.set(data);
           this.calculateTotals(data);
           this.isLoading.set(false);
@@ -368,22 +417,26 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
           this.updateChart(data);
         },
         error: (error: any) => {
+          console.error('Error al cargar datos filtrados:', error);
           this.isLoading.set(false);
           this.hasError.set(true);
         }
       });
     } else {
-      // Cargar datos para todos los meses
       this.subscription?.unsubscribe();
-      this.subscription = this.clientesKpiService.getBilledConsumptionForChart(empresaId, anio).subscribe({
-        next: (data: IColumnChartData) => {
-          this.chartData.set(data);
+      this.subscription = this.clientesKpiService.getEmpresaContadorConsumption(empresaId, anio).subscribe({
+        next: (data: IEmpresaContadorChartData) => {
+          this.fullChartData.set(data);
+          this.currentPage.set(0);
+          const paginatedData = this.getPaginatedData(data);
+          this.chartData.set(paginatedData);
           this.calculateTotals(data);
           this.isLoading.set(false);
           this.hasError.set(false);
-          this.updateChart(data);
+          this.updateChart(paginatedData);
         },
         error: (error: any) => {
+          console.error('Error al cargar datos anuales:', error);
           this.isLoading.set(false);
           this.hasError.set(true);
         }
@@ -401,8 +454,8 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
     return months[monthName];
   }
 
-  private updateChart(data: IColumnChartData): void {
-    const el = document.getElementById('column-chart') as HTMLElement;
+  private updateChart(data: IEmpresaContadorChartData): void {
+    const el = document.getElementById('empresa-contador-chart') as HTMLElement;
 
     if (this.chart && data && data.xAxis.length > 0) {
       const newSeries = [
@@ -423,7 +476,6 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
         }
       });
     } else if (el && (!data || data.xAxis.length === 0)) {
-      // Si no hay datos, mostrar mensaje
       if (this.chart) {
         this.chart.destroy();
         this.chart = null;
@@ -432,22 +484,19 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-
-
   private getOptions(): ColumnChartOptions {
     const currentData = this.chartData();
 
-    // Solo crear series si tenemos datos válidos del servicio
     const series: ColumnSeries[] = currentData && currentData.xAxis.length > 0 ? [
       {
         name: 'Consumo (m³)',
         data: currentData.xAxis.map((x: string, i: number) => ({ x, y: currentData.yAxis.consumoM3[i] })),
-        color: '#1A56DB', // Azul para consumo
+        color: '#1A56DB',
       },
       {
         name: 'Facturado (miles $)',
-        data: currentData.xAxis.map((x: string, i: number) => ({ x, y: Math.round(currentData.yAxis.facturadoPesos[i] / 1000) })), // Dividir por 1000
-        color: '#FDBA8C', // Naranja para facturación
+        data: currentData.xAxis.map((x: string, i: number) => ({ x, y: Math.round(currentData.yAxis.facturadoPesos[i] / 1000) })),
+        color: '#FDBA8C',
       },
     ] : [];
 
@@ -477,15 +526,12 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
         style: { fontFamily: 'Inter, sans-serif' },
         y: {
           formatter: (value: number, opts?: any) => {
-            // Obtener el nombre de la serie desde el índice de series
             const seriesIndex = opts?.seriesIndex ?? 0;
             const seriesName = series[seriesIndex]?.name || '';
 
             if (seriesName.includes('Facturado')) {
-              // Para facturado, multiplicar por 1000 ya que mostramos en miles
               return `$${(value * 1000).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
             }
-            // Para consumo
             return `${value.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} m³`;
           }
         },
@@ -541,17 +587,16 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
     };
   }
 
-  private initializeColumnChart(): void {
-    const el = document.getElementById('column-chart') as HTMLElement;
+  private initializeChart(): void {
+    const el = document.getElementById('empresa-contador-chart') as HTMLElement;
     const hasData = this.chartData() && this.chartData()!.xAxis.length > 0;
 
-    // Solo inicializar el gráfico si tenemos datos válidos
     if (el && ApexCharts !== undefined && hasData) {
       this.chart = new ApexCharts(el, this.getOptions());
       this.chart.render().catch((error: any) => {
+        console.error('Error al renderizar el gráfico:', error);
       });
     } else if (el && !hasData) {
-      // Si no hay datos, limpiar el elemento del gráfico
       el.innerHTML = '<div class="flex items-center justify-center h-64 text-gray-500">No hay datos disponibles</div>';
     }
   }

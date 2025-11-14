@@ -31,17 +31,19 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { EnterpriseClientCounterService } from '../../service/enterpriseClientCounter.service';
 import { TypeCounterService } from '../../../counter/service/typeCounter.service';
 import { CounterService } from '../../service/couter.service';
-import { of, catchError, finalize, switchMap } from 'rxjs';
+import { of, catchError, finalize, switchMap, EMPTY } from 'rxjs';
 import { EmpleadoService } from '../../../employee/service/empleado.service';
+import { ConceptRateService } from '../../../fee/services/concept-rate.service';
+import { Checkbox } from '../../../../shared/components/checkbox';
 
 @Component({
   selector: 'app-create-client',
-  imports: [FormsModule, ReactiveFormsModule, CommonModule],
+  imports: [FormsModule, ReactiveFormsModule, CommonModule, Checkbox],
   templateUrl: './create-client.html',
 })
 export class CreateClient implements OnInit {
-  registerForm!: FormGroup;
 
+  registerForm!: FormGroup;
   selectedDepartmentId = signal<number | null>(null);
   selectedCityId = signal<number | null>(null);
   departaments = signal<IDepartament[]>([]);
@@ -58,7 +60,15 @@ export class CreateClient implements OnInit {
   isSearching = signal<boolean>(false);
   activeTab = signal<'search' | 'create'>('search');
 
-  // Counter form properties
+  // Tarifas modal properties
+  isTarifasModalOpen = signal<boolean>(false);
+  selectedTarifas = signal<any[]>([]); // Estructura: { contadorId, tarifas: [{idTipoTarifa, nombre, aplica}] }
+  tempSelectedTarifas = signal<any[]>([]); // Temporal para el modal
+  currentCounterForTarifas = signal<any | null>(null); // Contador activo para configurar tarifas
+
+  // Checkbox signal for discapacidad
+  personaDiscapacidad = signal<boolean>(false);
+
   counterForm!: FormGroup;
   selectedCounterDepartmentId = signal<number | null>(null);
   selectedCounterCityId = signal<number | null>(null);
@@ -68,7 +78,6 @@ export class CreateClient implements OnInit {
   counterDepartmentsLoading = signal<boolean>(false);
   counterCitiesLoading = signal<boolean>(false);
   counterCorregimientosLoading = signal<boolean>(false);
-
   typeDocument: ITipoDocumento[] = [];
   typeDocumentName: string[] = [];
 
@@ -80,9 +89,8 @@ export class CreateClient implements OnInit {
   protected readonly tipoContadorService = inject(TypeCounterService);
   protected readonly personService = inject(PersonService);
   protected readonly locationService = inject(LocationService);
-  protected readonly enterpriseClientCounterService = inject(
-    EnterpriseClientCounterService
-  );
+  protected readonly enterpriseClientCounterService = inject(EnterpriseClientCounterService);
+  readonly conceptRateService = inject(ConceptRateService);
   protected readonly counterService = inject(CounterService);
   protected readonly router = inject(Router);
   protected readonly route = inject(ActivatedRoute);
@@ -90,6 +98,8 @@ export class CreateClient implements OnInit {
   protected readonly empleadoService = inject(EmpleadoService);
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
+
+
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -111,6 +121,18 @@ export class CreateClient implements OnInit {
     const data = this.userData();
     const id = data?.empresaId || 0;
     return id;
+  });
+
+  readonly IdDepartamento = computed(() => {
+    const data = this.userData();
+    const id = data?.empresa?.direccion?.departamento?.id;
+    return id || null;
+  });
+
+  readonly IdCiudad = computed(() => {
+    const data = this.userData();
+    const id = data?.empresa?.direccion?.ciudad?.id;
+    return id || null;
   });
 
   // Signals para empleados
@@ -167,6 +189,10 @@ export class CreateClient implements OnInit {
   ngOnInit(): void {
     this.initializeForm();
     this.initializeCounterForm();
+
+    // Prellenar con los datos del usuario al cargar
+    this.preloadUserData();
+
     this.loadDepartments();
     this.loadCounterDepartments();
     this.loadEmployees(); // Cargar empleados al inicializar
@@ -241,7 +267,7 @@ export class CreateClient implements OnInit {
 
   private initializeForm(): void {
     this.registerForm = this.fb.group({
-      tipoDocumento: [null, Validators.required],
+      tipoDocumento: ['', Validators.required],
       numeroDocumento: ['', Validators.required],
       telefono: ['', Validators.required],
       correo: ['', [Validators.required]],
@@ -259,13 +285,58 @@ export class CreateClient implements OnInit {
 
   private initializeCounterForm(): void {
     this.counterForm = this.fb.group({
-      tipoContador: [null, Validators.required],
+      tipoContador: ['', Validators.required],
       serial: ['', Validators.required],
-      idDepartamento: ['', Validators.required],
-      idCiudad: ['', Validators.required],
+      idDepartamento: [{ value: '', disabled: true }, Validators.required],
+      idCiudad: [{ value: '', disabled: true }, Validators.required],
       idCorregimiento: [''],
       direccion: ['', Validators.required],
+      estrato: ['', [Validators.required, Validators.min(1), Validators.max(6)]],
+      digitosContador: ['', [Validators.required, Validators.min(1)]],
     });
+  }
+
+  private preloadUserData(): void {
+    const userDeptId = this.IdDepartamento();
+    const userCityId = this.IdCiudad();
+
+    // Prellenar formulario principal
+    if (userDeptId) {
+      this.registerForm.patchValue({
+        idDepartamento: userDeptId
+      });
+      this.selectedDepartmentId.set(userDeptId);
+
+      // Cargar ciudades del departamento
+      this.loadCities(userDeptId);
+    }
+
+    if (userCityId) {
+      this.registerForm.patchValue({
+        idCiudad: userCityId
+      });
+      this.selectedCityId.set(userCityId);
+
+      // Cargar corregimientos de la ciudad
+      this.loadCorregimientos(userCityId);
+    }
+
+    // Prellenar formulario del contador
+    if (userDeptId) {
+      this.counterForm.patchValue({
+        idDepartamento: userDeptId
+      });
+      this.selectedCounterDepartmentId.set(userDeptId);
+      this.loadCounterCities(userDeptId);
+    }
+
+    if (userCityId) {
+      this.counterForm.patchValue({
+        idCiudad: userCityId
+      });
+      this.selectedCounterCityId.set(userCityId);
+      this.loadCounterCorregimientos(userCityId);
+    }
   }
 
   serialSelected = signal<number | null>(null);
@@ -291,17 +362,34 @@ export class CreateClient implements OnInit {
     },
   });
 
-  // searchByCounter = rxResource({
-  //   params: (counterId: number) => ({ counterId }),
-  //   stream: ({ counterId }) => this.enterpriseClientCounterService.getClientBySerial(counterId)
-  // })
-
   loadTypeDocument = rxResource({
     stream: () => this.tipoDocumentoService.getAllTypeDocument(),
   });
 
   loadTypeCounter = rxResource({
     stream: () => this.tipoContadorService.getAllTypeCounters(),
+  });
+
+  dataConceptRate = rxResource({
+    params: () => ({ enterpriseId: this.enterpriceId() }),
+    stream: ({ params: { enterpriseId } }) =>
+      enterpriseId? this.conceptRateService.getConceptRateByEnterprise(enterpriseId) : EMPTY
+  })
+
+  // Computed para obtener tarifas únicas (similar a availableMenus en admin-roles)
+  availableTarifas = computed(() => {
+    const data = this.dataConceptRate.value();
+    if (!data?.response || data?.success === false) return [];
+
+    // Extraer tarifas únicas usando Map para evitar duplicados
+    const uniqueTarifas = new Map();
+    data.response.forEach(item => {
+      if (item?.tipoTarifa && !uniqueTarifas.has(item.tipoTarifa.id)) {
+        uniqueTarifas.set(item.tipoTarifa.id, item.tipoTarifa);
+      }
+    });
+
+    return Array.from(uniqueTarifas.values());
   });
 
   loadDepartments(): void {
@@ -485,8 +573,10 @@ export class CreateClient implements OnInit {
       idCorregimiento: formData.idCorregimiento ? Number(formData.idCorregimiento) : null,
       descripcionDireccion: (formData.direccion || '').substring(0, 255),
       idEmpleadoEmpresa: formData.idEmpleadoEmpresa ? Number(formData.idEmpleadoEmpresa) : 0,
+      discapacidad: this.personaDiscapacidad(),
       contadoresIds: contadoresIds,
       usuarioCreacion: usuarioCreacion.substring(0, 15),
+      tarifasContador: this.buildTarifasCliente()
     };
 
     this.enterpriseClientCounterService.saveClient(clientPayload).subscribe({
@@ -514,8 +604,8 @@ export class CreateClient implements OnInit {
     const usuarioCreacion = this.usuarioCreacion();
 
     const addressPayload = {
-      departamento: { id: Number(formData.idDepartamento) },
-      ciudad: { id: Number(formData.idCiudad) },
+      departamento: { id: this.IdDepartamento() },
+      ciudad: { id: this.IdCiudad() },
       corregimiento: formData.idCorregimiento
         ? { id: Number(formData.idCorregimiento) }
         : { id: 0 },
@@ -531,6 +621,9 @@ export class CreateClient implements OnInit {
             tipoContador: { id: Number(formData.tipoContador) },
             descripcion: { id: addressResponse.response.id },
             serial: formData.serial,
+            nuid: this.generateNuid(),
+            estrato: Number(formData.estrato),
+            digitos: Number(formData.digitosContador),
             activo: true,
             usuarioCreacion: usuarioCreacion,
           };
@@ -541,8 +634,30 @@ export class CreateClient implements OnInit {
         next: (counterResponse) => {
           if (counterResponse) {
             this.toast.success('Éxito', 'Contador creado correctamente');
+
+            // Obtener el serial del contador creado
+            const createdSerial = formData.serial;
+
+            // Resetear el formulario
             this.counterForm.reset();
-            this.closeModal();
+
+            // Prellenar ubicación nuevamente después de resetear
+            const userDeptId = this.IdDepartamento();
+            const userCityId = this.IdCiudad();
+            if (userDeptId) {
+              this.counterForm.patchValue({ idDepartamento: userDeptId });
+              this.selectedCounterDepartmentId.set(userDeptId);
+            }
+            if (userCityId) {
+              this.counterForm.patchValue({ idCiudad: userCityId });
+              this.selectedCounterCityId.set(userCityId);
+            }
+
+            // Cambiar al tab de búsqueda
+            this.activeTab.set('search');
+
+            // Buscar el contador recién creado
+            this.searchSerial.set(createdSerial);
           }
         }
       });
@@ -555,5 +670,113 @@ export class CreateClient implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/shell/client']);
+  }
+
+  // Método para generar un número aleatorio de 8 dígitos para nuid
+  private generateNuid(): number {
+    return Math.floor(10000000 + Math.random() * 90000000);
+  }
+
+  // Métodos para manejar tarifas (mejorados y simplificados)
+  openTarifasModal(contador: any): void {
+    this.currentCounterForTarifas.set(contador);
+    this.isTarifasModalOpen.set(true);
+
+    // Buscar tarifas existentes para este contador
+    const contadorId = contador.contador?.id || contador.id;
+    const existingTarifas = this.selectedTarifas().find(t => t.contadorId === contadorId);
+
+    // Copiar selección actual a temporal
+    this.tempSelectedTarifas.set(existingTarifas ? [...existingTarifas.tarifas] : []);
+  }
+
+  closeTarifasModal(): void {
+    this.isTarifasModalOpen.set(false);
+    // Descartar cambios temporales
+    this.tempSelectedTarifas.set([]);
+    this.currentCounterForTarifas.set(null);
+  }
+
+  applyTarifas(): void {
+    const contador = this.currentCounterForTarifas();
+    if (!contador) return;
+
+    const contadorId = contador.contador?.id || contador.id;
+    const currentTarifas = [...this.selectedTarifas()];
+
+    // Buscar si ya existe una configuración para este contador
+    const existingIndex = currentTarifas.findIndex(t => t.contadorId === contadorId);
+
+    if (existingIndex >= 0) {
+      // Actualizar las tarifas existentes
+      currentTarifas[existingIndex] = {
+        contadorId: contadorId,
+        tarifas: [...this.tempSelectedTarifas()]
+      };
+    } else {
+      // Agregar nueva configuración de tarifas
+      currentTarifas.push({
+        contadorId: contadorId,
+        tarifas: [...this.tempSelectedTarifas()]
+      });
+    }
+
+    this.selectedTarifas.set(currentTarifas);
+    this.isTarifasModalOpen.set(false);
+    this.tempSelectedTarifas.set([]);
+    this.currentCounterForTarifas.set(null);
+  }
+
+  // Método simplificado para seleccionar/deseleccionar tarifas
+  onTarifaSelect(tarifaId: number): void {
+    const currentSelected = this.tempSelectedTarifas();
+    const isCurrentlySelected = currentSelected.some(t => t.idTipoTarifa === tarifaId);
+
+    if (isCurrentlySelected) {
+      // Remover de la selección
+      const updated = currentSelected.filter(t => t.idTipoTarifa !== tarifaId);
+      this.tempSelectedTarifas.set(updated);
+    } else {
+      // Agregar a la selección - buscar la tarifa en las disponibles
+      const tarifaData = this.availableTarifas().find(tarifa => tarifa.id === tarifaId);
+      if (tarifaData) {
+        this.tempSelectedTarifas.set([
+          ...currentSelected,
+          {
+            idTipoTarifa: tarifaId,
+            nombre: tarifaData.nombre,
+            aplica: true
+          }
+        ]);
+      }
+    }
+  }
+
+  isTarifaSelected(tarifaId: number): boolean {
+    return this.tempSelectedTarifas().some(t => t.idTipoTarifa === tarifaId);
+  }
+
+  getTarifasSeleccionadasCount(contadorId?: number): number {
+    if (contadorId) {
+      const tarifasContador = this.selectedTarifas().find(t => t.contadorId === contadorId);
+      return tarifasContador ? tarifasContador.tarifas.length : 0;
+    }
+    return this.selectedTarifas().reduce((sum, t) => sum + t.tarifas.length, 0);
+  }
+
+  private buildTarifasCliente(): any[] {
+    const tarifasArray: any[] = [];
+
+    this.selectedTarifas().forEach(contadorConfig => {
+      contadorConfig.tarifas.forEach((tarifa: any) => {
+        tarifasArray.push({
+          idContador:  contadorConfig.contadorId ,
+          idTipoTarifa: tarifa.idTipoTarifa,
+          aplica: false
+        });
+      });
+    });
+
+    return tarifasArray;
   }
 }

@@ -33,7 +33,14 @@
               "entry": "src/server.ts"
             },
             "outputPath": "dist/aqua-plus",
-            "index": "src/index.html"
+            "index": "src/index.html",
+            "allowedCommonJsDependencies": [
+              "jspdf-autotable",
+              "raf",
+              "core-js",
+              "rgbcolor",
+              "canvg"
+            ]
           },
           "configurations": {
             "production": {

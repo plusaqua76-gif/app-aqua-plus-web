@@ -87,7 +87,7 @@ interface ChartOptions {
   imports: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div class="w-full bg-white rounded-lg shadow-sm dark:bg-gray-800 p-4 md:p-6">
+<div class="w-full  shadow-sm rounded-lg  bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-4 md:p-6">
   <div class="flex justify-between mb-5">
     <div>
       <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Estado de Facturas por Mes</h5>
