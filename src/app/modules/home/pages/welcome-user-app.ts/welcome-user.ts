@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { EnterpriseIdService } from '@services/enterpriceId.service';
 
 @Component({
@@ -58,73 +59,257 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
             </blockquote>
 
             <!-- Características del sistema -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-10">
+              <!-- Card 1: Gestión de Clientes -->
               <div
-                class="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10"
+                (click)="navigateTo('/shell/client')"
+                class="group cursor-pointer transform transition-all duration-500 hover:scale-105 hover:-rotate-1"
               >
-                <div class="text-blue-400 mb-2">
-                  <svg
-                    class="w-8 h-8 mx-auto"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                <div
+                  class="text-white rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl duration-700 z-10 relative hover:border-white/25 overflow-hidden hover:shadow-white/5 hover:shadow-2xl hover:bg-white/10"
+                >
+                  <div class="absolute inset-0 z-0 overflow-hidden">
+                    <div
+                      class="absolute inset-0 bg-gradient-to-tr from-white/5 to-white/10 opacity-40 group-hover:opacity-60 transition-opacity duration-500"
+                    ></div>
+                    <div
+                      class="absolute -bottom-10 -left-10 w-20 h-20 rounded-full bg-gradient-to-tr from-blue-400/20 to-transparent blur-2xl opacity-30 group-hover:opacity-50 transform group-hover:scale-110 transition-all duration-700 animate-bounce"
+                      style="animation-delay: 0.5s;"
+                    ></div>
+                    <div
+                      class="absolute top-4 left-4 w-6 h-6 rounded-full bg-white/10 blur-sm animate-ping"
+                    ></div>
+                    <div
+                      class="absolute bottom-6 right-6 w-4 h-4 rounded-full bg-white/5 blur-lg animate-ping"
+                      style="animation-delay: 1s;"
+                    ></div>
+                    <div
+                      class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000"
+                    ></div>
+                  </div>
+
+                  <div class="p-6 relative z-10">
+                    <div class="flex flex-col items-center text-center">
+                      <div class="relative mb-4">
+                        <div
+                          class="absolute inset-0 rounded-full border-2 border-white/20 animate-ping"
+                        ></div>
+                        <div
+                          class="absolute inset-0 rounded-full border border-white/10 animate-pulse"
+                          style="animation-delay: 0.5s;"
+                        ></div>
+                        <div
+                          class="p-4 rounded-full backdrop-blur-lg border border-white/20 bg-gradient-to-br from-blue-500/20 to-blue-600/10 shadow-xl transform group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 hover:shadow-blue-400/30"
+                        >
+                          <i class="fas fa-users text-blue-400 text-2xl transform group-hover:rotate-180 transition-transform duration-700 filter drop-shadow-lg"></i>
+                        </div>
+                      </div>
+
+                      <div class="mb-2 transform group-hover:scale-105 transition-transform duration-300">
+                        <h3 class="text-lg font-bold bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent animate-pulse">
+                          Gestión de Clientes
+                        </h3>
+                      </div>
+
+                      <div class="space-y-1 max-w-sm">
+                        <p class="text-gray-300 text-sm leading-relaxed transform group-hover:text-gray-200 transition-colors duration-300">
+                          Control completo de usuarios y servicios
+                        </p>
+                      </div>
+
+                      <div class="mt-4 w-1/3 h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full transform group-hover:w-1/2 group-hover:h-1 transition-all duration-500 animate-pulse"></div>
+
+                      <div
+                        class="flex space-x-2 mt-4 opacity-60 group-hover:opacity-100 transition-opacity duration-300"
+                      >
+                        <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                        <div
+                          style="animation-delay: 0.1s;"
+                          class="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+                        ></div>
+                        <div
+                          style="animation-delay: 0.2s;"
+                          class="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-br-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  ></div>
+                  <div
+                    class="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-white/10 to-transparent rounded-tl-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  ></div>
                 </div>
-                <h3 class="text-white font-semibold text-sm">
-                  Gestión de Clientes
-                </h3>
-                <p class="text-gray-300 text-xs mt-1">
-                  Control completo de usuarios y servicios
-                </p>
               </div>
 
+              <!-- Card 2: Facturación Automática -->
               <div
-                class="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10"
+                (click)="navigateTo('/shell/bill')"
+                class="group cursor-pointer transform transition-all duration-500 hover:scale-105 hover:-rotate-1"
               >
-                <div class="text-cyan-400 mb-2">
-                  <svg
-                    class="w-8 h-8 mx-auto"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0011.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
+                <div
+                  class="text-white rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl duration-700 z-10 relative hover:border-white/25 overflow-hidden hover:shadow-white/5 hover:shadow-2xl hover:bg-white/10"
+                >
+                  <div class="absolute inset-0 z-0 overflow-hidden">
+                    <div
+                      class="absolute inset-0 bg-gradient-to-tr from-white/5 to-white/10 opacity-40 group-hover:opacity-60 transition-opacity duration-500"
+                    ></div>
+                    <div
+                      class="absolute -bottom-10 -left-10 w-20 h-20 rounded-full bg-gradient-to-tr from-cyan-400/20 to-transparent blur-2xl opacity-30 group-hover:opacity-50 transform group-hover:scale-110 transition-all duration-700 animate-bounce"
+                      style="animation-delay: 0.5s;"
+                    ></div>
+                    <div
+                      class="absolute top-4 left-4 w-6 h-6 rounded-full bg-white/10 blur-sm animate-ping"
+                    ></div>
+                    <div
+                      class="absolute bottom-6 right-6 w-4 h-4 rounded-full bg-white/5 blur-lg animate-ping"
+                      style="animation-delay: 1s;"
+                    ></div>
+                    <div
+                      class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000"
+                    ></div>
+                  </div>
+
+                  <div class="p-6 relative z-10">
+                    <div class="flex flex-col items-center text-center">
+                      <div class="relative mb-4">
+                        <div
+                          class="absolute inset-0 rounded-full border-2 border-white/20 animate-ping"
+                        ></div>
+                        <div
+                          class="absolute inset-0 rounded-full border border-white/10 animate-pulse"
+                          style="animation-delay: 0.5s;"
+                        ></div>
+                        <div
+                          class="p-4 rounded-full backdrop-blur-lg border border-white/20 bg-gradient-to-br from-cyan-500/20 to-cyan-600/10 shadow-xl transform group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 hover:shadow-cyan-400/30"
+                        >
+                          <i class="fas fa-file-invoice-dollar text-cyan-400 text-2xl transform group-hover:rotate-180 transition-transform duration-700 filter drop-shadow-lg"></i>
+                        </div>
+                      </div>
+
+                      <div class="mb-2 transform group-hover:scale-105 transition-transform duration-300">
+                        <h3 class="text-lg font-bold bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent animate-pulse">
+                          Facturación Automática
+                        </h3>
+                      </div>
+
+                      <div class="space-y-1 max-w-sm">
+                        <p class="text-gray-300 text-sm leading-relaxed transform group-hover:text-gray-200 transition-colors duration-300">
+                          Generación y control de facturas
+                        </p>
+                      </div>
+
+                      <div class="mt-4 w-1/3 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent rounded-full transform group-hover:w-1/2 group-hover:h-1 transition-all duration-500 animate-pulse"></div>
+
+                      <div
+                        class="flex space-x-2 mt-4 opacity-60 group-hover:opacity-100 transition-opacity duration-300"
+                      >
+                        <div class="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
+                        <div
+                          style="animation-delay: 0.1s;"
+                          class="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"
+                        ></div>
+                        <div
+                          style="animation-delay: 0.2s;"
+                          class="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-br-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  ></div>
+                  <div
+                    class="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-white/10 to-transparent rounded-tl-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  ></div>
                 </div>
-                <h3 class="text-white font-semibold text-sm">
-                  Facturación Automática
-                </h3>
-                <p class="text-gray-300 text-xs mt-1">
-                  Generación y control de facturas
-                </p>
               </div>
 
+              <!-- Card 3: Reportes y Analytics -->
               <div
-                class="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10"
+                (click)="navigateTo('/shell/reports')"
+                class="group cursor-pointer transform transition-all duration-500 hover:scale-105 hover:-rotate-1"
               >
-                <div class="text-green-400 mb-2">
-                  <svg
-                    class="w-8 h-8 mx-auto"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
+                <div
+                  class="text-white rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl duration-700 z-10 relative hover:border-white/25 overflow-hidden hover:shadow-white/5 hover:shadow-2xl hover:bg-white/10"
+                >
+                  <div class="absolute inset-0 z-0 overflow-hidden">
+                    <div
+                      class="absolute inset-0 bg-gradient-to-tr from-white/5 to-white/10 opacity-40 group-hover:opacity-60 transition-opacity duration-500"
+                    ></div>
+                    <div
+                      class="absolute -bottom-10 -left-10 w-20 h-20 rounded-full bg-gradient-to-tr from-green-400/20 to-transparent blur-2xl opacity-30 group-hover:opacity-50 transform group-hover:scale-110 transition-all duration-700 animate-bounce"
+                      style="animation-delay: 0.5s;"
+                    ></div>
+                    <div
+                      class="absolute top-4 left-4 w-6 h-6 rounded-full bg-white/10 blur-sm animate-ping"
+                    ></div>
+                    <div
+                      class="absolute bottom-6 right-6 w-4 h-4 rounded-full bg-white/5 blur-lg animate-ping"
+                      style="animation-delay: 1s;"
+                    ></div>
+                    <div
+                      class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000"
+                    ></div>
+                  </div>
+
+                  <div class="p-6 relative z-10">
+                    <div class="flex flex-col items-center text-center">
+                      <div class="relative mb-4">
+                        <div
+                          class="absolute inset-0 rounded-full border-2 border-white/20 animate-ping"
+                        ></div>
+                        <div
+                          class="absolute inset-0 rounded-full border border-white/10 animate-pulse"
+                          style="animation-delay: 0.5s;"
+                        ></div>
+                        <div
+                          class="p-4 rounded-full backdrop-blur-lg border border-white/20 bg-gradient-to-br from-green-500/20 to-green-600/10 shadow-xl transform group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 hover:shadow-green-400/30"
+                        >
+                          <i class="fas fa-chart-line text-green-400 text-2xl transform group-hover:rotate-180 transition-transform duration-700 filter drop-shadow-lg"></i>
+                        </div>
+                      </div>
+
+                      <div class="mb-2 transform group-hover:scale-105 transition-transform duration-300">
+                        <h3 class="text-lg font-bold bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent animate-pulse">
+                          Reportes y Analytics
+                        </h3>
+                      </div>
+
+                      <div class="space-y-1 max-w-sm">
+                        <p class="text-gray-300 text-sm leading-relaxed transform group-hover:text-gray-200 transition-colors duration-300">
+                          Análisis de consumo y reportes
+                        </p>
+                      </div>
+
+                      <div class="mt-4 w-1/3 h-0.5 bg-gradient-to-r from-transparent via-green-400 to-transparent rounded-full transform group-hover:w-1/2 group-hover:h-1 transition-all duration-500 animate-pulse"></div>
+
+                      <div
+                        class="flex space-x-2 mt-4 opacity-60 group-hover:opacity-100 transition-opacity duration-300"
+                      >
+                        <div class="w-2 h-2 bg-green-400 rounded-full animate-bounce"></div>
+                        <div
+                          style="animation-delay: 0.1s;"
+                          class="w-2 h-2 bg-green-400 rounded-full animate-bounce"
+                        ></div>
+                        <div
+                          style="animation-delay: 0.2s;"
+                          class="w-2 h-2 bg-green-400 rounded-full animate-bounce"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-br-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  ></div>
+                  <div
+                    class="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-white/10 to-transparent rounded-tl-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  ></div>
                 </div>
-                <h3 class="text-white font-semibold text-sm">
-                  Reportes y Analytics
-                </h3>
-                <p class="text-gray-300 text-xs mt-1">
-                  Análisis de consumo y reportes
-                </p>
               </div>
             </div>
           </figure>
@@ -135,8 +320,13 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
 })
 export class WelcomeUserApp {
   private enterpriseIdService = inject(EnterpriseIdService);
+  private router = inject(Router);
 
   enterpriseInfo = rxResource({
     stream: () => this.enterpriseIdService.getEnterpriseInfo(),
   });
+
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
+  }
 }

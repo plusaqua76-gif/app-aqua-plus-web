@@ -6,6 +6,9 @@ import {
   signal,
   computed,
   PLATFORM_ID,
+  ViewChild,
+  TemplateRef,
+  HostListener,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
@@ -16,7 +19,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { of, catchError, switchMap } from 'rxjs';
+import { of, catchError, switchMap, EMPTY } from 'rxjs';
 
 // Services
 import { TypeCounterService } from '../../../counter/service/typeCounter.service';
@@ -31,10 +34,14 @@ import { IDepartament } from '@interfaces/Idepartament';
 import { ICity } from '@interfaces/Icity';
 import { ICorregimiento } from '@interfaces/icorregimiento';
 import { CounterEnterpriceService } from '../../services/counter-enterprice.service';
+import { IPaginationParams } from '@interfaces/IpaginatedResponse';
+import { TableComponent } from '@components/table';
+
+import { PopupComponent } from '@shared/components/popUp';
 
 @Component({
   selector: 'app-counter-enterprice',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TableComponent, PopupComponent],
   templateUrl: './counter-enterprice.html',
 })
 export class CounterEnterprice implements OnInit {
@@ -45,6 +52,19 @@ export class CounterEnterprice implements OnInit {
   // Reading modal properties
   isReadingModalOpen = signal<boolean>(false);
   isCreatingReading = signal<boolean>(false);
+
+  // History modal properties
+  isHistoryModalOpen = signal<boolean>(false);
+
+  // Screen width for responsive modal positioning
+  screenWidth = signal<number>(0);
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    if (this.isBrowser) {
+      this.screenWidth.set(window.innerWidth);
+    }
+  }
 
   // Counter form properties
   counterForm!: FormGroup;
@@ -93,6 +113,11 @@ export class CounterEnterprice implements OnInit {
   });
 
   constructor() {
+    // Inicializar el ancho de pantalla
+    if (this.isBrowser && typeof window !== 'undefined') {
+      this.screenWidth.set(window.innerWidth);
+    }
+
     effect(() => {
       const deptId = this.selectedCounterDepartmentId();
       if (deptId) {
@@ -171,7 +196,7 @@ export class CounterEnterprice implements OnInit {
 
   private initializeCounterForm(): void {
     this.counterForm = this.fb.group({
-      tipoContador: ['', Validators.required], // Inicializar con string vacío
+      tipoContador: ['', Validators.required],
       serial: ['', Validators.required],
       idDepartamento: ['', Validators.required],
       idCiudad: ['', Validators.required],
@@ -188,11 +213,75 @@ export class CounterEnterprice implements OnInit {
     });
   }
 
+  readonly serialCounter = computed(() => {
+    return this.dataCounterEnterprice.value()?.response?.contador?.serial || '';
+  });
+
+  // Calcular el margen izquierdo basado en el ancho del sidenav
+  getHistoryModalLeftMargin = computed(() => {
+    const width = this.screenWidth();
+    if (width <= 768) {
+      return '0px'; // En móvil, sin margen
+    } else {
+      return '5rem'; // En desktop, margen del sidenav (80px)
+    }
+  });
+
+  // Calcular el ancho del overlay del modal
+  getHistoryModalWidth = computed(() => {
+    const width = this.screenWidth();
+    if (width <= 768) {
+      return '100%'; // En móvil, ancho completo
+    } else {
+      return 'calc(100% - 5rem)'; // En desktop, ancho menos el sidenav
+    }
+  });
+
   loadTypeCounter = rxResource({
     stream: () => {
       return this.tipoContadorService.getAllTypeCounters();
     },
   });
+
+  // Paginación para historial
+  readonly historyPaginationParams = signal<IPaginationParams>({
+    page: 0,
+    size: 5,
+  });
+
+  // Columnas para la tabla de historial
+  readonly historyColumns = signal([
+    { field: 'contador.serial', header: 'Contador', type: 'text' as const },
+    { field: 'lectura', header: 'Lectura(m³)', type: 'number' as const },
+    { field: 'fechaLectura', header: 'Fecha Lectura', type: 'date' as const },
+    { field: 'consumoAnormal', header: 'Consumo Anormal', type: 'text' as const },
+    { field: 'descripcion', header: 'Observación', type: 'text' as const },
+  ]);
+
+  readingCounterEnterprice = rxResource({
+    params: () => ({
+      serial: this.serialCounter(),
+      empresaId: this.enterpriceId(),
+      pagination: this.historyPaginationParams(),
+    }),
+    stream: ({ params }) => {
+      const { serial, empresaId, pagination } = params;
+      if (!serial || !empresaId) {
+        return EMPTY;
+      }
+      return this.counterEnterpriceService.getReadingsByEnterpricePaginated(
+        empresaId,
+        serial,
+        pagination
+      ).pipe(
+        catchError((error) => {
+          console.error('Error loading readings:', error);
+          return of(null);
+        })
+      );
+    }
+  });
+
 
   // Métodos específicos para el formulario de contador
   loadCounterDepartments(): void {
@@ -250,6 +339,56 @@ export class CounterEnterprice implements OnInit {
   closeReadingModal(): void {
     this.isReadingModalOpen.set(false);
     this.readingForm.reset();
+  }
+
+  openHistoryModal(): void {
+    this.isHistoryModalOpen.set(true);
+  }
+
+  closeHistoryModal(): void {
+    this.isHistoryModalOpen.set(false);
+    // Resetear paginación al cerrar
+    this.historyPaginationParams.set({ page: 0, size: 5 });
+  }
+
+  onHistoryPaginationChange(params: IPaginationParams): void {
+    this.historyPaginationParams.set(params);
+  }
+
+  viewHistory(): void {
+    const serial = this.serialCounter();
+    if (!serial) {
+      this.toast.error('Error', 'No hay contador disponible');
+      return;
+    }
+    this.openHistoryModal();
+  }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return '';
+    try {
+      const datePart = dateString.split('T')[0];
+      const [year, month, day] = datePart.split('-');
+      const date = new Date(Number.parseInt(year), Number.parseInt(month) - 1, Number.parseInt(day));
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch (error) {
+      return dateString;
+    }
+  }
+
+  getFullName(cliente: any): string {
+    if (!cliente) return '';
+    const partes = [
+      cliente.nombre,
+      cliente.segundoNombre,
+      cliente.apellido,
+      cliente.segundoApellido
+    ].filter(parte => parte && parte.trim() !== '');
+    return partes.join(' ') || '';
   }
 
   createCounter(): void {
@@ -397,8 +536,9 @@ export class CounterEnterprice implements OnInit {
           this.toast.success('Éxito', 'Lectura registrada correctamente');
           this.readingForm.reset();
           this.closeReadingModal();
-          // Recargar los datos del contador
+          // Recargar los datos del contador y del historial
           this.dataCounterEnterprice.reload();
+          this.readingCounterEnterprice.reload();
         },
         error: (error) => {
           this.isCreatingReading.set(false);

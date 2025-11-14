@@ -5,6 +5,7 @@ import {
   IClienteKPIApiResponse,
 } from '@interfaces/IClienteKPIResponse';
 import { IBilledConsumptionApiResponse, IBilledConsumptionResponse, IColumnChartData } from '@interfaces/IBilledConsumption';
+import { IEmpresaContadorApiResponse, IEmpresaContadorResponse, IEmpresaContadorChartData } from '@interfaces/IEmpresaContadorConsumption';
 import { environment } from '../../environments/environment.local';
 import { HttpClient } from '@angular/common/http';
 import { IClienteKPIParams } from '@interfaces/charts/kpi-params';
@@ -108,6 +109,63 @@ export class ClientesKpiService {
     }
 
     // Mostrar todos los meses, incluso los que tienen 0
+    for (const mesData of response.porMes) {
+      const nombreMes = nombresMeses[mesData.mes - 1];
+
+      xAxis.push(nombreMes);
+      consumoM3.push(mesData.mcTotal);
+      facturadoPesos.push(mesData.valorTotal);
+    }
+
+    return {
+      xAxis,
+      yAxis: {
+        consumoM3,
+        facturadoPesos
+      }
+    };
+  }
+
+  getEmpresaContadorConsumption(
+    empresaId: number,
+    anio: number,
+    mes?: number
+  ): Observable<IEmpresaContadorChartData> {
+    const params: any = {
+      empresaId: empresaId.toString(),
+      anio: anio.toString()
+    };
+
+    if (mes) {
+      params.mes = mes.toString();
+    }
+
+    return this.http
+      .get<IEmpresaContadorApiResponse>(`${this.apiUrl}/empresa-contador/consumo-empresa-mes`, { params })
+      .pipe(
+        map((apiResponse) => {
+          const mappedData = this.mapEmpresaContadorToChart(apiResponse.response);
+          return mappedData;
+        })
+      );
+  }
+
+  /**
+   * Mapea la respuesta del API empresa-contador a formato del gráfico
+   */
+  private mapEmpresaContadorToChart(response: IEmpresaContadorResponse): IEmpresaContadorChartData {
+    const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+    const xAxis: string[] = [];
+    const consumoM3: number[] = [];
+    const facturadoPesos: number[] = [];
+
+    if (!response.porMes || response.porMes.length === 0) {
+      return { xAxis, yAxis: { consumoM3, facturadoPesos } };
+    }
+
+    // Mostrar todos los meses incluso si tienen valores en 0
     for (const mesData of response.porMes) {
       const nombreMes = nombresMeses[mesData.mes - 1];
 

@@ -25,7 +25,7 @@ import { BreadcrumbService } from '@services/breadcrumb.service';
       <div class="flex items-center justify-end h-16 pr-6 pl-3.5">
         <!-- Breadcrumb Section -->
         <div class="hidden md:flex items-center min-w-0 flex-[4] max-w-[85%] mt-0 md:mt-0" [class.mt-[86px]]="screenWidth() <= 768">
-          @if (breadcrumbService.breadcrumbs().length > 0) {
+          @if (breadcrumbService.breadcrumbs().length > 0 && !router.url.includes('welcome-user')) {
             <nav class="flex w-full" aria-label="Breadcrumb">
               <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
                 @for (item of breadcrumbService.breadcrumbs(); track $index) {

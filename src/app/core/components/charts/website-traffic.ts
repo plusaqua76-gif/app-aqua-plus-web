@@ -4,7 +4,6 @@ import { LecturasContadoresService, LecturasData } from '@services/lecturas-cont
 import { LocationService } from '@shared/services/location.service';
 import { Subscription } from 'rxjs';
 
-// UMD global como en tus otros componentes
 declare const ApexCharts: any;
 
 interface RadialOptions {
@@ -51,7 +50,7 @@ interface RadialOptions {
   template: `
 
 
-<div class="max-w-sm w-full bg-white rounded-lg shadow-sm dark:bg-gray-800 p-4 md:p-6">
+<div class="relative z-20 max-w-sm w-full shadow-sm rounded-lg bg-white/20 dark:bg-slate-800/20 backdrop-blur-2xl p-4 md:p-6">
   <div class="flex justify-between mb-3">
     <div class="flex items-center">
       <div class="flex justify-center items-center">
@@ -72,13 +71,13 @@ interface RadialOptions {
     </div>
   </div>
 
-  <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+  <div class="rounded-lg  bg-white/20 dark:bg-slate-800/20 backdrop-blur-3xl p-3 border border-gray-200 dark:border-gray-600 mb-4">
     <div class="grid grid-cols-2 gap-3 mb-2">
-      <dl class="bg-blue-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
+      <dl class="bg-[#212c3c] rounded-lg flex flex-col items-center justify-center h-[78px]">
         <dt class="w-8 h-8 rounded-full bg-blue-100 dark:bg-gray-500 text-blue-600 dark:text-blue-300 text-sm font-medium flex items-center justify-center mb-1">{{ getVeredasCompletadas() }}</dt>
         <dd class="text-blue-600 dark:text-blue-300 text-sm font-medium">Completadas</dd>
       </dl>
-      <dl class="bg-orange-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
+      <dl class="bg-[#212c3c]  rounded-lg flex flex-col items-center justify-center h-[78px]">
         <dt class="w-8 h-8 rounded-full bg-orange-100 dark:bg-gray-500 text-orange-600 dark:text-orange-300 text-sm font-medium flex items-center justify-center mb-1">{{ getVeredasPendientes() }}</dt>
         <dd class="text-orange-600 dark:text-orange-300 text-sm font-medium">Pendientes</dd>
       </dl>
@@ -135,7 +134,7 @@ interface RadialOptions {
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
           </svg>
         </button>
-        <div [class.hidden]="!isDropdownAcueductoOpen" class="absolute z-10 bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 mt-1">
+        <div [class.hidden]="!isDropdownAcueductoOpen" class="absolute z-50 bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 mt-1">
           <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
             <li *ngFor="let vereda of veredasDisponibles">
               <button (click)="seleccionarAcueducto(vereda)" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ vereda }}</button>

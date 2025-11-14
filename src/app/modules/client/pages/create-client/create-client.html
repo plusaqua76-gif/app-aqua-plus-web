@@ -52,7 +52,15 @@
             class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
             required
           >
-            <option value="" disabled>Seleccione tipo de documento</option>
+            <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
+              @if (loadTypeDocument.isLoading()) {
+                Cargando tipos de documento...
+              } @else if (loadTypeDocument.error()) {
+                Error al cargar tipos de documento
+              } @else {
+                Seleccione tipo de documento
+              }
+            </option>
             @for (tipo of loadTypeDocument.value()?.response ; track $index) {
             <option
               [value]="tipo.id"
@@ -303,8 +311,11 @@
                 hidden
                 class="text-gray-400 dark:text-gray-500"
               >
-                @if (departmentsLoading()) { Cargando departamentos... } @else {
-                Seleccione un departamento... }
+                @if (departmentsLoading()) {
+                  Cargando departamentos...
+                } @else {
+                  Seleccione un departamento...
+                }
               </option>
               @for (item of departaments(); track $index) {
               <option
@@ -510,23 +521,6 @@
                 </option>
               }
             </select>
-            <div
-              class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-            >
-              <svg
-                class="w-5 h-5 text-gray-400 transition-transform duration-200"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-            </div>
           </div>
           @if (registerForm.get('idEmpleadoEmpresa')?.invalid &&
           registerForm.get('idEmpleadoEmpresa')?.touched) {
@@ -541,6 +535,20 @@
             El empleado asignado es requerido
           </p>
           }
+        </div>
+
+        <!-- Campo: Persona con Discapacidad -->
+        <div class="flex items-center space-x-3 mt-8">
+          <app-checkbox
+            [checked]="personaDiscapacidad()"
+            (checkedChange)="personaDiscapacidad.set($event)"
+          ></app-checkbox>
+          <label
+            for="personaDiscapacidad"
+            class="pb-2 text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wider uppercase cursor-pointer"
+          >
+            Persona con Discapacidad
+          </label>
         </div>
       </div>
 
@@ -613,28 +621,6 @@
             </svg>
             Crear Cliente
           </button>
-
-          <!-- Botón Asignar Contador -->
-          <!-- <button
-            type="button"
-            (click)="assignCounter()"
-            class="w-full sm:w-auto bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-semibold py-3 px-6 rounded-xl hover:border-blue-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center gap-3 justify-center"
-           >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-              />
-            </svg>
-            Asignar Contador
-          </button> -->
         </div>
       </div>
     </form>
@@ -794,7 +780,7 @@
                   </p>
                   <p class="text-sm text-gray-600 dark:text-gray-400">
                     Tipo: {{ $any(serialcode.value())?.response?.tipoContador?.nombre ||
-                    'N/A' }}
+                    '' }}
                   </p>
                   <p class="text-sm text-gray-600 dark:text-gray-400">
                     Estado: {{ $any(serialcode.value())?.response?.activo ? 'Activo' : 'Inactivo' }}
@@ -876,8 +862,14 @@
                     class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
                     required
                   >
-                    <option value="" disabled>
-                      Seleccione tipo de contador
+                    <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
+                      @if (loadTypeCounter.isLoading()) {
+                        Cargando tipos de contador...
+                      } @else if (loadTypeCounter.error()) {
+                        Error al cargar tipos de contador
+                      } @else {
+                        Seleccione tipo de contador
+                      }
                     </option>
                     @for (tipo of loadTypeCounter.value()?.response ; track
                     $index) {
@@ -889,23 +881,6 @@
                     </option>
                     }
                   </select>
-                  <div
-                    class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-                  >
-                    <svg
-                      class="w-5 h-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                      />
-                    </svg>
-                  </div>
                 </div>
               </div>
 
@@ -957,8 +932,7 @@
                   <select
                     id="counterDepartamento"
                     formControlName="idDepartamento"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
-                    required
+                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-not-allowed invalid:text-gray-400 dark:invalid:text-gray-500"
                   >
                     <option value="" disabled>
                       @if (counterDepartmentsLoading()) { Cargando
@@ -973,29 +947,6 @@
                     </option>
                     }
                   </select>
-                  <div
-                    class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-                  >
-                    <svg
-                      class="w-5 h-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                      />
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                  </div>
                 </div>
               </div>
 
@@ -1011,7 +962,7 @@
                   <select
                     id="counterCiudad"
                     formControlName="idCiudad"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-not-allowed invalid:text-gray-400 dark:invalid:text-gray-500"
                     required
                   >
                     <option value="" disabled>
@@ -1029,23 +980,6 @@
                     </option>
                     }
                   </select>
-                  <div
-                    class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-                  >
-                    <svg
-                      class="w-5 h-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                      />
-                    </svg>
-                  </div>
                 </div>
               </div>
 
@@ -1078,29 +1012,6 @@
                     </option>
                     }
                   </select>
-                  <div
-                    class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-                  >
-                    <svg
-                      class="w-5 h-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                      />
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                  </div>
                 </div>
               </div>
 
@@ -1117,7 +1028,7 @@
                     id="counterDireccion"
                     formControlName="direccion"
                     type="text"
-                    placeholder="Dirección de instalación del contador"
+                    placeholder="Dirección del contador"
                     class="w-full px-4 py-3 pl-12 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
                   />
                   <div
@@ -1139,6 +1050,81 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Campo: Estrato -->
+              <div>
+                <label
+                  for="estrato"
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+                >
+                  Estrato <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                  <input
+                    id="estrato"
+                    formControlName="estrato"
+                    type="number"
+                    min="1"
+                    max="6"
+                    placeholder="Ingrese el estrato"
+                    class="w-full px-4 py-3 pl-12 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+                  />
+                  <div
+                    class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                  >
+                    <svg
+                      class="w-5 h-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Campo: Dígitos del Contador -->
+              <div>
+                <label
+                  for="digitosContador"
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+                >
+                  Dígitos del Contador <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                  <input
+                    id="digitosContador"
+                    formControlName="digitosContador"
+                    type="number"
+                    min="1"
+                    placeholder="Número de dígitos"
+                    class="w-full px-4 py-3 pl-12 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+                  />
+                  <div
+                    class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                  >
+                    <svg
+                      class="w-5 h-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </div>
             </div>
           </form>
         </div>
@@ -1154,26 +1140,50 @@
           >
             Contadores Seleccionados ({{ selectedSerials().length }})
           </h4>
-          <div class="space-y-2 max-h-40 overflow-y-auto">
+          <div class="space-y-3 max-h-96 overflow-y-auto">
             @for (serial of selectedSerials(); track serial.id) {
             <div
-              class="flex items-center justify-between p-3 bg-green-500/10 border border-green-500/20 rounded-lg backdrop-blur-sm"
+              class="p-3 bg-green-500/10 border border-green-500/20 rounded-lg backdrop-blur-sm"
             >
-              <div>
-                <p class="font-medium text-gray-800 dark:text-gray-200">
-                  Serial: {{ serial.serial || 'N/A' }}
-                </p>
-                <p class="text-sm text-gray-600 dark:text-gray-400">
-                  Tipo: {{ serial.tipoContador?.nombre || 'N/A' }}
-                </p>
-                <p class="text-sm text-gray-600 dark:text-gray-400">
-                  Estado: {{ serial.activo ? 'Activo' : 'Inactivo' }}
-                </p>
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex-1">
+                  <p class="font-medium text-gray-800 dark:text-gray-200">
+                    Serial: {{ serial.contador?.serial || serial.serial || '' }}
+                  </p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Tipo: {{ serial.contador?.tipoContador?.nombre || serial.tipoContador?.nombre || '' }}
+                  </p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Estado: {{ serial.activo !== undefined ? (serial.activo ? 'Activo' : 'Inactivo') : '' }}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  (click)="removeSelectedSerial(serial.id)"
+                  class="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-500/10 rounded transition-colors"
+                  title="Eliminar contador"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
               </div>
+
+              <!-- Botón de configurar tarifas para este contador -->
               <button
                 type="button"
-                (click)="removeSelectedSerial(serial.id)"
-                class="p-1 text-red-500 hover:text-red-700 hover:bg-red-500/10 rounded transition-colors"
+                (click)="openTarifasModal(serial)"
+                class="mt-3 w-full bg-[#1d293d] hover:bg-[#2a3f5f] border border-[#2a3f5f] backdrop-blur-md text-white font-medium py-2 px-4 rounded-lg hover:border-[#3d5a80] transition-all duration-300 ease-in-out hover:scale-[1.02] flex items-center gap-2 justify-center shadow-lg shadow-[#1d293d]/20"
               >
                 <svg
                   class="w-4 h-4"
@@ -1185,9 +1195,15 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
+                Configurar Tarifas
+                @if (getTarifasSeleccionadasCount(serial.contador?.id || serial.id) > 0) {
+                  <span class="ml-1 bg-purple-600/80 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    {{ getTarifasSeleccionadasCount(serial.contador?.id || serial.id) }}
+                  </span>
+                }
               </button>
             </div>
             }
@@ -1223,6 +1239,113 @@
             Crear Contador
           </button>
           }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Modal para configurar tarifas -->
+@if (isTarifasModalOpen()) {
+<div class="fixed inset-0 z-50 overflow-y-auto">
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" (click)="closeTarifasModal()"></div>
+
+  <div class="flex min-h-full items-center justify-center p-4">
+    <div class="relative w-full max-w-4xl bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl">
+
+      <!-- Header -->
+      <div class="border-b border-white/10 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200">Configurar Tarifas del Contador</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Serial: {{ currentCounterForTarifas()?.contador?.serial || currentCounterForTarifas()?.serial || '' }}
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">Seleccione las tarifas que no aplican al contador</p>
+          </div>
+          <button type="button" (click)="closeTarifasModal()" class="rounded-lg p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-white/10 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="px-6 py-6 max-h-[60vh] overflow-y-auto">
+        @if (dataConceptRate.isLoading()) {
+          <div class="flex justify-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400"></div>
+          </div>
+        } @else if (dataConceptRate.error()) {
+          <div class="text-center py-8 text-red-500">
+            <p class="text-sm">Error al cargar las tarifas</p>
+          </div>
+        } @else if (availableTarifas().length === 0) {
+          <div class="text-center py-8">
+            <p class="text-sm text-gray-400">No hay tarifas disponibles</p>
+          </div>
+        } @else {
+          <!-- Lista de tarifas con estilo idéntico a admin-roles -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 max-h-64 sm:max-h-80 overflow-y-auto">
+            @for (tarifa of availableTarifas(); track tarifa.id) {
+              <div
+                class="flex items-center p-2 sm:p-3 rounded-lg border border-gray-600/70 hover:bg-white/5 transition-colors cursor-pointer"
+                (click)="onTarifaSelect(tarifa.id)">
+
+                <div class="flex items-center w-full">
+                  <input
+                    type="checkbox"
+                    [checked]="isTarifaSelected(tarifa.id)"
+                    (change)="onTarifaSelect(tarifa.id)"
+                    class="w-4 h-4 text-blue-600 bg-transparent border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                  />
+                  <div class="ml-2 sm:ml-3 flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                    <!-- Icono de la tarifa -->
+                    <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                      <svg class="w-3 h-3 sm:w-4 sm:h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                      </svg>
+                    </div>
+
+                    <!-- Información de la tarifa -->
+                    <div class="min-w-0 flex-1">
+                      <h5 class="text-xs sm:text-sm font-medium text-white truncate">{{ tarifa.nombre }}</h5>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Resumen de selección -->
+          <div class="mt-4 p-2 sm:p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
+            <p class="text-xs sm:text-sm text-purple-300">
+              <strong>{{ tempSelectedTarifas().length }}</strong> tarifas seleccionadas de <strong>{{ availableTarifas().length }}</strong> disponibles
+            </p>
+          </div>
+        }
+      </div>
+
+      <!-- Footer -->
+      <div class="border-t border-white/10 px-6 py-4">
+        <div class="flex items-center justify-end gap-3">
+          <button
+            type="button"
+            (click)="closeTarifasModal()"
+            class="px-6 py-2 bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-all"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="applyTarifas()"
+            class="px-6 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 text-purple-700 dark:text-purple-300 font-medium rounded-lg transition-all"
+          >
+            Aplicar Tarifas
+          </button>
         </div>
       </div>
     </div>

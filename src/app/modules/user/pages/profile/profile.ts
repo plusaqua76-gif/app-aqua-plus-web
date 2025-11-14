@@ -570,10 +570,10 @@ export class Profile {
     const reader = new FileReader();
     reader.onload = () => {
       const base64String = reader.result as string;
-      const base64Data = base64String.split(',')[1]; // Remover el prefijo data:image/...;base64,
-
+      const base64Data = base64String.split(',')[1];
+      const currentImagePath = this.enterpriseInfo.value()?.imagen?.[0]?.ruta || '';
       const imageData: IImageEnterprise = {
-        ruta: `empresa_${enterpriseId}_imagen`,
+        ruta: currentImagePath,
         imagen: base64Data
       };
 

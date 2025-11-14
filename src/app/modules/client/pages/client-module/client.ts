@@ -118,7 +118,7 @@ export class Client {
       type: 'text' as const,
     },
     { field: 'nombreCompleto', header: 'Nombre', type: 'text' as const },
-    { field: 'telefono', header: 'Teléfono', type: 'text' as const },
+    // { field: 'telefono', header: 'Teléfono', type: 'text' as const },
     {
       field: 'corregimientoNombre',
       header: 'Corregimiento',
@@ -130,12 +130,13 @@ export class Client {
       header: 'Dirección',
       type: 'text' as const,
     },
-    {
-      field: 'codigo',
-      header: 'Codigo',
-      type: 'text' as const,
-    },
-    { field: 'correo', header: 'Correo', type: 'text' as const },
+    // aqui se va a dejar al columna del NUID
+    // {
+    //   field: 'codigo',
+    //   header: 'Codigo',
+    //   type: 'text' as const,
+    // },
+    // { field: 'correo', header: 'Correo', type: 'text' as const },
     {
       field: 'activo',
       header: 'Estado',

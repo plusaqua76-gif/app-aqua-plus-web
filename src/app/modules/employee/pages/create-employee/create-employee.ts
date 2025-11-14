@@ -72,6 +72,10 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
 
   ngOnInit(): void {
     this.initializeForm();
+
+    // Prellenar con los datos del usuario al cargar
+    this.preloadUserData();
+
     this.loadDepartments();
 
     this.registerForm
@@ -125,10 +129,22 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
     return data?.nombre || null;
   });
 
+  readonly IdDepartamento = computed(() => {
+    const data = this.userData();
+    const id = data?.empresa?.direccion?.departamento?.id;
+    return id || null;
+  });
+
+  readonly IdCiudad = computed(() => {
+    const data = this.userData();
+    const id = data?.empresa?.direccion?.ciudad?.id;
+    return id || null;
+  });
+
 
   private initializeForm(): void {
     this.registerForm = this.fb.group({
-      tipoDocumento: [null, Validators.required],
+      tipoDocumento: ['', Validators.required],
       numeroDocumento: ['', Validators.required],
       correo: ['', [Validators.required, Validators.email]],
       primerApellido: ['', Validators.required],
@@ -144,6 +160,32 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
       usuarioCreacion: [this.nombreUsuario()],
       idEmpresa: [this.empresaId()]
     });
+  }
+
+  private preloadUserData(): void {
+    const userDeptId = this.IdDepartamento();
+    const userCityId = this.IdCiudad();
+
+    // Prellenar formulario de empleado
+    if (userDeptId) {
+      this.registerForm.patchValue({
+        idDepartamento: userDeptId
+      });
+      this.selectedDepartmentId.set(userDeptId);
+
+      // Cargar ciudades del departamento
+      this.loadCities(userDeptId);
+    }
+
+    if (userCityId) {
+      this.registerForm.patchValue({
+        idCiudad: userCityId
+      });
+      this.selectedCityId.set(userCityId);
+
+      // Cargar corregimientos de la ciudad
+      this.loadCorregimientos(userCityId);
+    }
   }
 loadTypeDocument = rxResource({
   stream: () => this.tipoDocumentoService.getAllTypeDocument()
