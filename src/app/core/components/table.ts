@@ -383,9 +383,9 @@ export interface TableColumn {
 
         <!-- Selector de filas por página -->
         <div class="flex items-center gap-2 text-xs sm:text-sm">
-          <span class="text-gray-600 dark:text-gray-300 whitespace-nowrap font-medium">
+          <!-- <span class="text-gray-600 dark:text-gray-300 whitespace-nowrap font-medium">
             Filas:
-          </span>
+          </span> -->
           <select
             class="px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl bg-gray-800/60 dark:bg-gray-800/60 backdrop-blur-sm text-white border border-gray-600/50 text-xs sm:text-sm min-w-[60px] sm:min-w-[70px] focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 cursor-pointer hover:bg-gray-700/70 shadow-lg appearance-none bg-[length:14px_14px] sm:bg-[length:16px_16px] bg-[position:right_0.4rem_center] sm:bg-[position:right_0.5rem_center] bg-no-repeat"
             style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23ffffff%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%272%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E');"

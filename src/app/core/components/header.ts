@@ -1,9 +1,9 @@
 import { UserService } from './../../modules/auth/service/user.service';
-import { Component, inject, HostListener, input, PLATFORM_ID, computed, effect, signal, ElementRef, ViewChild } from '@angular/core';
+import { Component, inject, HostListener, input, PLATFORM_ID, computed, effect, signal, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { EMPTY, map } from 'rxjs';
+import { EMPTY, map, of } from 'rxjs';
 import { BreadcrumbService } from '@services/breadcrumb.service';
 
 @Component({
@@ -106,9 +106,8 @@ import { BreadcrumbService } from '@services/breadcrumb.service';
           <div
             #dropdownMenu
             id="dropdownAvatarName"
-            [class]="isDropdownOpen()
-              ? 'absolute top-14 right-6 bg-white/90 dark:bg-gray-800/95 backdrop-blur-lg divide-y divide-gray-200/50 dark:divide-gray-600/30 rounded-xl shadow-2xl w-56 border border-gray-200/50 dark:border-gray-600/50 transform opacity-100 scale-100 transition-all duration-200 ease-out'
-              : 'absolute top-14 right-6 bg-white/90 dark:bg-gray-800/95 backdrop-blur-lg divide-y divide-gray-200/50 dark:divide-gray-600/30 rounded-xl shadow-2xl w-56 border border-gray-200/50 dark:border-gray-600/50 transform opacity-0 scale-95 pointer-events-none transition-all duration-200 ease-in'"
+            class="z-10 absolute top-14 right-6 bg-white/90 dark:bg-gray-800/95 backdrop-blur-lg divide-y divide-gray-200/50 dark:divide-gray-600/30 rounded-xl shadow-2xl w-56 border border-gray-200/50 dark:border-gray-600/50"
+            [class.hidden]="!isDropdownOpen()"
           >
             <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
               <div class="flex items-center gap-2">
@@ -210,7 +209,7 @@ export class Header {
       const { enterpriseId } = params;
       if (!enterpriseId) {
         console.warn('No enterprise ID available for bills');
-        return EMPTY;
+        return of(null);
       }
       return this.userService.getUserSignal(enterpriseId).pipe(
         map(apiResponse => apiResponse.response)

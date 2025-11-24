@@ -182,7 +182,7 @@ export class PdfBill {
     const billData = this.billData();
     if (!billData?.contador?.direccion) return '';
     const dir = billData.contador.direccion;
-    return `${dir.departamentoNombre || ''}, ${dir.ciudadNombre || ''}, ${
+    return `${
       dir.corregimientoNombre || ''
     } ${dir.descripcion || ''}`;
   }

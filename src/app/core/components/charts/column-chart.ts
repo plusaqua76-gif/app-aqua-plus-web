@@ -100,7 +100,7 @@ interface ColumnChartOptions {
   imports: [DecimalPipe, ColombianCurrencyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div class="w-full shadow-sm rounded-lg  bg-white/20 dark:bg-slate-800/20 backdrop-blur-2xl p-4 md:p-6">
+<div class="relative z-10 w-full shadow-sm rounded-lg bg-white/20 dark:bg-slate-800/20 backdrop-blur-2xl p-4 md:p-6">
   <div class="flex justify-between mb-5">
     <div>
       <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Consumo vs Facturación</h5>
@@ -156,7 +156,7 @@ interface ColumnChartOptions {
           </svg>
         </button>
         <!-- Dropdown menu -->
-        <div [class.hidden]="!isDropdownOpen" class="absolute z-10 bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 mt-1">
+        <div [class.hidden]="!isDropdownOpen" class="absolute bottom-full mb-1 z-50 bg-white divide-y divide-gray-100 rounded-lg shadow-lg w-44 dark:bg-gray-700">
             <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
               <li>
                 <button (click)="selectMonth('Todos los meses')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Todos los meses</button>

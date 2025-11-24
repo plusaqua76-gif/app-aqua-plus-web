@@ -158,11 +158,11 @@ export class ClientesKpiService {
                           'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
     const xAxis: string[] = [];
-    const consumoM3: number[] = [];
-    const facturadoPesos: number[] = [];
+    const consumoEmpresa: number[] = [];
+    const consumoClientes: number[] = [];
 
     if (!response.porMes || response.porMes.length === 0) {
-      return { xAxis, yAxis: { consumoM3, facturadoPesos } };
+      return { xAxis, yAxis: { consumoEmpresa, consumoClientes } };
     }
 
     // Mostrar todos los meses incluso si tienen valores en 0
@@ -170,15 +170,15 @@ export class ClientesKpiService {
       const nombreMes = nombresMeses[mesData.mes - 1];
 
       xAxis.push(nombreMes);
-      consumoM3.push(mesData.mcTotal);
-      facturadoPesos.push(mesData.valorTotal);
+      consumoEmpresa.push(mesData.mcTotalEmpresa);
+      consumoClientes.push(mesData.mcTotalClientes);
     }
 
     return {
       xAxis,
       yAxis: {
-        consumoM3,
-        facturadoPesos
+        consumoEmpresa,
+        consumoClientes
       }
     };
   }

@@ -72,10 +72,7 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
 
   ngOnInit(): void {
     this.initializeForm();
-
-    // Prellenar con los datos del usuario al cargar
     this.preloadUserData();
-
     this.loadDepartments();
 
     this.registerForm
@@ -151,6 +148,7 @@ export class CreateEmployee implements OnInit {   //Pipe ->  refactorizar el cod
       segundoApellido: [''],
       primerNombre: ['', Validators.required],
       segundoNombre: [''],
+      nombreUsuario: ['', Validators.required],
       idDepartamento: [null, Validators.required],
       idCiudad: [null, Validators.required],
       idCorregimiento: [null],

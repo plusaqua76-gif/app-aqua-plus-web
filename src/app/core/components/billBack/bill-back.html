@@ -1,0 +1,133 @@
+<div class="pdf-container-back">
+  <div class="bill-back-container">
+    <!-- Si hay plantilla HTML, mostrarla -->
+    @if (useTemplate() && safeHtmlContent()) {
+      <div class="template-content" [innerHTML]="safeHtmlContent()"></div>
+    }
+    <!-- Si no hay plantilla, mostrar el contenido por defecto (dummy data) -->
+    @else if (backData()) {
+      <div class="bill-back-content">
+        <div class="back-header">
+          <div class="header-decoration"></div>
+          <h2 class="back-title">Información Importante</h2>
+          <div class="header-decoration"></div>
+        </div>
+      <div class="empresa-section">
+        <div class="empresa-card">
+          <div class="empresa-icon">
+            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+            </svg>
+          </div>
+          <div class="empresa-info">
+            <h3 class="empresa-nombre">{{ backData()?.empresa?.nombre }}</h3>
+            <div class="empresa-details">
+              <div class="detail-item">
+                <svg class="detail-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>NIT: {{ backData()?.empresa?.nit }}</span>
+              </div>
+              <div class="detail-item">
+                <svg class="detail-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>{{ backData()?.empresa?.direccion }}</span>
+              </div>
+              @if (backData()?.empresa?.telefono) {
+                <div class="detail-item">
+                  <svg class="detail-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  <span>{{ backData()?.empresa?.telefono }}</span>
+                </div>
+              }
+              @if (backData()?.empresa?.email) {
+                <div class="detail-item">
+                  <svg class="detail-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span>{{ backData()?.empresa?.email }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recomendaciones y avisos -->
+      <div class="recommendations-section">
+        <div class="section-header">
+          <svg class="section-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 class="section-title">Recomendaciones Importantes</h3>
+        </div>
+
+        <div class="recommendations-grid">
+          @for (item of backData()?.datos; track $index) {
+            <div class="recommendation-card">
+              <div class="recommendation-number">{{ $index + 1 }}</div>
+              <div class="recommendation-content">
+                <svg class="recommendation-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="recommendation-text">{{ item.descripcion }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Información adicional -->
+      <div class="additional-info">
+        <div class="info-card alert-card">
+          <div class="alert-icon">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div class="alert-content">
+            <h4 class="alert-title">Aviso Importante</h4>
+            <p class="alert-text">
+              Recuerde que el no pago oportuno de su factura puede generar suspensión del servicio e intereses de mora.
+            </p>
+          </div>
+        </div>
+
+        <div class="info-card tips-card">
+          <div class="tips-icon">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </div>
+          <div class="tips-content">
+            <h4 class="tips-title">Consejos de Ahorro</h4>
+            <ul class="tips-list">
+              <li>Revise regularmente su consumo</li>
+              <li>Repare fugas de agua inmediatamente</li>
+              <li>Use dispositivos ahorradores de agua</li>
+              <li>Reporte cualquier anomalía en su servicio</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="back-footer">
+        <div class="footer-line"></div>
+        <p class="footer-text">
+          Gracias por confiar en nuestros servicios. Para cualquier consulta, comuníquese con nosotros.
+        </p>
+        <div class="footer-line"></div>
+      </div>
+      </div>
+    } @else {
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Cargando información...</p>
+      </div>
+    }
+  </div>
+</div>

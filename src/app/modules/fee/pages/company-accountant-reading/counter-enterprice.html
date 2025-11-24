@@ -498,10 +498,35 @@
 <!-- Modal para registrar lectura -->
 <app-pop-up [open]="isReadingModalOpen" [title]="'Registrar Lectura del Contador'" [maxWidth]="'max-w-xl'" [contentPadding]="'px-6 py-6'">
         <form [formGroup]="readingForm" class="space-y-6">
+          <!-- Última Lectura (Info Card) -->
+          @if (lastreadingAssignment()) {
+          <div class="relative overflow-hidden bg-gradient-to-br from-blue-500/10 via-cyan-500/10 to-teal-500/10 dark:from-blue-500/5 dark:via-cyan-500/5 dark:to-teal-500/5 rounded-xl border border-blue-500/20 dark:border-blue-500/30 backdrop-blur-md p-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center backdrop-blur-md border border-blue-500/30 shadow-lg shadow-blue-500/10">
+                <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+              </div>
+              <div class="flex-1">
+                <p class="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-1">
+                  Última Lectura Registrada
+                </p>
+                <p class="text-2xl font-bold text-gray-800 dark:text-gray-200">
+                  {{ lastreadingAssignment() }} <span class="text-base text-gray-600 dark:text-gray-400">m³</span>
+                </p>
+              </div>
+              <div class="hidden sm:block">
+                <div class="w-1 h-12 bg-gradient-to-b from-blue-500/30 to-cyan-500/30 rounded-full"></div>
+              </div>
+            </div>
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
+          </div>
+          }
+
           <!-- Metros Cúbicos -->
           <div>
             <label for="lectura" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
-              Metros Cúbicos <span class="text-red-500">*</span>
+              Nueva Lectura (Metros Cúbicos) <span class="text-red-500">*</span>
             </label>
             <input
               id="lectura"
@@ -509,18 +534,29 @@
               formControlName="lectura"
               [disabled]="isCreatingReading()"
               placeholder="Ingrese la lectura en metros cúbicos"
-              min="0"
+              [min]="lastreadingAssignment() || 0"
               step="0.01"
               class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 disabled:opacity-50 disabled:cursor-not-allowed"
             />
             @if (readingForm.get('lectura')?.invalid && readingForm.get('lectura')?.touched) {
-            <p class="mt-2 text-sm text-red-500">
+            <p class="mt-2 text-sm text-red-500 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
               @if (readingForm.get('lectura')?.errors?.['required']) {
-              La lectura es requerida.
+                La lectura es requerida.
               }
               @if (readingForm.get('lectura')?.errors?.['min']) {
-              La lectura debe ser mayor o igual a 0.
+                La lectura debe ser mayor o igual a {{ lastreadingAssignment() || 0 }} m³ (última lectura registrada).
               }
+            </p>
+            }
+            @if (lastreadingAssignment() && readingForm.get('lectura')?.valid && readingForm.get('lectura')?.value) {
+            <p class="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              Consumo: {{ (readingForm.get('lectura')?.value - lastreadingAssignment()) }} m³
             </p>
             }
           </div>
@@ -638,6 +674,22 @@
       <!-- Modal Body -->
       <div class="px-6 py-3">
         <!-- Templates para las columnas -->
+
+            <ng-template #actionsTemplate let-row>
+      <div class="flex items-center space-x-2">
+        <button
+          type="button"
+          (click)="handleTableAction({ action: 'history', row })"
+          class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-purple-600/50 text-purple-500 hover:bg-purple-600/10 focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-colors duration-200 cursor-pointer"
+          title="Ver historial de lectura"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </button>
+      </div>
+    </ng-template>
         <ng-template #consumoAnormalTpl let-row>
           <span
             class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium"
@@ -695,7 +747,7 @@
             'consumoAnormal': consumoAnormalTpl,
             'fechaLectura': fechaTpl
           }"
-          [actionTemplate]="emptyActionsTpl"
+          [actionTemplate]="actionsTemplate"
           [showExportButton]="true"
           [exportFileName]="'historial-lecturas-' + serialCounter()"
           [showColumnFilters]="false"

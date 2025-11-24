@@ -11,6 +11,7 @@ import {
   HostListener,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Router, ActivatedRoute } from '@angular/router';
 import {
   FormBuilder,
   FormGroup,
@@ -45,26 +46,20 @@ import { PopupComponent } from '@shared/components/popUp';
   templateUrl: './counter-enterprice.html',
 })
 export class CounterEnterprice implements OnInit {
-  // Modal properties
+
   isModalOpen = signal<boolean>(false);
   isCreating = signal<boolean>(false);
-
-  // Reading modal properties
   isReadingModalOpen = signal<boolean>(false);
   isCreatingReading = signal<boolean>(false);
-
-  // History modal properties
   isHistoryModalOpen = signal<boolean>(false);
-
-  // Screen width for responsive modal positioning
   screenWidth = signal<number>(0);
 
-  @HostListener('window:resize', ['$event'])
-  onResize(event: any) {
-    if (this.isBrowser) {
-      this.screenWidth.set(window.innerWidth);
-    }
-  }
+  // @HostListener('window:resize', ['$event'])
+  // onResize(event: any) {
+  //   if (this.isBrowser) {
+  //     this.screenWidth.set(window.innerWidth);
+  //   }
+  // }
 
   // Counter form properties
   counterForm!: FormGroup;
@@ -77,6 +72,7 @@ export class CounterEnterprice implements OnInit {
   counterDepartmentsLoading = signal<boolean>(false);
   counterCitiesLoading = signal<boolean>(false);
   counterCorregimientosLoading = signal<boolean>(false);
+  lastreading = signal<number>(0);
 
   protected readonly fb = inject(FormBuilder);
   protected readonly locationService = inject(LocationService);
@@ -88,6 +84,8 @@ export class CounterEnterprice implements OnInit {
   protected readonly toast = inject(ToastService);
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
+  protected readonly router = inject(Router);
+  protected readonly route = inject(ActivatedRoute);
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -112,11 +110,16 @@ export class CounterEnterprice implements OnInit {
     return id;
   });
 
+ readonly lastreadingAssignment = computed(() => {
+  const lecturaData = this.readingCounterEnterprice.value()?.response?.[0]?.lectura
+    return lecturaData || 0;
+  });
+
   constructor() {
     // Inicializar el ancho de pantalla
-    if (this.isBrowser && typeof window !== 'undefined') {
-      this.screenWidth.set(window.innerWidth);
-    }
+    // if (this.isBrowser && typeof window !== 'undefined') {
+    //   this.screenWidth.set(window.innerWidth);
+    // }
 
     effect(() => {
       const deptId = this.selectedCounterDepartmentId();
@@ -137,6 +140,10 @@ export class CounterEnterprice implements OnInit {
       }
     });
 
+    // effect(() => {
+    //   console.log("esta es la data mi negro d ela ultima lecturta", this.readingCounterEnterprice.value()?.response?.[0]?.lectura)
+    // })
+
   }
 
   dataCounterEnterprice = rxResource({
@@ -155,6 +162,12 @@ export class CounterEnterprice implements OnInit {
           })
         );
     },
+  });
+
+  loadTypeCounter = rxResource({
+    stream: () => {
+      return this.tipoContadorService.getAllTypeCounters();
+    }
   });
 
   ngOnInit(): void {
@@ -217,33 +230,27 @@ export class CounterEnterprice implements OnInit {
     return this.dataCounterEnterprice.value()?.response?.contador?.serial || '';
   });
 
-  // Calcular el margen izquierdo basado en el ancho del sidenav
   getHistoryModalLeftMargin = computed(() => {
     const width = this.screenWidth();
     if (width <= 768) {
-      return '0px'; // En móvil, sin margen
+      return '0px';
     } else {
-      return '5rem'; // En desktop, margen del sidenav (80px)
+      return '5rem';
     }
   });
 
-  // Calcular el ancho del overlay del modal
   getHistoryModalWidth = computed(() => {
     const width = this.screenWidth();
     if (width <= 768) {
-      return '100%'; // En móvil, ancho completo
+      return '100%';
     } else {
-      return 'calc(100% - 5rem)'; // En desktop, ancho menos el sidenav
+      return 'calc(100% - 5rem)';
     }
   });
 
-  loadTypeCounter = rxResource({
-    stream: () => {
-      return this.tipoContadorService.getAllTypeCounters();
-    },
-  });
 
-  // Paginación para historial
+
+
   readonly historyPaginationParams = signal<IPaginationParams>({
     page: 0,
     size: 5,
@@ -267,7 +274,7 @@ export class CounterEnterprice implements OnInit {
     stream: ({ params }) => {
       const { serial, empresaId, pagination } = params;
       if (!serial || !empresaId) {
-        return EMPTY;
+        return of(null);
       }
       return this.counterEnterpriceService.getReadingsByEnterpricePaginated(
         empresaId,
@@ -545,5 +552,11 @@ export class CounterEnterprice implements OnInit {
           this.toast.error('Error', 'No se pudo registrar la lectura');
         }
       });
+  }
+
+  handleTableAction(event: { action: string; row: any }): void {
+    if (event.action === 'history') {
+      this.router.navigate(['/shell/reading/history-reading', event.row.id]);
+    }
   }
 }

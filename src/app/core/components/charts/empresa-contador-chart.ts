@@ -2,7 +2,6 @@ import { DecimalPipe, isPlatformBrowser, registerLocaleData } from '@angular/com
 import { AfterViewInit, ChangeDetectionStrategy, Component, computed, inject, OnDestroy, PLATFORM_ID, signal } from '@angular/core';
 import localeEs from '@angular/common/locales/es';
 import { Subscription } from 'rxjs';
-import { ColombianCurrencyPipe } from '@shared/pipes/colombian-currency.pipe';
 import { ClientesKpiService } from '@services/clientes-kpi.service';
 import { IEmpresaContadorChartData } from '@interfaces/IEmpresaContadorConsumption';
 
@@ -97,26 +96,26 @@ interface ColumnChartOptions {
 @Component({
   selector: 'app-empresa-contador-chart',
   standalone: true,
-  imports: [DecimalPipe, ColombianCurrencyPipe],
+  imports: [DecimalPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 <div class="relative z-10 w-full shadow-sm rounded-lg bg-white/20 dark:bg-slate-800/20 backdrop-blur-2xl p-4 md:p-6">
   <div class="flex justify-between mb-5">
     <div>
-      <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Consumo Empresa</h5>
-      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Consumo y facturación de empresa por mes</p>
+      <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Consumo Empresa vs Clientes</h5>
+      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Comparación entre consumo de empresa y consumo de clientes</p>
     </div>
   </div>
 
   @if (chartData() && chartData()!.xAxis.length > 0) {
     <div class="grid grid-cols-2 pb-4 mb-4 border-b border-gray-200 dark:border-gray-700">
       <dl class="flex items-center">
-        <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">Total Consumo:</dt>
-        <dd class="text-gray-900 dark:text-white text-sm font-semibold">{{ totalConsumo() | number:'1.0-0':'es-CO' }} m³</dd>
+        <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">Total Empresa:</dt>
+        <dd class="text-gray-900 dark:text-white text-sm font-semibold">{{ totalConsumoEmpresa() | number:'1.0-0':'es-CO' }} m³</dd>
       </dl>
       <dl class="flex items-center justify-end">
-        <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">Total Facturado:</dt>
-        <dd class="text-gray-900 dark:text-white text-sm font-semibold">{{ totalFacturado() | colombianCurrency }}</dd>
+        <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">Total Clientes:</dt>
+        <dd class="text-gray-900 dark:text-white text-sm font-semibold">{{ totalConsumoClientes() | number:'1.0-0':'es-CO' }} m³</dd>
       </dl>
     </div>
 
@@ -240,8 +239,8 @@ export class EmpresaContadorChartComponent implements AfterViewInit, OnDestroy {
   public selectedMonth = 'Todos los meses';
 
   // Propiedades calculadas como signals
-  public totalConsumo = signal<number>(0);
-  public totalFacturado = signal<number>(0);
+  public totalConsumoEmpresa = signal<number>(0);
+  public totalConsumoClientes = signal<number>(0);
 
   // Propiedades para paginación
   public currentPage = signal<number>(0);
@@ -341,8 +340,8 @@ export class EmpresaContadorChartComponent implements AfterViewInit, OnDestroy {
     return {
       xAxis: data.xAxis.slice(start, end),
       yAxis: {
-        consumoM3: data.yAxis.consumoM3.slice(start, end),
-        facturadoPesos: data.yAxis.facturadoPesos.slice(start, end)
+        consumoEmpresa: data.yAxis.consumoEmpresa.slice(start, end),
+        consumoClientes: data.yAxis.consumoClientes.slice(start, end)
       }
     };
   }
@@ -378,11 +377,11 @@ export class EmpresaContadorChartComponent implements AfterViewInit, OnDestroy {
 
   private calculateTotals(data: IEmpresaContadorChartData): void {
     if (data) {
-      const totalConsumo = data.yAxis.consumoM3.reduce((a: number, b: number) => a + b, 0);
-      const totalFacturado = data.yAxis.facturadoPesos.reduce((a: number, b: number) => a + b, 0);
+      const totalEmpresa = data.yAxis.consumoEmpresa.reduce((a: number, b: number) => a + b, 0);
+      const totalClientes = data.yAxis.consumoClientes.reduce((a: number, b: number) => a + b, 0);
 
-      this.totalConsumo.set(totalConsumo);
-      this.totalFacturado.set(totalFacturado);
+      this.totalConsumoEmpresa.set(totalEmpresa);
+      this.totalConsumoClientes.set(totalClientes);
     }
   }
 
@@ -460,12 +459,12 @@ export class EmpresaContadorChartComponent implements AfterViewInit, OnDestroy {
     if (this.chart && data && data.xAxis.length > 0) {
       const newSeries = [
         {
-          name: 'Consumo (m³)',
-          data: data.xAxis.map((x: string, i: number) => ({ x, y: data.yAxis.consumoM3[i] })),
+          name: 'Consumo Empresa (m³)',
+          data: data.xAxis.map((x: string, i: number) => ({ x, y: data.yAxis.consumoEmpresa[i] })),
         },
         {
-          name: 'Facturado (miles $)',
-          data: data.xAxis.map((x: string, i: number) => ({ x, y: Math.round(data.yAxis.facturadoPesos[i] / 1000) })),
+          name: 'Consumo Clientes (m³)',
+          data: data.xAxis.map((x: string, i: number) => ({ x, y: data.yAxis.consumoClientes[i] })),
         }
       ];
 
@@ -489,13 +488,13 @@ export class EmpresaContadorChartComponent implements AfterViewInit, OnDestroy {
 
     const series: ColumnSeries[] = currentData && currentData.xAxis.length > 0 ? [
       {
-        name: 'Consumo (m³)',
-        data: currentData.xAxis.map((x: string, i: number) => ({ x, y: currentData.yAxis.consumoM3[i] })),
+        name: 'Consumo Empresa (m³)',
+        data: currentData.xAxis.map((x: string, i: number) => ({ x, y: currentData.yAxis.consumoEmpresa[i] })),
         color: '#1A56DB',
       },
       {
-        name: 'Facturado (miles $)',
-        data: currentData.xAxis.map((x: string, i: number) => ({ x, y: Math.round(currentData.yAxis.facturadoPesos[i] / 1000) })),
+        name: 'Consumo Clientes (m³)',
+        data: currentData.xAxis.map((x: string, i: number) => ({ x, y: currentData.yAxis.consumoClientes[i] })),
         color: '#FDBA8C',
       },
     ] : [];

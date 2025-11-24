@@ -29,6 +29,7 @@ import {
 import {
   EstratoConcepto
 } from '../../../../core/interfaces/IConceptoEstrato';
+import { BackFill } from "../../components/drag-and-drop/back-fill";
 
 // esto es mala practica, nosotros ya tenemos creado una interface IrateTypes en core/interfaces/IrateTypes.ts
 
@@ -44,7 +45,8 @@ import {
     PaymentPoints,
     DaysValidity,
     CounterEnterprice,
-  ],
+    BackFill
+],
   styleUrls: ['./fee.css'],
   templateUrl: './fee.html',
 })

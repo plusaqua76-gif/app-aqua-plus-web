@@ -153,7 +153,7 @@ export class Account {
     stream: ({ params }) => {
       const { enterpriseId, pagination, filters } = params;
       if (!enterpriseId) {
-        return EMPTY;
+        return of(null);
       }
       return this.accountsService.getAllAccountsByIdPaginated(
         enterpriseId,
