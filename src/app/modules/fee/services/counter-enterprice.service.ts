@@ -4,16 +4,37 @@ import { environment } from '../../../environments/environment.local';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '@interfaces/Iresponse';
 import { CreateCounterEnterprice } from '@interfaces/counter/IcounterEnterprice';
-import { IdEnterprice } from '../../../core/interfaces/IiEnterprice';
 import { IPaginationParams, IPaginatedResponse } from '@interfaces/IpaginatedResponse';
+import { ParamsEnterprice } from '@interfaces/params-enterprice/params-enterprice';
+import { ParamKey } from '@interfaces/params-enterprice/param-key';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CounterEnterpriceService {
+
   readonly http = inject(HttpClient);
   readonly platformId = inject(PLATFORM_ID);
   readonly apiUrl = `${environment.apiUrl}`;
+
+  createParamsEnterprice(valueKey: ParamKey): Observable<ParamKey>{
+    return this.http.post<ParamKey>(
+      `${this.apiUrl}/parametros-empresa`,
+      valueKey
+    );
+  }
+
+  getparamasEnterpriceById(idEnterprice: number): Observable<ApiResponse<ParamsEnterprice[]>> {
+    return this.http.get<ApiResponse<ParamsEnterprice[]>>(
+      `${this.apiUrl}/parametros-empresa/${idEnterprice}`
+    );
+  }
+
+  getParamsEnterprice(idEmpresa: number, key: string): Observable<ApiResponse<ParamsEnterprice[]>> {
+    const url = `${this.apiUrl}/parametros-empresa/empresa/${idEmpresa}/parametro`;
+    const params = new HttpParams().set('llave', key);
+    return this.http.get<ApiResponse<ParamsEnterprice[]>>(url, { params });
+  }
 
   getCounterEnterprice(idEmpresa: number): Observable<ApiResponse<any>> {
     return this.http.get<ApiResponse<any>>(

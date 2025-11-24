@@ -70,7 +70,7 @@ interface ChartOptions {
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="bg-white rounded-lg p-1 w-lg h-48">
+    <div class="bg-white rounded-lg p-1 w-[740px] h-48">
       <div class="flex items-center">
       </div>
       <div class="relative">
@@ -125,6 +125,16 @@ export class LegendsHistoryBill implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.chart?.destroy();
   }
+  //esto aqui es importante mi pez, si se llega a modificar tener my en cuenta la estructura de la data que toma
+  // Método para calcular el máximo valor del eje Y basándose en los datos
+  private calculateMaxYValue(historyData: any[]): number {
+    if (historyData.length === 0) return 35; // Valor por defecto si no hay datos
+
+    const maxConsumo = Math.max(...historyData.map(item => item.consumo || 0));
+    // Agregar un margen del 20% al valor máximo y redondear hacia arriba
+    const maxWithMargin = maxConsumo * 1.2;
+    return Math.ceil(maxWithMargin / 5) * 5; // Redondear a múltiplos de 5
+  }
 
   // Método para procesar los datos históricos (cronológicamente de atrás para adelante)
   private processHistoryData(historyData: any[]) {
@@ -151,9 +161,22 @@ export class LegendsHistoryBill implements AfterViewInit, OnDestroy {
   private updateChartWithHistoryData(historyData: any[]): void {
     if (!this.chart || historyData.length === 0) return;
     const processedData = this.processHistoryData(historyData);
+    const maxYValue = this.calculateMaxYValue(historyData);
     this.chart.updateOptions({
       xaxis: {
         categories: processedData.categories
+      },
+      yaxis: {
+        show: true,
+        min: 0,
+        max: maxYValue,
+        tickAmount: 4,
+        labels: {
+          style: {
+            colors: '#6B7280',
+            fontSize: '11px'
+          }
+        }
       },
       series: [{
         name: 'Consumo m³',
@@ -206,7 +229,7 @@ export class LegendsHistoryBill implements AfterViewInit, OnDestroy {
       yaxis: {
         show: true,
         min: 0,
-        max: 35,
+        max: this.calculateMaxYValue(this.historyData()),
         tickAmount: 4,
         labels: {
           style: {

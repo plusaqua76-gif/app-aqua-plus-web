@@ -38,7 +38,7 @@
       </div>
 
       <div class="header-right">
-        <div class="invoice-number">N°: {{ billData()?.empresa?.codigo }}</div>
+        <div class="invoice-number">N°: {{ billData()?.factura?.codigo }}</div>
       </div>
     </div>
 
@@ -55,7 +55,7 @@
                 />
               </svg>
             </div>
-            <span class="titleTwo">Cliente e Historial de consumo</span>
+            <span class="titleTwo">Cliente, Consumo y Contador</span>
           </div>
           <div class="header-column">
             <div class="column-icon">
@@ -65,7 +65,7 @@
                 />
               </svg>
             </div>
-            <span class="titleTwo">Datos del consumo y el contador</span>
+            <span class="titleTwo">Contenido Adicional</span>
           </div>
         </div>
 
@@ -73,42 +73,91 @@
         <div class="unified-card-content">
           <!-- Columna izquierda con dos filas -->
           <div class="left-section">
-            <!-- Primera fila: Información del cliente -->
+            <!-- Primera fila: Información del cliente con tres columnas -->
             <div class="client-info-section">
               <div class="client-content">
-                <div class="client-info-item">
-                  <span class="label">Nombre:</span>
-                  <span class="value">
-                    {{ billData()?.cliente?.primerNombre || '' }} {{
-                    billData()?.cliente?.segundoNombre || '' }} {{
-                    billData()?.cliente?.primerApellido || '' }} {{
-                    billData()?.cliente?.segundoApellido || '' }}
-                  </span>
-                  <div class="estrato-badge">
-                    Estrato {{ billData()?.cliente?.estrato }}
+                <!-- Columna 1: Información del cliente -->
+                <div class="client-column">
+                  <div class="client-info-item">
+                    <span class="label">Nombre:</span>
+                    <span class="value">
+                      {{ billData()?.cliente?.primerNombre || '' }} {{
+                      billData()?.cliente?.segundoNombre || '' }} {{
+                      billData()?.cliente?.primerApellido || '' }} {{
+                      billData()?.cliente?.segundoApellido || '' }}
+                    </span>
+                    <div class="estrato-badge">
+                      Estrato {{ billData()?.cliente?.estrato }}
+                    </div>
+                  </div>
+                  <div class="client-info-item">
+                    <span class="label">Número de documento:</span>
+                    <span class="value"
+                      >{{ billData()?.cliente?.numeroCedula || '' }}</span
+                    >
+                  </div>
+                  <div class="client-info-item">
+                    <span class="label">Código Cliente:</span>
+                    <span class="value"
+                      >{{ billData()?.cliente?.codigo || '' }}</span
+                    >
+                  </div>
+                  <div class="client-info-item">
+                    <span class="label">Dirección:</span>
+                    <span class="value">
+                      {{ billData()?.cliente?.direccion?.departamentoNombre || ''
+                      }}, {{ billData()?.cliente?.direccion?.ciudadNombre || ''
+                      }}, {{ billData()?.cliente?.direccion?.corregimientoNombre
+                      || '' }} {{ billData()?.cliente?.direccion?.descripcion ||
+                      '' }}
+                    </span>
                   </div>
                 </div>
-                <div class="client-info-item">
-                  <span class="label">Número de documento:</span>
-                  <span class="value"
-                    >{{ billData()?.cliente?.numeroCedula || '' }}</span
-                  >
-                </div>
-                <div class="client-info-item">
-                  <span class="label">Código Cliente:</span>
-                  <span class="value"
-                    >{{ billData()?.cliente?.codigo || '' }}</span
-                  >
-                </div>
-                <div class="client-info-item">
-                  <span class="label">Dirección:</span>
-                  <span class="value">
-                    {{ billData()?.cliente?.direccion?.departamentoNombre || ''
-                    }}, {{ billData()?.cliente?.direccion?.ciudadNombre || ''
-                    }}, {{ billData()?.cliente?.direccion?.corregimientoNombre
-                    || '' }} {{ billData()?.cliente?.direccion?.descripcion ||
-                    '' }}
-                  </span>
+
+                <!-- Columna 2: Todos los datos de consumo y contador en dos sub-columnas -->
+                <div class="client-column consumption-two-cols">
+                  <div class="consumption-item">
+                    <div class="item-label">Periodo Facturado</div>
+                    <div class="item-value">
+                      {{ getMonthName(billData()?.factura?.fechaEmision) }}
+                    </div>
+                  </div>
+                  <div class="consumption-item">
+                    <div class="item-label">Lectura</div>
+                    <div class="item-value">
+                      {{ billData()?.factura?.lectura?.lectura || '' }} m³
+                    </div>
+                  </div>
+                  <div class="consumption-item">
+                    <div class="item-label">Fecha Lectura</div>
+                    <div class="item-value">
+                      {{ billData()?.factura?.lectura?.fechaLectura }}
+                    </div>
+                  </div>
+                  <div class="consumption-item">
+                    <div class="item-label">Fecha de Emision</div>
+                    <div class="item-value">
+                      {{ billData()?.factura?.fechaEmision }}
+                    </div>
+                  </div>
+                  <div class="consumption-item">
+                    <div class="item-label">Contador</div>
+                    <div class="item-value">
+                      {{ billData()?.contador?.tipoContadorNombre }}
+                    </div>
+                  </div>
+                  <div class="consumption-item">
+                    <div class="item-label">Serial</div>
+                    <div class="item-value">{{ billData()?.contador?.serial }}</div>
+                  </div>
+                  <div class="consumption-item">
+                    <div class="item-label">Dirección</div>
+                    <div class="item-value">{{ getDirectionCompleteCounter() }}</div>
+                  </div>
+                  <div class="consumption-item">
+                    <div class="item-label">Valor Facturado:</div>
+                    <div class="item-value">{{ billData()?.factura?.lectura?.precio | colombianCurrency }}</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -124,56 +173,9 @@
             </div>
           </div>
 
-          <!-- Columna derecha: Datos del consumo y contador -->
+          <!-- Columna derecha: Espacio para contenido adicional -->
           <div class="right-section">
-            <div class="consumption-grid">
-              <div class="consumption-item">
-                <div class="item-label">Periodo Facturado</div>
-                <div class="item-value">
-                  {{ getMonthName(billData()?.factura?.fechaEmision) }}
-                </div>
-              </div>
-              <div class="consumption-item">
-                <div class="item-label">Lectura</div>
-                <div class="item-value">
-                  {{ billData()?.factura?.lectura?.lectura || '' }} m³
-                </div>
-              </div>
-              <div class="consumption-item">
-                <div class="item-label">Fecha Lectura</div>
-                <div class="item-value">
-                  {{ billData()?.factura?.lectura?.fechaLectura }}
-                </div>
-              </div>
-              <div class="consumption-item">
-                <div class="item-label">Fecha de Emision</div>
-                <div class="item-value">
-                  {{ billData()?.factura?.fechaEmision }}
-                </div>
-              </div>
-              <div class="consumption-item">
-                <div class="item-label">Contador</div>
-                <div class="item-value">
-                  {{ billData()?.contador?.tipoContadorNombre }}
-                </div>
-              </div>
-              <div class="consumption-item">
-                <div class="item-label">Serial</div>
-                <div class="item-value">{{ billData()?.contador?.serial }}</div>
-              </div>
-            </div>
-
-            <div class="consumption-item" style="margin-top: 15px">
-              <div class="item-label">Dirección</div>
-              <div class="item-value">{{ getDirectionCompleteCounter() }}</div>
-            </div>
-
-            <div class="total-section">
-              <div class="total-label">Valor Facturado:</div>
-              <div class="total-amount">
-                {{ billData()?.factura?.lectura?.precio | colombianCurrency }}
-              </div>
-            </div>
+            <!-- Aquí irá el contenido adicional -->
           </div>
         </div>
         <!-- Fin del contenido de la card -->
@@ -368,12 +370,48 @@
           </div>
         </div>
       </div>
+      <div class="my-3 px-4 bg-white rounded-lg border border-[#dc262682]">
+        <div class="w-full p-1 border-b border-[#dc262682]">
+          <h3 class="text-[12px] text-gray-800 text-center">Información de Deuda</h3>
+        </div>
+        <div class="grid grid-cols-8">
+          <div class="flex flex-col gap-1 text-center border-r border-[#dc262682] px-2 pb-2  pt-2">
+            <div class="text-[10px] font-semibold text-gray-600">Fecha abono</div>
+            <div class="text-xs font-medium text-gray-800">datadeuda</div>
+          </div>
+          <div class="flex flex-col gap-1 text-center border-r border-[#dc262682] px-2 pb-2  pt-2">
+          <div class="text-[10px] font-semibold text-gray-600">Numero de cuotas</div>
+          <div class="text-xs font-medium text-gray-800">datadeuda</div>
+        </div>
+          <div class="flex flex-col gap-1 text-center border-r border-[#dc262682] px-2 pb-2  pt-2">
+          <div class="text-[10px] font-semibold text-gray-600">Valor cuota</div>
+          <div class="text-xs font-medium text-gray-800">datadeuda</div>
+        </div>
+          <div class="flex flex-col gap-1 text-center border-r border-[#dc262682] px-2 pb-2  pt-2">
+          <div class="text-[10px] font-semibold text-gray-600">Cuotas canceladas</div>
+          <div class="text-xs font-medium text-gray-800">datadeuda</div>
+        </div>
+          <div class="flex flex-col gap-1 text-center border-r border-[#dc262682] px-2 pb-2  pt-2">
+          <div class="text-[10px] font-semibold text-gray-600">Abonos realizados</div>
+          <div class="text-xs font-medium text-gray-800">datadeuda</div>
+        </div>
+          <div class="flex flex-col gap-1 text-center border-r border-[#dc262682] px-2 pb-2  pt-2">
+          <div class="text-[10px] font-semibold text-gray-600">Cuotas pendientes</div>
+          <div class="text-xs font-medium text-gray-800">datadeuda</div>
+        </div>
+          <div class="flex flex-col gap-1 text-center border-r border-[#dc262682] px-2 pb-2  pt-2">
+          <div class="text-[10px] font-semibold text-gray-600">Cuotas canceladas</div>
+          <div class="text-xs font-medium text-gray-800">datadeuda</div>
+        </div>
+          <div class="flex flex-col gap-1 text-center  px-2 pb-2  pt-2">
+            <div class="text-[10px] font-semibold text-gray-600">Nuevo saldo</div>
+            <div class="text-xs font-medium text-gray-800">datadeuda</div>
+          </div>
+        </div>
+      </div>
 
-      <!-- Línea divisoria -->
       <div class="dashed-line"></div>
-
       <div class="bottom-section">
-        <!-- Columna izquierda: Información de pago -->
         <div class="consumption-summary">
           <div class="card-header">
             <div class="w-full">
@@ -415,36 +453,15 @@
               </span>
             </div>
             <div
-              class="due-date"
-              style="
-                color: #d32f2f;
-                background: rgba(211, 47, 47, 0.1);
-                border: 1px solid #d32f2f;
-                margin-top: 55px;
-              "
+              class="due-date text-[#d32f2f] bg-[#d32f2f1a] border border-[#d32f2f] mt-[105px]"
             >
-              <span style="color: #d32f2f">Fecha vencimiento</span>
-              <span style="color: #d32f2f; font-weight: bold"
-                >{{ formatDate(billData()?.factura?.fechaFin) || '' }}</span
-              >
-            </div>
-            <div
-              class="due-date"
-              style="
-                background: rgba(211, 47, 47, 0.1);
-                border: 1px solid #d32f2f;
-                margin-top: 10px;
-              "
-            >
-              <span style="color: #d32f2f">Valor de la deuda:</span>
-              <span style="color: #d32f2f; font-weight: bold"
-                >{{ valorDeuda() | colombianCurrency }}</span
+              <span class="text-[#d32f2f]">Fecha vencimiento</span>
+              <span class="text-[#d32f2f] font-bold"
+              >{{ formatDate(billData()?.factura?.fechaFin) || '' }}</span
               >
             </div>
           </div>
         </div>
-
-        <!-- Columna derecha: Valor total de la factura -->
         <div class="payment-summary">
           <div class="card-header">
             <div class="w-full">
@@ -456,8 +473,6 @@
               </svg>
             </div>
           </div>
-
-          <!-- Fecha de vencimiento -->
           <div
             style="
               background: rgba(35, 136, 255, 0.1);

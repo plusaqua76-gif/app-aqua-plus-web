@@ -189,13 +189,10 @@ export class CreateClient implements OnInit {
   ngOnInit(): void {
     this.initializeForm();
     this.initializeCounterForm();
-
-    // Prellenar con los datos del usuario al cargar
     this.preloadUserData();
-
     this.loadDepartments();
     this.loadCounterDepartments();
-    this.loadEmployees(); // Cargar empleados al inicializar
+    this.loadEmployees();
 
     this.registerForm
       .get('idDepartamento')
@@ -275,8 +272,8 @@ export class CreateClient implements OnInit {
       segundoApellido: [''],
       primerNombre: ['', Validators.required],
       segundoNombre: [''],
-      idDepartamento: ['', Validators.required],
-      idCiudad: ['', Validators.required],
+      idDepartamento: [{ value: '', disabled: true }, Validators.required],
+      idCiudad: [{ value: '', disabled: true }, Validators.required],
       idCorregimiento: [''],
       direccion: [''],
       idEmpleadoEmpresa: ['', Validators.required],
@@ -553,7 +550,8 @@ export class CreateClient implements OnInit {
       return;
     }
 
-    const formData = this.registerForm.value;
+    // Usar getRawValue() para incluir campos deshabilitados
+    const formData = this.registerForm.getRawValue();
     const usuarioCreacion = this.usuarioCreacion();
 
     // Extraer solo los IDs de los contadores seleccionados
@@ -569,6 +567,7 @@ export class CreateClient implements OnInit {
       segundoApellido: (formData.segundoApellido || '').substring(0, 50),
       telefono: (formData.telefono || '').toString().substring(0, 15),
       correo: (formData.correo || '').substring(0, 100),
+      idDepartamento: formData.idDepartamento ? Number(formData.idDepartamento) : 0,
       idCiudad: formData.idCiudad ? Number(formData.idCiudad) : 0,
       idCorregimiento: formData.idCorregimiento ? Number(formData.idCorregimiento) : null,
       descripcionDireccion: (formData.direccion || '').substring(0, 255),
@@ -772,7 +771,7 @@ export class CreateClient implements OnInit {
         tarifasArray.push({
           idContador:  contadorConfig.contadorId ,
           idTipoTarifa: tarifa.idTipoTarifa,
-          aplica: false
+          aplica: true
         });
       });
     });

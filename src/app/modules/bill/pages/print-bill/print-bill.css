@@ -1,3 +1,46 @@
+/* Animaciones para el botón de voltear */
+@keyframes border-glow-translate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes border-glow-scale {
+  0% {
+    transform: translateX(-50%) scale(1, 1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1, 1.5);
+  }
+  100% {
+    transform: translateX(-50%) scale(1, 1);
+  }
+}
+
+@keyframes icon-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(10deg);
+  }
+}
+
+@keyframes icon-shine {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 .form-group {
   position: relative;
   margin-bottom: 20px;
@@ -180,4 +223,84 @@ input[type="number"]::-webkit-inner-spin-button {
     padding: 16px;
     margin: 0 16px;
   }
+}
+
+/* Estilos para el efecto de rotación 3D de la factura */
+.flip-container {
+  perspective: 2000px;
+  width: 100%;
+  min-height: 600px;
+}
+
+.flip-container.flipped .flipper {
+  transform: rotateY(180deg);
+}
+
+.flipper {
+  position: relative;
+  width: 100%;
+  transition: transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.front, .back {
+  width: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  position: relative;
+}
+
+.front {
+  z-index: 2;
+  transform: rotateY(0deg);
+}
+
+.back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  transform: rotateY(180deg);
+  z-index: 1;
+}
+
+.flip-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.flip-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.flip-button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.flip-button:active {
+  transform: scale(0.95);
+}
+
+/* Animación del icono */
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.flip-button.flipping svg {
+  animation: rotate 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
 }

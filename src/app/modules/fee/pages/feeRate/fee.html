@@ -1,6 +1,4 @@
-<!-- Sistema de Navegación por Tabs -->
 <div class="px-4 sm:px-6 lg:px-8 py-6">
-  <!-- Header -->
   <div class="mb-6">
     <h1
       class="text-2xl sm:text-3xl font-bold text-gray-700 dark:text-gray-200 mb-4"
@@ -11,13 +9,10 @@
       Sistema integral para la administración de tarifas y configuraciones
     </p>
   </div>
-
-  <!-- Tabs Navigation -->
   <div class="mb-6">
     <div
       class="relative overflow-hidden shadow-xl sm:rounded-2xl bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl border border-white/20 dark:border-slate-700/30"
     >
-      <!-- Tab Headers -->
       <div
         class="flex overflow-x-auto scrollbar-hide border-b border-white/20 dark:border-slate-700/30"
       >
@@ -54,7 +49,7 @@
                     'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600')"
         >
           <i class="fas fa-calendar-check mr-2"></i>
-          Días de Validez
+          Parametros Empresa
         </button>
 
         <button
@@ -68,11 +63,21 @@
           <i class="fas fa-building mr-2"></i>
           Contador Empresarial
         </button>
+
+        <button
+          type="button"
+          (click)="selectTab('app-back-fill')"
+          [class]="'hidden md:flex flex-shrink-0 px-6 py-4 text-sm font-medium transition-all duration-300 border-b-2 ' +
+                   (activeTab() === 'app-back-fill' ?
+                    'border-blue-500 text-blue-600 dark:text-blue-400 bg-white/20 dark:bg-slate-700/20' :
+                    'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600')"
+        >
+          <i class="fas fa-file-invoice mr-2"></i>
+          Campaña Factura
+        </button>
       </div>
     </div>
   </div>
-
-  <!-- Tab Content -->
   <div class="relative">
     @if (activeTab() === 'fee-rate') {
     <div class="animate-fadeIn">
@@ -83,7 +88,6 @@
           <div class="p-6 sm:p-8">
             <div class="flex justify-center">
               <div class="w-full max-w-2xl space-y-6">
-                <!-- Tipo de tarifa -->
                 <div>
                   <label
                     class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
@@ -162,8 +166,6 @@
                     </button>
                   </div>
                 </div>
-
-                <!-- Tipo de concepto -->
                 <div>
                   <label
                     class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
@@ -243,8 +245,6 @@
                     </button>
                   </div>
                 </div>
-
-                <!-- Valor tarifa concepto -->
                 <div>
                   <label
                     class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
@@ -304,8 +304,6 @@
                       estrato' }}
                     </button>
                   </div>
-
-                  <!-- Checkbox para indCalcularMc -->
                   <div class="mt-4">
                     <label
                       class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
@@ -795,7 +793,16 @@
     <div class="animate-fadeIn">
       <app-days-validity></app-days-validity>
     </div>
-    } @if (activeTab() === 'counter-enterprice') {
+    }
+
+   @if(activeTab() === 'app-back-fill') {
+    <div class="animate-fadeIn">
+      <app-back-fill></app-back-fill>
+    </div>
+
+   }
+
+    @if (activeTab() === 'counter-enterprice') {
     <div class="animate-fadeIn">
       <app-counter-enterprice></app-counter-enterprice>
     </div>

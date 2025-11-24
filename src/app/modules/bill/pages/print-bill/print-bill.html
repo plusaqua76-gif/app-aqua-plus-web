@@ -128,19 +128,112 @@
   }
 
   <div class="mx-auto max-w-7xl px-4 py-8">
-    <div class="mb-8">
-      <div #billContainer>
-        @if (isDataReady() && billDetails.value()?.response) {
-          <app-pdf-bill
-            [selectedStatus]="selectedStatus()"
-            [billData]="billDetails.value()?.response ?? null"
-            [valorDeuda]="valorDeuda()">
-          </app-pdf-bill>
-        } @else if (!isLoading() && !hasErrors()) {
-          <div class="p-8 text-center text-gray-400">
-            <p>No se encontraron datos de la factura</p>
+    <!-- Botón para voltear la factura -->
+    <div class="flex justify-end mb-4">
+      <button
+        (click)="toggleFlip()"
+        class="group relative dark:bg-neutral-800 bg-neutral-200 rounded-full p-px overflow-hidden"
+        [class.flipping]="isFlipped()"
+      >
+        <span class="absolute inset-0 rounded-full overflow-hidden">
+          <span class="inset-0 absolute pointer-events-none select-none">
+            <span
+              class="block -translate-x-1/2 -translate-y-1/3 size-24 blur-xl"
+              style="background: linear-gradient(135deg, rgb(59, 130, 246), rgb(37, 99, 235), rgb(29, 78, 216));"
+            ></span>
+          </span>
+        </span>
+
+        <span
+          class="inset-0 absolute pointer-events-none select-none"
+          style="animation: 10s ease-in-out 0s infinite alternate none running border-glow-translate;"
+        >
+          <span
+            class="block z-0 h-full w-12 blur-xl -translate-x-1/2 rounded-full"
+            style="animation: 10s ease-in-out 0s infinite alternate none running border-glow-scale;
+                   background: linear-gradient(135deg, rgb(59, 130, 246), rgb(37, 99, 235), rgb(29, 78, 216));"
+          ></span>
+        </span>
+
+        <span
+          class="flex items-center justify-center gap-2 relative z-[1] dark:bg-neutral-950/90 bg-neutral-50/90 rounded-full py-2 px-4 pl-3 w-full"
+        >
+          <span
+            class="relative group-hover:scale-110 transition-transform group-hover:rotate-[360deg] duration-500"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              class="opacity-80 dark:opacity-100 transition-transform duration-500"
+              [class.rotate-180]="isFlipped()"
+              style="animation: 14s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0s infinite alternate none running icon-rotate;"
+            >
+              <path
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                stroke="url(#paint0_linear_flip)"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <defs>
+                <linearGradient
+                  id="paint0_linear_flip"
+                  x1="4"
+                  y1="4"
+                  x2="20"
+                  y2="20"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop stop-color="rgb(59, 130, 246)"></stop>
+                  <stop offset="0.5" stop-color="rgb(37, 99, 235)"></stop>
+                  <stop offset="1" stop-color="rgb(29, 78, 216)"></stop>
+                </linearGradient>
+              </defs>
+            </svg>
+            <span
+              class="rounded-full size-11 absolute opacity-0 dark:opacity-30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-lg"
+              style="animation: 14s ease-in-out 0s infinite alternate none running icon-shine;
+                     background: linear-gradient(135deg, rgb(96, 165, 250), rgb(59, 130, 246), rgb(37, 99, 235), rgb(29, 78, 216));"
+            ></span>
+          </span>
+          <span
+            class="bg-gradient-to-b ml-1.5 dark:from-white dark:to-white/50 from-neutral-950 to-neutral-950/50 bg-clip-text text-xs text-transparent group-hover:scale-105 transition transform-gpu"
+          >
+            {{ isFlipped() ? 'Ver Parte Frontal' : 'Ver Parte Trasera' }}
+          </span>
+        </span>
+      </button>
+    </div>
+
+    <div class="">
+      <!-- Contenedor con efecto de rotación 3D -->
+      <div class="flip-container" [class.flipped]="isFlipped()">
+        <div class="flipper" #billContainer>
+          <!-- Parte frontal -->
+          <div class="front">
+            @if (isDataReady() && billDetails.value()?.response) {
+              <app-pdf-bill
+                [selectedStatus]="selectedStatus()"
+                [billData]="billDetails.value()?.response ?? null"
+                [valorDeuda]="valorDeuda()">
+              </app-pdf-bill>
+            } @else if (!isLoading() && !hasErrors()) {
+              <div class="p-8 text-center text-gray-400">
+                <p>No se encontraron datos de la factura</p>
+              </div>
+            }
           </div>
-        }
+
+          <!-- Parte trasera -->
+          <div class="back">
+            <app-bill-back
+              [templateData]="backTemplateData()">
+            </app-bill-back>
+          </div>
+        </div>
       </div>
     </div>
     <div class="flex justify-center">

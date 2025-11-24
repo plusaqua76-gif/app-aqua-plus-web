@@ -624,7 +624,6 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
          border border-gray-300 dark:border-gray-800
          rounded-2xl shadow-lg"
       >
-        <!-- Logo + marca -->
         <a href="#" class="flex gap-2 items-center p-1">
           <div
             class="w-10 h-10 lg:w-16 lg:h-16 transition-transform duration-300 hover:scale-110"
@@ -639,8 +638,6 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
             >AquaPlus</span
           >
         </a>
-
-        <!-- Toggle (peer) -->
         <input type="checkbox" id="menu-toggle" class="hidden peer" />
 
         <!-- Contenedor colapsable -->

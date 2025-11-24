@@ -3,6 +3,7 @@ import { FormsModule, FormBuilder, ReactiveFormsModule, Validators } from '@angu
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { PdfBill } from "@components/pdf-bill/pdf-bill";
+import { BillBack } from "@components/billBack/bill-back";
 import { PdfService } from "../../../../core/services/pdf.service";
 import { ToastService } from '../../../../core/services/toast.service';
 import { EstadoService } from '../../service/estado.service';
@@ -16,10 +17,12 @@ import { IAbonoFactura, IDeudaCliente } from '@interfaces/IdeudaFactura';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY } from 'rxjs';
 import { ColombianCurrencyPipe } from '@shared/index';
+import { IBillBackResponse } from '@interfaces/bill/Ibill-back';
+import { DocumentAzureBlobService } from '../../../fee/services/document-azure-blob.service';
 
 @Component({
   selector: 'app-print-bill',
-  imports: [PdfBill, FormsModule, ReactiveFormsModule, CommonModule, PopupComponent, ColombianCurrencyPipe],
+  imports: [PdfBill, BillBack, FormsModule, ReactiveFormsModule, CommonModule, PopupComponent, ColombianCurrencyPipe],
   templateUrl: './print-bill.html',
   styleUrl: './print-bill.css'
 })
@@ -29,6 +32,7 @@ export class PrintBill {
   readonly toast = inject(ToastService);
   readonly estadoService = inject(EstadoService);
   readonly billDetailsService = inject(PlazoPagoService);
+  readonly documentService = inject(DocumentAzureBlobService);
   readonly deudaService = inject(DeudaService);
   readonly abonoService = inject(AbonoService);
   readonly tipoDeudaService = inject(TipoDeudaService);
@@ -38,6 +42,15 @@ export class PrintBill {
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
 
+constructor() {
+  effect(() => {
+   console.log("la dta amano que lo que ", this.InvoiceBackTemplate.value())
+  })
+}
+
+
+  isFlipped = signal(false);
+  billBackData = signal<IBillBackResponse | null>(null);
 
   getStatus = rxResource({
     stream: () => this.estadoService.getAllEstado(),
@@ -77,6 +90,18 @@ export class PrintBill {
     },
   });
 
+  InvoiceBackTemplate = rxResource({
+    params: () => {
+      return { empresaId: this.enterpriceId() };
+    },
+    stream: ({ params }) => {
+      if (!params.empresaId) {
+        return EMPTY;
+      }
+      return this.documentService.getInvoiceTemplateByEnterprise(params.empresaId);
+    }
+  });
+
 
   tipoPago: 'total' | 'parcial' | null = null;
   valorPago: number | null = null;
@@ -85,7 +110,8 @@ export class PrintBill {
   isLoading = computed(() => {
     return this.getStatus.isLoading() ||
            this.billDetails.isLoading() ||
-           this.tiposDeuda.isLoading();
+           this.tiposDeuda.isLoading() ||
+           this.InvoiceBackTemplate.isLoading();
   });
 
   // Loading separado solo para deudas (opcional)
@@ -97,7 +123,8 @@ export class PrintBill {
   hasErrors = computed(() => {
     return !!this.getStatus.error() ||
            !!this.billDetails.error() ||
-           !!this.tiposDeuda.error();
+           !!this.tiposDeuda.error() ||
+           !!this.InvoiceBackTemplate.error();
   });
 
   // Computed para verificar errores en deudas (no crítico)
@@ -115,7 +142,8 @@ export class PrintBill {
     const services = [
       !this.getStatus.isLoading(),
       !this.billDetails.isLoading(),
-      !this.tiposDeuda.isLoading()
+      !this.tiposDeuda.isLoading(),
+      !this.InvoiceBackTemplate.isLoading()
     ];
 
     const completedServices = services.filter(Boolean).length;
@@ -257,6 +285,11 @@ export class PrintBill {
       return null;
     }
   });
+
+  readonly enterpriceId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
+  })
 
   readonly nombreUsuario = computed(() => {
     const data = this.userData();
@@ -985,4 +1018,32 @@ export class PrintBill {
     // También intentar recargar deudas aunque no sea crítico
     this.clienteDeudas.reload?.();
   }
+
+  // Método para voltear la factura
+  toggleFlip(): void {
+    this.isFlipped.update(value => !value);
+  }
+
+  // Computed para preparar los datos del back con el contenido HTML de la plantilla
+  backTemplateData = computed(() => {
+    const templateResponse = this.InvoiceBackTemplate.value();
+    const empresaData = this.billDetails.value()?.response?.empresa;
+
+    // Si no hay plantilla o aún está cargando
+    if (!templateResponse?.success || !templateResponse.response || templateResponse.response.length === 0) {
+      return null;
+    }
+
+    // Obtener la primera plantilla del array
+    const template = templateResponse.response[0];
+
+    return {
+      htmlContent: template.contenido,
+      empresa: {
+        nombre: empresaData?.nombre || 'Empresa de Servicios Públicos',
+        nit: empresaData?.nit || '',
+        direccion: empresaData?.direccion?.descripcion || ''
+      }
+    };
+  });
 }

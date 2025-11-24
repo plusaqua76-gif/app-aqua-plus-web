@@ -74,11 +74,11 @@ interface RadialOptions {
   <div class="rounded-lg  bg-white/20 dark:bg-slate-800/20 backdrop-blur-3xl p-3 border border-gray-200 dark:border-gray-600 mb-4">
     <div class="grid grid-cols-2 gap-3 mb-2">
       <dl class="bg-[#212c3c] rounded-lg flex flex-col items-center justify-center h-[78px]">
-        <dt class="w-8 h-8 rounded-full bg-blue-100 dark:bg-gray-500 text-blue-600 dark:text-blue-300 text-sm font-medium flex items-center justify-center mb-1">{{ getVeredasCompletadas() }}</dt>
-        <dd class="text-blue-600 dark:text-blue-300 text-sm font-medium">Completadas</dd>
+        <dt class="w-8 h-8 rounded-full bg-blue-100 dark:bg-gray-500 text-blue-600 dark:text-blue-300 text-sm font-medium flex items-center justify-center mb-1">{{ getTotalPersonasCompletadas() }}</dt>
+        <dd class="text-blue-600 dark:text-blue-300 text-sm font-medium">Leídos</dd>
       </dl>
       <dl class="bg-[#212c3c]  rounded-lg flex flex-col items-center justify-center h-[78px]">
-        <dt class="w-8 h-8 rounded-full bg-orange-100 dark:bg-gray-500 text-orange-600 dark:text-orange-300 text-sm font-medium flex items-center justify-center mb-1">{{ getVeredasPendientes() }}</dt>
+        <dt class="w-8 h-8 rounded-full bg-orange-100 dark:bg-gray-500 text-orange-600 dark:text-orange-300 text-sm font-medium flex items-center justify-center mb-1">{{ getTotalPersonasPendientes() }}</dt>
         <dd class="text-orange-600 dark:text-orange-300 text-sm font-medium">Pendientes</dd>
       </dl>
     </div>
@@ -90,24 +90,24 @@ interface RadialOptions {
     </button>
     <div [class.hidden]="!mostrarDetalles" class="border-gray-200 border-t dark:border-gray-600 pt-3 mt-3 space-y-2">
       <dl class="flex items-center justify-between">
-        <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Personas completadas:</dt>
+        <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Contadores leídos:</dt>
         <dd class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-blue-900 dark:text-blue-300">
           <svg class="w-2.5 h-2.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 14">
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13V1m0 0L1 5m4-4 4 4"/>
-          </svg> {{ cantidad }} personas
+          </svg> {{ getTotalPersonasCompletadas() }} contadores
         </dd>
       </dl>
       <dl class="flex items-center justify-between">
-        <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Personas pendientes:</dt>
+        <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Contadores pendientes:</dt>
         <dd class="bg-orange-100 text-orange-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-orange-900 dark:text-orange-300">
           <svg class="w-2.5 h-2.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 14">
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1v12m0 0L1 9m4 4 4-4"/>
-          </svg> {{ getTotalPersonasPendientes() }} personas
+          </svg> {{ getTotalPersonasPendientes() }} contadores
         </dd>
       </dl>
       <dl class="flex items-center justify-between">
-        <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Total de personas:</dt>
-        <dd class="bg-gray-100 text-gray-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-gray-600 dark:text-gray-300">{{ getTotalPersonas() }} personas</dd>
+        <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Total de contadores:</dt>
+        <dd class="bg-gray-100 text-gray-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-gray-600 dark:text-gray-300">{{ getTotalPersonas() }} contadores</dd>
       </dl>
       <dl class="flex items-center justify-between">
         <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Última actualización:</dt>
@@ -399,26 +399,23 @@ export class WebsiteTraffic implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Obtener personas completadas (contadoresCompletados equivale a personas completadas)
+   * Obtener personas completadas (contadores completados)
    */
   getTotalPersonasCompletadas(): number {
-    // En la nueva estructura, contadoresCompletados = personas completadas
     return this.datosLecturas?.resumen?.contadoresCompletados || 0;
   }
 
   /**
-   * Obtener personas pendientes (contadoresPendientes equivale a personas pendientes)
+   * Obtener personas pendientes (contadores pendientes)
    */
   getTotalPersonasPendientes(): number {
-    // En la nueva estructura, contadoresPendientes = personas pendientes
     return this.datosLecturas?.resumen?.contadoresPendientes || 0;
   }
 
   /**
-   * Obtener total de personas (totalContadoresFiltrados equivale al total de personas)
+   * Obtener total de personas (total de contadores)
    */
   getTotalPersonas(): number {
-    // En la nueva estructura, cada contador representa una persona
     return this.datosLecturas?.resumen?.totalContadores || 0;
   }
 
@@ -599,8 +596,11 @@ export class WebsiteTraffic implements AfterViewInit, OnDestroy {
    */
   private actualizarGraficoRadial(): void {
     if (this.chart && this.datosLecturas) {
-      const porcentajeCompletadas = this.datosLecturas.resumen.totalVeredas > 0 ?
-        Math.round((this.datosLecturas.resumen.veredasCompletadas / this.datosLecturas.resumen.totalVeredas) * 100) : 0;
+      const total = this.datosLecturas.resumen.totalContadores;
+      const completados = this.datosLecturas.resumen.contadoresCompletados;
+
+      const porcentajeCompletadas = total > 0 ?
+        Math.round((completados / total) * 100) : 0;
       const porcentajePendientes = 100 - porcentajeCompletadas;
 
       this.chart.updateSeries([porcentajeCompletadas, porcentajePendientes]);
@@ -655,28 +655,26 @@ export class WebsiteTraffic implements AfterViewInit, OnDestroy {
   }
 
   private getChartOptions(): RadialOptions {
-    // Calcular porcentajes basados en la vereda seleccionada o datos generales
-    const vereda = this.getVeredaSeleccionada();
+    // Calcular porcentajes basados en la nueva estructura de datos
     let porcentajeCompletadas: number;
     let porcentajePendientes: number;
 
-    if (vereda) {
-      // Mostrar datos específicos de la vereda seleccionada
-      porcentajeCompletadas = Math.max(0, Math.min(100, vereda.porcentajeCompletado || 0));
-      porcentajePendientes = 100 - porcentajeCompletadas;
-    } else if (this.datosLecturas?.resumen?.totalVeredas && this.datosLecturas.resumen.totalVeredas > 0) {
-      // Fallback a datos generales si hay datos disponibles
-      porcentajeCompletadas = Math.max(0, Math.min(100, Math.round((this.datosLecturas.resumen.veredasCompletadas / this.datosLecturas.resumen.totalVeredas) * 100)));
+    if (this.datosLecturas?.resumen?.totalContadores && this.datosLecturas.resumen.totalContadores > 0) {
+      // Calcular porcentajes basados en contadores completados vs pendientes
+      const contadoresCompletados = this.datosLecturas.resumen.contadoresCompletados || 0;
+      const total = this.datosLecturas.resumen.totalContadores;
+
+      porcentajeCompletadas = Math.round((contadoresCompletados / total) * 100);
       porcentajePendientes = 100 - porcentajeCompletadas;
     } else {
-      // Datos por defecto cuando no hay información (mostrar gráfica con datos demo)
-      porcentajeCompletadas = 25; // Mostrar un 25% por defecto para que se vea algo
-      porcentajePendientes = 75;
+      // Datos por defecto cuando no hay información
+      porcentajeCompletadas = 0;
+      porcentajePendientes = 0;
     }
 
     return {
       series: [porcentajeCompletadas, porcentajePendientes],
-      colors: ['#1C64F2', '#FDBA8C'], // Azul para completadas, Naranja para pendientes
+      colors: ['#10b94e', '#ff683b'], // Azul para completadas, Naranja para pendientes
       chart: {
         height: '350px',
         width: '100%',

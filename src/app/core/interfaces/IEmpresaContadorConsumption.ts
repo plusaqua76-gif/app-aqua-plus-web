@@ -2,31 +2,24 @@
 
 export interface IEmpresaContadorPorMes {
   mes: number;
-  mcTotal: number;
-  valorTotal: number;
-  valorUnitario: number;
+  mcTotalEmpresa: number;
+  mcTotalClientes: number;
 }
 
-export interface IEmpresaContadorTarifa {
-  valorUnitario: number;
-  idTarifaConcepto: number;
-  idTipoTarifa_acu: number;
-  idTipoConceptoCafi: number;
-}
+
 
 export interface IEmpresaContadorPeriodo {
-  mes: number;
+  mes: number | null;
   anio: number;
 }
 
 export interface IEmpresaContadorTotales {
-  mcTotal: number;
-  importeTotal: number;
+  mcTotalEmpresa: number;
+  mcTotalClientes: number;
 }
 
 export interface IEmpresaContadorResponse {
   porMes: IEmpresaContadorPorMes[];
-  tarifa: IEmpresaContadorTarifa;
   periodo: IEmpresaContadorPeriodo;
   totales: IEmpresaContadorTotales;
   empresa_id: number;
@@ -43,7 +36,7 @@ export interface IEmpresaContadorApiResponse {
 export interface IEmpresaContadorChartData {
   xAxis: string[];
   yAxis: {
-    consumoM3: number[];
-    facturadoPesos: number[];
+    consumoEmpresa: number[];
+    consumoClientes: number[];
   };
 }
