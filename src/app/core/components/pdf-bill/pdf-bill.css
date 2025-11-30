@@ -22,7 +22,7 @@
   border-radius: 8px;
   background-color: white;
   position: relative;
-  flex-shrink: 0; /* Evita que se reduzca */
+  flex-shrink: 0;
 }
 
 .bill-header {
@@ -149,11 +149,11 @@
 
 /* Card única con dos columnas */
 .unified-card {
-  background: white;
+  background: #ffffff47;
   border-radius: 15px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
-  min-width: 1064px; /* Ancho aumentado: 914 + 150 = 1064px */
+  min-width: 1064px;
   min-height: 350px;
 }
 
@@ -161,7 +161,7 @@
 .unified-card-header {
   background: #e0e9ff;
   color: #333333;
-  padding: 15px 20px;
+  padding: 2px 20px;
   border-radius: 15px 15px 0 0;
   font-weight: 600;
   font-size: 16px;
@@ -172,7 +172,7 @@
 }
 
 .titleTwo {
-  padding-bottom: 17px;
+  padding-bottom: 10px;
 }
 
 .unified-card-header .header-column {
@@ -192,22 +192,22 @@
   flex-shrink: 0;
 }
 
-/* Contenido de la card con layout de dos columnas */
+
 .unified-card-content {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 480px auto;
   gap: 15px;
   padding: 5px 12px 12px 12px;
 }
 
-/* Columna izquierda con dos filas */
 .left-section {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto 1fr;
+  gap: 4px;
 }
 
-/* Información del cliente en la primera fila */
 .client-info-section {
+  width: 480px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -215,11 +215,10 @@
 
 .client-content {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   font-size: 14px;
   line-height: 1.3;
-  margin-bottom: 10px;
 }
 
 .client-column {
@@ -231,8 +230,6 @@
 .client-column.consumption-two-cols {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  column-gap: 10px;
 }
 
 .client-info-item {
@@ -271,6 +268,149 @@
 }
 
 /* Área de la gráfica en la segunda fila */
+/* Segunda fila: Tabla de tarifas por consumo */
+.tarifas-consumo-section {
+  /* margin-top: 10px;
+  margin-bottom: 10px; */
+}
+
+.tarifas-consumo-table {
+  background: white;
+  border: 1px solid #2d4a7c;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 8px;
+}
+
+.tarifas-consumo-header {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+  background: white;
+  border-bottom: 2px solid #2d4a7c;
+}
+
+.tarifa-header-cell {
+  padding: 6px 4px;
+  text-align: center;
+  font-size: 8px;
+  font-weight: 600;
+  color: #2d4a7c;
+  border-right: 1px solid #ddd;
+  line-height: 1.2;
+}
+
+.tarifa-header-cell:first-child {
+  background: #e8eaf6;
+}
+
+.tarifa-header-cell:last-child {
+  border-right: none;
+  background: #e3f2fd;
+}
+
+.tarifas-consumo-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+  border-bottom: 1px solid #ddd;
+}
+
+.tarifas-consumo-row:last-child {
+  border-bottom: none;
+}
+
+.tarifa-service-label {
+  padding: 8px 10px;
+  background: #3f51b5;
+  color: white;
+  font-weight: 600;
+  font-size: 8px;
+  text-align: left;
+  border-right: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+}
+
+.tarifa-value-cell {
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 8px;
+  color: #333;
+  background: #f9f9f9;
+  border-right: 1px solid #ddd;
+  min-height: 25px;
+}
+
+.tarifa-value-cell:last-child {
+  border-right: none;
+  background: #e3f2fd;
+}
+
+/* Estilos para Tabla de Información de Deuda */
+.deuda-info-container {
+  background: white;
+  border: 1px solid #dc2626;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 15px 0;
+  min-width: 964px;
+}
+
+.deuda-header {
+  background: #dc2626;
+  color: white;
+  padding: 6px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.deuda-labels-row {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  background: white;
+  border-bottom: 1px solid #ddd;
+}
+
+.deuda-label-cell {
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: #dc2626;
+  border-right: 1px solid #ddd;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deuda-label-cell:last-child {
+  border-right: none;
+}
+
+.deuda-values-row {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+}
+
+.deuda-value-cell {
+  padding: 10px 4px;
+  text-align: center;
+  font-size: 12px;
+  color: #333;
+  font-weight: 600;
+  background: #f9f9f9;
+  border-right: 1px solid #ddd;
+  min-height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deuda-value-cell:last-child {
+  border-right: none;
+}
+
 .chart-section {
   display: flex;
   flex-direction: column;
@@ -290,14 +430,370 @@
   flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   min-height: 200px;
 }
 
-/* Columna derecha para contenido adicional */
 .right-section {
   display: flex;
   flex-direction: column;
+  /* gap: 5px; */
+}
+
+.aseo-table-container {
+  background: white;
+  border: 1px solid #2d5f2e;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 8px;
+}
+
+.aseo-table-header {
+  background: #2d5f2e;
+  color: white;
+  padding: 4px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 9px;
+}
+
+.aseo-table-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid #ddd;
+}
+
+.aseo-table-row:last-child {
+  border-bottom: none;
+}
+
+.aseo-cell {
+  padding: 3px 2px;
+  text-align: center;
+  border-right: 1px solid #ddd;
+  font-size: 7px;
+  color: #2388ff;
+  font-weight: 600;
+}
+
+.aseo-cell:last-child {
+  border-right: none;
+}
+
+.aseo-cell-label {
+  padding: 3px 4px;
+  text-align: left;
+  background: #2388ff;
+  color: white;
+  font-weight: 600;
+  font-size: 7px;
+  border-right: 1px solid #ddd;
+}
+
+.aseo-values .aseo-cell {
+  background: #f9f9f9;
+  min-height: 18px;
+}
+
+/* Estilos para Tarifa del Servicio de Aseo */
+.aseo-tarifa-container {
+  background: white;
+  border: 1px solid #2d5f2e;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.aseo-tarifa-row {
+  display: grid;
+  grid-template-columns: 0.8fr 1fr 1fr;
+  border-bottom: 1px solid #ddd;
+}
+
+.aseo-tarifa-row:last-child {
+  border-bottom: none;
+}
+
+.aseo-tarifa-label {
+  padding: 4px 6px;
+  background: #2388ff;
+  color: white;
+  font-weight: 600;
+  font-size: 8px;
+  text-align: center;
+  border-right: 1px solid #ddd;
+}
+
+.aseo-tarifa-value {
+  padding: 4px 4px;
+  text-align: center;
+  font-size: 7px;
+  color: #2388ff;
+  font-weight: 600;
+  border-right: 1px solid #ddd;
+  background: white;
+}
+
+.aseo-tarifa-value:last-child {
+  border-right: none;
+}
+
+/* Estilos para Últimos Cobros de Aseo */
+.aseo-cobros-container {
+  background: white;
+  border: 1px solid #2d5f2e;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.aseo-cobros-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1px;
+  background: #ddd;
+}
+
+.aseo-cobro-cell {
+  background: white;
+  min-height: 20px;
+  padding: 4px;
+}
+
+
+.consumo-data-container {
+  background: white;
+  border: 1px solid #2d4a7c;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.consumo-header {
+  background: #2d4a7c;
+  color: white;
+  padding: 4px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 9px;
+}
+
+.consumo-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.consumo-label {
+  padding: 4px 3px;
+  text-align: center;
+  font-size: 7px;
+  color: #2388ff;
+  font-weight: 600;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+
+.consumo-label:last-child {
+  border-right: none;
+}
+
+.consumo-values {
+  background: #f9f9f9;
+}
+
+.consumo-value {
+  padding: 5px 3px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+  border-right: 1px solid #ddd;
+}
+
+.consumo-value:last-child {
+  border-right: none;
+}
+
+/* Estilos para Tabla para Liquidar Consumos */
+.liquidar-container {
+  background: white;
+  border: 1px solid #2d4a7c;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.liquidar-header {
+  background: #2d4a7c;
+  color: white;
+  padding: 4px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 9px;
+}
+
+/* Títulos de servicios */
+.liquidar-service-headers {
+  display: grid;
+  grid-template-columns: 0.6fr 2fr 1.4fr;
+  border-bottom: 1px solid #ddd;
+}
+
+.liquidar-rango-title {
+  padding: 4px;
+  background: #2388ff;
+  color: white;
+  font-weight: 600;
+  font-size: 8px;
+  text-align: center;
+  border-right: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.liquidar-service-title {
+  padding: 4px;
+  color: white;
+  font-weight: 600;
+  font-size: 9px;
+  text-align: center;
+  border-right: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.acueducto-title {
+  background: #2388ff;
+}
+
+.alcantarillado-title {
+  background: #5a8f5a;
+  border-right: none;
+}
+
+/* Filas de labels */
+.liquidar-labels-row {
+  display: grid;
+  grid-template-columns: 0.6fr 0.7fr 0.7fr 0.6fr 0.7fr 0.7fr;
+  border-bottom: 1px solid #ddd;
+}
+
+.liquidar-rango-cell {
+  padding: 4px 2px;
+  background: #2388ff;
+  color: white;
+  font-weight: 600;
+  font-size: 8px;
+  text-align: center;
+  border-right: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.liquidar-acueducto-label {
+  padding: 4px 2px;
+  background: #2388ff;
+  color: white;
+  font-weight: 600;
+  font-size: 7px;
+  text-align: center;
+  border-right: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.liquidar-alcantarillado-label {
+  padding: 4px 2px;
+  background: #5a8f5a;
+  color: white;
+  font-weight: 600;
+  font-size: 7px;
+  text-align: center;
+  border-right: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.liquidar-alcantarillado-label:last-child {
+  border-right: none;
+}
+
+/* Filas de valores */
+.liquidar-values-row {
+  display: grid;
+  grid-template-columns: 0.6fr 0.7fr 0.7fr 0.6fr 0.7fr 0.7fr;
+  border-bottom: 1px solid #ddd;
+}
+
+.liquidar-values-row:last-child {
+  border-bottom: none;
+}
+
+.liquidar-empty,
+.liquidar-acueducto-empty,
+.liquidar-alcantarillado-empty {
+  background: white;
+  border-right: 1px solid #ddd;
+}
+
+.liquidar-alcantarillado-empty:last-child,
+.liquidar-empty:last-child {
+  border-right: none;
+}
+
+.liquidar-value {
+  padding: 4px 2px;
+  text-align: center;
+  font-size: 8px;
+  color: #333;
+  font-weight: 500;
+  border-right: 1px solid #ddd;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.liquidar-subtotal {
+  padding: 4px 2px;
+  text-align: center;
+  font-size: 8px;
+  color: #333;
+  font-weight: bold;
+  border-right: 1px solid #ddd;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.liquidar-subtotal:last-child {
+  border-right: none;
+}
+
+.liquidar-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 8px;
+  background: #f9f9f9;
+}
+
+.liquidar-total-label {
+  font-size: 8px;
+  font-weight: bold;
+  color: #333;
+}
+
+.liquidar-total-arrow {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
 }
 
 .consumption-item {
@@ -305,12 +801,12 @@
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid #378eff;
-  margin: 3px 0;
+  /* margin: 3px 0; */
   max-width: 130px;
 }
 
 .consumption-item .item-label {
-  background: #7bc6ff;
+  background: #2388ff;
   color: white;
   font-size: 10px;
   font-weight: 500;
@@ -580,7 +1076,7 @@
   flex-direction: column;
   text-align: center;
   gap: 10px;
-  background: white;
+  background: rgba(255, 255, 255, 0);
   padding: 15px;
   width: 100%;
   height: 100%;
@@ -610,7 +1106,6 @@
 }
 
 .punto-pago-item {
-  background: #f8f9fa;
   border-radius: 12px;
   padding: 10px;
   display: flex;
@@ -627,12 +1122,10 @@
   object-fit: contain;
 }
 
-/* Estilos específicos para el código QR */
+
 .punto-pago-item.qr-item {
-  grid-column: 1 / -1; /* Ocupa todas las columnas disponibles */
-  height: 80px; /* Altura mayor para el QR */
-  background: #f0f8ff;
-  border: 2px dashed #2388ff;
+  grid-column: 1 / -1;
+  height: 80px;
 }
 
 .qr-image {
@@ -740,11 +1233,12 @@
   color: #777;
 }
 
-/* Línea divisoria */
 .dashed-line {
-  width: 100%;
+  position: relative;
+  right: 15px;
+  width: 1144px;
   height: 2px;
-  border-top: 3px dashed #adb1b8;
+  border-top: 5px dashed #adb1b8;
   margin: 20px 0;
   min-width: 964px; /* Ancho aumentado: 814 + 150 = 964px */
 }
@@ -752,10 +1246,10 @@
 /* Sección inferior */
 .bottom-section {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 2fr;
   gap: 0px;
   margin-top: 20px;
-  min-width: 964px; /* Ancho aumentado: 814 + 150 = 964px */
+  min-width: 964px;
   align-items: start;
   background: #f3f8ff;
   border-radius: 15px;
@@ -764,7 +1258,6 @@
   position: relative;
 }
 
-/* Línea superior del bottom-section */
 .bottom-section::before {
   content: "";
   position: absolute;
@@ -775,47 +1268,159 @@
   border-radius: 15px 15px 0 0;
 }
 
-.consumption-summary,
-.payment-summary {
+.bottom-column {
+  display: flex;
+  flex-direction: column;
   padding: 20px;
   box-shadow: none;
   border: none;
   border-radius: 0;
 }
 
-.consumption-summary {
+/* Primera columna - Empresa */
+.empresa-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   background: #f3f8ff;
   border-radius: 15px 0 0 15px;
 }
 
-.payment-summary {
+.empresa-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.logo-image-bottom {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.empresa-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.empresa-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.empresa-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #666;
+}
+
+.empresa-value {
+  font-size: 11px;
+  color: #333;
+  font-weight: 500;
+}
+
+/* Segunda columna - Usuario */
+.usuario-column {
+  display: flex;
+  flex-direction: column;
+  background: #f3f8ff;
+}
+
+.usuario-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2388ff;
+  margin-bottom: 0.75rem;
+  text-align: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #2388ff;
+}
+
+.usuario-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.usuario-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.usuario-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #666;
+}
+
+.usuario-value {
+  font-size: 11px;
+  color: #333;
+  font-weight: 500;
+}
+
+.usuario-fecha-limite {
+  margin-top: auto;
+  padding: 0.75rem;
+  background: rgba(211, 47, 47, 0.1);
+  border: 1px solid #d32f2f;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.fecha-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #d32f2f;
+}
+
+.fecha-value {
+  font-size: 12px;
+  font-weight: 700;
+  color: #d32f2f;
+}
+
+/* Tercera columna - Factura */
+.factura-column {
+  display: flex;
+  flex-direction: column;
   background: #f3f8ff;
   border-radius: 0 15px 15px 0;
 }
 
-.summary-content {
-  margin-top: 15px;
-  font-size: 12px;
-}
-
-.due-date {
-  font-weight: bold;
-  color: #333;
-  text-align: center;
-  padding-left: 12px;
-  padding-right: 12px;
-  padding-top: 0px;
-  padding-bottom: 17px;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 8px;
+.factura-info {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.novedad-text {
-  color: #888;
-  font-size: 14px;
-  margin: 10px 0 20px 0;
+.factura-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.factura-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #666;
+}
+
+.factura-value {
+  font-size: 11px;
+  color: #333;
+  font-weight: 500;
 }
 
 .payment-totals-grid {
@@ -885,8 +1490,8 @@
 }
 
 /* Responsive con escala proporcional - mantiene estructura como imagen */
-/* Desktop grande - sin cambios */
-@media (min-width: 1051px) {
+/* Desktop grande - sin cambios (1144px + padding) */
+@media (min-width: 1201px) {
   .pdf-container {
     padding: 20px;
     justify-content: center;
@@ -898,7 +1503,7 @@
 }
 
 /* Tablet grande */
-@media (max-width: 1050px) and (min-width: 901px) {
+@media (max-width: 1200px) and (min-width: 1001px) {
   .pdf-container {
     padding: 20px;
     justify-content: center;
@@ -911,7 +1516,7 @@
 }
 
 /* Tablet */
-@media (max-width: 900px) and (min-width: 751px) {
+@media (max-width: 1000px) and (min-width: 801px) {
   .pdf-container {
     padding: 20px;
     justify-content: center;
@@ -924,7 +1529,7 @@
 }
 
 /* Tablet pequeño */
-@media (max-width: 750px) and (min-width: 631px) {
+@media (max-width: 800px) and (min-width: 681px) {
   .pdf-container {
     padding: 15px;
     justify-content: center;
@@ -937,7 +1542,7 @@
 }
 
 /* Móvil grande */
-@media (max-width: 630px) and (min-width: 531px) {
+@media (max-width: 680px) and (min-width: 581px) {
   .pdf-container {
     padding: 15px;
     justify-content: center;
@@ -950,11 +1555,10 @@
 }
 
 /* Móvil mediano */
-@media (max-width: 530px) and (min-width: 426px) {
+@media (max-width: 580px) and (min-width: 476px) {
   .pdf-container {
     width: 100vw;
-    height: 600px;
-    max-height: 600px;
+    height: calc(100vh - 140px);
     padding: 10px;
     min-height: auto;
     align-items: center;
@@ -968,10 +1572,9 @@
 }
 
 /* Móvil pequeño */
-@media (max-width: 425px) and (min-width: 376px) {
+@media (max-width: 475px) and (min-width: 376px) {
   .pdf-container {
-    height: 550px;
-    max-height: 550px;
+    height: calc(100vh - 140px);
     padding: 8px;
     min-height: auto;
     align-items: center;
@@ -979,16 +1582,15 @@
     overflow: hidden;
   }
   .bill-content {
-    transform: scale(0.38);
+    transform: scale(0.35);
     transform-origin: center center;
   }
 }
 
-/* iPhone SE y dispositivos muy pequeños */
+/* celular malito de piña (375x667) */
 @media (max-width: 375px) {
   .pdf-container {
-    height: 520px;
-    max-height: 520px;
+    height: calc(100vh - 140px);
     padding: 5px;
     min-height: auto;
     align-items: center;
@@ -996,7 +1598,7 @@
     overflow: hidden;
   }
   .bill-content {
-    transform: scale(0.32);
+    transform: scale(0.30);
     transform-origin: center center;
   }
 }

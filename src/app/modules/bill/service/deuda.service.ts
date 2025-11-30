@@ -8,6 +8,18 @@ import { ApiResponse } from "@interfaces/Iresponse";
 import { IDeudaCliente, IDeudaClienteResponse } from "@interfaces/IdeudaFactura";
 import { IPaginatedResponse, IPaginationParams } from "@interfaces/IpaginatedResponse";
 
+export interface IConsolidationDeuda {
+  idTipoDeuda: number;
+  nombreTipoDeuda: string;
+  codigoTipoDeuda: string;
+  numeroCuotas: number;
+  valorCuota: number;
+  abonosRealizados: number;
+  cuotasCanceladas: number;
+  cuotasPendientes: number;
+  nuevoSaldo: number;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -16,6 +28,10 @@ export class DeudaService {
     readonly apiUrl = `${environment.apiUrl}/${END_POINT_SERVICE.GET_DEUDA}`;
     protected readonly router = inject(Router)
     protected readonly http = inject(HttpClient)
+
+    getConsolidationByClienteId(idClient: number): Observable<ApiResponse<IConsolidationDeuda>> {
+      return this.http.get<ApiResponse<IConsolidationDeuda>>(`${this.apiUrl}/consolidado/${idClient}`)
+    }
 
     getDebByCodeClienteContadorId(billCode: string): Observable<ApiResponse<IDeudaCliente[]>> {
         return this.http.get<ApiResponse<IDeudaCliente[]>>(`${this.apiUrl}/cliente-deuda/${billCode}`)

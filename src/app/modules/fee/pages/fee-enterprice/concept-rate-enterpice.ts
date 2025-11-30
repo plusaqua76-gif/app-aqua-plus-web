@@ -3,7 +3,8 @@ import { Component, computed, inject, PLATFORM_ID, signal } from '@angular/core'
 import { FormsModule } from '@angular/forms';
 import { ConceptRateService } from '../../services/concept-rate.service';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { EMPTY } from 'rxjs';
+import { EMPTY, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { PopupComponent } from '../../../../shared/components/popUp';
 import { ToastService } from '@services/toast.service';
 
@@ -352,7 +353,7 @@ import { ToastService } from '@services/toast.service';
                         [(ngModel)]="editForm.indCalcularMc"
                         class="w-4 h-4 text-blue-600 bg-transparent border border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
                       />
-                      <span>Calcular MC automáticamente</span>
+                      <span>Calcular metros cubicos automáticamente</span>
                     </label>
                   </div>
                 </div>
@@ -545,7 +546,12 @@ export class ConceptRateEnterpice {
     params: () => ({ enterpriseId: this.empresaId() }),
     stream: ({ params: { enterpriseId } }) =>
       enterpriseId
-        ? this.conceptRateService.getConceptRateByEnterprise(enterpriseId)
+        ? this.conceptRateService.getConceptRateByEnterprise(enterpriseId).pipe(
+            catchError(error => {
+              console.error('Error al cargar conceptos de tarifa:', error);
+              return of({ success: false, response: [], message: 'Error al cargar conceptos de tarifa' });
+            })
+          )
         : EMPTY
   })
 
@@ -711,7 +717,7 @@ conceptRatesData = computed(() => {
         }
       },
       error: (error) => {
-        this.updatingConceptRate.set(false); 
+        this.updatingConceptRate.set(false);
       }
     });
   }

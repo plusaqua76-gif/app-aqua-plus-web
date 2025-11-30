@@ -1,5 +1,4 @@
 <section class="w-full bg-transparent text-gray-200">
-
   @if (isLoading()) {
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
       <div class="bg-gray-800/90 backdrop-blur-md rounded-2xl p-8 border border-gray-600/50 shadow-2xl max-w-md w-full mx-4">
@@ -8,11 +7,9 @@
             <div class="w-16 h-16 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin"></div>
             <div class="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-blue-400 rounded-full animate-spin" style="animation-delay: 0.15s;"></div>
           </div>
-
           <div class="text-center">
             <h3 class="text-lg font-semibold text-gray-200 mb-4">Cargando Información de Factura</h3>
           </div>
-
           <div class="w-full space-y-3">
             <div class="flex items-center space-x-3">
               @if (getStatus.isLoading()) {
@@ -27,7 +24,6 @@
                 <span class="text-sm text-gray-300">Estados cargados</span>
               }
             </div>
-
             <div class="flex items-center space-x-3">
               @if (billDetails.isLoading()) {
                 <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -41,7 +37,6 @@
                 <span class="text-sm text-gray-300">Detalles de factura cargados</span>
               }
             </div>
-
             <div class="flex items-center space-x-3">
               @if (clienteDeudas.isLoading()) {
                 <div class="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
@@ -218,7 +213,8 @@
               <app-pdf-bill
                 [selectedStatus]="selectedStatus()"
                 [billData]="billDetails.value()?.response ?? null"
-                [valorDeuda]="valorDeuda()">
+                [valorDeuda]="valorDeuda()"
+                [dataDeudaConsolidada]="getConsolidationByClienteId.value()?.response ?? null">
               </app-pdf-bill>
             } @else if (!isLoading() && !hasErrors()) {
               <div class="p-8 text-center text-gray-400">

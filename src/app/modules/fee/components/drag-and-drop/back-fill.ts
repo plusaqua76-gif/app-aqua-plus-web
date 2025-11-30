@@ -396,7 +396,7 @@ interface BillElement {
                 [cdkDropListAutoScrollDisabled]="false"
                 (cdkDropListDropped)="onElementDrop($event)"
                 class="bill-canvas relative bg-white dark:bg-white border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg"
-                style="width: 914px; height: 1462px; margin: 0 auto;"
+                style="width: 1114px; height: 1160px; margin: 0 auto;"
                 (click)="onCanvasClick($event)"
               >
                 @for (element of canvasElements(); track element.id) {

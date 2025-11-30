@@ -12,6 +12,8 @@ import { ICity } from '@interfaces/Icity';
 import { ICorregimiento } from '@interfaces/icorregimiento';
 import { IEnterpriseResponse } from '@interfaces/Ienterprise';
 import { IImageEnterprise } from '../../services/enterprice.service';
+import { DocumentAzureBlobService } from '../../../fee/services/document-azure-blob.service';
+import { DocumentUpload } from '@interfaces/document-azure-blob/document';
 
 @Component({
   selector: 'app-profile',
@@ -39,15 +41,15 @@ import { IImageEnterprise } from '../../services/enterprice.service';
       <div class="relative overflow-hidden shadow-2xl rounded-3xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30">
 
         <!-- Close Button -->
-        <button class="absolute top-6 right-6 z-10 w-10 h-10 rounded-full bg-white/10 dark:bg-slate-700/50 backdrop-blur-md border border-white/20 dark:border-slate-600/50 flex items-center justify-center hover:bg-white/20 dark:hover:bg-slate-600/50 transition-all duration-300">
+        <!-- <button class="absolute top-6 right-6 z-10 w-10 h-10 rounded-full bg-white/10 dark:bg-slate-700/50 backdrop-blur-md border border-white/20 dark:border-slate-600/50 flex items-center justify-center hover:bg-white/20 dark:hover:bg-slate-600/50 transition-all duration-300">
           <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
-        </button>
+        </button> -->
 
         <!-- Profile Header -->
         <div class="relative px-8 py-12 text-center">
-          <div class="absolute inset-0 bg-gradient-to-br from-blue-100/30 to-purple-100/30 dark:from-blue-900/20 dark:to-purple-900/20"></div>
+          <div class="absolute inset-0 bg-gradient-to-br from-blue-100/30 to-black dark:from-blue-900/20 dark:black"></div>
 
           <div class="relative z-10">
             <!-- Profile Image -->
@@ -564,34 +566,84 @@ export class Profile {
       return;
     }
 
+    const usuarioCambio = this.nombreUsuario();
+    if (!usuarioCambio) {
+      this.toast.error('Error', 'No se encontró el usuario');
+      return;
+    }
+
     this.isUpdatingImage.set(true);
 
-    // Para actualizar imagen, necesitamos convertir a base64
+    // Verificar si existe una imagen previa
+    const hasExistingImage = this.enterpriseInfo.value()?.imagen?.[0]?.ruta;
+
     const reader = new FileReader();
     reader.onload = () => {
       const base64String = reader.result as string;
       const base64Data = base64String.split(',')[1];
-      const currentImagePath = this.enterpriseInfo.value()?.imagen?.[0]?.ruta || '';
-      const imageData: IImageEnterprise = {
-        ruta: currentImagePath,
-        imagen: base64Data
-      };
 
-      this.enterpriseInformationService.updateImageEnterprice(imageData).subscribe({
-        next: (response: any) => {
-          this.toast.success('Éxito', 'Imagen actualizada correctamente');
-          this.selectedImageFile.set(null);
-          this.imagePreview.set(null);
-          this.isUpdatingImage.set(false);
-          // Recargar información de la empresa
-          this.enterpriseInfo.reload();
-        },
-        error: (error: any) => {
-          console.error('Error al actualizar imagen:', error);
-          this.toast.error('Error', 'Error al actualizar la imagen');
-          this.isUpdatingImage.set(false);
-        }
-      });
+      if (hasExistingImage) {
+        // Si existe imagen previa, actualizar usando el método de actualización
+        const currentImagePath = this.enterpriseInfo.value()?.imagen?.[0]?.ruta || '';
+        const imageData: IImageEnterprise = {
+          ruta: currentImagePath,
+          imagen: base64Data
+        };
+
+        this.enterpriseInformationService.updateImageEnterprice(imageData).subscribe({
+          next: (response: any) => {
+            this.toast.success('Éxito', 'Imagen actualizada correctamente');
+            this.selectedImageFile.set(null);
+            this.imagePreview.set(null);
+            this.isUpdatingImage.set(false);
+            this.enterpriseInfo.reload();
+          },
+          error: (error: any) => {
+            console.error('Error al actualizar imagen:', error);
+            this.toast.error('Error', 'Error al actualizar la imagen');
+            this.isUpdatingImage.set(false);
+          }
+        });
+      } else {
+        // Si no existe imagen previa, crear nueva usando documentIploadUrl
+        const mimeType = file.type || 'image/png';
+        const extension = mimeType.split('/')[1] || file.name.split('.').pop()?.toLowerCase() || 'png';
+
+        // Generar nombre único para la imagen siguiendo el patrón de back-fill
+        const timestamp = Date.now();
+        const randomStr = Math.random().toString(36).substring(2, 9);
+        const fileName = file.name.split('.')[0] || `logo_empresa_${timestamp}_${randomStr}`;
+        const fileNameWithExt = fileName.includes('.') ? fileName : `${fileName}.${extension}`;
+
+        const documentUpload: DocumentUpload = {
+          base64File: base64Data,
+          idEmpresa: enterpriseId,
+          nombreArchivo: fileNameWithExt,
+          extension: extension,
+          usuario: usuarioCambio,
+          categoriaCodigo: 'FACIMG',
+          publico: true
+        };
+
+        this.documentAzureBlobService.documentIploadUrl(documentUpload).subscribe({
+          next: (response: any) => {
+            if (response.success && response.response.ruta) {
+              this.toast.success('Éxito', 'Imagen cargada correctamente');
+              this.selectedImageFile.set(null);
+              this.imagePreview.set(null);
+              this.isUpdatingImage.set(false);
+              this.enterpriseInfo.reload();
+            } else {
+              throw new Error('No se pudo subir la imagen');
+            }
+          },
+          error: (error: any) => {
+            console.error('Error al cargar imagen:', error);
+            this.toast.error('Error', `Error al cargar la imagen: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+            this.isUpdatingImage.set(false);
+          }
+        });
+      }
     };
 
     reader.readAsDataURL(file);
@@ -608,6 +660,7 @@ export class Profile {
 
   private readonly enterpriseInformationService = inject(EnterpriseInformationService);
   private readonly enterpriseIdService = inject(EnterpriseIdService);
+  private readonly documentAzureBlobService = inject(DocumentAzureBlobService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
