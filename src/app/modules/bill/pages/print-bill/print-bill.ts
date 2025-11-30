@@ -15,7 +15,7 @@ import { FacturaService } from '../../service/factura.service';
 import { PopupComponent } from '@shared/components/popUp';
 import { IAbonoFactura, IDeudaCliente } from '@interfaces/IdeudaFactura';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { EMPTY } from 'rxjs';
+import { EMPTY, of } from 'rxjs';
 import { ColombianCurrencyPipe } from '@shared/index';
 import { IBillBackResponse } from '@interfaces/bill/Ibill-back';
 import { DocumentAzureBlobService } from '../../../fee/services/document-azure-blob.service';
@@ -44,7 +44,7 @@ export class PrintBill {
 
 constructor() {
   effect(() => {
-   console.log("la dta amano que lo que ", this.InvoiceBackTemplate.value())
+   console.log("que lo que esta es la data de cleites deuda anidadas ", this.getConsolidationByClienteId.value())
   })
 }
 
@@ -101,6 +101,18 @@ constructor() {
       return this.documentService.getInvoiceTemplateByEnterprise(params.empresaId);
     }
   });
+
+  getConsolidationByClienteId = rxResource({
+    params: () => ({
+      empresaClienteContadorId: this.route.snapshot.queryParamMap.get('empresaClienteContadorId')
+    }),
+    stream: ({ params }) => {
+      if (!params.empresaClienteContadorId) {
+        return of(null);
+      }
+      return this.deudaService.getConsolidationByClienteId(Number(params.empresaClienteContadorId));
+    }
+  })
 
 
   tipoPago: 'total' | 'parcial' | null = null;
@@ -478,55 +490,35 @@ constructor() {
     this.procesandoPDF.set(true);
 
     try {
-      const billElement = document.querySelector('.bill-content') as HTMLElement;
-      if (!billElement) {
-        this.toast.error('Error', 'No se encontró el contenido de la factura.');
+      const frontElement = document.querySelector('.front .bill-content') as HTMLElement;
+      const backElement = document.querySelector('.back .bill-back-container') as HTMLElement;
+
+      if (!frontElement) {
+        this.toast.error('Error', 'No se encontró el elemento de la factura (frente)');
         this.procesandoPDF.set(false);
         return;
       }
 
-      // Detectar si es móvil
-      const isMobile = window.innerWidth <= 768;
-
-      if (isMobile) {
-        // Guardar estilos originales
-        const originalStyle = billElement.style.cssText;
-        const originalTransform = billElement.style.transform;
-
-        // Aplicar estilos optimizados para PDF en móvil
-        billElement.style.transform = 'scale(1)';
-        billElement.style.transformOrigin = 'top left';
-        billElement.style.width = '994px';
-        billElement.style.overflow = 'visible';
-
-        // Dar tiempo para que se apliquen los cambios
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        const facturaId = billData?.factura?.id || 'factura';
-        const empresaCodigo = billData?.empresa?.codigo || '';
-        const clienteNombre = billData?.cliente?.primerNombre || 'cliente';
-        const timestamp = new Date().getTime();
-
-        const filename = `factura-${empresaCodigo}-${facturaId}-${clienteNombre}-${timestamp}.pdf`;
-
-        await this.pdfService.convertElementToPdf(billElement, filename);
-
-        // Restaurar estilos originales
-        billElement.style.cssText = originalStyle;
-        billElement.style.transform = originalTransform;
-      } else {
-        // En desktop usar el método normal
-        const facturaId = billData?.factura?.id || 'factura';
-        const empresaCodigo = billData?.empresa?.codigo || '';
-        const clienteNombre = billData?.cliente?.primerNombre || 'cliente';
-        const timestamp = new Date().getTime();
-
-        const filename = `factura-${empresaCodigo}-${facturaId}-${clienteNombre}-${timestamp}.pdf`;
-
-        await this.pdfService.convertElementToPdf(billElement, filename);
+      if (!backElement) {
+        this.toast.error('Error', 'No se encontró el elemento de la factura (reverso)');
+        this.procesandoPDF.set(false);
+        return;
       }
 
-      this.toast.success('Éxito', 'PDF generado correctamente');
+      const isMobile = window.innerWidth <= 768;
+      const facturaId = billData?.factura?.id || 'factura';
+      const empresaCodigo = billData?.empresa?.codigo || '';
+      const clienteNombre = billData?.cliente?.primerNombre || 'cliente';
+      const timestamp = new Date().getTime();
+      const filename = `factura-${empresaCodigo}-${facturaId}-${clienteNombre}-${timestamp}.pdf`;
+
+      if (isMobile) {
+        await this.pdfService.convertTwoPagesToPdfAndOpen(frontElement, backElement);
+      } else {
+        await this.pdfService.convertTwoPagesToPdf(frontElement, backElement, filename);
+      }
+
+      this.toast.success('Éxito', 'PDF generado correctamente con frente y reverso');
 
     } catch (error) {
       console.error('Error en downloadPDF:', error);
@@ -537,20 +529,17 @@ constructor() {
   }
 
   openAbonoPopup(): void {
-    // Redirigir al popup de deudas donde está la funcionalidad de pago total
     this.openDeudasPopup();
   }
 
   openDeudasPopup(): void {
     this.showDeudasPopup.set(true);
-    // Limpiar valores previos
     this.valoresAbonoIndividual.set({});
   }
 
   closeDeudasPopup(): void {
     this.showDeudasPopup.set(false);
     this.procesandoAbonoMasivo.set(false);
-    // Limpiar valores al cerrar
     this.valoresAbonoIndividual.set({});
     this.tipoConfirmacion.set('total');
   }

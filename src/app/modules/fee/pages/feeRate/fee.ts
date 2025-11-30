@@ -4,6 +4,8 @@ import {
   inject,
   PLATFORM_ID,
   signal,
+  AfterViewInit,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -50,7 +52,9 @@ import { BackFill } from "../../components/drag-and-drop/back-fill";
   styleUrls: ['./fee.css'],
   templateUrl: './fee.html',
 })
-export class FeeComponent {
+export class FeeComponent implements AfterViewInit {
+  @ViewChild(ConceptRateEnterpice) conceptRateEnterpiceComponent?: ConceptRateEnterpice;
+  
   protected readonly rateTypeService = inject(RateTypeService);
   protected readonly toastService = inject(ToastService);
   protected readonly router = inject(Router);
@@ -156,7 +160,6 @@ export class FeeComponent {
       enterpriseId
         ? this.typeConceptService.getAllTypeConcepts(enterpriseId).pipe(
             catchError(error => {
-              // Retornar un observable con estructura vacía pero válida
               return of({ success: false, response: [], message: 'Error al cargar tipos de concepto' });
             })
           )
@@ -274,6 +277,9 @@ export class FeeComponent {
         if (response.success) {
           this.toastService.success('Éxito', 'Tarifa guardada exitosamente');
           this.dataTypeConcepts.reload();
+          this.conceptRatesEnterprise.reload();
+          // Recargar datos del componente hijo
+          this.conceptRateEnterpiceComponent?.reloadData();
           this.limpiarFormulario();
         } else {
           this.toastService.error('Error', 'No se pudo guardar la tarifa');
@@ -283,6 +289,9 @@ export class FeeComponent {
       complete: () => {
         this.guardandoTarifa.set(false);
         this.dataTypeConcepts.reload();
+        this.conceptRatesEnterprise.reload();
+        // Recargar datos del componente hijo
+        this.conceptRateEnterpiceComponent?.reloadData();
       }
     });
   }
@@ -661,19 +670,31 @@ export class FeeComponent {
     this.showPopupVisualizarConceptos.set(false);
   }
 
-  // Métodos para el popup de conceptos de tarifa por empresa
-  // Métodos para el popup de conceptos de tarifa por empresa
+
+  conceptRatesEnterprise = rxResource({
+    params: () => ({ enterpriseId: this.empresaId() }),
+    stream: ({ params: { enterpriseId } }) =>
+      enterpriseId
+        ? this.conceptRateService.getConceptRateByEnterprise(enterpriseId).pipe(
+            catchError(error => {
+              return of({ success: false, response: [], message: 'Error al cargar tarifas concepto' });
+            })
+          )
+        : EMPTY,
+  });
+
+  conceptRatesData = computed(() => {
+    try {
+      const value = this.conceptRatesEnterprise.value();
+      return value?.response ?? [];
+    } catch (error) {
+      return [];
+    }
+  });
+
   abrirPopupConceptosTarifaEmpresa(): void {
     this.showPopupConceptosTarifaEmpresa.set(true);
-
-    const empresaId = this.empresaId();
-    if (empresaId) {
-      this.conceptRateService.getConceptRateByEnterprise(empresaId).subscribe({
-        next: (response) => {
-          // Manejar respuesta exitosa si es necesario
-        }
-      });
-    }
+    this.conceptRatesEnterprise.reload();
   }
 
   cerrarPopupConceptosTarifaEmpresa(): void {
@@ -828,10 +849,46 @@ export class FeeComponent {
   // Tab navigation methods
   selectTab(tabId: string): void {
     this.activeTab.set(tabId);
+    // Re-inicializar tooltips solo cuando cambia a tab que los necesita
+    if (this.isBrowser && tabId === 'fee-rate') {
+      // Usar requestAnimationFrame para mejor performance que setTimeout
+      requestAnimationFrame(() => this.initFlowbite());
+    }
   }
 
   getTabClasses(tabId: string): string {
     const isActive = this.activeTab() === tabId;
     return isActive ? 'active' : '';
+  }
+
+  ngAfterViewInit(): void {
+    if (this.isBrowser) {
+      // Esperar a que Flowbite esté disponible (carga async)
+      this.waitForFlowbite().then(() => this.initFlowbite());
+    }
+  }
+
+  private waitForFlowbite(): Promise<void> {
+    return new Promise((resolve) => {
+      if (typeof window !== 'undefined' && (window as any).initFlowbite) {
+        resolve();
+      } else {
+        // Polling ligero cada 50ms, máximo 2 segundos
+        let attempts = 0;
+        const interval = setInterval(() => {
+          if ((window as any).initFlowbite || attempts > 40) {
+            clearInterval(interval);
+            resolve();
+          }
+          attempts++;
+        }, 50);
+      }
+    });
+  }
+
+  private initFlowbite(): void {
+    if (typeof window !== 'undefined' && (window as any).initFlowbite) {
+      (window as any).initFlowbite();
+    }
   }
 }

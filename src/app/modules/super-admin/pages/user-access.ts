@@ -23,7 +23,7 @@ import { ToastService } from '@services/toast.service';
         <label class="inline-flex items-center cursor-pointer">
           <input
             type="checkbox"
-            [checked]="row.activo"
+            [checked]="row.estado?.nombre === 'ACTIVO'"
             class="sr-only peer"
             (change)="toggleUserState(row)"
           />
@@ -32,7 +32,7 @@ import { ToastService } from '@services/toast.service';
           ></div>
         </label>
         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-          {{ row.activo ? 'Activo' : 'Inactivo' }}
+          {{ row.estado?.nombre === 'ACTIVO' ? 'Activo' : 'Inactivo' }}
         </span>
       </div>
     </ng-template>
@@ -47,7 +47,7 @@ import { ToastService } from '@services/toast.service';
       [showExportButton]="true"
       [exportFileName]="exportFileName()"
       [showColumnFilters]="true"
-      (action)="($event)"
+      [actionTemplate]="null"
       (serverPaginationChange)="onPaginationChange($event)"
     >
     </app-table-dynamic>
@@ -121,7 +121,7 @@ export class UserAccess {
 
 
   toggleUserState(row: any): void {
-    const estadoActual = row.activo;
+    const estadoActual = row.estado?.nombre === 'ACTIVO';
     const nuevoEstado = !estadoActual;
     const usuarioCambio = this.nombreUsuario();
 
@@ -149,9 +149,9 @@ export class UserAccess {
         // Llamar al servicio para actualizar el estado
         this.userAccessService.updateUserStatus(payload).subscribe({
           next: (response) => {
-            row.activo = nuevoEstado;
+            // Actualizar el estado en el objeto row
             if (row.estado) {
-              row.estado.nombre = nuevoEstado ? 'Activo' : 'Inactivo';
+              row.estado.nombre = nuevoEstado ? 'ACTIVO' : 'INACTIVO';
             }
 
             this.toastService.success(

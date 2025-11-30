@@ -70,7 +70,7 @@ interface ChartOptions {
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="bg-white rounded-lg p-1 w-[740px] h-48">
+    <div class="bg-white rounded-lg p-1 w-[480px] h-48">
       <div class="flex items-center">
       </div>
       <div class="relative">
@@ -147,7 +147,7 @@ export class LegendsHistoryBill implements AfterViewInit, OnDestroy {
 
     const categories = sortedData.map(item => {
       const [, month] = item.mes.split('-');
-      const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
       return monthNames[parseInt(month) - 1] || month;
     });
 
@@ -200,7 +200,7 @@ export class LegendsHistoryBill implements AfterViewInit, OnDestroy {
       plotOptions: {
         bar: {
           borderRadius: 5,
-          columnWidth: '70%',
+          columnWidth: '45%',
           dataLabels: {
             position: 'top'
           }
@@ -243,7 +243,7 @@ export class LegendsHistoryBill implements AfterViewInit, OnDestroy {
         strokeDashArray: 4,
         borderColor: '#E9E9E9'
       },
-      colors: ['#3B82F6'],
+      colors: ['#2388ff'],
       tooltip: {
         enabled: false
       }

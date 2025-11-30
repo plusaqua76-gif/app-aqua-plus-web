@@ -228,9 +228,11 @@ export interface TableColumn {
                 </span>
               </th>
             }
-            <th scope="col" class="px-3 sm:px-6 py-4">
-              <span class="sr-only">Actions</span>
-            </th>
+            @if (actionTemplate()) {
+              <th scope="col" class="px-3 sm:px-6 py-4">
+                <span class="sr-only">Actions</span>
+              </th>
+            }
           </tr>
 
           <!-- Fila de filtros separada -->
@@ -267,19 +269,21 @@ export interface TableColumn {
                   </div>
                 </th>
               }
-              <th scope="col" class="px-3 sm:px-6 py-3">
-                <button
-                  type="button"
-                  (click)="clearAllFilters()"
-                  class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-red-600/40 bg-red-500/10 text-red-400 hover:bg-red-600/20 hover:border-red-500/60 focus:outline-none focus:ring-2 focus:ring-red-500/40 backdrop-blur-sm transition-all duration-300"
-                  title="Limpiar todos los filtros"
-                >
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </th>
+              @if (actionTemplate()) {
+                <th scope="col" class="px-3 sm:px-6 py-3">
+                  <button
+                    type="button"
+                    (click)="clearAllFilters()"
+                    class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-red-600/40 bg-red-500/10 text-red-400 hover:bg-red-600/20 hover:border-red-500/60 focus:outline-none focus:ring-2 focus:ring-red-500/40 backdrop-blur-sm transition-all duration-300"
+                    title="Limpiar todos los filtros"
+                  >
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </th>
+              }
             </tr>
           }
         </thead>
@@ -304,21 +308,14 @@ export interface TableColumn {
                     }
                   </td>
                 }
-                <td class="px-6 py-4 text-right">
-                  @if (actionTemplate()) {
+                @if (actionTemplate()) {
+                  <td class="px-6 py-4 text-right">
                     <ng-container
                       [ngTemplateOutlet]="actionTemplate()"
                       [ngTemplateOutletContext]="{ $implicit: row, row }"
                     />
-                  } @else {
-                    <button
-                      class="font-medium text-blue-600 hover:underline dark:text-blue-400"
-                      (click)="onAction('edit', row)"
-                    >
-                      Edit
-                    </button>
-                  }
-                </td>
+                  </td>
+                }
               </tr>
             }
           } @else {

@@ -219,14 +219,35 @@ export class WebsiteTraffic implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      // Usar setTimeout para asegurar que el DOM esté completamente renderizado
-      setTimeout(() => {
-        // Inicializar la gráfica con datos por defecto
+      requestAnimationFrame(() => {
         this.initRadial();
-        // Cargar corregimientos dinámicamente (esto internamente cargará las lecturas)
         this.cargarCorregimientos();
-      }, 50);
+        this.waitForFlowbite().then(() => this.initFlowbite());
+      });
       document.addEventListener('click', this.cerrarDropdownsOnOutsideClick.bind(this));
+    }
+  }
+
+  private waitForFlowbite(): Promise<void> {
+    return new Promise((resolve) => {
+      if (typeof window !== 'undefined' && (window as any).initFlowbite) {
+        resolve();
+      } else {
+        let attempts = 0;
+        const interval = setInterval(() => {
+          if ((window as any).initFlowbite || attempts > 40) {
+            clearInterval(interval);
+            resolve();
+          }
+          attempts++;
+        }, 50);
+      }
+    });
+  }
+
+  private initFlowbite(): void {
+    if (typeof window !== 'undefined' && (window as any).initFlowbite) {
+      (window as any).initFlowbite();
     }
   }
 

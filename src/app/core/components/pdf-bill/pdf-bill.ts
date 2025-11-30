@@ -23,6 +23,7 @@ import { IDeudaClienteResponse } from '@interfaces/IdeudaFactura';
 })
 export class PdfBill {
   dataDeuda = input<IDeudaClienteResponse | null>(null);
+  dataDeudaConsolidada = input<any>(null);
   showSuspensionNotice = true;
   selectedStatus = input<string | null>(null);
   billData = input<IBillDetailResponse | null>(null);
