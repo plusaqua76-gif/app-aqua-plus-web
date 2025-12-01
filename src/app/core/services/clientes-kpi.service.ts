@@ -108,13 +108,15 @@ export class ClientesKpiService {
       return { xAxis, yAxis: { consumoM3, facturadoPesos } };
     }
 
-    // Mostrar todos los meses, incluso los que tienen 0
+    // Filtrar solo los meses que tienen datos (consumo > 0 o facturado > 0)
     for (const mesData of response.porMes) {
-      const nombreMes = nombresMeses[mesData.mes - 1];
-
-      xAxis.push(nombreMes);
-      consumoM3.push(mesData.mcTotal);
-      facturadoPesos.push(mesData.valorTotal);
+      // Solo incluir meses con datos válidos
+      if (mesData.mcTotal > 0 || mesData.valorTotal > 0) {
+        const nombreMes = nombresMeses[mesData.mes - 1];
+        xAxis.push(nombreMes);
+        consumoM3.push(mesData.mcTotal);
+        facturadoPesos.push(mesData.valorTotal);
+      }
     }
 
     return {
@@ -165,13 +167,15 @@ export class ClientesKpiService {
       return { xAxis, yAxis: { consumoEmpresa, consumoClientes } };
     }
 
-    // Mostrar todos los meses incluso si tienen valores en 0
+    // Filtrar solo los meses que tienen datos (consumo empresa > 0 o consumo clientes > 0)
     for (const mesData of response.porMes) {
-      const nombreMes = nombresMeses[mesData.mes - 1];
-
-      xAxis.push(nombreMes);
-      consumoEmpresa.push(mesData.mcTotalEmpresa);
-      consumoClientes.push(mesData.mcTotalClientes);
+      // Solo incluir meses con datos válidos
+      if (mesData.mcTotalEmpresa > 0 || mesData.mcTotalClientes > 0) {
+        const nombreMes = nombresMeses[mesData.mes - 1];
+        xAxis.push(nombreMes);
+        consumoEmpresa.push(mesData.mcTotalEmpresa);
+        consumoClientes.push(mesData.mcTotalClientes);
+      }
     }
 
     return {

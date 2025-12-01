@@ -73,7 +73,7 @@ export class UpdateDebt implements OnInit {
         if (selectedTipoDeuda) {
           this.registerForm.get('tipoDeuda')?.patchValue(selectedTipoDeuda);
         }
-        const selectedPlazoPago = this.plazoPago.find(p => p.id === deudaResponse.plazoPago.id);
+        const selectedPlazoPago = this.plazoPago.find(p => p.id === deudaResponse.plazoPago);
         if (selectedPlazoPago) {
           this.registerForm.get('plazoPago')?.patchValue(selectedPlazoPago);
         }
@@ -160,7 +160,7 @@ export class UpdateDebt implements OnInit {
       empresaClienteContador: rawForm.empresaClienteContador,
       tipoDeuda: rawForm.tipoDeuda,
       factura: rawForm.factura,
-      plazoPago: rawForm.plazoPago,
+      plazoPago: rawForm.plazoPago.id, // Solo enviar el ID
 
       valor: parseFloat(rawForm.valor),
       usuarioModificacion: this.nombreUsuario(),

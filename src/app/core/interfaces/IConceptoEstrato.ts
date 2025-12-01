@@ -4,6 +4,7 @@ export interface EstratoConcepto {
   valor: number;
   activo: boolean;
   estrato: number;
+  rango?: number;
   fecha_cambio: string | null;
   fecha_creacion: string;
   usuario_cambio: string | null;

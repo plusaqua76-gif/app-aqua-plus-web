@@ -7,6 +7,7 @@ export interface Estrato {
   id: number;
   numero: number;
   valor: number;
+  rango?: number;
 }
 
 export interface TarifaItem {
