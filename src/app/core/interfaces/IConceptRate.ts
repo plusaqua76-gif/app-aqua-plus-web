@@ -43,7 +43,7 @@ export interface IConceptType {
 
 export interface IConceptRate {
   id: number;
-  tipoTarifa: IrateTypes;  
+  tipoTarifa: IrateTypes;
   tipoConcepto: IConceptType;
   valor?: number;
   indCalcularMc: boolean;
@@ -55,6 +55,7 @@ export interface Istratum {
   id: number;
   estrato: number;
   valor: number;
+  rango: string;
 }
 
 

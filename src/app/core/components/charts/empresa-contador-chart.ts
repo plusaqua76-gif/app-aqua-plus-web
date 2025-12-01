@@ -149,42 +149,11 @@ interface ColumnChartOptions {
               <li>
                 <button (click)="selectMonth('Todos los meses')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Todos los meses</button>
               </li>
-              <li>
-                <button (click)="selectMonth('Enero')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Enero</button>
-              </li>
-              <li>
-                <button (click)="selectMonth('Febrero')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Febrero</button>
-              </li>
-              <li>
-                <button (click)="selectMonth('Marzo')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Marzo</button>
-              </li>
-              <li>
-                <button (click)="selectMonth('Abril')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Abril</button>
-              </li>
-              <li>
-                <button (click)="selectMonth('Mayo')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Mayo</button>
-              </li>
-              <li>
-                <button (click)="selectMonth('Junio')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Junio</button>
-              </li>
-              <li>
-                <button (click)="selectMonth('Julio')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Julio</button>
-              </li>
-              <li>
-                <button (click)="selectMonth('Agosto')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Agosto</button>
-              </li>
-              <li>
-                <button (click)="selectMonth('Septiembre')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Septiembre</button>
-              </li>
-              <li>
-                <button (click)="selectMonth('Octubre')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Octubre</button>
-              </li>
-              <li>
-                <button (click)="selectMonth('Noviembre')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Noviembre</button>
-              </li>
-              <li>
-                <button (click)="selectMonth('Diciembre')" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Diciembre</button>
-              </li>
+              @for (month of availableMonths(); track month) {
+                <li>
+                  <button (click)="selectMonth(month)" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ month }}</button>
+                </li>
+              }
             </ul>
         </div>
       </div>
@@ -237,6 +206,7 @@ export class EmpresaContadorChartComponent implements AfterViewInit, OnDestroy {
   // Propiedades para el dropdown
   public isDropdownOpen = false;
   public selectedMonth = 'Todos los meses';
+  public availableMonths = signal<string[]>([]);
 
   // Propiedades calculadas como signals
   public totalConsumoEmpresa = signal<number>(0);
@@ -299,6 +269,40 @@ export class EmpresaContadorChartComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Extraer meses disponibles de los datos del eje X
+   */
+  private extractAvailableMonths(data: IEmpresaContadorChartData): void {
+    if (!data || !data.xAxis || data.xAxis.length === 0) {
+      this.availableMonths.set([]);
+      return;
+    }
+
+    const allMonths = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+    const uniqueMonths = new Set<string>();
+
+    // Extraer meses que tienen datos (formato puede variar: "Enero" o "01-ContadorName")
+    data.xAxis.forEach((label: string, index: number) => {
+      const hasConsumoEmpresa = data.yAxis.consumoEmpresa[index] > 0;
+      const hasConsumoClientes = data.yAxis.consumoClientes[index] > 0;
+
+      // Buscar si el label contiene un nombre de mes
+      for (const month of allMonths) {
+        if (label.includes(month) && (hasConsumoEmpresa || hasConsumoClientes)) {
+          uniqueMonths.add(month);
+          break;
+        }
+      }
+    });
+
+    // Mantener el orden cronológico
+    const sortedMonths = allMonths.filter(month => uniqueMonths.has(month));
+
+    this.availableMonths.set(sortedMonths);
+  }
+
   private loadConsumoData(): void {
     const empresaId = this.empresaId();
     const anio = this.currentYear();
@@ -314,6 +318,7 @@ export class EmpresaContadorChartComponent implements AfterViewInit, OnDestroy {
     this.subscription = this.clientesKpiService.getEmpresaContadorConsumption(empresaId, anio).subscribe({
       next: (data: IEmpresaContadorChartData) => {
         this.fullChartData.set(data);
+        this.extractAvailableMonths(data);
         this.currentPage.set(0);
         const paginatedData = this.getPaginatedData(data);
         this.chartData.set(paginatedData);
@@ -426,6 +431,7 @@ export class EmpresaContadorChartComponent implements AfterViewInit, OnDestroy {
       this.subscription = this.clientesKpiService.getEmpresaContadorConsumption(empresaId, anio).subscribe({
         next: (data: IEmpresaContadorChartData) => {
           this.fullChartData.set(data);
+          this.extractAvailableMonths(data);
           this.currentPage.set(0);
           const paginatedData = this.getPaginatedData(data);
           this.chartData.set(paginatedData);
@@ -454,8 +460,6 @@ export class EmpresaContadorChartComponent implements AfterViewInit, OnDestroy {
   }
 
   private updateChart(data: IEmpresaContadorChartData): void {
-    const el = document.getElementById('empresa-contador-chart') as HTMLElement;
-
     if (this.chart && data && data.xAxis.length > 0) {
       const newSeries = [
         {
@@ -474,12 +478,19 @@ export class EmpresaContadorChartComponent implements AfterViewInit, OnDestroy {
           categories: data.xAxis
         }
       });
-    } else if (el && (!data || data.xAxis.length === 0)) {
-      if (this.chart) {
-        this.chart.destroy();
-        this.chart = null;
-      }
-      el.innerHTML = '<div class="flex items-center justify-center h-64 text-gray-500">No hay datos disponibles para el período seleccionado</div>';
+    } else if (this.chart && (!data || data.xAxis.length === 0)) {
+      // Si no hay datos, actualizar con series vacías pero NO destruir el gráfico
+      const emptySeries = [
+        {
+          name: 'Consumo Empresa (m³)',
+          data: [],
+        },
+        {
+          name: 'Consumo Clientes (m³)',
+          data: [],
+        }
+      ];
+      this.chart.updateSeries(emptySeries);
     }
   }
 

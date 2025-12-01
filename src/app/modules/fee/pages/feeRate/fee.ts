@@ -6,6 +6,7 @@ import {
   signal,
   AfterViewInit,
   ViewChild,
+  effect,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -15,6 +16,7 @@ import { RateTypeService } from '../../services/rate-type.service';
 import { PopupComponent } from '../../../../shared/components/popUp';
 import { RateTypesListComponent } from '../../components/rate-types-list.component';
 import { TypeConceptsListComponent } from '../../components/type-concepts-list.component';
+import { UseTypesListComponent } from '../../components/use-types-list.component';
 import { ConceptRateEnterpice } from '../fee-enterprice/concept-rate-enterpice';
 import { PaymentPoints } from '../payment-points/payment-points';
 import { DaysValidity } from '../days-validity/days-validity';
@@ -32,6 +34,8 @@ import {
   EstratoConcepto
 } from '../../../../core/interfaces/IConceptoEstrato';
 import { BackFill } from "../../components/drag-and-drop/back-fill";
+import { error } from 'console';
+import { UseService } from '../../services/use.service';
 
 // esto es mala practica, nosotros ya tenemos creado una interface IrateTypes en core/interfaces/IrateTypes.ts
 
@@ -43,6 +47,7 @@ import { BackFill } from "../../components/drag-and-drop/back-fill";
     PopupComponent,
     RateTypesListComponent,
     TypeConceptsListComponent,
+    UseTypesListComponent,
     ConceptRateEnterpice,
     PaymentPoints,
     DaysValidity,
@@ -54,9 +59,10 @@ import { BackFill } from "../../components/drag-and-drop/back-fill";
 })
 export class FeeComponent implements AfterViewInit {
   @ViewChild(ConceptRateEnterpice) conceptRateEnterpiceComponent?: ConceptRateEnterpice;
-  
+
   protected readonly rateTypeService = inject(RateTypeService);
   protected readonly toastService = inject(ToastService);
+  protected readonly useService = inject(UseService);
   protected readonly router = inject(Router);
   protected typeConceptService = inject(TypeConceptService);
   protected conceptRateService = inject(ConceptRateService);
@@ -68,11 +74,13 @@ export class FeeComponent implements AfterViewInit {
 
   selectedTipoTarifa: any = null;
   selectedTipoConcepto: any = null;
+  selectedTipoUso: any = null;
   valorTarifa: number | null = null;
   mostrarTablaEstratos: boolean = false;
   estratosActuales: Estrato[] = [];
   nuevoEstratoNumero: number = 1;
   nuevoEstratoValor: number | null = null;
+  nuevoEstratoRango: number | null = null;
   guardandoTarifa = signal(false);
   cargandoEstratos = signal(false);
   indCalcularMc = signal(false);
@@ -106,6 +114,20 @@ export class FeeComponent implements AfterViewInit {
   showDeleteConfirmConcept = signal(false);
   typeConceptToDelete: IrateTypes | null = null;
 
+  // Tipo de Uso properties
+  showPopupTipoUso = signal(false);
+  guardandoTipoUso = signal(false);
+  editandoTipoUso = signal(false);
+  useTypeToEdit: any = null;
+  nuevoTipoUso: NuevoItem = {
+    nombre: '',
+    descripcion: '',
+  };
+
+  showPopupVisualizarUsos = signal(false);
+  showDeleteConfirmUse = signal(false);
+  useTypeToDelete: any = null;
+
   showDeleteConfirmEstrato = signal(false);
   estratoToDelete: Estrato | null = null;
 
@@ -133,6 +155,28 @@ export class FeeComponent implements AfterViewInit {
   });
 
 
+  constructor() {
+    effect(() => {
+      console.log('Empresa ID changed:', this.typeUse.value());
+    })
+  }
+
+  typeUse = rxResource({
+    params: () => ({
+      enterpriseId: this.empresaId()
+    }),
+    stream: ({ params }) => {
+      if (!params.enterpriseId) {
+        return of(null);
+      }
+      return this.useService.getTypeUse(params.enterpriseId).pipe(
+        catchError(error => {
+          return of(null);
+        })
+      );
+    }
+  });
+
   typeRates = rxResource({
     params: () => ({ enterpriseId: this.empresaId() }),
     stream: ({ params: { enterpriseId } }) =>
@@ -148,6 +192,15 @@ export class FeeComponent implements AfterViewInit {
   typeRatesData = computed(() => {
     try {
       const value = this.typeRates.value();
+      return value?.response ?? [];
+    } catch (error) {
+      return [];
+    }
+  });
+
+  typeUseData = computed(() => {
+    try {
+      const value = this.typeUse.value();
       return value?.response ?? [];
     } catch (error) {
       return [];
@@ -244,10 +297,16 @@ export class FeeComponent implements AfterViewInit {
       typeof this.selectedTipoConcepto === 'string'
         ? parseInt(this.selectedTipoConcepto)
         : this.selectedTipoConcepto;
+    const tipoUsoId =
+      this.selectedTipoUso !== null && this.selectedTipoUso !== undefined
+        ? (typeof this.selectedTipoUso === 'string'
+            ? parseInt(this.selectedTipoUso)
+            : this.selectedTipoUso)
+        : null;
 
     this.guardandoTarifa.set(true);
 
-    const item = {
+    const item: any = {
       idEmpresa: empresaId,
       idTipoTarifa: tipoTarifaId,
       usuarioCreacion: usuario,
@@ -255,14 +314,20 @@ export class FeeComponent implements AfterViewInit {
       concepto: {
         idTipoConcepto: tipoConceptoId,
         indCalcularMc: this.indCalcularMc()
-      } as any
+      }
     };
+
+    // Agregar idTipoUso si está seleccionado (incluso si es 0, pero no si es null)
+    if (tipoUsoId !== null && tipoUsoId !== undefined) {
+      item.idTipoUso = tipoUsoId;
+    }
 
     // Agregar valores según el tipo (con o sin estratos)
     if (this.mostrarTablaEstratos && this.estratosActuales.length > 0) {
       item.concepto.valoresEstrato = this.estratosActuales.map(estrato => ({
         estrato: estrato.numero,
-        valor: estrato.valor
+        valor: estrato.valor,
+        rango: estrato.rango || 0
       }));
     } else {
       item.concepto.valor = this.valorTarifa;
@@ -299,11 +364,13 @@ export class FeeComponent implements AfterViewInit {
   private limpiarFormulario(): void {
     this.selectedTipoTarifa = null;
     this.selectedTipoConcepto = null;
+    this.selectedTipoUso = null;
     this.valorTarifa = null;
     this.estratosActuales = [];
     this.mostrarTablaEstratos = false;
     this.nuevoEstratoNumero = 1;
     this.nuevoEstratoValor = null;
+    this.nuevoEstratoRango = null;
     this.indCalcularMc.set(true);
   }
 
@@ -353,7 +420,8 @@ export class FeeComponent implements AfterViewInit {
                 this.estratosActuales = conceptRateExistente.estratos.map(estrato => ({
                   id: estrato.id,
                   numero: estrato.estrato,
-                  valor: estrato.valor
+                  valor: estrato.valor,
+                  rango: estrato.rango ? Number(estrato.rango) : 0
                 }));
                 // Actualizar el autoincremental para el próximo estrato
                 this.actualizarAutoincrementalEstrato();
@@ -413,6 +481,7 @@ export class FeeComponent implements AfterViewInit {
         id: maxId + 1,
         numero: this.nuevoEstratoNumero,
         valor: this.nuevoEstratoValor,
+        rango: this.nuevoEstratoRango || 0
       };
 
       this.estratosActuales.push(nuevoEstrato);
@@ -421,6 +490,7 @@ export class FeeComponent implements AfterViewInit {
       // Limpiar campos y actualizar autoincremental
       this.actualizarAutoincrementalEstrato();
       this.nuevoEstratoValor = null;
+      this.nuevoEstratoRango = null;
     }
   }
 
@@ -752,6 +822,153 @@ export class FeeComponent implements AfterViewInit {
   cancelDeleteTypeConcept(): void {
     this.showDeleteConfirmConcept.set(false);
     this.typeConceptToDelete = null;
+  }
+
+  // ===== MÉTODOS PARA TIPO DE USO =====
+
+  abrirPopupTipoUso(): void {
+    this.editandoTipoUso.set(false);
+    this.useTypeToEdit = null;
+    this.showPopupTipoUso.set(true);
+    this.nuevoTipoUso = this.resetFormularioItem();
+  }
+
+  cerrarPopupTipoUso(): void {
+    this.showPopupTipoUso.set(false);
+    this.editandoTipoUso.set(false);
+    this.guardandoTipoUso.set(false);
+    this.useTypeToEdit = null;
+    this.nuevoTipoUso = this.resetFormularioItem();
+  }
+
+  guardarNuevoTipoUso(): void {
+    if (!this.nuevoTipoUso.nombre.trim() || this.guardandoTipoUso()) {
+      return;
+    }
+
+    const usuario = this.nombreUsuario();
+    if (!usuario) {
+      this.toastService.error(
+        'Error',
+        'No se pudo obtener la información del usuario'
+      );
+      return;
+    }
+
+    this.guardandoTipoUso.set(true);
+
+    const codigo =
+      this.editandoTipoUso() && this.useTypeToEdit?.codigo
+        ? this.useTypeToEdit.codigo
+        : this.nuevoTipoUso.nombre
+            .trim()
+            .substring(0, 3)
+            .toUpperCase()
+            .padEnd(3, 'X');
+
+    const tipoUsoData = {
+      empresa: { id: this.empresaId() },
+      nombre: this.nuevoTipoUso.nombre.trim(),
+      descripcion: this.nuevoTipoUso.descripcion.trim() || '',
+      codigo: codigo,
+      usuarioCreacion: usuario,
+    };
+
+    if (this.editandoTipoUso() && this.useTypeToEdit?.id) {
+      (tipoUsoData as any).id = this.useTypeToEdit.id;
+    }
+
+    const operation = this.editandoTipoUso() && this.useTypeToEdit?.id
+      ? this.useService.updateUse({ id: this.useTypeToEdit.id, nombre: tipoUsoData.nombre, usuarioModificacion: usuario })
+      : this.useService.createUse(tipoUsoData);
+
+    operation.subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.typeUse.reload();
+          this.toastService.success(
+            'Éxito',
+            this.editandoTipoUso()
+              ? 'Tipo de uso actualizado exitosamente'
+              : 'Nuevo tipo de uso creado exitosamente'
+          );
+          this.cerrarPopupTipoUso();
+        } else {
+          this.toastService.error(
+            'Error',
+            response.message || 'No se pudo guardar el tipo de uso'
+          );
+        }
+      },
+      complete: () => {
+        this.guardandoTipoUso.set(false);
+      },
+    });
+  }
+
+  abrirPopupVisualizarUsos(): void {
+    this.showPopupVisualizarUsos.set(true);
+  }
+
+  cerrarPopupVisualizarUsos(): void {
+    this.showPopupVisualizarUsos.set(false);
+  }
+
+  onEditUseType(useType: any): void {
+    this.editandoTipoUso.set(true);
+    this.useTypeToEdit = useType;
+
+    this.nuevoTipoUso = {
+      nombre: useType.nombre,
+      descripcion: useType.descripcion || '',
+    };
+
+    this.showPopupTipoUso.set(true);
+  }
+
+  onDeleteUseType(useType: any): void {
+    this.useTypeToDelete = useType;
+    this.showDeleteConfirmUse.set(true);
+  }
+
+  getDeleteConfirmMessageUse(): string {
+    return this.useTypeToDelete
+      ? `¿Está seguro que desea eliminar el tipo de uso "${this.useTypeToDelete.nombre}"? Esta acción no se puede deshacer.`
+      : '¿Está seguro que desea eliminar este tipo de uso?';
+  }
+
+  confirmDeleteUseType(): void {
+    if (this.useTypeToDelete?.id) {
+      this.useService.deleteUse(this.useTypeToDelete.id).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.typeUse.reload();
+            this.toastService.success(
+              'Éxito',
+              'Tipo de uso eliminado exitosamente'
+            );
+          } else {
+            this.toastService.error(
+              'Error',
+              'No se pudo eliminar el tipo de uso'
+            );
+          }
+        },
+        complete: () => {
+          this.showDeleteConfirmUse.set(false);
+          this.useTypeToDelete = null;
+        },
+      });
+    }
+  }
+
+  cancelDeleteUseType(): void {
+    this.showDeleteConfirmUse.set(false);
+    this.useTypeToDelete = null;
+  }
+
+  onTipoUsoChange(): void {
+    // Aquí puedes agregar lógica adicional si es necesario cuando cambia el tipo de uso
   }
 
   // Métodos para confirmación de eliminación de estrato

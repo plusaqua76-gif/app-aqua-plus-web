@@ -149,7 +149,7 @@ export class CreateDebt  {
     const deuda: Partial<IDeudaCliente> = {
       empresaClienteContador: { id: (clienteSeleccionado as any).empresaClienteContadorId } as any,
       tipoDeuda: tipoDeudaSeleccionado,
-      plazoPago: plazoPagoSeleccionado,
+      plazoPago: plazoPagoSeleccionado.id, // Solo enviar el ID
       fechaDeuda: new Date(formValue.fechaDeuda!),
       valor: formValue.valor!,
       descripcion: formValue.descripcion!,
@@ -166,16 +166,9 @@ export class CreateDebt  {
         );
         this.resetForm();
         this.procesandoDeuda.set(false);
-
-        // Opcional: navegar a otra página
-        // this.router.navigate(['/bills/debts']);
       },
       error: (error) => {
         console.error('Error al crear deuda:', error);
-        this.toastService.error(
-          'Error al crear deuda',
-          'No se pudo crear la deuda. Intente nuevamente.'
-        );
         this.procesandoDeuda.set(false);
       }
     });
