@@ -575,7 +575,7 @@
           <div class="deuda-label-cell">Nuevo saldo</div>
         </div>
 
-        <!-- @if (dataDeudaConsolidada() && dataDeudaConsolidada()!.length > 0) { -->
+        @if (dataDeudaConsolidada() && dataDeudaConsolidada()!.length > 0) {
           @for (deuda of dataDeudaConsolidada(); track deuda.idTipoDeuda) {
             <div class="deuda-values-row">
               <div class="deuda-value-cell">{{ deuda.nombreTipoDeuda }}</div>
@@ -588,14 +588,13 @@
               <div class="deuda-value-cell">{{ deuda.nuevoSaldo | colombianCurrency }}</div>
             </div>
           }
-          <!-- }
         } @else {
           <div class="deuda-values-row">
             <div class="deuda-value-cell" style="grid-column: 1 / -1; text-align: center; padding: 1rem; color: #666;">
               No hay información de deudas consolidadas
             </div>
           </div>
-        } -->
+        }
       </div>
 
 

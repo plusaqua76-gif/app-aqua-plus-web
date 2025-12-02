@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '@services/toast.service';
@@ -125,26 +125,41 @@ import { catchError, of, EMPTY } from 'rxjs';
                       }
                     </div>
 
+                    <!-- Información del Cliente -->
                     @if (pqr.empresaClienteContador) {
-                      <div class="text-sm text-gray-300">
-                        <strong>Cliente:</strong>
-                        {{ pqr.empresaClienteContador.cliente.nombre }}
-                        {{ pqr.empresaClienteContador.cliente.segundoNombre }}
-                        {{ pqr.empresaClienteContador.cliente.apellido }}
-                        {{ pqr.empresaClienteContador.cliente.segundoApellido }}
-                      </div>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 rounded-lg bg-white/5 border border-gray-600/50">
+                        <div class="text-sm">
+                          <span class="text-gray-400 block mb-1">Cliente</span>
+                          <span class="text-gray-200 font-medium">
+                            {{ pqr.empresaClienteContador.cliente.nombre }}
+                            {{ pqr.empresaClienteContador.cliente.segundoNombre }}
+                            {{ pqr.empresaClienteContador.cliente.apellido }}
+                            {{ pqr.empresaClienteContador.cliente.segundoApellido }}
+                          </span>
+                        </div>
 
-                      <div class="text-sm text-gray-300">
-                        <strong>Contador:</strong> {{ pqr.empresaClienteContador.contador.serial }}
+                        <div class="text-sm">
+                          <span class="text-gray-400 block mb-1">Contador</span>
+                          <span class="text-gray-200 font-medium">{{ pqr.empresaClienteContador.contador.serial }}</span>
+                        </div>
+
+                        <div class="text-sm md:col-span-2">
+                          <span class="text-gray-400 block mb-1">Código de Factura</span>
+                          <span class="text-blue-300 font-mono font-medium">{{ pqr.codigo }}</span>
+                        </div>
                       </div>
                     }
 
-                    <div class="text-sm text-gray-400">
-                      <strong>Descripción:</strong> {{ pqr.descripcion }}
+                    <!-- Descripción del PQR -->
+                    <div class="text-sm">
+                      <span class="text-gray-400 block mb-1">Descripción</span>
+                      <p class="text-gray-300">{{ pqr.descripcion }}</p>
                     </div>
 
-                    <div class="text-sm text-gray-400">
-                      <strong>Tipo de novedad:</strong> {{ pqr.tipoNovedad.descripcion}}
+                    <!-- Tipo de Novedad -->
+                    <div class="text-sm">
+                      <span class="text-gray-400 block mb-1">Tipo de Novedad</span>
+                      <p class="text-gray-300">{{ pqr.tipoNovedad.descripcion }}</p>
                     </div>
                   </div>
 
@@ -353,6 +368,12 @@ export class PqrSecretary implements OnInit {
     const data = this.userData();
     return data?.nombre || null;
   });
+
+  constructor() {
+    effect(() => {
+      console.log('PQRs cargados:', this.statusNovelty.value());
+    })
+  }
 
   statusNovelty = rxResource({
     stream: () => this.pqrService.getStatusPqrById().pipe(

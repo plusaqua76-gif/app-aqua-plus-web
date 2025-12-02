@@ -35,6 +35,7 @@ export interface IClienteNovedad {
   tipoNovedad: ITipoNovedad;
   empresaClienteContador: IEmpresaClienteContador;
   estado: IEstadoNovedad;
+  codigo: string;
   descripcion: string;
   activo: boolean;
   fechaCreacion?: string;

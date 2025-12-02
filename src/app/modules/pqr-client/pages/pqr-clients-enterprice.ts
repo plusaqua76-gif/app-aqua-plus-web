@@ -392,7 +392,7 @@ export class PqrClientsEnterprice {
         usuarioCreacion: usuario
       };
 
-      // Obtener el ID del tipo de novedad usando subscribe
+
       const tipoNovedadResponse = await new Promise<any>((resolve, reject) => {
         this.pqrService.saveTypeNovelty(tipoNovedadData).subscribe({
           next: (response) => resolve(response),
@@ -405,9 +405,8 @@ export class PqrClientsEnterprice {
         return;
       }
 
-      // 2. Convertir archivo a base64 si existe
       let base64File = '';
-      let nombreArchivo = usuario; // Usar el nombre de usuario como nombre del archivo
+      let nombreArchivo = usuario;
       let extension = 'jpg';
 
       if (this.archivosSeleccionados.length > 0) {
@@ -416,15 +415,15 @@ export class PqrClientsEnterprice {
         extension = archivo.name.split('.').pop() || 'jpg';
       }
 
-      // 3. Construir el payload final
+
       const fechaActual = new Date().toISOString();
 
       const novedadRequest: ICreateNovedadWithFileRequest = {
         novedad: {
           tipoNovedad: { id: tipoNovedadResponse.response.id },
-          empresaClienteContador: { id: Number(this.selectedContador) }, // Convertir a number
+          empresaClienteContador: { id: Number(this.selectedContador) },
           estado: { codigo: "EST_PEN" },
-          codigo: `PQR-${Date.now()}`, // Generar código único
+          codigo: this.selectedBill!.codigo,
           descripcion: this.descripcionPQR.trim(),
           activo: true,
           usuarioCreacion: usuario,
@@ -439,14 +438,13 @@ export class PqrClientsEnterprice {
         categoriaCodigo: 'PQR'
       };
 
-      // 4. Enviar la novedad al servicio
       this.pqrService.saveNovelty(novedadRequest).subscribe({
         next: (response) => {
           if (response.success) {
             this.toastService.success('Éxito', 'PQR creado exitosamente');
             this.limpiarFormulario();
           } else {
-            this.toastService.error('Error', response.message || 'Error al crear el PQR');
+            console.warn('Advertencia al crear PQR:', response.message);
           }
         },
         complete: () => {
@@ -466,7 +464,6 @@ export class PqrClientsEnterprice {
       const reader = new FileReader();
       reader.onload = () => {
         if (reader.result) {
-          // Remover el prefijo "data:image/jpeg;base64," o similar
           const base64 = (reader.result as string).split(',')[1];
           resolve(base64);
         } else {
@@ -488,7 +485,6 @@ export class PqrClientsEnterprice {
     this.selectedBill = null;
   }
 
-  // Métodos para manejo de archivos
   onFileSelect(event: any): void {
     const files = Array.from(event.target.files as FileList);
     this.procesarArchivos(files);

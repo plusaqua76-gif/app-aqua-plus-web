@@ -5,7 +5,7 @@ export interface DocumentUpload {
   extension: string;
   usuario: string;
   categoriaCodigo: string;
-  publico: boolean;
+  publico?: boolean;
 }
 
 

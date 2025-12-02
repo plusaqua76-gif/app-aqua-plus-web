@@ -116,9 +116,7 @@ export class FacturaService {
     return httpParams;
   }
 
-  /**
-   * Aplica filtros directos: una columna = un parámetro de la API
-   */
+
   private applyFilter(
     httpParams: HttpParams,
     key: string,
