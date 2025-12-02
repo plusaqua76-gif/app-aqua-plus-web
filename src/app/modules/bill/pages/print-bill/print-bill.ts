@@ -15,7 +15,7 @@ import { FacturaService } from '../../service/factura.service';
 import { PopupComponent } from '@shared/components/popUp';
 import { IAbonoFactura, IDeudaCliente } from '@interfaces/IdeudaFactura';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { EMPTY, of } from 'rxjs';
+import { EMPTY, of, catchError } from 'rxjs';
 import { ColombianCurrencyPipe } from '@shared/index';
 import { IBillBackResponse } from '@interfaces/bill/Ibill-back';
 import { DocumentAzureBlobService } from '../../../fee/services/document-azure-blob.service';
@@ -67,9 +67,14 @@ constructor() {
     },
     stream: ({ params: empresaClienteContadorId }) => {
       if (!empresaClienteContadorId) {
-        return EMPTY;
+        return of({ success: true, response: null, message: 'Sin deudas' });
       }
-      return this.deudaService.getDebByCodeClienteContadorId(empresaClienteContadorId);
+      return this.deudaService.getDebByCodeClienteContadorId(empresaClienteContadorId).pipe(
+        catchError((error) => {
+          console.warn('No se encontraron deudas (404 - normal):', error);
+          return of({ success: true, response: null, message: 'Sin deudas' });
+        })
+      );
     },
   });
 
@@ -96,9 +101,14 @@ constructor() {
     },
     stream: ({ params }) => {
       if (!params.empresaId) {
-        return EMPTY;
+        return of({ success: true, response: null, message: 'Sin template' });
       }
-      return this.documentService.getInvoiceTemplateByEnterprise(params.empresaId);
+      return this.documentService.getInvoiceTemplateByEnterprise(params.empresaId).pipe(
+        catchError((error) => {
+          console.warn('No se encontró template de factura (404 - normal):', error);
+          return of({ success: true, response: null, message: 'Sin template' });
+        })
+      );
     }
   });
 
@@ -108,9 +118,14 @@ constructor() {
     }),
     stream: ({ params }) => {
       if (!params.empresaClienteContadorId) {
-        return of(null);
+        return of({ success: true, response: null, message: 'Sin consolidación' });
       }
-      return this.deudaService.getConsolidationByClienteId(Number(params.empresaClienteContadorId));
+      return this.deudaService.getConsolidationByClienteId(Number(params.empresaClienteContadorId)).pipe(
+        catchError((error) => {
+          console.warn('No se encontró consolidación de deudas (404 - normal):', error);
+          return of({ success: true, response: null, message: 'Sin consolidación' });
+        })
+      );
     }
   })
 
@@ -118,12 +133,11 @@ constructor() {
   tipoPago: 'total' | 'parcial' | null = null;
   valorPago: number | null = null;
 
-  // Computed para controlar el loader local - No incluye clienteDeudas porque es opcional
+  // Computed para controlar el loader local - Solo servicios críticos
   isLoading = computed(() => {
     return this.getStatus.isLoading() ||
            this.billDetails.isLoading() ||
-           this.tiposDeuda.isLoading() ||
-           this.InvoiceBackTemplate.isLoading();
+           this.tiposDeuda.isLoading();
   });
 
   // Loading separado solo para deudas (opcional)
@@ -131,12 +145,11 @@ constructor() {
     return this.clienteDeudas.isLoading();
   });
 
-  // Computed para verificar si hay errores críticos (no incluye deudas)
+  // Computed para verificar si hay errores críticos (solo servicios esenciales)
   hasErrors = computed(() => {
     return !!this.getStatus.error() ||
            !!this.billDetails.error() ||
-           !!this.tiposDeuda.error() ||
-           !!this.InvoiceBackTemplate.error();
+           !!this.tiposDeuda.error();
   });
 
   // Computed para verificar errores en deudas (no crítico)
@@ -149,13 +162,31 @@ constructor() {
     return !this.isLoading() && !this.hasErrors();
   });
 
+  // Computed para informar sobre servicios opcionales no disponibles
+  serviciosOpcionalesInfo = computed(() => {
+    const info: string[] = [];
+    
+    if (!this.getConsolidationByClienteId.value()?.response) {
+      info.push('Sin consolidación de deudas');
+    }
+    
+    if (!this.clienteDeudas.value()?.response) {
+      info.push('Sin deudas pendientes');
+    }
+    
+    if (!this.InvoiceBackTemplate.value()?.response) {
+      info.push('Sin template de factura');
+    }
+    
+    return info;
+  });
+
   // Método para calcular el progreso de carga (solo servicios críticos)
   getLoadingProgress(): number {
     const services = [
       !this.getStatus.isLoading(),
       !this.billDetails.isLoading(),
-      !this.tiposDeuda.isLoading(),
-      !this.InvoiceBackTemplate.isLoading()
+      !this.tiposDeuda.isLoading()
     ];
 
     const completedServices = services.filter(Boolean).length;
@@ -267,25 +298,15 @@ constructor() {
   });
   procesandoAbono = signal(false);
   procesandoPago = signal(false);
-
-  // Signals para pago masivo
   procesandoAbonoMasivo = signal(false);
   showConfirmPagoTotalPopup = signal(false);
-
-  // Signal para manejar valores individuales de abono por deuda
   valoresAbonoIndividual = signal<{[key: number]: number}>({});
-
-  // Signal para controlar el tipo de pago en confirmación
   tipoConfirmacion = signal<'total' | 'parcial'>('total');
-
-  // Computado para obtener el empresaClienteContadorId
   empresaClienteContadorId = computed(() => {
     const empresaClienteContadorId = this.route.snapshot.queryParamMap.get('empresaClienteContadorId');
     const id = empresaClienteContadorId ? Number(empresaClienteContadorId) : null;
     return id;
   });
-
-  // Computed para obtener datos del usuario
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
     try {
@@ -321,18 +342,15 @@ constructor() {
 
 
   canConfirmarPago(): boolean {
-    // Verificar que se haya seleccionado un tipo de pago
     if (!this.tipoPago) {
       return false;
     }
 
-    // Obtener el estado actual de la factura
     const estadoActual = this.selectedStatus();
     if (!estadoActual) {
       return false;
     }
 
-    // Estados en los que se permite confirmar pago
     const estadosPermitidos = [
       'PENDIENTE',
       'ACTIVO',
