@@ -1,8 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { FacturaService } from '../../service/factura.service';
+import { Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { FacturaService, ReadingUpdate } from '../../service/factura.service';
 import { IEstado, IFactura } from '@interfaces/Ifactura';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule, DatePipe, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EstadoService } from '../../service/estado.service';
 import { ToastService } from '@services/toast.service';
@@ -10,109 +10,107 @@ import { ToastService } from '@services/toast.service';
 @Component({
   selector: 'app-update-bill',
   standalone: true,
-  imports: [CommonModule,  FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './update-bill.html',
   providers: [DatePipe]
 })
 export class UpdateBill implements OnInit {
-  estado: IEstado[] = [];
-  estadoName: string[] = [];
-  selectedEstadoId: number | null = null;
-
   factura: IFactura | null = null;
-    protected readonly toast = inject(ToastService);
+  consumo = signal<number>(0);
+  isSubmitting = signal<boolean>(false);
+  lecturaId = signal<number | null>(null);
+
+  protected readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly facturaService = inject(FacturaService);
-  private readonly estadoService = inject(EstadoService);
+  readonly platformId = inject(PLATFORM_ID);
+  readonly isBrowser = isPlatformBrowser(this.platformId);
+
+  readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const data = sessionStorage.getItem('userData');
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  readonly usuarioModificacion = computed(() => {
+    const data = this.userData();
+    return data?.nombre || 'admin';
+  });
 
 
   ngOnInit(): void {
-
-    this.loadAllEstados();
     const id = Number(this.route.snapshot.paramMap.get('id'));
+    this.route.queryParams.subscribe(params => {
+      if (params['lecturaId']) {
+        this.lecturaId.set(Number(params['lecturaId']));
+      }
+      if (params['consumoActual']) {
+        this.consumo.set(Number(params['consumoActual']));
+      }
+    });
+
     if (id) {
       this.facturaService.getFacturaById(id).subscribe({
         next: (res) => {
           const factura = res.response;
-          this.factura = {
-            ...factura,
-            estado: factura.estado || {
-              id: 0,
-              nombre: '',
-              descripcion: '',
-              activo: true,
-              usuarioCreacion: '',
-              fechaCreacion: new Date(),
-              usuarioModificacion: null,
-              fechaModificacion: null
-            },
-            lectura: factura.lectura || {
-              id: 0,
-              contador: { id: 0, nombre: '' },
-              lectura: '',
-              fechaLectura: new Date(),
-              consumoAnormal: false,
-              descripcion: '',
-              activo: true,
-              usuarioCreacion: '',
-              fechaCreacion: new Date(),
-              usuarioModificacion: null,
-              fechaModificacion: null
-            },
-            fechaEmision: factura.fechaEmision ? this.formatDateToInput(factura.fechaEmision) : '',
-            fechaFin: factura.fechaFin ? this.formatDateToInput(factura.fechaFin) : ''
-          };
+          this.factura = factura;
+          if (!this.lecturaId() && factura.lectura?.id) {
+            this.lecturaId.set(factura.lectura.id);
+          }
+          if (this.consumo() === 0 && factura.consumo) {
+            this.consumo.set(Number(factura.consumo));
+          }
         },
         error: (err) => {
           console.error('Error cargando factura:', err);
+          this.toast.error('Error', 'No se pudo cargar la factura');
         }
       });
     }
   }
 
-  loadAllEstados(): void {
-    this.estadoService.getAllEstado().subscribe((response) => {
-      this.estado = response.response;
-      this.estadoName = response.response.map((tipoDocumento) => tipoDocumento.nombre)
-    })
-  }
-
   onSubmit(): void {
-  if (this.factura) {
-    const estadoSeleccionado = this.estado.find(e => e.id === this.factura!.estado.id);
-    if (estadoSeleccionado) {
-      this.factura.estado = estadoSeleccionado;
+    const lecturaIdValue = this.lecturaId();
+
+    if (!lecturaIdValue) {
+      this.toast.error('Error', 'No se pudo identificar el ID de la lectura');
+      return;
     }
 
-    this.factura.fechaEmision = this.formatDateToString(this.factura.fechaEmision);
-    this.factura.fechaFin = this.formatDateToString(this.factura.fechaFin);
+    const consumoValue = this.consumo();
+    if (consumoValue <= 0) {
+      this.toast.warning('Validación', 'El consumo debe ser mayor a 0');
+      return;
+    }
 
-    this.facturaService.updateFactura(this.factura).subscribe({
+    this.isSubmitting.set(true);
+
+    const readingUpdate: ReadingUpdate = {
+      id: lecturaIdValue,
+      lectura: consumoValue,
+      usuarioModificacion: this.usuarioModificacion()
+    };
+
+    this.facturaService.updateReading(readingUpdate).subscribe({
       next: (res) => {
-        this.toast.success('Éxito','Factura actualizada correctamente');
+        this.toast.success('Éxito', 'Consumo actualizado correctamente');
+        this.isSubmitting.set(false);
+        setTimeout(() => {
+          this.goBack();
+        }, 1500);
       },
       error: (err) => {
-        this.toast.error('Error','No se pudo actualizar la factura');
+        this.isSubmitting.set(false);
       }
     });
-  } else {
-    this.toast.error('Error','No hay factura para actualizar');
-  }
-}
-  private formatDateToInput(fecha: string | Date): string {
-    const date = new Date(fecha);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
   }
 
-  private formatDateToString(date: string | Date | null): string | null {
-    if (!date) return null;
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  goBack(): void {
+    this.router.navigate(['../../'], { relativeTo: this.route });
   }
 }
