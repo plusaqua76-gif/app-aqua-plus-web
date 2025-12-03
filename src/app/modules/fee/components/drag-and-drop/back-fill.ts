@@ -1198,19 +1198,13 @@ export class BackFill {
         this.documentService.getInvoiceTemplateByEnterprise(empresaId)
       );
 
-      console.log('Respuesta completa del backend:', apiResponse);
 
       if (apiResponse.success && apiResponse.response && apiResponse.response.length > 0) {
         // Tomar la primera plantilla encontrada del array response
         const template = apiResponse.response[0];
         this.existingTemplate.set(template);
-
-        // Renderizar el HTML del contenido
         this.renderTemplateHTML(template.contenido);
-
-        console.log('Plantilla cargada exitosamente:', template);
       } else {
-        console.log('No se encontró plantilla existente para la empresa');
         this.existingTemplate.set(null);
       }
     } catch (error) {

@@ -369,12 +369,6 @@ export class PqrSecretary implements OnInit {
     return data?.nombre || null;
   });
 
-  constructor() {
-    effect(() => {
-      console.log('PQRs cargados:', this.statusNovelty.value());
-    })
-  }
-
   statusNovelty = rxResource({
     stream: () => this.pqrService.getStatusPqrById().pipe(
       catchError(error => {

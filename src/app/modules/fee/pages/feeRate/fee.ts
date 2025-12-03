@@ -155,12 +155,6 @@ export class FeeComponent implements AfterViewInit {
   });
 
 
-  constructor() {
-    effect(() => {
-      console.log('Empresa ID changed:', this.typeUse.value());
-    })
-  }
-
   typeUse = rxResource({
     params: () => ({
       enterpriseId: this.empresaId()

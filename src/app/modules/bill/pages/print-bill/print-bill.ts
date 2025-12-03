@@ -42,13 +42,6 @@ export class PrintBill {
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
 
-constructor() {
-  effect(() => {
-   console.log("que lo que esta es la data de cleites deuda anidadas ", this.getConsolidationByClienteId.value())
-  })
-}
-
-
   isFlipped = signal(false);
   billBackData = signal<IBillBackResponse | null>(null);
 
@@ -165,19 +158,19 @@ constructor() {
   // Computed para informar sobre servicios opcionales no disponibles
   serviciosOpcionalesInfo = computed(() => {
     const info: string[] = [];
-    
+
     if (!this.getConsolidationByClienteId.value()?.response) {
       info.push('Sin consolidación de deudas');
     }
-    
+
     if (!this.clienteDeudas.value()?.response) {
       info.push('Sin deudas pendientes');
     }
-    
+
     if (!this.InvoiceBackTemplate.value()?.response) {
       info.push('Sin template de factura');
     }
-    
+
     return info;
   });
 

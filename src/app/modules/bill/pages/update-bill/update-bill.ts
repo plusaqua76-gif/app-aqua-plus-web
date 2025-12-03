@@ -19,6 +19,8 @@ export class UpdateBill implements OnInit {
   consumo = signal<number>(0);
   isSubmitting = signal<boolean>(false);
   lecturaId = signal<number | null>(null);
+  isLoading = signal<boolean>(true);
+  loadError = signal<string | null>(null);
 
   protected readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
@@ -45,6 +47,15 @@ export class UpdateBill implements OnInit {
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
+    
+    if (!id || isNaN(id)) {
+      this.loadError.set('ID de factura inválido');
+      this.isLoading.set(false);
+      this.toast.error('Error', 'ID de factura inválido');
+      setTimeout(() => this.goBack(), 2000);
+      return;
+    }
+
     this.route.queryParams.subscribe(params => {
       if (params['lecturaId']) {
         this.lecturaId.set(Number(params['lecturaId']));
@@ -54,24 +65,33 @@ export class UpdateBill implements OnInit {
       }
     });
 
-    if (id) {
-      this.facturaService.getFacturaById(id).subscribe({
-        next: (res) => {
-          const factura = res.response;
-          this.factura = factura;
-          if (!this.lecturaId() && factura.lectura?.id) {
-            this.lecturaId.set(factura.lectura.id);
-          }
-          if (this.consumo() === 0 && factura.consumo) {
+    this.facturaService.getFacturaById(id).subscribe({
+      next: (res) => {
+        const factura = res.response;
+        this.factura = factura;
+        
+        if (!this.lecturaId() && factura?.lectura?.id) {
+          this.lecturaId.set(factura.lectura.id);
+        }
+        
+        if (this.consumo() === 0) {
+          if (factura?.lectura?.lectura) {
+            this.consumo.set(Number(factura.lectura.lectura));
+          } else if (factura?.consumo) {
             this.consumo.set(Number(factura.consumo));
           }
-        },
-        error: (err) => {
-          console.error('Error cargando factura:', err);
-          this.toast.error('Error', 'No se pudo cargar la factura');
         }
-      });
-    }
+        
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error cargando factura:', err);
+        this.loadError.set('No se pudo cargar la factura');
+        this.isLoading.set(false);
+        this.toast.error('Error', 'No se pudo cargar la factura');
+        setTimeout(() => this.goBack(), 3000);
+      }
+    });
   }
 
   onSubmit(): void {

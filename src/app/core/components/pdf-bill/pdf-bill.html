@@ -526,9 +526,9 @@
             <div class="puntos-pago-title">
               Puntos de pago
             </div>
-            <div class="puntos-pago-grid">
-              <!-- Código QR de la empresa - más grande si existe -->
-              @if (hasEmpresaCodigoQr()) {
+            <div class="puntos-pago-grid" [ngClass]="getPuntosGridClass()">
+              <!-- Código QR de la empresa - Comentado según requerimiento -->
+              <!-- @if (hasEmpresaCodigoQr()) {
               <div class="punto-pago-item qr-item">
                 <img
                   [src]="'data:image/png;base64,' + getEmpresaCodigoQrImagen()"
@@ -536,7 +536,7 @@
                   class="qr-image"
                 />
               </div>
-              }
+              } -->
 
               <!-- Puntos de pago normales -->
               @if (getPuntosPago() && getPuntosPago().length > 0) { @for (punto
@@ -555,7 +555,7 @@
                 }
               </div>
               } } @else {
-              <p>no se cargaron las imagenes</p>
+              <p style="font-size: 10px; color: #999; text-align: center;">No se cargaron las imágenes</p>
               }
             </div>
           </div>

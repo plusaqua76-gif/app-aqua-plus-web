@@ -76,3 +76,12 @@ export interface DocumentUploadResponse {
 
 
 
+export interface responseDocument {
+  id?: number;
+  ruta: string;
+  nombre: string;
+  imagen: string;
+}
+
+
+

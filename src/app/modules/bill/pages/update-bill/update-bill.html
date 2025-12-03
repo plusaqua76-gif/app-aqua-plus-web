@@ -33,15 +33,15 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div>
             <span class="text-gray-600 dark:text-gray-400 font-medium">Código:</span>
-            <p class="text-gray-800 dark:text-gray-200 font-semibold">{{ factura.codigo }}</p>
+            <p class="text-gray-800 dark:text-gray-200 font-semibold">{{ factura.codigo || '' }}</p>
           </div>
           <div>
             <span class="text-gray-600 dark:text-gray-400 font-medium">Estado:</span>
-            <p class="text-gray-800 dark:text-gray-200 font-semibold">{{ factura.estado.nombre }}</p>
+            <p class="text-gray-800 dark:text-gray-200 font-semibold">{{ factura.estado.nombre || '' }}</p>
           </div>
           <div>
             <span class="text-gray-600 dark:text-gray-400 font-medium">Consumo Actual:</span>
-            <p class="text-gray-800 dark:text-gray-200 font-semibold">{{ factura.lectura.lectura }} m³</p>
+            <p class="text-gray-800 dark:text-gray-200 font-semibold">{{ factura.lectura?.lectura || 0 }} m³</p>
           </div>
         </div>
       </div>
@@ -132,7 +132,7 @@
     </form>
 
     <!-- Loading state -->
-    @if (!factura) {
+    @if (!factura && isLoading()) {
       <div class="p-8 flex items-center justify-center">
         <div class="flex flex-col items-center gap-4">
           <svg class="animate-spin h-10 w-10 text-blue-500" fill="none" viewBox="0 0 24 24">
@@ -140,6 +140,21 @@
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
           <p class="text-gray-600 dark:text-gray-400 font-medium">Cargando información de la factura...</p>
+        </div>
+      </div>
+    }
+
+    <!-- Error state -->
+    @if (!factura && !isLoading() && loadError()) {
+      <div class="p-8 flex items-center justify-center">
+        <div class="flex flex-col items-center gap-4 text-center">
+          <svg class="w-16 h-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <p class="text-red-600 dark:text-red-400 font-semibold text-lg mb-2">{{ loadError() }}</p>
+            <p class="text-gray-600 dark:text-gray-400 text-sm">Redirigiendo automáticamente...</p>
+          </div>
         </div>
       </div>
     }

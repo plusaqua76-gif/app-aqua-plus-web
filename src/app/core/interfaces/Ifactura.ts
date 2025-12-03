@@ -6,7 +6,7 @@ export interface IFactura {
     id: number;
     empresaClienteContador: IEnterpriseClientCounter;
     tarifa: ITarifa;
-    lectura: ILectura;
+    lectura: ILectura | null;
     tipoPago: ITipoPago;
     estado: IEstado;
     fechaEmision: string | null;
