@@ -8,6 +8,7 @@ import {
   ElementRef,
   AfterViewInit,
   EnvironmentInjector,
+  effect,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -28,7 +29,7 @@ import { PdfBill } from '@components/pdf-bill/pdf-bill';
   template: `
     <ng-template #actionsTemplate let-row>
       <div class="flex items-center space-x-2">
-        <!-- <button
+        <button
           type="button"
           (click)="handleTableAction({ action: 'edit', row })"
           class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-blue-600/50 text-blue-400 hover:bg-blue-600/10 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors duration-200 cursor-pointer"
@@ -38,7 +39,7 @@ import { PdfBill } from '@components/pdf-bill/pdf-bill';
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
-        </button> -->
+        </button>
         <button
           type="button"
           (click)="handleTableAction({ action: 'print', row })"
@@ -161,8 +162,6 @@ export class Bill  {
 
 
 
-
-
   serverBillData = rxResource({
     params: () => ({
       enterpriseId: this.enterpriseId(),
@@ -213,6 +212,10 @@ export class Bill  {
     } else if (event.action === 'edit' && event.row) {
       this.router.navigate(['update-bill', event.row.id], {
         relativeTo: this.route,
+        queryParams: {
+          lecturaId: event.row.lectura?.id,
+          consumoActual: event.row.consumo
+        }
       });
     } else if (event.action === 'print' && event.row) {
       this.router.navigate(['print-bill', event.row.id], {

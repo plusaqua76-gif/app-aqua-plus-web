@@ -140,9 +140,6 @@ export class CounterEnterprice implements OnInit {
       }
     });
 
-    // effect(() => {
-    //   console.log("esta es la data mi negro d ela ultima lecturta", this.readingCounterEnterprice.value()?.response?.[0]?.lectura)
-    // })
 
   }
 

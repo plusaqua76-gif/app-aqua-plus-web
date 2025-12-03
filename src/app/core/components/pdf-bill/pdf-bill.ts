@@ -338,4 +338,16 @@ export class PdfBill {
     const result = !!this.getEmpresaCodigoQrImagen();
     return result;
   }
+
+  // Método para determinar la clase del grid según la cantidad de puntos de pago
+  getPuntosGridClass(): string {
+    const puntosPago = this.getPuntosPago();
+    if (!puntosPago || puntosPago.length === 0) {
+      return 'puntos-grid-empty';
+    }
+    if (puntosPago.length === 1) {
+      return 'puntos-grid-single';
+    }
+    return 'puntos-grid-double';
+  }
 }

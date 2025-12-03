@@ -11,6 +11,12 @@ import {
   IPaginationParams,
 } from '@interfaces/IpaginatedResponse';
 
+export interface ReadingUpdate {
+  id: number;
+  lectura: number;
+  usuarioModificacion: string;
+}
+
 
 @Injectable({
   providedIn: 'root',
@@ -18,6 +24,7 @@ import {
 export class FacturaService {
   private readonly apiUrl = `${environment.apiUrl}/${END_POINT_SERVICE.GET_FACTURA}`;
   private readonly Url = `${environment.apiUrl}/${END_POINT_SERVICE.GET_FACTURA}/${END_POINT_SERVICE.GET_FACTURA_ALL}`;
+  private readonly urlReading = `${environment.apiUrl}/${END_POINT_SERVICE.GET_LECTURA}`;
   protected readonly router = inject(Router);
   protected readonly http = inject(HttpClient);
 
@@ -26,6 +33,11 @@ export class FacturaService {
     return this.http
       .get<ApiResponse<IfacturaResponse[]>>(url)
       .pipe(map((response) => response));
+  }
+
+
+  updateReading(reading: ReadingUpdate): Observable<any> {
+    return this.http.post<any>(`${this.urlReading}`, reading)
   }
 
   deleteFacturaById(id: number): Observable<ApiResponse<any>> {

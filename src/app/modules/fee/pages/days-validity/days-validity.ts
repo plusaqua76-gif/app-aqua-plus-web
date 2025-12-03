@@ -589,7 +589,6 @@ export class DaysValidity {
     const editing = new Set(this.editingCards());
     if (editing.has(cardIndex)) {
       editing.delete(cardIndex);
-      console.log(`Guardado valor para card ${cardIndex}:`, this.cardValues[cardIndex]);
     } else {
       editing.add(cardIndex);
     }

@@ -1,65 +1,162 @@
 
 
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex items-center justify-center py-4">
-    <div class="max-w-3xl w-full mx-auto p-6">
-        <form (ngSubmit)="onSubmit()" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg dark:shadow-gray-700/50 border border-gray-200 dark:border-gray-700" *ngIf="factura">
-            <h2 class="text-2xl font-semibold text-center mb-6 text-gray-900 dark:text-white">Editar Factura</h2>
+<!-- Formulario de actualización de consumo con estilos glassmorphism -->
+<div class="px-4 sm:px-6 lg:px-8 py-6">
+  <!-- Header con estilo similar al de create-client -->
+  <div class="mb-6">
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-700 dark:text-gray-200 mb-4">
+      Actualizar Consumo de Factura
+    </h1>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-gray-700 dark:text-white">Código:</label>
-                    <input type="text" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" [(ngModel)]="factura.codigo" name="codigo" />
-                </div>
-
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-gray-700 dark:text-white">Fecha de emisión:</label>
-                    <input type="date" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" [(ngModel)]="factura.fechaEmision"
-                        name="fechaEmision" />
-                </div>
-
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-gray-700 dark:text-white">Consumo (m³):</label>
-                    <input type="text" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" [(ngModel)]="factura.consumo" name="consumo" />
-                </div>
-
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-gray-700 dark:text-white">Fecha fin:</label>
-                    <input type="date" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" [(ngModel)]="factura.fechaFin" name="fechaFin" />
-                </div>
-
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-gray-700 dark:text-white">Estado:</label>
-                    <select class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" [(ngModel)]="factura.estado.id" name="estadoId">
-                        @for (est of estado; track est.id) {
-                            <option [ngValue]="est.id">
-                                {{ est.nombre }}
-                            </option>
-                        }
-                    </select>
-                </div>
-
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-gray-700 dark:text-white">Consumo anormal:</label>
-                    <select class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" [(ngModel)]="factura.lectura.consumoAnormal"
-                        name="consumoAnormal">
-                        <option [ngValue]="true">Sí</option>
-                        <option [ngValue]="false">No</option>
-                    </select>
-                </div>
-
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium text-gray-700 dark:text-white">Valor factura:</label>
-                    <input type="text" class="p-3 border border-gray-300 dark:border-gray-600 rounded-md w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" [(ngModel)]="factura.precio" name="consumo" />
-                </div>
-
-                <div class="col-span-1 sm:col-span-2 flex justify-center mt-4">
-                    <button (click)="onSubmit()" type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-md shadow-md dark:shadow-gray-700/50 cursor-pointer transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
-                        Actualizar Factura
-                    </button>
-                </div>
-            </div>
-        </form>
+    <!-- Botón de regreso -->
+    <div class="flex items-center gap-4 mb-6">
+      <button
+        type="button"
+        (click)="goBack()"
+        class="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md text-gray-900 dark:text-white hover:bg-white/20 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Volver a la lista
+      </button>
     </div>
+  </div>
+
+  <!-- Contenedor principal con estilo glassmorphism -->
+  <div class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30">
+    <!-- Formulario -->
+    <form (ngSubmit)="onSubmit()" class="p-6 sm:p-8" *ngIf="factura">
+      <!-- Información de la factura (solo lectura) -->
+      <div class="mb-6 p-4 rounded-xl bg-white/10 dark:bg-slate-700/10 backdrop-blur-sm border border-white/10 dark:border-slate-600/20">
+        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-3">Información de la Factura</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div>
+            <span class="text-gray-600 dark:text-gray-400 font-medium">Código:</span>
+            <p class="text-gray-800 dark:text-gray-200 font-semibold">{{ factura.codigo || '' }}</p>
+          </div>
+          <div>
+            <span class="text-gray-600 dark:text-gray-400 font-medium">Estado:</span>
+            <p class="text-gray-800 dark:text-gray-200 font-semibold">{{ factura.estado.nombre || '' }}</p>
+          </div>
+          <div>
+            <span class="text-gray-600 dark:text-gray-400 font-medium">Consumo Actual:</span>
+            <p class="text-gray-800 dark:text-gray-200 font-semibold">{{ factura.lectura?.lectura || 0 }} m³</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Campo: Consumo (m³) -->
+      <div class="grid grid-cols-1 gap-6">
+        <div>
+          <label
+            for="consumo"
+            class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+          >
+            Nuevo Consumo (m³) <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <input
+              id="consumo"
+              type="number"
+              step="0.01"
+              min="0"
+              [ngModel]="consumo()"
+              (ngModelChange)="consumo.set($event)"
+              name="consumo"
+              placeholder="Ingrese el nuevo consumo"
+              class="w-full pl-12 pr-4 py-3 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-300"
+              required
+            />
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 ml-1">
+            <svg class="inline w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+            Ingrese el consumo en metros cúbicos (m³)
+          </p>
+        </div>
+      </div>
+
+      <!-- Botones de acción con estilo similar a create-client -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-white/10 dark:border-slate-700/30">
+        <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Los campos marcados con <span class="text-red-500 font-semibold">*</span> son obligatorios</span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <button
+            type="button"
+            (click)="goBack()"
+            [disabled]="isSubmitting()"
+            class="w-full sm:w-auto px-6 py-3 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md text-gray-900 dark:text-white hover:bg-white/20 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-gray-500/50 transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <div class="flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <span>Cancelar</span>
+            </div>
+          </button>
+
+          <button
+            type="submit"
+            [disabled]="isSubmitting() || consumo() <= 0"
+            class="w-full sm:w-auto px-6 py-3 rounded-xl border border-blue-500/50 bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 font-medium shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-blue-500/25"
+          >
+            <div class="flex items-center justify-center gap-2">
+              @if (isSubmitting()) {
+                <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Actualizando...</span>
+              } @else {
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Actualizar Consumo</span>
+              }
+            </div>
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Loading state -->
+    @if (!factura && isLoading()) {
+      <div class="p-8 flex items-center justify-center">
+        <div class="flex flex-col items-center gap-4">
+          <svg class="animate-spin h-10 w-10 text-blue-500" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p class="text-gray-600 dark:text-gray-400 font-medium">Cargando información de la factura...</p>
+        </div>
+      </div>
+    }
+
+    <!-- Error state -->
+    @if (!factura && !isLoading() && loadError()) {
+      <div class="p-8 flex items-center justify-center">
+        <div class="flex flex-col items-center gap-4 text-center">
+          <svg class="w-16 h-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <p class="text-red-600 dark:text-red-400 font-semibold text-lg mb-2">{{ loadError() }}</p>
+            <p class="text-gray-600 dark:text-gray-400 text-sm">Redirigiendo automáticamente...</p>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
 </div>
