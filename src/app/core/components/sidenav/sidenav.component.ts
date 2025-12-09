@@ -13,11 +13,10 @@ import {
   OnInit,
   HostListener,
   inject,
-  effect,
-  PLATFORM_ID,
-  computed
+  computed,
+  PLATFORM_ID
 } from '@angular/core';
-import { CommonModule, isPlatformBrowser, NgClass } from '@angular/common';
+import { CommonModule, NgClass, isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { HasRoleDirective } from '../../directives/has-role';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -25,10 +24,17 @@ import { NavsMenuRolService } from '@services/navsMenuRol.service';
 import { NavItem } from '@interfaces/InavItem';
 import { of } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { StorageService } from '../../services/storage.service';
 
 interface SideNavToggle {
   screenWidth: number;
   collapsed: boolean;
+}
+
+interface UserData {
+  empresaId?: number;
+  rolId?: number;
+  nombre?: string;
 }
 
 @Component({
@@ -73,30 +79,27 @@ export class SidenavComponent implements OnInit {
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
-    this.screenWidth = window.innerWidth;
-    if (this.screenWidth <= 768) {
-      this.collapsed = false;
+    if (this.isBrowser) {
+      this.screenWidth = window.innerWidth;
+      if (this.screenWidth <= 768) {
+        this.collapsed = false;
+      }
+      this.toggleSideNav.emit({
+        collapsed: this.collapsed,
+        screenWidth: this.screenWidth,
+      });
     }
-    this.toggleSideNav.emit({
-      collapsed: this.collapsed,
-      screenWidth: this.screenWidth,
-    });
   }
 
   private readonly enterpriseIdService = inject(EnterpriseIdService);
   private readonly navsMenuRolService = inject(NavsMenuRolService);
-    protected platformId = inject(PLATFORM_ID);
+  protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
+  private readonly storageService = inject(StorageService);
 
-    readonly userData = computed(() => {
-    if (!this.isBrowser) return null;
-    try {
-      const userDataString = sessionStorage.getItem('userData');
-      if (!userDataString) return null;
-      return JSON.parse(userDataString);
-    } catch (e) {
-      return null;
-    }
+  // Signals para datos del usuario usando el StorageService
+  readonly userData = computed(() => {
+    return this.storageService.getObject<UserData>('userData');
   });
 
   readonly empresaId = computed(() => {
@@ -104,7 +107,7 @@ export class SidenavComponent implements OnInit {
     return data?.empresaId || null;
   });
 
-    readonly rolId = computed(() => {
+  readonly rolId = computed(() => {
     const data = this.userData();
     return data?.rolId || null;
   });
@@ -161,13 +164,9 @@ export class SidenavComponent implements OnInit {
     return orderedItems;
   }
 
-
-
   enterpriseInfo = rxResource({
     stream: () => this.enterpriseIdService.getEnterpriseInfo(),
   });
-
-
 
   dataNavsUser = rxResource({
     params: () => ({
@@ -194,10 +193,10 @@ export class SidenavComponent implements OnInit {
     }
   })
 
-
-
   ngOnInit(): void {
-    this.screenWidth = window.innerWidth;
+    if (this.isBrowser) {
+      this.screenWidth = window.innerWidth;
+    }
     this.collapsed = false;
 
     this.toggleSideNav.emit({

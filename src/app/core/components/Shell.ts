@@ -1,4 +1,5 @@
-import { Component, OnInit, HostListener, signal } from '@angular/core';
+import { Component, OnInit, HostListener, signal, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { SidenavComponent } from './sidenav/sidenav.component';
 import { BodyComponent } from './body';
 import { Header } from './header';
@@ -26,16 +27,23 @@ interface SideNavToggle {
   styles: [],
 })
 export class AppShellComponent implements OnInit {
+  private platformId = inject(PLATFORM_ID);
+  private isBrowser = isPlatformBrowser(this.platformId);
+  
   isSideNavCollapsed = signal(false);
   screenWidth = signal(0);
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
-    this.screenWidth.set(window.innerWidth);
+    if (this.isBrowser) {
+      this.screenWidth.set(window.innerWidth);
+    }
   }
 
   ngOnInit(): void {
-    this.screenWidth.set(window.innerWidth);
+    if (this.isBrowser) {
+      this.screenWidth.set(window.innerWidth);
+    }
   }
 
   onToggleSideNav(data: SideNavToggle): void {
