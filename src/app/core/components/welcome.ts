@@ -773,7 +773,7 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
                 <span class="letter">o</span>
               </span>
               <br />
-              <span class="font-thin font-serif">
+              <span class="">
                 <span class="letter">e</span>
                 <span class="letter">n</span>
                 <span class="letter">&nbsp;</span>

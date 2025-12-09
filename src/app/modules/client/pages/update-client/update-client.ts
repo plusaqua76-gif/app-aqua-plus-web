@@ -12,11 +12,12 @@ import { ITipoDocumento } from '@interfaces/Iuser';
 import { LocationService } from '@shared/services/location.service';
 import { EmpleadoService } from '../../../employee/service/empleado.service';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { EMPTY } from 'rxjs';
+import { EMPTY, of } from 'rxjs';
 import { EnterpriseClientCounterService } from '../../service/enterpriseClientCounter.service';
 import { IClienteDetalle } from '@interfaces/client/IclientDetail';
 import { TypeCounterService } from '../../../counter/service/typeCounter.service';
 import { ITypeCounter } from '@interfaces/ItypeCounter';
+import { ConceptRateService } from '../../../fee/services/concept-rate.service';
 
 
 @Component({
@@ -63,6 +64,7 @@ export class UpdateClient implements OnInit {
   private readonly locationService = inject(LocationService);
   private readonly typeDocumentService = inject(TypeDocumentService);
   private readonly empleadoService = inject(EmpleadoService);
+  private readonly conceptRateService = inject(ConceptRateService);
   private readonly enterpriseClientCounterService = inject(EnterpriseClientCounterService);
   private readonly typeCounterService = inject(TypeCounterService);
   readonly platformId = inject(PLATFORM_ID);
@@ -105,6 +107,16 @@ export class UpdateClient implements OnInit {
   loadTypeCounter = rxResource({
     stream: () => this.typeCounterService.getAllTypeCounters(),
   });
+
+
+  feeConcept = rxResource({
+    params: () => ({ enterpriseId: this.empresaId() }),
+    stream: ({ params: { enterpriseId } }) =>
+      enterpriseId ?
+        this.conceptRateService.getConceptRateByEnterprise(enterpriseId)
+        : of(null)
+  })
+
 
   readonly employeeData = computed(() => this.dataEmployee.value()?.response || []);
   readonly clientData = computed(() => this.dataClient.value()?.response || null);

@@ -17,6 +17,7 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { IPaginatedResponse, IPaginationParams } from '../interfaces/IpaginatedResponse';
 import { Datepicker } from '../../shared/components/datepicker';
+import { ColombianCurrencyPipe } from '../../shared/pipes/colombian-currency.pipe';
 
 export interface Action<T = any> {
   action: string;
@@ -26,13 +27,14 @@ export interface Action<T = any> {
 export interface TableColumn {
   field: string;
   header: string;
-  type?: 'text' | 'date' | 'number';
+  type?: 'text' | 'date' | 'number' | 'currency';
+  defaultValue?: string;
 }
 
 @Component({
   selector: 'app-table-dynamic',
   standalone: true,
-  imports: [NgTemplateOutlet, Datepicker],
+  imports: [NgTemplateOutlet, Datepicker, ColombianCurrencyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="px-4 sm:px-6 lg:px-8 py-6 pb-0">
@@ -303,8 +305,10 @@ export interface TableColumn {
                         [ngTemplateOutlet]="columnTemplates()[col.field]"
                         [ngTemplateOutletContext]="{ $implicit: row, row }"
                       />
+                    } @else if (col.type === 'currency') {
+                      {{ getNestedValue(row, col.field) | colombianCurrency }}
                     } @else {
-                      {{ row[col.field] }}
+                      {{ getNestedValue(row, col.field) ?? col.defaultValue ?? '' }}
                     }
                   </td>
                 }
@@ -957,5 +961,9 @@ export class TableComponent {
     if (!params.filters || Object.keys(params.filters).length === 0) delete params.filters;
 
     this.serverPaginationChange.emit(params);
+  }
+
+  getNestedValue(obj: any, path: string): any {
+    return path.split('.').reduce((acc, part) => acc?.[part], obj);
   }
 }

@@ -134,7 +134,7 @@ export class Bill  {
     { field: 'fechaFin', header: 'Fecha Vencimiento', type: 'date' as const },
     { field: 'estadoNombre', header: 'Estado', type: 'text' as const },
     { field: 'tipoPagoNombre', header: 'Tipo Pago', type: 'text' as const },
-    { field: 'precio', header: 'Precio', type: 'number' as const },
+    { field: 'precio', header: 'Precio', type: 'currency' as const },
   ]);
 
   readonly enterpriseId = computed(() => {

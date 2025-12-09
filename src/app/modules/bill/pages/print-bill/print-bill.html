@@ -225,6 +225,13 @@
 
           <!-- Parte trasera -->
           <div class="back">
+          <!-- @defer (on viewport) {
+              <app-bill-back
+                [templateData]="backTemplateData()">
+              </app-bill-back>
+            }@placeholder {
+              <p>cargando factura </p>
+            } -->
             <app-bill-back
               [templateData]="backTemplateData()">
             </app-bill-back>
@@ -263,6 +270,7 @@
                       <input
                         type="radio"
                         name="tipoPago"
+                        [disabled]="radioDisabled()"
                         value="total"
                         [(ngModel)]="tipoPago"
                         (ngModelChange)="onTipoPagoChange()"
@@ -276,6 +284,7 @@
                         type="radio"
                         name="tipoPago"
                         value="parcial"
+                        [disabled]="radioDisabled()"
                         [(ngModel)]="tipoPago"
                         (ngModelChange)="onTipoPagoChange()"
                         class="w-4 h-4 text-blue-600 bg-transparent border border-gray-600 focus:ring-blue-500 focus:ring-2"
