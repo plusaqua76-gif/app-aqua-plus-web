@@ -118,15 +118,6 @@ import { ToastService } from '@services/toast.service';
                             </p>
                             <p class="text-sm text-gray-200 leading-relaxed">{{ paramConfig.description }}</p>
                           </div>
-
-                          <!-- Código Llave -->
-                          <div class="flex items-center justify-between">
-                            <div class="flex-1">
-                              <p class="text-xs text-gray-400 mb-1">Código Llave:</p>
-                              <p class="text-sm text-gray-200 font-mono">{{ paramConfig.key }}</p>
-                            </div>
-                          </div>
-
                           <!-- Input de Valor -->
                           <div class="flex items-center gap-2">
                             <div class="flex-1">

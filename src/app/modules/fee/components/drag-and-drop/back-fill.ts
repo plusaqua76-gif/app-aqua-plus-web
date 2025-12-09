@@ -466,7 +466,7 @@ interface BillElement {
                       } @else {
                         <div class="text-center text-gray-500 dark:text-gray-400">
                           <span class="text-2xl block mb-1">📷</span>
-                          <span class="text-sm">Doble clic para cargar imagen</span>
+                          <span class="text-sm">Carga la imagen</span>
                         </div>
                       }
                     </div>
