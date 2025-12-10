@@ -63,9 +63,8 @@
                 }
               ],
               "outputHashing": "all",
-              "outputMode": "static",
-              "outputPath": "dist/aqua-plus",
-              "browser": "src/main.azure.ts"
+              "outputMode": "server",
+              "outputPath": "dist/aqua-plus"
             },
             "development": {
               "optimization": false,
