@@ -11,7 +11,7 @@ import { FlowbiteService } from './core/services/flowbite.service';
 import { PreconnetManager } from './core/utils/preconnet';
 import { Seo } from './core/utils/SEO';
 import { initFlowbite } from 'flowbite';
-import { isPlatformBrowser, JsonPipe } from '@angular/common';
+import { isPlatformBrowser, isPlatformServer, JsonPipe } from '@angular/common';
 import { SwPush } from '@angular/service-worker';
 import { NotificationsService } from '@services/notifications.service';
 import { Toast } from '@shared/components/toast';
@@ -46,6 +46,8 @@ export class App implements OnInit {
   private readonly seoService = inject(Seo);
 
 constructor() {
+
+
    // Configurar preconnect para CDNs
    this.preconnetManager.setDomainPreconnet();
 
@@ -95,6 +97,13 @@ constructor() {
   };
 
   ngOnInit(): void {
+
+  //     if (isPlatformServer(this.platformId)) {
+  //   console.log('✅ Ejecutando en SERVIDOR (SSR)');
+  // } else {
+  //   console.log('✅ Ejecutando en NAVEGADOR (después de hydration)');
+  // }
+
     if (isPlatformBrowser(this.platformId)) {
       // Cargar scripts externos de forma dinámica
       this.preconnetManager.loadExternalScripts();
