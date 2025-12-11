@@ -45,6 +45,7 @@ export class BreadcrumbService {
     'history-reading': 'Histórico de Lecturas',
 
 
+
     'employee': 'Empleados',
     'create-employee': 'Crear Empleado',
     'update-employee': 'Actualizar Empleado',
