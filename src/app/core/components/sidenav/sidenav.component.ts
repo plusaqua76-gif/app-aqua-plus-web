@@ -23,7 +23,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { NavsMenuRolService } from '@services/navsMenuRol.service';
 import { NavItem } from '@interfaces/InavItem';
 import { of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { StorageService } from '../../services/storage.service';
 
 interface SideNavToggle {
@@ -123,6 +123,7 @@ export class SidenavComponent implements OnInit {
     'fee',
     'client',
     'bill',
+    'electronic-invoicing',
     'reading',
     'employee',
     'counter',
@@ -165,7 +166,9 @@ export class SidenavComponent implements OnInit {
   }
 
   enterpriseInfo = rxResource({
-    stream: () => this.enterpriseIdService.getEnterpriseInfo(),
+    stream: () => this.enterpriseIdService.getEnterpriseInfo().pipe(
+      catchError(() => of([]))
+    )
   });
 
   dataNavsUser = rxResource({

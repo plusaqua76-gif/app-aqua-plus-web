@@ -33,8 +33,9 @@ import { TypeCounterService } from '../../../counter/service/typeCounter.service
 import { CounterService } from '../../service/couter.service';
 import { of, catchError, finalize, switchMap, EMPTY } from 'rxjs';
 import { EmpleadoService } from '../../../employee/service/empleado.service';
-import { ConceptRateService } from '../../../fee/services/concept-rate.service';
+import { RateTypeService } from '../../../fee/services/rate-type.service';
 import { Checkbox } from '../../../../shared/components/checkbox';
+import { SaveClientPayload } from '@interfaces/ISaveClient';
 
 @Component({
   selector: 'app-create-client',
@@ -52,23 +53,17 @@ export class CreateClient implements OnInit {
   departmentsLoading = signal<boolean>(false);
   citiesLoading = signal<boolean>(false);
   corregimientosLoading = signal<boolean>(false);
-
-  // Modal properties
   isModalOpen = signal<boolean>(false);
   searchSerial = signal<string>('');
   selectedSerials = signal<any[]>([]);
   isSearching = signal<boolean>(false);
   activeTab = signal<'search' | 'create'>('search');
-
-  // Tarifas modal properties
   isTarifasModalOpen = signal<boolean>(false);
   selectedTarifas = signal<any[]>([]); // Estructura: { contadorId, tarifas: [{idTipoTarifa, nombre, aplica}] }
   tempSelectedTarifas = signal<any[]>([]); // Temporal para el modal
   currentCounterForTarifas = signal<any | null>(null); // Contador activo para configurar tarifas
-
-  // Checkbox signal for discapacidad
   personaDiscapacidad = signal<boolean>(false);
-
+  idEmpresaClienteContador = signal<number | null>(null);
   counterForm!: FormGroup;
   selectedCounterDepartmentId = signal<number | null>(null);
   selectedCounterCityId = signal<number | null>(null);
@@ -90,7 +85,7 @@ export class CreateClient implements OnInit {
   protected readonly personService = inject(PersonService);
   protected readonly locationService = inject(LocationService);
   protected readonly enterpriseClientCounterService = inject(EnterpriseClientCounterService);
-  readonly conceptRateService = inject(ConceptRateService);
+  readonly rateTypeService = inject(RateTypeService);
   protected readonly counterService = inject(CounterService);
   protected readonly router = inject(Router);
   protected readonly route = inject(ActivatedRoute);
@@ -367,26 +362,22 @@ export class CreateClient implements OnInit {
     stream: () => this.tipoContadorService.getAllTypeCounters(),
   });
 
-  dataConceptRate = rxResource({
+  typeRates = rxResource({
     params: () => ({ enterpriseId: this.enterpriceId() }),
     stream: ({ params: { enterpriseId } }) =>
-      enterpriseId? this.conceptRateService.getConceptRateByEnterprise(enterpriseId) : EMPTY
-  })
+      enterpriseId
+        ? this.rateTypeService.getRateTypes(enterpriseId).pipe(
+            catchError(error => {
+              return of({ success: false, response: [], message: 'Error al cargar tipos de tarifa' });
+            })
+          )
+        : EMPTY,
+  });
 
-  // Computed para obtener tarifas únicas (similar a availableMenus en admin-roles)
   availableTarifas = computed(() => {
-    const data = this.dataConceptRate.value();
+    const data = this.typeRates.value();
     if (!data?.response || data?.success === false) return [];
-
-    // Extraer tarifas únicas usando Map para evitar duplicados
-    const uniqueTarifas = new Map();
-    data.response.forEach(item => {
-      if (item?.tipoTarifa && !uniqueTarifas.has(item.tipoTarifa.id)) {
-        uniqueTarifas.set(item.tipoTarifa.id, item.tipoTarifa);
-      }
-    });
-
-    return Array.from(uniqueTarifas.values());
+    return data.response;
   });
 
   loadDepartments(): void {
@@ -557,7 +548,7 @@ export class CreateClient implements OnInit {
     // Extraer solo los IDs de los contadores seleccionados
     const contadoresIds = selected.map(item => item.contador?.id || item.id).filter(Boolean);
 
-    const clientPayload = {
+    const clientPayload: SaveClientPayload = {
       idEmpresa: this.enterpriceId(),
       idTipoDocumento: formData.tipoDocumento ? Number(formData.tipoDocumento) : 1,
       numeroCedula: (formData.numeroDocumento || '').toString().substring(0, 15),
@@ -579,7 +570,9 @@ export class CreateClient implements OnInit {
     };
 
     this.enterpriseClientCounterService.saveClient(clientPayload).subscribe({
-      next: (response: any) => {
+      next: (response) => {
+        const idEmpresaClienteContador = response.idEmpresaClienteContador;
+        this.idEmpresaClienteContador.set(idEmpresaClienteContador);
         this.toast.success('Éxito', 'Cliente y contadores asignados correctamente');
         this.registerForm.reset();
         this.selectedSerials.set([]);
@@ -732,19 +725,17 @@ export class CreateClient implements OnInit {
     const isCurrentlySelected = currentSelected.some(t => t.idTipoTarifa === tarifaId);
 
     if (isCurrentlySelected) {
-      // Remover de la selección
       const updated = currentSelected.filter(t => t.idTipoTarifa !== tarifaId);
       this.tempSelectedTarifas.set(updated);
     } else {
-      // Agregar a la selección - buscar la tarifa en las disponibles
       const tarifaData = this.availableTarifas().find(tarifa => tarifa.id === tarifaId);
       if (tarifaData) {
         this.tempSelectedTarifas.set([
           ...currentSelected,
           {
-            idTipoTarifa: tarifaId,
+            idTipoTarifa: tarifaData.id!,
             nombre: tarifaData.nombre,
-            aplica: true
+            aplica: false
           }
         ]);
       }
@@ -769,9 +760,9 @@ export class CreateClient implements OnInit {
     this.selectedTarifas().forEach(contadorConfig => {
       contadorConfig.tarifas.forEach((tarifa: any) => {
         tarifasArray.push({
-          idContador:  contadorConfig.contadorId ,
+          idContador: contadorConfig.contadorId,
           idTipoTarifa: tarifa.idTipoTarifa,
-          aplica: true
+          aplica: false
         });
       });
     });

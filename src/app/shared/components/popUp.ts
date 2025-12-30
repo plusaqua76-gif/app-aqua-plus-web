@@ -17,14 +17,17 @@ import {
     @if (isOpen()) {
     <div
       id="overlay"
-      class="fixed inset-0 z-[1002] flex items-center justify-center p-2 sm:p-4 pt-16 sm:pt-20 bg-black/50 backdrop-blur-sm transition-opacity"
+      class="fixed inset-0 z-[1002] px-2 sm:px-4 bg-black/50 backdrop-blur-sm transition-opacity overflow-y-auto"
       [style.margin-left]="getLeftMargin()"
       [style.width]="getOverlayWidth()"
+      [style.padding-top]="'calc(64px + 10px)'"
+      [style.padding-bottom]="'10px'"
       (click)="close()"
     >
       <div
-        class="relative w-full max-h-[calc(100vh-5rem)] sm:max-h-[calc(100vh-6rem)] flex flex-col bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border border-white/20 dark:border-slate-700/30 rounded-2xl sm:rounded-3xl shadow-2xl"
+        class="relative w-full h-auto max-h-[calc(100vh-64px-20px)] flex flex-col bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border border-white/20 dark:border-slate-700/30 rounded-2xl sm:rounded-3xl shadow-2xl"
         [class]="maxWidth()"
+        [style.margin]="'0 auto'"
         (click)="$event.stopPropagation()"
       >
         <!-- Botón de cerrar -->

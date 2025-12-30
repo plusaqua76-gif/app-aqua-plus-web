@@ -113,6 +113,7 @@ export class Register implements OnInit, OnDestroy {
       nit: ['', [Validators.required]],
       correo: ['', [Validators.required]],
       telefono: ['', [Validators.required]],
+      codigoVerificacion: [''],
     });
   }
 
@@ -255,6 +256,7 @@ export class Register implements OnInit, OnDestroy {
         idCiudad: formData.idCiudad,
         idCorregimiento: formData.idCorregimiento || null,
         descripcionDireccion: formData.descripcionDireccion || null,
+        codigoVerificacion: formData.codigoVerificacion || null
       };
 
       if (this.selectedFile) {

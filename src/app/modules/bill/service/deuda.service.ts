@@ -7,6 +7,7 @@ import { catchError, Observable, throwError } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";
 import { IDeudaCliente, IDeudaClienteResponse } from "@interfaces/IdeudaFactura";
 import { IPaginatedResponse, IPaginationParams } from "@interfaces/IpaginatedResponse";
+import { IDeudaDetalle } from "@interfaces/IDeudaDetalle";
 
 export interface IConsolidationDeuda {
   idTipoDeuda: number;
@@ -37,14 +38,8 @@ export class DeudaService {
         return this.http.get<ApiResponse<IDeudaCliente[]>>(`${this.apiUrl}/cliente-deuda/${billCode}`)
     }
 
-    getDebtById(id: number): Observable<ApiResponse<IDeudaCliente>> {
-      return this.http.get<ApiResponse<IDeudaCliente>>(`${this.apiUrl}/${id}`)
-    }
-
-    getAllDeuda(): Observable<ApiResponse<IDeudaCliente[]>> {
-        return this.http.get<ApiResponse<IDeudaCliente[]>>(`${this.apiUrl}/${END_POINT_SERVICE.GET_DEUDA_ALL}`).pipe(
-            catchError(this.handleError)
-        );
+    getDebtByIdClient(id: number): Observable<ApiResponse<IDeudaDetalle>> {
+      return this.http.get<ApiResponse<IDeudaDetalle>>(`${this.apiUrl}/${id}`)
     }
 
 

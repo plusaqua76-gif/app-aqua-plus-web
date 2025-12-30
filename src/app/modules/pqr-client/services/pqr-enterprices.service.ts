@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment.local';
 import { Observable } from 'rxjs';
-import { IClienteNovedadResponse, ICreateNovedadWithFileRequest, ICreateNovedadResponse, IEstadoNovedad } from '@interfaces/INovelty/IClienteNovedad';
+import { IClienteNovedadResponse, ICreateNovedadWithFileRequest, ICreateNovedadResponse, IParametroGeneral } from '@interfaces/INovelty/IClienteNovedad';
 import { IClientCounterApiResponse } from '@interfaces/IclientCounter';
 import { ApiResponse } from '@interfaces/Iresponse';
 import { ITypeNovelty, ITypeNoveltyResponse } from '@interfaces/INovelty/ItypeNovelty';
@@ -41,8 +41,8 @@ export class PqrEnterprisesService {
     return this.http.post<ITypeNoveltyResponse>(`${this.apiUrl}/tipo-novedad`, typeNovelty);
   }
 
-  getStatusPqrById(): Observable<ApiResponse<IEstadoNovedad[]>>{
-    return this.http.get<ApiResponse<IEstadoNovedad[]>>(`${this.apiUrl}/parametros-generales/codigo/ESTADOS_NOVEDAD`);
+  getStatusPqrById(): Observable<ApiResponse<IParametroGeneral[]>>{
+    return this.http.get<ApiResponse<IParametroGeneral[]>>(`${this.apiUrl}/parametros-generales/codigo/ESTADOS_NOVEDAD`);
   }
 
 

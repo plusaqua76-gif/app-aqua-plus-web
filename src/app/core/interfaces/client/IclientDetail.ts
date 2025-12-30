@@ -89,13 +89,20 @@ export interface IClienteDetalle {
   empleadoNombre: string;
   correo: string;
   telefono: string;
-  tarifas: ITarifa[];
+  tarifasContadores: ITarifa[];
+  tiposTarifaFaltantes: ITipoTarifa[];
 }
 
-// Respuesta de la API para obtener cliente por ID
+
+export interface tiposTarifaFaltantes {
+
+}
+
 export interface IClienteDetalleApiResponse {
   success: boolean;
   message: string;
   code: number;
   response: IClienteDetalle;
 }
+
+

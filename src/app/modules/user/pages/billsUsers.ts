@@ -387,21 +387,6 @@ export class BillUsers {
   confirmDelete(): void {
     const userId = this.itemToDelete();
     if (userId !== null) {
-
-      // Aquí harías la llamada al servicio para eliminar
-      // this.userAccessService.deleteUser(userId).subscribe({
-      //   next: () => {
-      //     this.toastService.success('Eliminado', 'Usuario eliminado correctamente.');
-      //     this.serverUserData.reload?.();
-      //     this.itemToDelete.set(null);
-      //   },
-      //   error: () => {
-      //     this.toastService.error('Error', 'No se pudo eliminar el usuario.');
-      //     this.itemToDelete.set(null);
-      //   },
-      // });
-
-      // Por ahora solo mostramos el toast
       this.toastService.success('Eliminado', 'Usuario eliminado correctamente.');
       this.itemToDelete.set(null);
     }

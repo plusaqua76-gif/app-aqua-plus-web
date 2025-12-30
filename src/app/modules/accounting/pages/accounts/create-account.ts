@@ -68,7 +68,7 @@ import { ICreateAccount } from '@interfaces/Iaccount';
                 required
               >
                 <option value="" disabled>Seleccione tipo de cuenta</option>
-                @for (tipo of getallTypeAccountingAccounts.value()?.response; track tipo.id) {
+                @for (tipo of getallTypeAccountingAccounts.value()?.response ?? []; track tipo.id) {
                 <option
                   [value]="tipo.id"
                   class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"

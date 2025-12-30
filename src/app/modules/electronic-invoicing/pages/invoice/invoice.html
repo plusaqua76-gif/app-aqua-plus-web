@@ -1,0 +1,316 @@
+<div class="min-h-screen text-white">
+  <div class="container mx-auto px-4 py-8 relative">
+    <!-- Imagen de fondo -->
+    <div class="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
+      <img
+        src="https://flowbite.s3.amazonaws.com/blocks/e-commerce/girl-shopping-list.svg"
+        alt="Background decoration"
+        class="w-[300px] sm:w-[400px] md:w-[500px] lg:w-[750px] xl:w-[600px] h-auto opacity-80 ml-8 sm:ml-16 md:ml-24 lg:ml-72"
+      >
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_500px] gap-8 relative z-10">
+
+      <div class="space-y-6">
+        <div class="p-8 rounded-xl border border-gray-700/10 bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl">
+          <h2 class="text-2xl font-bold text-white mb-6">
+            Guía del Proceso de Habilitación en la DIAN - Factura Electrónica
+          </h2>
+
+          <div class="space-y-6 text-gray-300">
+            <p class="text-base leading-relaxed">
+              Este proceso está compuesto por 2 partes: registro en la DIAN como facturador electrónico y configurar modo de operación que consiste en indicarle a la DIAN cuál será tu proveedor tecnológico.
+            </p>
+
+            <!-- Paso 1 -->
+            <div class="space-y-4">
+              <div class="flex items-center gap-3 mb-4">
+                <span class="text-purple-400 text-2xl">✓</span>
+                <h3 class="text-xl font-bold text-white">Paso 1 - Registro</h3>
+              </div>
+
+              <div class="space-y-3 text-base leading-relaxed pl-10">
+                <p>
+                  <span class="text-white font-medium">1.</span> Ingresa a la página de la DIAN en la opción <span class="text-white font-medium underline decoration-blue-400">"Habilitación"</span>.
+                </p>
+
+                <p>
+                  <span class="text-white font-medium">2.</span> Ingresa tus datos de inicio de sesión seleccionando el tipo de usuario, así:
+                </p>
+
+                <ul class="list-disc pl-8 space-y-2">
+                  <li>
+                    <span class="text-white font-medium">Empresa:</span> si eres persona jurídica, ingresa la cédula del representante legal y el NIT de la compañía.
+                  </li>
+                  <li>
+                    <span class="text-white font-medium">Persona:</span> si eres persona natural, elige el tipo de documento e ingresa el número de identificación.
+                  </li>
+                </ul>
+
+                <p>
+                  <span class="text-white font-medium">3.</span> Recibirás en tu correo electrónico <span class="text-white font-medium">(registrado en el RUT)</span> el token de acceso a la plataforma, para ingresar haz clic en <span class="text-white font-medium">"Acceder"</span>.
+                </p>
+
+                <p>
+                  <span class="text-white font-medium">4.</span> Haz clic en el botón <span class="text-white font-medium">"Registro y habilitación"</span> y luego en la opción <span class="text-white font-medium">"Documentos electrónicos"</span>.
+                </p>
+
+                <p>
+                  <span class="text-white font-medium">5.</span> Ingresa un correo electrónico para la recepción de facturas. Te recomendamos usar el mismo correo de tu cuenta de Alegra.
+                </p>
+
+                <p>
+                  <span class="text-white font-medium">6.</span> Haz clic en el botón <span class="text-white font-medium">"Registrar"</span> y luego en <span class="text-white font-medium">"Aceptar"</span> para confirmar que deseas registrarte como facturador.
+                </p>
+              </div>
+
+              <!-- Video -->
+              <div class="pt-4">
+                <p class="text-white font-medium mb-3">Observa:</p>
+                <div class="rounded-lg overflow-hidden border border-gray-700/50">
+                  <iframe
+                    class="w-full aspect-video"
+                    src="https://www.youtube.com/embed/ejC2r2gtqSM"
+                    title="Registro en la DIAN - Proceso de Habilitación Facturación Electrónica 1/5"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen
+                  ></iframe>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative">
+        <div class="sticky top-40 p-6 space-y-6 rounded-xl border border-gray-700/10 bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl">
+          <div class="pb-4 ">
+            <h2 class="text-2xl font-bold text-white mb-1">
+              <i class="fas fa-file-invoice text-blue-400 mr-2"></i>
+              Habilitación DIAN
+            </h2>
+            <p class="text-gray-400 text-sm">Complete los datos para habilitar la facturación electrónica</p>
+          </div>
+
+          <form [formGroup]="dianForm" (ngSubmit)="onSubmit()" class="space-y-5 overflow-y-auto pr-2 max-h-[calc(100vh-12rem)] pl-1">
+
+            <!-- Información de la Empresa -->
+            <div class="space-y-4">
+              <h3 class="text-sm font-semibold text-white border-b border-gray-700/50 pb-2">Información de la Empresa</h3>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-medium text-gray-300 mb-1">Tipo de Identificación</label>
+                  <select formControlName="identificationType" class="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="" disabled selected hidden>
+                      @if (dataTypeDocument.isLoading()) {
+                        Cargando...
+                      } @else if (dataTypeDocument.error()) {
+                        Error al cargar
+                      } @else {
+                        Seleccionar tipo de identificación
+                      }
+                    </option>
+                    @for (type of dataTypeDocument.value()?.response ?? []; track type.id) {
+                      <option [value]="type.id">{{ type.nombre }}</option>
+                    }
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-300 mb-1">Número de Identificación</label>
+                  <input type="text" formControlName="identification" class="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="123456789">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-medium text-gray-300 mb-1">DV (Dígito de Verificación)</label>
+                  <input type="text" formControlName="dv" maxlength="1" class="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="1">
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-300 mb-1">Código de Régimen</label>
+                  <select formControlName="regimeCode" class="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Seleccionar</option>
+                    <option value="R-99-PN">R-99-PN - Persona Natural</option>
+                    <option value="0-15">0-15 - Régimen Común</option>
+                    <option value="0-23">0-23 - Régimen Simplificado</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">Nombre o Razón Social</label>
+                <input type="text" formControlName="name" class="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Mi Empresa S.A.S">
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">Nombre Comercial</label>
+                <input type="text" formControlName="tradeName" class="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Mi Empresa">
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">Tipo de Empresa DIAN</label>
+                <select
+                  formControlName="codigoRazon"
+                  class="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="" disabled selected hidden>Seleccione tipo de empresa</option>
+                  @for (razon of ParamsGeneral.value()?.response ?? []; track razon.codigo) {
+                    @if (razon.codigoPadre === 'TIPO_EMPRESA_DIAN') {
+                      <option [value]="razon.codigo">{{ razon.descripcion }}</option>
+                    }
+                  }
+                </select>
+              </div>
+
+                                          <!-- <div>
+                    <label class="block text-xs text-gray-400 mb-1.5 tracking-wide uppercase">
+                      Medio de Pago
+                      <span class="text-red-400">*</span>
+                    </label>
+                    <select
+                      formControlName="medioPago"
+                      class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 invalid:text-gray-400 cursor-pointer"
+                      required
+                    >
+                      <option value="" disabled selected hidden class="text-gray-400">
+                        Seleccione medio de pago
+                      </option>
+                      @for (medio of ParamsGeneral.value()?.response ?? []; track medio.codigo) {
+                      @if (medio.codigoPadre === 'FORMA_PAGO_DIAN') {
+                      <option [value]="medio.codigo" class="text-white bg-gray-700 py-2 px-4 hover:bg-gray-600">
+                        {{ medio.descripcion }}
+                      </option>
+                      }
+                      }
+                    </select>
+                  </div> -->
+
+              <!-- <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">Tipo</label>
+                <select formControlName="type" class="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <option value="">Seleccionar</option>
+                  <option value="associated">Asociado</option>
+                  <option value="independent">Independiente</option>
+                </select>
+              </div> -->
+            </div>
+
+            <!-- Información de Contacto -->
+            <div class="space-y-4">
+              <h3 class="text-sm font-semibold text-white border-b border-gray-700/50 pb-2">Información de Contacto</h3>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">Correo Electrónico</label>
+                <input type="email" formControlName="email" class="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="correo@ejemplo.com">
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">Teléfono</label>
+                <input type="tel" formControlName="phone" class="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="3001234567">
+              </div>
+            </div>
+
+            <!-- Dirección -->
+            <div class="space-y-4">
+              <h3 class="text-sm font-semibold text-white border-b border-gray-700/50 pb-2">Dirección</h3>
+
+              <div class="grid grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-xs font-medium text-gray-300 mb-1">País</label>
+                  <select formControlName="country" class="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="CO">Colombia</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-300 mb-1">Departamento</label>
+                  <select
+                    formControlName="department"
+                    (change)="onDepartmentChange($any($event.target).value)"
+                    class="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="" disabled selected hidden>
+                      @if (dataDepartamentsDian.isLoading()) {
+                        Cargando...
+                      } @else if (dataDepartamentsDian.error()) {
+                        Error al cargar
+                      } @else {
+                        Seleccionar departamento
+                      }
+                    </option>
+                    @for (dept of dataDepartamentsDian.value()?.response ?? []; track dept.code) {
+                      <option [value]="dept.code">{{ dept.value }}</option>
+                    }
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-300 mb-1">Ciudad</label>
+                  <select
+                    formControlName="city"
+                    [disabled]="!selectedDepartment()"
+                    class="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="" disabled selected hidden>
+                      @if (dataMunicipalitiesDian.isLoading()) {
+                        Cargando...
+                      } @else if (dataMunicipalitiesDian.error()) {
+                        Error al cargar
+                      } @else {
+                        Seleccionar ciudad
+                      }
+                    </option>
+                    @for (city of dataMunicipalitiesDian.value()?.response ?? []; track city.code) {
+                      <option [value]="city.code">{{ city.value }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">Dirección Completa</label>
+                <input type="text" formControlName="address" class="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Calle 10 # 20-30">
+              </div>
+            </div>
+
+            <!-- Botón de envío -->
+            <div class="pt-4 border-t border-gray-700/50">
+              <button
+                type="submit"
+                [disabled]="dianForm.invalid || isLoading"
+                class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all duration-200 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40"
+              >
+                <span class="flex items-center justify-center gap-2">
+                  @if (isLoading) {
+                    <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Procesando...
+                  } @else {
+                    <i class="fas fa-check-circle"></i>
+                    Habilitar Facturación Electrónica
+                  }
+                </span>
+              </button>
+            </div>
+          </form>
+          <!-- <div class="pt-4 border-t border-gray-700/50">
+            <a
+              routerLink="create"
+              class="block w-full px-6 py-3 bg-gradient-to-r from-blue-600  font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all duration-200 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 text-center cursor-pointer"
+            >
+              <span class="flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Crear Nueva Factura
+              </span>
+            </a>
+          </div> -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -59,12 +59,10 @@
                 @if (dataClients.isLoading()) { Cargando clientes... } @else {
                 Seleccione un cliente... }
               </option>
-              @if (dataClients.value()?.response) {
-                @for (client of dataClients.value()?.response; track client.id) {
-                  <option [value]="client.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    {{ client.nombreCompleto }}
-                  </option>
-                }
+              @for (client of dataClients.value()?.response ?? []; track client.id) {
+                <option [value]="client.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
+                  {{ client.nombreCompleto }}
+                </option>
               }
             </select>
             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -100,12 +98,10 @@
                 @if (tipodeuda.isLoading()) { Cargando tipos de deuda... } @else {
                 Seleccione el tipo de deuda... }
               </option>
-              @if (tipodeuda.value()?.response) {
-                @for (tipo of tipodeuda.value()?.response; track tipo.id) {
-                  <option [value]="tipo.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    {{ tipo.nombre }}
-                  </option>
-                }
+              @for (tipo of tipodeuda.value()?.response ?? []; track tipo.id) {
+                <option [value]="tipo.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
+                  {{ tipo.nombre }}
+                </option>
               }
             </select>
             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -142,12 +138,10 @@
                 @if (plazopago.isLoading()) { Cargando plazos de pago... } @else {
                 Seleccione el plazo de pago... }
               </option>
-              @if (plazopago.value()?.response) {
-                @for (plazo of plazopago.value()?.response; track plazo.id) {
-                  <option [value]="plazo.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    {{ plazo.nombre }}
-                  </option>
-                }
+              @for (plazo of plazopago.value()?.response ?? []; track plazo.id) {
+                <option [value]="plazo.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
+                  {{ plazo.nombre }}
+                </option>
               }
             </select>
             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">

@@ -37,7 +37,7 @@
                   Seleccione tipo de documento
                 }
               </option>
-              @for (tipo of loadTypeDocument.value()?.response ; track $index) {
+              @for (tipo of loadTypeDocument.value()?.response ?? [] ; track tipo.id) {
                 <option [value]="tipo.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
                   {{ tipo.nombre }}
                 </option>

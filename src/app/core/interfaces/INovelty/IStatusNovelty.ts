@@ -1,4 +1,4 @@
-export interface IEstadoNovedad {
+export interface IParametroGeneral {
   id: number;
   codigoPadre: string;
   codigo: string;

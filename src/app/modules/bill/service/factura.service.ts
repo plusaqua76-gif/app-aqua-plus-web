@@ -65,7 +65,6 @@ export class FacturaService {
       id: idBill,
       estado: {
         id: estadoId,
-        nombre: estadoNombre
       }
     };
     return this.http.put<ApiResponse<IFactura>>(`${this.apiUrl}`, body)

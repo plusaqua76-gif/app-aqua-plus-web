@@ -8,4 +8,5 @@ export interface IEnterpriseSp {
     idCiudad: number;
     idCorregimiento?: number | null;
     descripcionDireccion?: string | null;
+    codigoVerificacion?: string | null;
 }
