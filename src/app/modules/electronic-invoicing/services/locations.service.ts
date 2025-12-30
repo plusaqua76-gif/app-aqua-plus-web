@@ -15,22 +15,6 @@ export class LocationDianService {
   readonly platformId = inject(PLATFORM_ID);
   readonly apiUrl = `${environment.apiUrl}`;
 
-  // GetDepartmentsDian(): Observable<Department[]> {
-  //   return this.http.get<Department[]>(`${this.apiUrl}/lista-dian/departments`);
-  // }
-
-  // GetMunicipalitiesByDepartment(departmentCode: string): Observable<Municipality[]> {
-  //   return this.http.get<Municipality[]>(`${this.apiUrl}/lista-dian/municipalities?departamento=${departmentCode}`);
-  // }
-
-    // getPaymentMethodsDian(): Observable<ApiResponse<UnitCodes[]>> {
-    //   return this.http.get<ApiResponse<UnitCodes[]>>(`${this.apiUrl}/lista-dian`, {
-    //     params: {
-    //       endPoint: '/dian/payment-methods',
-    //     },
-    //   });
-    // }
-
     GetDepartmentsDian(): Observable<ApiResponse<Department[]>> {
       return this.http.get<ApiResponse<Department[]>>(`${this.apiUrl}/lista-dian`, {
         params: {
