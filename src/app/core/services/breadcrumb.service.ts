@@ -37,6 +37,7 @@ export class BreadcrumbService {
     'bill-data': 'Factura',
     'Update-debt': 'Actualizar Deuda',
     'welcome-user': 'Bienvenida',
+    'electronic-invoicing': 'Facturación Electrónica',
 
 
     'reading': 'Lecturas',

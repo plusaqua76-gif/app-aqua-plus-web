@@ -12,7 +12,7 @@ export default [
   },
   {
     path: 'days-validity',
-    loadComponent: () => import('./pages/days-validity/days-validity').then(m => m.DaysValidity),
+    loadComponent: () => import('./pages/transversal-rate/transversalRate').then(m => m.TransversalRate),
   },
   {
     path: 'counter-enterprice',

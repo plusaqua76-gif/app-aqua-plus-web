@@ -18,6 +18,8 @@ import { IClienteDetalle } from '@interfaces/client/IclientDetail';
 import { TypeCounterService } from '../../../counter/service/typeCounter.service';
 import { ITypeCounter } from '@interfaces/ItypeCounter';
 import { ConceptRateService } from '../../../fee/services/concept-rate.service';
+import { CounterService } from '../../service/couter.service';
+import { switchMap } from 'rxjs';
 
 
 @Component({
@@ -52,6 +54,25 @@ export class UpdateClient implements OnInit {
   contadorCiudades = signal<{[key: number]: ICity[]}>({});
   contadorCorregimientos = signal<{[key: number]: ICorregimiento[]}>({});
 
+  // Signals para gestión de tarifas
+  isTarifasModalOpen = signal<boolean>(false);
+  selectedTarifas = signal<number[]>([]); // IDs de tipoTarifa seleccionados
+  tempSelectedTarifas = signal<number[]>([]); // Temporal para el modal
+  originalTarifas = signal<number[]>([]); // Tarifas originales para comparación
+  tarifasRegistros = signal<Array<{id: number, idTipoTarifa: number, aplica: boolean}>>([]); // Tarifas originales para comparación
+
+  // Signals para crear nuevos contadores
+  isAddCounterModalOpen = signal<boolean>(false);
+  counterForm!: FormGroup;
+  selectedCounterDepartmentId = signal<number | null>(null);
+  selectedCounterCityId = signal<number | null>(null);
+  counterDepartaments = signal<IDepartament[]>([]);
+  counterCities = signal<ICity[]>([]);
+  counterCorregimientos = signal<ICorregimiento[]>([]);
+  counterDepartmentsLoading = signal<boolean>(false);
+  counterCitiesLoading = signal<boolean>(false);
+  counterCorregimientosLoading = signal<boolean>(false);
+
   departmentsLoading = signal<boolean>(false);
   citiesLoading = signal<boolean>(false);
   corregimientosLoading = signal<boolean>(false);
@@ -67,6 +88,7 @@ export class UpdateClient implements OnInit {
   private readonly conceptRateService = inject(ConceptRateService);
   private readonly enterpriseClientCounterService = inject(EnterpriseClientCounterService);
   private readonly typeCounterService = inject(TypeCounterService);
+  private readonly counterService = inject(CounterService);
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
 
@@ -117,7 +139,6 @@ export class UpdateClient implements OnInit {
         : of(null)
   })
 
-
   readonly employeeData = computed(() => this.dataEmployee.value()?.response || []);
   readonly clientData = computed(() => this.dataClient.value()?.response || null);
 
@@ -141,20 +162,59 @@ export class UpdateClient implements OnInit {
       }
     });
 
-    // Effect para observar cambios en los datos del cliente
+    // Effects para el formulario de contador
+    effect(() => {
+      const deptId = this.selectedCounterDepartmentId();
+      if (deptId) {
+        this.loadCounterCities(deptId);
+      } else {
+        this.counterCities.set([]);
+        this.counterCorregimientos.set([]);
+      }
+    });
+
+    effect(() => {
+      const cityId = this.selectedCounterCityId();
+      if (cityId) {
+        this.loadCounterCorregimientos(cityId);
+      } else {
+        this.counterCorregimientos.set([]);
+      }
+    });
+
     effect(() => {
       const clienteData = this.clientData();
       if (clienteData) {
         this.selectedClient.set(clienteData);
         this.loadClientFromApiData(clienteData);
+
+        const tarifasNoAplicanIds: number[] = [];
+
+        if (clienteData.tarifasContadores) {
+          const registros = clienteData.tarifasContadores.map(t => ({
+            id: t.id,
+            idTipoTarifa: t.tipoTarifa.id,
+            aplica: t.aplica
+          }));
+          this.tarifasRegistros.set(registros);
+
+          clienteData.tarifasContadores
+            .filter(t => !t.aplica)
+            .forEach(t => tarifasNoAplicanIds.push(t.tipoTarifa.id));
+        }
+
+        this.selectedTarifas.set(tarifasNoAplicanIds);
+        this.originalTarifas.set([...tarifasNoAplicanIds]);
       }
     });
   }
 
   ngOnInit(): void {
     this.initializeForm();
+    this.initializeCounterForm();
     this.loadInitialData();
     this.setupFormValueChanges();
+    this.setupCounterFormValueChanges();
 
     // Capturar el empresaClienteContadorId desde la ruta
     const id = this.route.snapshot.paramMap.get('id');
@@ -200,16 +260,22 @@ export class UpdateClient implements OnInit {
     const fechaFormatted = contador.fechaInstalacion ?
       new Date(contador.fechaInstalacion).toISOString().split('T')[0] : '';
 
+    // Si es un contador nuevo, no aplicar validadores ya que solo se enviará el ID
+    const isNew = contador.isNewCounter || false;
+
     return this.fb.group({
       id: [contador.id],
-      serial: [contador.serial, Validators.required],
+      serial: [contador.serial, isNew ? [] : Validators.required],
       fechaInstalacion: [fechaFormatted],
-      tipoContador: [contador.tipoContador?.id, Validators.required],
+      tipoContador: [contador.tipoContador?.id, isNew ? [] : Validators.required],
       activo: [contador.activo],
+      isNewCounter: [isNew], // Flag para identificar contadores nuevos
+      estrato: [contador.estrato || '', isNew ? [] : [Validators.required, Validators.min(1), Validators.max(6)]],
+      digitos: [contador.digitos || '', isNew ? [] : [Validators.required, Validators.min(1)]],
 
       // Campos editables de ubicación
-      idDepartamento: [contador.descripcion?.departamento?.id || '', Validators.required],
-      idCiudad: [contador.descripcion?.ciudad?.id || '', Validators.required],
+      idDepartamento: [contador.descripcion?.departamento?.id || '', isNew ? [] : Validators.required],
+      idCiudad: [contador.descripcion?.ciudad?.id || '', isNew ? [] : Validators.required],
       idCorregimiento: [contador.descripcion?.corregimiento?.id || ''],
 
       descripcion: this.fb.group({
@@ -223,7 +289,7 @@ export class UpdateClient implements OnInit {
         corregimiento: this.fb.group({
           id: [contador.descripcion?.corregimiento?.id]
         }),
-        descripcion: [contador.descripcion?.descripcion, Validators.required]
+        descripcion: [contador.descripcion?.descripcion, isNew ? [] : Validators.required]
       }),
       // Campos para mostrar nombres (solo lectura)
       departamentoNombre: [contador.descripcion?.departamento?.nombre],
@@ -293,7 +359,7 @@ export class UpdateClient implements OnInit {
   }
 
   // Métodos para cargar ubicaciones específicas de contadores
-  private loadCounterCities(counterIndex: number, departmentId: number): void {
+  private loadCounterCitiesByIndex(counterIndex: number, departmentId: number): void {
     this.locationService.getCiudades(departmentId).subscribe({
       next: (response) => {
         const currentCities = this.contadorCiudades();
@@ -303,13 +369,11 @@ export class UpdateClient implements OnInit {
         });
       },
       error: (error) => {
-        console.error(`Error cargando ciudades para contador ${counterIndex}:`, error);
-        this.toast.error('Error', 'No se pudieron cargar las ciudades para el contador');
       }
     });
   }
 
-  private loadCounterCorregimientos(counterIndex: number, cityId: number): void {
+  private loadCounterCorregimientosByIndex(counterIndex: number, cityId: number): void {
     this.locationService.getCorregimientos(cityId).subscribe({
       next: (response) => {
         const currentCorregimientos = this.contadorCorregimientos();
@@ -319,8 +383,6 @@ export class UpdateClient implements OnInit {
         });
       },
       error: (error) => {
-        console.error(`Error cargando corregimientos para contador ${counterIndex}:`, error);
-        this.toast.error('Error', 'No se pudieron cargar los corregimientos para el contador');
       }
     });
   }
@@ -383,9 +445,9 @@ export class UpdateClient implements OnInit {
       const currentCityId = contadorControl.get('idCiudad')?.value;
 
       if (currentDeptId) {
-        this.loadCounterCities(index, Number(currentDeptId));
+        this.loadCounterCitiesByIndex(index, Number(currentDeptId));
         if (currentCityId) {
-          this.loadCounterCorregimientos(index, Number(currentCityId));
+          this.loadCounterCorregimientosByIndex(index, Number(currentCityId));
         }
       }
 
@@ -393,7 +455,7 @@ export class UpdateClient implements OnInit {
       contadorControl.get('idDepartamento')?.valueChanges.subscribe((departamentoId) => {
         const numericDeptId = departamentoId ? Number(departamentoId) : null;
         if (numericDeptId) {
-          this.loadCounterCities(index, numericDeptId);
+          this.loadCounterCitiesByIndex(index, numericDeptId);
           contadorControl.get('descripcion.departamento.id')?.setValue(numericDeptId, { emitEvent: false });
           contadorControl.patchValue({
             idCiudad: '',
@@ -424,7 +486,7 @@ export class UpdateClient implements OnInit {
         const numericCityId = cityId ? Number(cityId) : null;
 
         if (numericCityId) {
-          this.loadCounterCorregimientos(index, numericCityId);
+          this.loadCounterCorregimientosByIndex(index, numericCityId);
 
           // Actualizar también el campo anidado
           contadorControl.get('descripcion.ciudad.id')?.setValue(numericCityId, { emitEvent: false });
@@ -496,12 +558,15 @@ export class UpdateClient implements OnInit {
       idCorregimiento: direccion?.corregimiento?.id || ''
     };
 
-    this.updateForm.patchValue(formValues);
+    this.updateForm.patchValue(formValues, { emitEvent: false });
 
     // Cargar contadores en el FormArray
     if (clienteData.contadores && clienteData.contadores.length > 0) {
       this.loadContadoresInForm(clienteData.contadores);
     }
+
+    // Marcar formulario como pristine después de cargar datos iniciales
+    setTimeout(() => this.updateForm.markAsPristine(), 200);
 
     // Establecer los IDs para cargar las listas dependientes
     if (departamento?.id) {
@@ -520,91 +585,43 @@ export class UpdateClient implements OnInit {
       return;
     }
 
-    const clienteSeleccionado = this.selectedClient();
-    if (!clienteSeleccionado) {
-      this.toast.error('Error', 'No se pudo obtener la información del cliente');
+    // Verificar si hay cambios
+    const formDirty = this.updateForm.dirty;
+    const tarifasDirty = this.hasTarifasChanged();
+
+    if (!formDirty && !tarifasDirty) {
+      this.toast.info('Información', 'No hay cambios para guardar');
       return;
     }
 
-    const formData = this.updateForm.value;
-    const usuarioModificacion = this.usuarioModificacion();
-    const empresaClienteContadorId = this.empresaClienteContadorId();
-    const contadoresFormatted = formData.contadores?.map((contador: any, index: number) => {
-
-      const contadorPayload: any = {
-        id: contador.id,
-        serial: contador.serial,
-        activo: contador.activo
-      };
-
-      if (contador.tipoContador) {
-        contadorPayload.tipoContador = { id: contador.tipoContador };
-      }
-
-      // Solo incluir fechaInstalacion si existe
-      if (contador.fechaInstalacion) {
-        contadorPayload.fechaInstalacion = new Date(contador.fechaInstalacion).toISOString();
-      }
-
-      // Manejar descripción y ubicación del contador
-      if (contador.descripcion) {
-        contadorPayload.descripcion = {
-          id: contador.descripcion.id,
-          descripcion: contador.descripcion.descripcion
-        };
-
-        // Usar los nuevos campos de ubicación editables si están disponibles
-        const departamentoId = contador.idDepartamento || contador.descripcion.departamento?.id;
-        const ciudadId = contador.idCiudad || contador.descripcion.ciudad?.id;
-        const corregimientoId = contador.idCorregimiento || contador.descripcion.corregimiento?.id;
-
-        if (departamentoId) {
-          contadorPayload.descripcion.departamento = { id: Number(departamentoId) };
-        }
-        if (ciudadId) {
-          contadorPayload.descripcion.ciudad = { id: Number(ciudadId) };
-        }
-        if (corregimientoId) {
-          contadorPayload.descripcion.corregimiento = { id: Number(corregimientoId) };
-        }
-      } else {
-        console.warn(`No se encontró descripción para contador ${index}`);
-      }
-
-      return contadorPayload;
-    }) || [];
-
-    // Preparar el payload según el formato esperado por la API
-    const updatePayload = {
-      idEmpresaClienteContador: empresaClienteContadorId,
-      primerNombre: formData.primerNombre || '',
-      segundoNombre: formData.segundoNombre || '',
-      primerApellido: formData.primerApellido || '',
-      segundoApellido: formData.segundoApellido || '',
-      numeroCedula: formData.numeroDocumento || '',
-      idDepartamento: formData.idDepartamento ? Number(formData.idDepartamento) : null,
-      idCiudad: formData.idCiudad ? Number(formData.idCiudad) : null,
-      idCorregimiento: formData.idCorregimiento ? Number(formData.idCorregimiento) : null,
-      descripcionDireccion: formData.direccion || '',
-      correo: formData.correo || '',
-      telefono: formData.telefono || '',
-      usuarioCambio: usuarioModificacion,
-      contadores: contadoresFormatted, // Usar contadores formateados
-      idEmpleadoEmpresa: formData.idEmpleadoEmpresa ? Number(formData.idEmpleadoEmpresa) : null
+    // Construir payload solo con campos modificados
+    const dirtyFields = this.getDirtyValues(this.updateForm);
+    const payload: any = {
+      idEmpresaClienteContador: this.empresaClienteContadorId(),
+      usuarioCambio: this.usuarioModificacion(),
+      ...this.mapDirtyFieldsToPayload(dirtyFields)
     };
 
-    this.enterpriseClientCounterService.updateClient(updatePayload).subscribe({
-      next: (response: any) => {
+    // Agregar contadores si fueron modificados
+    const dirtyCounters = this.getDirtyCounters();
+    if (dirtyCounters) {
+      payload.contadores = dirtyCounters;
+    }
+
+    // Agregar tarifas si cambiaron
+    if (tarifasDirty) {
+      payload.tarifasContador = this.buildTarifasPayload();
+    }
+
+    this.enterpriseClientCounterService.updateClient(payload).subscribe({
+      next: () => {
         this.toast.success('Éxito', 'Cliente actualizado correctamente');
-        this.router.navigate(['/shell/client']);
+        this.dataClient.reload();
+        this.updateForm.markAsPristine();
+        this.originalTarifas.set([...this.selectedTarifas()]);
       },
-      error: (err: any) => {
-        if (err.status === 200 || err.status === 201 || err.status === 204) {
-          this.toast.success('Éxito', 'Cliente actualizado correctamente');
-          this.router.navigate(['/shell/client']);
-        } else {
-          this.toast.error('Error', 'No se pudo actualizar el cliente');
-        }
+      error: (err) => {
+        console.error('Error actualizando cliente:', err);
       }
     });
   }
@@ -612,4 +629,486 @@ export class UpdateClient implements OnInit {
   goBack(): void {
     this.router.navigate(['/shell/client']);
   }
+
+  // ==================== GESTIÓN DE TARIFAS ====================
+
+  openTarifasModal(): void {
+    this.isTarifasModalOpen.set(true);
+    this.tempSelectedTarifas.set([...this.selectedTarifas()]);
+  }
+
+  closeTarifasModal(): void {
+    this.isTarifasModalOpen.set(false);
+    this.tempSelectedTarifas.set([]);
+  }
+
+  applyTarifas(): void {
+    this.selectedTarifas.set([...this.tempSelectedTarifas()]);
+    this.closeTarifasModal();
+    this.toast.info('Información', 'Recuerde guardar los cambios del cliente para aplicar las tarifas');
+  }
+
+  onTarifaSelect(tarifaId: number): void {
+    const currentSelected = this.tempSelectedTarifas();
+    const isCurrentlySelected = currentSelected.includes(tarifaId);
+
+    if (isCurrentlySelected) {
+      this.tempSelectedTarifas.set(currentSelected.filter(id => id !== tarifaId));
+    } else {
+      this.tempSelectedTarifas.set([...currentSelected, tarifaId]);
+    }
+  }
+
+  isTarifaSelected(tarifaId: number): boolean {
+    return this.tempSelectedTarifas().includes(tarifaId);
+  }
+
+  getTarifasSeleccionadasCount(): number {
+    const allCount = this.allTarifasDisponibles().length;
+    const noAplicanCount = this.tempSelectedTarifas().length;
+    return allCount - noAplicanCount;
+  }
+
+  private buildTarifasPayload(): any[] {
+    const tarifasArray: any[] = [];
+    const registrosActuales = this.tarifasRegistros();
+    const noAplicanIds = this.selectedTarifas();
+    const allTarifas = this.allTarifasDisponibles();
+
+    allTarifas.forEach(tarifa => {
+      const isSelected = noAplicanIds.includes(tarifa.id);
+      const registroExistente = registrosActuales.find(r => r.idTipoTarifa === tarifa.id);
+
+      if (registroExistente) {
+        tarifasArray.push({
+          id: registroExistente.id,
+          aplica: !isSelected
+        });
+      } else if (isSelected) {
+        tarifasArray.push({
+          idTipoTarifa: tarifa.id,
+          aplica: false
+        });
+      }
+    });
+
+    return tarifasArray;
+  }
+
+  // Obtener solo campos dirty del formulario
+  private getDirtyValues(form: FormGroup | FormArray): any {
+    const dirtyValues: any = {};
+
+    Object.keys(form.controls).forEach(key => {
+      const control = form.get(key);
+
+      if (control?.dirty) {
+        if (control instanceof FormGroup) {
+          dirtyValues[key] = this.getDirtyValues(control);
+        } else if (control instanceof FormArray) {
+          dirtyValues[key] = control.controls
+            .map((ctrl, index) => ctrl.dirty ? this.getDirtyValues(ctrl as FormGroup) : null)
+            .filter(val => val !== null);
+        } else {
+          dirtyValues[key] = control.value;
+        }
+      }
+    });
+
+    return dirtyValues;
+  }
+
+  // Mapear campos dirty a estructura del backend
+  private mapDirtyFieldsToPayload(dirtyFields: any): any {
+    const payload: any = {};
+    const fieldMapping: Record<string, string> = {
+      'numeroDocumento': 'numeroCedula',
+      'direccion': 'descripcionDireccion'
+    };
+
+    Object.keys(dirtyFields).forEach(key => {
+      if (key === 'contadores') return; // Manejado por separado
+
+      const payloadKey = fieldMapping[key] || key;
+      const value = dirtyFields[key];
+
+      // Convertir a número los IDs
+      if (['idDepartamento', 'idCiudad', 'idCorregimiento', 'idEmpleadoEmpresa'].includes(payloadKey)) {
+        payload[payloadKey] = value ? Number(value) : null;
+      } else {
+        payload[payloadKey] = value || '';
+      }
+    });
+
+    return payload;
+  }
+
+  // Obtener contadores modificados o nuevos
+  private getDirtyCounters(): any[] | null {
+    const contadoresArray = this.contadoresFormArray;
+    const dirtyCounters: any[] = [];
+
+    contadoresArray.controls.forEach((control, index) => {
+      const contador = control.value;
+      const isNewCounter = contador.isNewCounter === true;
+
+      // Incluir si está dirty O si es un contador nuevo
+      if (!control.dirty && !isNewCounter) return;
+
+      const payload: any = {
+        id: contador.id,
+        serial: contador.serial,
+        activo: contador.activo
+      };
+
+      if (contador.tipoContador) {
+        payload.tipoContador = { id: contador.tipoContador };
+      }
+
+      if (contador.fechaInstalacion) {
+        payload.fechaInstalacion = new Date(contador.fechaInstalacion).toISOString();
+      }
+
+      // Agregar estrato y digitos
+      if (contador.estrato) {
+        payload.estrato = Number(contador.estrato);
+      }
+      if (contador.digitos) {
+        payload.digitos = Number(contador.digitos);
+      }
+
+      if (contador.descripcion) {
+        const departamentoId = contador.idDepartamento || contador.descripcion.departamento?.id;
+        const ciudadId = contador.idCiudad || contador.descripcion.ciudad?.id;
+        const corregimientoId = contador.idCorregimiento || contador.descripcion.corregimiento?.id;
+
+        payload.descripcion = {
+          id: contador.descripcion.id,
+          descripcion: contador.descripcion.descripcion
+        };
+
+        if (departamentoId) payload.descripcion.departamento = { id: Number(departamentoId) };
+        if (ciudadId) payload.descripcion.ciudad = { id: Number(ciudadId) };
+        if (corregimientoId) payload.descripcion.corregimiento = { id: Number(corregimientoId) };
+      }
+
+      dirtyCounters.push(payload);
+    });
+
+    return dirtyCounters.length > 0 ? dirtyCounters : null;
+  }
+
+  // Verificar si las tarifas cambiaron
+  private hasTarifasChanged(): boolean {
+    const current = this.selectedTarifas();
+    const original = this.originalTarifas();
+
+    if (current.length !== original.length) return true;
+    return !current.every(id => original.includes(id));
+  }
+
+
+  // ==================== CREACIÓN DE NUEVOS CONTADORES ====================
+
+  private initializeCounterForm(): void {
+    this.counterForm = this.fb.group({
+      tipoContador: ['', Validators.required],
+      serial: ['', Validators.required],
+      idDepartamento: [{ value: '', disabled: true }, Validators.required],
+      idCiudad: [{ value: '', disabled: true }, Validators.required],
+      idCorregimiento: [''],
+      direccion: ['', Validators.required],
+      estrato: ['', [Validators.required, Validators.min(1), Validators.max(6)]],
+      digitosContador: ['', [Validators.required, Validators.min(1)]],
+    });
+  }
+
+  private setupCounterFormValueChanges(): void {
+    const userDeptId = this.IdDepartamento();
+    const userCityId = this.IdCiudad();
+
+    if (userDeptId) {
+      this.counterForm.patchValue({ idDepartamento: userDeptId });
+      this.selectedCounterDepartmentId.set(userDeptId);
+      this.loadCounterDepartments();
+    }
+    if (userCityId) {
+      this.counterForm.patchValue({ idCiudad: userCityId });
+      this.selectedCounterCityId.set(userCityId);
+    }
+    this.counterForm.get('idDepartamento')?.valueChanges.subscribe((departamentoId) => {
+      const numericDeptId = departamentoId ? Number(departamentoId) : null;
+      if (this.selectedCounterDepartmentId() !== numericDeptId) {
+        this.selectedCounterDepartmentId.set(numericDeptId);
+        this.counterForm.patchValue({
+          idCiudad: '',
+          idCorregimiento: ''
+        }, { emitEvent: false });
+        this.counterCities.set([]);
+        this.counterCorregimientos.set([]);
+      }
+    });
+
+    this.counterForm.get('idCiudad')?.valueChanges.subscribe((cityId) => {
+      const numericCityId = cityId ? Number(cityId) : null;
+      if (this.selectedCounterCityId() !== numericCityId) {
+        this.selectedCounterCityId.set(numericCityId);
+        this.counterForm.patchValue({
+          idCorregimiento: ''
+        }, { emitEvent: false });
+        this.counterCorregimientos.set([]);
+      }
+    });
+  }
+
+  private loadCounterDepartments(): void {
+    this.counterDepartmentsLoading.set(true);
+    this.locationService.getDepartamentos().subscribe({
+      next: (departaments) => {
+        this.counterDepartaments.set(departaments.response);
+        this.counterDepartmentsLoading.set(false);
+      },
+      complete: () => {
+        this.counterDepartmentsLoading.set(false);
+      }
+    });
+  }
+
+  private loadCounterCities(departmentId: number): void {
+    this.counterCitiesLoading.set(true);
+    this.locationService.getCiudades(departmentId).subscribe({
+      next: (cities) => {
+        this.counterCities.set(cities.response);
+        this.counterCitiesLoading.set(false);
+      },
+      complete: () => {
+        this.counterCitiesLoading.set(false);
+      }
+    });
+  }
+
+  private loadCounterCorregimientos(cityId: number): void {
+    this.counterCorregimientosLoading.set(true);
+    this.locationService.getCorregimientos(cityId).subscribe({
+      next: (corregimientos) => {
+        this.counterCorregimientos.set(corregimientos.response);
+        this.counterCorregimientosLoading.set(false);
+      },
+      complete: () => {
+        this.counterCorregimientosLoading.set(false);
+      }
+    });
+  }
+
+  openAddCounterModal(): void {
+    this.isAddCounterModalOpen.set(true);
+    this.loadCounterDepartments();
+
+    const userDeptId = this.IdDepartamento();
+    const userCityId = this.IdCiudad();
+
+    if (userDeptId) {
+      this.counterForm.patchValue({ idDepartamento: userDeptId });
+      this.selectedCounterDepartmentId.set(userDeptId);
+    }
+    if (userCityId) {
+      this.counterForm.patchValue({ idCiudad: userCityId });
+      this.selectedCounterCityId.set(userCityId);
+    }
+  }
+
+  closeAddCounterModal(): void {
+    this.isAddCounterModalOpen.set(false);
+    this.counterForm.reset();
+  }
+
+  createNewCounter(): void {
+    if (this.counterForm.invalid) {
+      this.counterForm.markAllAsTouched();
+      this.toast.error('Error', 'Por favor complete todos los campos requeridos');
+      return;
+    }
+
+    const formData = this.counterForm.getRawValue();
+    const usuarioCreacion = this.usuarioModificacion();
+
+    const addressPayload = {
+      departamento: { id: Number(formData.idDepartamento) },
+      ciudad: { id: Number(formData.idCiudad) },
+      corregimiento: formData.idCorregimiento ? { id: Number(formData.idCorregimiento) } : { id: 0 },
+      descripcion: formData.direccion,
+      usuarioCreacion: usuarioCreacion,
+    };
+
+    this.personService.createDireccionLocation(addressPayload).pipe(
+      switchMap((addressResponse) => {
+        const counterPayload: any = {
+          tipoContador: { id: Number(formData.tipoContador) },
+          descripcion: { id: addressResponse.response.id },
+          serial: formData.serial,
+          nuid: this.generateNuid(),
+          estrato: Number(formData.estrato),
+          digitos: Number(formData.digitosContador),
+          activo: true,
+          usuarioCreacion: usuarioCreacion,
+        };
+        return this.counterService.saveCounter(counterPayload);
+      })
+    ).subscribe({
+      next: (counterResponse: any) => {
+        const counter = counterResponse?.response || counterResponse;
+
+        if (counter && counter.id) {
+          this.toast.success('Éxito', 'Contador creado correctamente');
+
+          const newCounter = {
+            id: counter.id,
+            serial: counter.serial,
+            fechaInstalacion: counter.fechaInstalacion,
+            tipoContador: {
+              id: counter.tipoContador?.id
+            },
+            activo: counter.activo,
+            isNewCounter: true,
+            descripcion: {
+              id: counter.descripcion?.id,
+              departamento: {
+                id: counter.descripcion?.departamento?.id,
+                nombre: counter.descripcion?.departamento?.nombre
+              },
+              ciudad: {
+                id: counter.descripcion?.ciudad?.id,
+                nombre: counter.descripcion?.ciudad?.nombre
+              },
+              corregimiento: counter.descripcion?.corregimiento ? {
+                id: counter.descripcion?.corregimiento?.id,
+                nombre: counter.descripcion?.corregimiento?.nombre
+              } : null,
+              descripcion: counter.descripcion?.descripcion
+            }
+          };
+
+          const contadorFormGroup = this.createCounterFormGroup(newCounter);
+          this.contadoresFormArray.push(contadorFormGroup);
+          this.contadoresFormArray.markAsDirty();
+          this.updateForm.markAsDirty();
+
+          const newIndex = this.contadoresFormArray.length - 1;
+          this.setupCounterValueChangesForIndex(newIndex);
+
+          this.closeAddCounterModal();
+          this.toast.info('Información', 'Recuerde guardar los cambios del cliente para aplicar el nuevo contador');
+        } else {
+        }
+      },
+      error: (error) => {
+        console.error('Error creando contador:', error);
+      }
+    });
+  }
+
+  private generateNuid(): number {
+    return Math.floor(10000000 + Math.random() * 90000000);
+  }
+
+  private setupCounterValueChangesForIndex(index: number): void {
+    const contadorControl = this.contadoresFormArray.controls[index];
+    const currentDeptId = contadorControl.get('idDepartamento')?.value;
+    const currentCityId = contadorControl.get('idCiudad')?.value;
+
+    if (currentDeptId) {
+      this.loadCounterCitiesByIndex(index, Number(currentDeptId));
+      if (currentCityId) {
+        this.loadCounterCorregimientosByIndex(index, Number(currentCityId));
+      }
+    }
+
+    // Listeners similares a setupCounterValueChanges pero para un contador específico
+    contadorControl.get('idDepartamento')?.valueChanges.subscribe((departamentoId) => {
+      const numericDeptId = departamentoId ? Number(departamentoId) : null;
+      if (numericDeptId) {
+        this.loadCounterCitiesByIndex(index, numericDeptId);
+        contadorControl.get('descripcion.departamento.id')?.setValue(numericDeptId, { emitEvent: false });
+        contadorControl.patchValue({
+          idCiudad: '',
+          idCorregimiento: ''
+        }, { emitEvent: false });
+        contadorControl.get('descripcion.ciudad.id')?.setValue('', { emitEvent: false });
+        contadorControl.get('descripcion.corregimiento.id')?.setValue('', { emitEvent: false });
+      }
+    });
+
+    contadorControl.get('idCiudad')?.valueChanges.subscribe((cityId) => {
+      const numericCityId = cityId ? Number(cityId) : null;
+      if (numericCityId) {
+        this.loadCounterCorregimientosByIndex(index, numericCityId);
+        contadorControl.get('descripcion.ciudad.id')?.setValue(numericCityId, { emitEvent: false });
+        contadorControl.patchValue({
+          idCorregimiento: ''
+        }, { emitEvent: false });
+        contadorControl.get('descripcion.corregimiento.id')?.setValue('', { emitEvent: false });
+      }
+    });
+
+    contadorControl.get('idCorregimiento')?.valueChanges.subscribe((corregimientoId) => {
+      const numericCorrId = corregimientoId ? Number(corregimientoId) : null;
+      if (numericCorrId) {
+        contadorControl.get('descripcion.corregimiento.id')?.setValue(numericCorrId, { emitEvent: false });
+      } else {
+        contadorControl.get('descripcion.corregimiento.id')?.setValue('', { emitEvent: false });
+      }
+    });
+  }
+
+  readonly IdDepartamento = computed(() => {
+    const data = this.userData();
+    const id = data?.empresa?.direccion?.departamento?.id;
+    return id || null;
+  });
+
+  readonly IdCiudad = computed(() => {
+    const data = this.userData();
+    const id = data?.empresa?.direccion?.ciudad?.id;
+    return id || null;
+  });
+
+  readonly allTarifasDisponibles = computed(() => {
+    const clienteData = this.clientData();
+    const tarifas: Array<{id: number, nombre: string, descripcion: string, codigo: string, aplica: boolean, registroId?: number}> = [];
+
+    if (clienteData?.tarifasContadores) {
+      clienteData.tarifasContadores.forEach(t => {
+        tarifas.push({
+          id: t.tipoTarifa.id,
+          nombre: t.tipoTarifa.nombre,
+          descripcion: t.tipoTarifa.descripcion,
+          codigo: t.tipoTarifa.codigo,
+          aplica: t.aplica,
+          registroId: t.id
+        });
+      });
+    }
+
+    if (clienteData?.tiposTarifaFaltantes) {
+      clienteData.tiposTarifaFaltantes.forEach(t => {
+        tarifas.push({
+          id: t.id,
+          nombre: t.nombre,
+          descripcion: t.descripcion,
+          codigo: t.codigo,
+          aplica: true
+        });
+      });
+    }
+
+    return tarifas;
+  });
+
+  readonly tarifasActivas = computed(() => {
+    return this.allTarifasDisponibles().filter(t => t.aplica === true);
+  });
+
+  readonly tarifasNoAplicadas = computed(() => {
+    return this.allTarifasDisponibles().filter(t => t.aplica === false);
+  });
 }

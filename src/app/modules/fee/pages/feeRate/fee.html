@@ -573,7 +573,7 @@
                             />
                           </td>
                           <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-200">
-                            {{ estrato.rango || 12 }}
+                            {{ estrato.rango || 0 }}
                           </td>
                           <td class="px-6 py-4 text-sm">
                             <button
@@ -697,7 +697,7 @@
             </app-rate-types-list>
           </div>
 
-          <div class="flex justify-end pt-4 border-t border-gray-600/50">
+          <!-- <div class="flex justify-end pt-4 border-t border-gray-600/50">
             <button
               type="button"
               (click)="cerrarPopupVisualizarTarifas()"
@@ -705,7 +705,7 @@
             >
               Cerrar
             </button>
-          </div>
+          </div> -->
         </div>
       </app-pop-up>
 
@@ -805,7 +805,7 @@
             </app-type-concepts-list>
           </div>
 
-          <div class="flex justify-end pt-4 border-t border-gray-600/50">
+          <!-- <div class="flex justify-end pt-4 border-t border-gray-600/50">
             <button
               type="button"
               (click)="cerrarPopupVisualizarConceptos()"
@@ -813,7 +813,7 @@
             >
               Cerrar
             </button>
-          </div>
+          </div> -->
         </div>
       </app-pop-up>
 
@@ -883,19 +883,7 @@
         [isConfirmation]="false"
         maxWidth="max-w-7xl"
       >
-        <div class="overflow-y-auto" style="max-height: calc(100vh - 330px)">
-          <app-concept-rate-enterpice></app-concept-rate-enterpice>
-        </div>
-
-        <div class="flex justify-end pt-4 mt-4 border-t border-gray-600/50">
-          <button
-            type="button"
-            (click)="cerrarPopupConceptosTarifaEmpresa()"
-            class="px-6 py-3 text-sm font-medium text-gray-300 bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 transition-all duration-300"
-          >
-            Cerrar
-          </button>
-        </div>
+        <app-concept-rate-enterpice></app-concept-rate-enterpice>
       </app-pop-up>
 
       <!-- ===== POPUPS PARA TIPO DE USO ===== -->
@@ -916,7 +904,7 @@
             </app-use-types-list>
           </div>
 
-          <div class="flex justify-end pt-4 border-t border-gray-600/50">
+          <!-- <div class="flex justify-end pt-4 border-t border-gray-600/50">
             <button
               type="button"
               (click)="cerrarPopupVisualizarUsos()"
@@ -924,7 +912,7 @@
             >
               Cerrar
             </button>
-          </div>
+          </div> -->
         </div>
       </app-pop-up>
 
@@ -1044,7 +1032,7 @@
     </div>
     } @if (activeTab() === 'days-validity') {
     <div class="animate-fadeIn">
-      <app-days-validity></app-days-validity>
+      <app-transversal-rate/>
     </div>
     }
 

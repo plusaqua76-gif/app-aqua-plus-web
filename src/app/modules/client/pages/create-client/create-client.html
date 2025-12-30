@@ -61,7 +61,7 @@
                 Seleccione tipo de documento
               }
             </option>
-            @for (tipo of loadTypeDocument.value()?.response ; track $index) {
+            @for (tipo of loadTypeDocument.value()?.response ?? [] ; track tipo.id) {
             <option
               [value]="tipo.id"
               class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
@@ -871,8 +871,7 @@
                         Seleccione tipo de contador
                       }
                     </option>
-                    @for (tipo of loadTypeCounter.value()?.response ; track
-                    $index) {
+                    @for (tipo of loadTypeCounter.value()?.response ?? [] ; track tipo.id) {
                     <option
                       [value]="tipo.id"
                       class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
@@ -1279,11 +1278,11 @@
 
       <!-- Body -->
       <div class="px-6 py-6 max-h-[60vh] overflow-y-auto">
-        @if (dataConceptRate.isLoading()) {
+        @if (typeRates.isLoading()) {
           <div class="flex justify-center py-8">
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400"></div>
           </div>
-        } @else if (dataConceptRate.error()) {
+        } @else if (typeRates.error()) {
           <div class="text-center py-8 text-red-500">
             <p class="text-sm">Error al cargar las tarifas</p>
           </div>
@@ -1294,16 +1293,16 @@
         } @else {
           <!-- Lista de tarifas con estilo idéntico a admin-roles -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 max-h-64 sm:max-h-80 overflow-y-auto">
-            @for (tarifa of availableTarifas(); track tarifa.id) {
+            @for (tarifa of availableTarifas(); track $index) {
               <div
                 class="flex items-center p-2 sm:p-3 rounded-lg border border-gray-600/70 hover:bg-white/5 transition-colors cursor-pointer"
-                (click)="onTarifaSelect(tarifa.id)">
+                (click)="onTarifaSelect(tarifa.id!)">
 
                 <div class="flex items-center w-full">
                   <input
                     type="checkbox"
-                    [checked]="isTarifaSelected(tarifa.id)"
-                    (change)="onTarifaSelect(tarifa.id)"
+                    [checked]="isTarifaSelected(tarifa.id!)"
+                    (change)="onTarifaSelect(tarifa.id!)"
                     class="w-4 h-4 text-blue-600 bg-transparent border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
                   />
                   <div class="ml-2 sm:ml-3 flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">

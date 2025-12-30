@@ -63,7 +63,7 @@ export interface TableColumn {
                 </button>
 
                 @if (showExportDropdown()) {
-                  <div class="absolute left-0 top-full z-[9999] mt-2 w-52 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg shadow-2xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
+                  <div class="absolute left-0 top-full z-[9999] mt-2 w-52 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
                     <ul class="p-2 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
                       <li>
                         <button
@@ -159,21 +159,7 @@ export interface TableColumn {
                 class="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-semibold py-3 px-6 rounded-xl hover:border-blue-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center gap-3 whitespace-nowrap cursor-pointer w-full sm:w-auto justify-center"
                 (click)="onAction('add', null)"
               >
-                <svg
-                  class="w-6 h-6"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M9 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm-2 9a4 4 0 0 0-4 4v1a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-1a4 4 0 0 0-4-4H7Zm8-1a1 1 0 0 1 1-1h1v-1a1 1 0 1 1 2 0v1h1a1 1 0 1 1 0 2h-1v1a1 1 0 1 1-2 0v-1h-1a1 1 0 0 1-1-1Z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
+                <i [class]="addButtonIcon() + ' text-xl'" aria-hidden="true"></i>
                 {{ addButtonText() }}
               </button>
             }
@@ -183,21 +169,7 @@ export interface TableColumn {
                 class="bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 backdrop-blur-md text-green-700 dark:text-green-300 font-semibold py-3 px-6 rounded-xl hover:border-green-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 active:scale-95 flex items-center gap-3 whitespace-nowrap cursor-pointer w-full sm:w-auto justify-center"
                 (click)="onSecondaryAction()"
               >
-                <svg
-                  class="w-6 h-6"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm11-4.243a1 1 0 1 0-2 0V11H7.757a1 1 0 1 0 0 2H11v3.243a1 1 0 1 0 2 0V13h3.243a1 1 0 1 0 0-2H13V7.757Z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
+                <i [class]="secondaryButtonIcon() + ' text-xl'" aria-hidden="true"></i>
                 {{ secondaryButtonText() }}
               </button>
             }
@@ -413,9 +385,11 @@ export class TableComponent {
   actionTemplate = input<TemplateRef<any> | null>(null);
   showAddButton = input<boolean>(false);
   addButtonText = input<string>('Agregar');
+  addButtonIcon = input<string>('fa-solid fa-user-plus');
   columnTemplates = input<Record<string, TemplateRef<any>>>({});
   showSecondaryButton = input<boolean>(false);
   secondaryButtonText = input<string>('Crear');
+  secondaryButtonIcon = input<string>('fa-solid fa-circle-plus');
   showColumnFilters = input<boolean>(false);
   showExportButton = input<boolean>(false);
   exportFileName = input<string>('table_export');

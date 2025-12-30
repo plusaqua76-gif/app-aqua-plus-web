@@ -16,25 +16,22 @@ import { PopupComponent } from '@shared/components/popUp';
   template: `
     <div class="max-w-4xl mx-auto px-4 py-8">
       <!-- Header -->
-      <div class="mb-8">
+      <!-- <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-2">
           Puntos de Pago
         </h1>
         <p class="text-gray-600 dark:text-gray-400">
           Sube y gestiona las imágenes de tus puntos de pago
         </p>
-      </div>
+      </div> -->
 
       <!-- Upload Section -->
       <div class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 mb-6">
         <div class="p-6 sm:p-8">
           <div class="text-center space-y-6">
-            <!-- Upload Icon -->
             <div class="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20">
               <i class="fas fa-map-marker-alt text-3xl text-blue-600 dark:text-blue-400"></i>
             </div>
-
-            <!-- Preview de la imagen -->
             @if (imagePreview()) {
               <div class="relative inline-block">
                 <img
@@ -44,8 +41,6 @@ import { PopupComponent } from '@shared/components/popUp';
                 />
               </div>
             }
-
-            <!-- Upload Button -->
             <div>
               <button
                 (click)="fileInput.click()"
@@ -114,10 +109,10 @@ import { PopupComponent } from '@shared/components/popUp';
           <div class="p-6 sm:p-8">
             <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-6">
               <i class="fas fa-map-marked-alt mr-2 text-blue-500"></i>
-              Puntos de Pago Disponibles ({{ paymentPointsData.value()!.length }})
+              Puntos de Pago Disponibles ({{ paymentPointsData.value()?.length ?? 0 }})
             </h3>
             <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              @for (point of paymentPointsData.value(); track $index) {
+              @for (point of paymentPointsData.value() ?? []; track point.id ?? $index) {
                 <div class="group relative overflow-hidden rounded-xl bg-white/10 dark:bg-slate-700/20 border border-white/20 dark:border-slate-600/30 backdrop-blur-md hover:border-blue-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl">
                   <!-- Image -->
                   <div class="aspect-video overflow-hidden bg-gray-200 dark:bg-gray-700">

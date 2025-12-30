@@ -6,12 +6,13 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { PopupComponent } from '../../../../shared/components/popUp';
+import { ConfirmDeletePopupComponent } from '@shared/index';
 import { ToastService } from '@services/toast.service';
 
 
 @Component({
   selector: 'app-concept-rate-enterpice',
-  imports: [CommonModule, PopupComponent, FormsModule],
+  imports: [CommonModule, PopupComponent, ConfirmDeletePopupComponent, FormsModule],
   styles: [`
     :host ::ng-deep app-pop-up #overlay {
       background: rgba(0, 0, 0, 0.8) !important;
@@ -24,11 +25,37 @@ import { ToastService } from '@services/toast.service';
     <section class="w-full bg-transparent text-gray-200">
       <div class="w-full px-2 pb-4">
         <div class="">
-          <h2 class="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight mb-6">
-            Lista de Conceptos de Tarifa
-          </h2>
+          <!-- Header with title and search -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <h2 class="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight">
+              Lista de Conceptos de Tarifa
+            </h2>
 
-        <!-- Loading state -->
+            <!-- Search bar -->
+            <div class="relative w-full sm:w-80">
+              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+              </div>
+              <input
+                type="text"
+                [(ngModel)]="searchTerm"
+                placeholder="Buscar por tarifa, concepto o código..."
+                class="w-full pl-10 pr-4 py-2.5 bg-gray-800/50 border border-gray-600/50 rounded-xl text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
+              />
+              @if (searchTerm()) {
+                <button
+                  (click)="searchTerm.set('')"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-200 transition-colors"
+                  title="Limpiar búsqueda">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              }
+            </div>
+          </div>
         @if (dataConceptRate.isLoading()) {
           <div class="rounded-xl border border-gray-600/70 bg-transparent p-8 text-center">
             <div class="flex items-center justify-center space-x-2">
@@ -63,199 +90,147 @@ import { ToastService } from '@services/toast.service';
             @if (conceptRatesData().length === 0) {
               <div class="rounded-xl border border-gray-600/70 bg-transparent p-8 text-center">
                 <div class="flex items-center justify-center mb-4">
-                  <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                  </svg>
+                  @if (searchTerm()) {
+                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                  } @else {
+                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                  }
                 </div>
-                <p class="text-gray-400 text-lg">No hay conceptos de tarifa configurados</p>
-                <p class="text-gray-500 text-sm mt-2">Configure conceptos de tarifa para esta empresa</p>
+                <p class="text-gray-400 text-lg">
+                  @if (searchTerm()) {
+                    No se encontraron resultados
+                  } @else {
+                    No hay conceptos de tarifa configurados
+                  }
+                </p>
+                <p class="text-gray-500 text-sm mt-2">
+                  @if (searchTerm()) {
+                    Intenta con otros términos de búsqueda
+                  } @else {
+                    Configure conceptos de tarifa para esta empresa
+                  }
+                </p>
               </div>
             } @else {
-              <!-- Summary card -->
-              <div class="rounded-xl border border-blue-600/70 bg-blue-500/10 p-4 mb-6">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                  <div class="flex items-center space-x-3 mb-4 sm:mb-0">
-                    <div class="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
-                      <svg class="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <p class="text-blue-400 font-medium text-sm sm:text-base">Total de conceptos configurados</p>
-                      <p class="text-blue-300 text-xs sm:text-sm">Para esta empresa</p>
-                    </div>
-                  </div>
-                  <div class="text-left sm:text-right">
-                    <p class="text-2xl font-bold text-blue-400">{{ conceptRatesData().length }}</p>
-                    <p class="text-blue-300 text-xs">conceptos</p>
-                  </div>
-                </div>
-              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @for (conceptRate of conceptRatesData(); track conceptRate.id) {
+                  <div class="group relative rounded-2xl border border-gray-600/50 bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-5 flex flex-col hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-500 hover:-translate-y-1">
 
-              @for (conceptRate of conceptRatesData(); track conceptRate.id) {
-                <div class="rounded-xl border border-gray-600/70 bg-transparent p-4 hover:border-gray-500/70 transition-colors duration-200">
-                  <!-- Mobile Layout -->
-                  <div class="block md:hidden">
                     <!-- Header -->
-                    <div class="flex items-center justify-between mb-4">
-                      <div class="flex-1">
-                        <h3 class="text-lg font-semibold text-white mb-1">
-                          {{ conceptRate.tipoTarifa.nombre }}
-                        </h3>
-                        <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded">
-                          {{ conceptRate.tipoConcepto.codigo }}
-                        </span>
-                      </div>
-                      <div class="flex items-center space-x-2">
-                        <button
-                          (click)="editConceptRate(conceptRate.id)"
-                          class="inline-flex items-center justify-center w-8 h-8 bg-blue-500/20 text-blue-400 rounded-full hover:bg-blue-500/30 transition-colors"
-                          title="Editar concepto">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                          </svg>
-                        </button>
-                        <button
-                          (click)="deleteConceptRate(conceptRate.id)"
-                          class="inline-flex items-center justify-center w-8 h-8 bg-red-500/20 text-red-400 rounded-full hover:bg-red-500/30 transition-colors"
-                          title="Eliminar concepto">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                          </svg>
-                        </button>
-                      </div>
+                    <div class="mb-4">
+                      <h3 class="text-xl font-bold text-white mb-2">
+                        {{ conceptRate.tipoTarifa.nombre }}
+                      </h3>
+                      <p class="text-sm text-gray-400">
+                        {{ conceptRate.tipoConcepto.descripcion }}
+                      </p>
                     </div>
 
-                    <!-- Mobile Content -->
-                    <div class="space-y-3">
-                      <!-- Tipo de Tarifa -->
-                      <div class="flex items-start gap-3">
-                        <div class="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
-                        <div class="flex-1">
-                          <span class="text-xs text-gray-400 block mb-1">Tipo de Tarifa</span>
-                          <span class="text-sm text-gray-300 block">
-                            {{ conceptRate.tipoTarifa.nombre }}
-                          </span>
-                          <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded inline-block mt-1">
-                            {{ conceptRate.tipoTarifa.codigo }}
+                    <!-- Divider -->
+                    <div class="h-px bg-gradient-to-r from-transparent via-gray-600/50 to-transparent mb-3"></div>
+
+                    <!-- IndCalcularMc Badge (if true) -->
+                    @if (conceptRate.indCalcularMc) {
+                      <div class="mb-3">
+                        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500/10 to-cyan-600/10 border border-cyan-500/30">
+                          <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                          </svg>
+                          <span class="text-xs font-medium text-cyan-300">
+                            Calcula M³ automáticamente
                           </span>
                         </div>
                       </div>
+                    }
 
-                      <!-- Valor -->
-                      <div class="flex items-start gap-3">
-                        <div class="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></div>
-                        <div class="flex-1">
-                          <span class="text-xs text-gray-400 block mb-1">Valor</span>
-                          @if (conceptRate.porEstrato && conceptRate.estratos && conceptRate.estratos.length > 0) {
-                            <div class="space-y-1">
-                              @for (estrato of conceptRate.estratos; track estrato.id) {
-                                <div class="flex justify-between items-center">
-                                  <span class="text-sm text-gray-300">Estrato {{estrato.estrato}}:</span>
-                                  <span class="text-green-400 font-bold">$ {{ estrato.valor | number:'1.2-2' }}</span>
+                    <!-- Price Section -->
+                    <div class="flex-1">
+                      @if (conceptRate.porEstrato && conceptRate.estratos && conceptRate.estratos.length > 0) {
+                        <!-- Estratos Layout -->
+                        <div class="space-y-2">
+                          <div class="flex items-center gap-2 mb-3">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Por Estrato</span>
+                          </div>
+
+                          <div class="bg-gray-800/50 rounded-xl p-3 border border-gray-700/50">
+                            @for (estrato of conceptRate.estratos; track estrato.id) {
+                              <div class="flex items-center justify-between py-2 border-b border-gray-700/30 last:border-0">
+                                <div class="flex items-center gap-2">
+                                  <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 border border-emerald-500/30 flex items-center justify-center">
+                                    <span class="text-xs font-bold text-emerald-300">{{estrato.estrato}}</span>
+                                  </div>
+                                  <span class="text-xs text-gray-400 font-medium">Estrato {{estrato.estrato}}</span>
                                 </div>
-                              }
-                            </div>
-                          } @else if (conceptRate.valor) {
+                                <div class="text-right">
+                                  <div class="text-base font-bold text-emerald-400">
+                                    $ {{ estrato.valor | number:'1.2-2' }}
+                                  </div>
+                                  <span class="text-[10px] text-gray-500 uppercase">COP</span>
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      } @else if (conceptRate.valor) {
+                        <!-- Single Value Layout -->
+                        <div class="relative">
+                          <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Valor Tarifa</span>
+                          </div>
+
+                          <div class="bg-gradient-to-br from-emerald-900/60 to-emerald-500/0 rounded-xl p-4 border border-transparent">
                             <div class="flex items-baseline gap-2">
-                              <span class="text-xl font-bold text-green-400">
+                              <span class="text-3xl font-black text-gray-500]">
                                 $ {{ conceptRate.valor | number:'1.2-2' }}
                               </span>
-                              <span class="text-xs text-gray-500">COP</span>
                             </div>
-                          } @else {
-                            <span class="text-gray-500">Sin valor</span>
-                          }
+                            <span class="text-xs text-emerald-300/60 uppercase tracking-wider mt-1 block">COP</span>
+                          </div>
                         </div>
-                      </div>
+                      } @else {
+                        <div class="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50 text-center">
+                          <svg class="w-8 h-8 text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          </svg>
+                          <span class="text-sm text-gray-500">Sin valor configurado</span>
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-2 mt-4">
+                      <button
+                        (click)="editConceptRate(conceptRate.id)"
+                        class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 hover:border-blue-500/50 rounded-xl text-blue-400 font-medium text-sm transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/20"
+                        title="Editar concepto">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        <span class="hidden sm:inline">Editar</span>
+                      </button>
+
+                      <button
+                        (click)="deleteConceptRate(conceptRate.id)"
+                        class="inline-flex items-center justify-center px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 rounded-xl text-red-400 font-medium text-sm transition-all duration-200 hover:shadow-lg hover:shadow-red-500/20"
+                        title="Eliminar concepto">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                      </button>
                     </div>
                   </div>
-
-                  <!-- Desktop Layout -->
-                  <div class="hidden md:block">
-                    <div class="grid grid-cols-12 items-center gap-4">
-                      <!-- Header labels -->
-                      <div class="col-span-12 grid grid-cols-12 text-xs text-gray-400 mb-2">
-                        <span class="col-span-4">Tipo de Tarifa</span>
-                        <span class="col-span-4">Tipo de Concepto</span>
-                        <span class="col-span-3">Valor</span>
-                        <span class="col-span-1 text-center">Acciones</span>
-                      </div>
-
-                      <!-- Data row -->
-                      <div class="col-span-12 grid grid-cols-12 items-center">
-                        <div class="col-span-4">
-                          <div class="space-y-1">
-                            <span class="text-lg font-semibold block text-white">
-                              {{ conceptRate.tipoTarifa.nombre }}
-                            </span>
-                            <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded inline-block">
-                              {{ conceptRate.tipoTarifa.codigo }}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div class="col-span-4">
-                          <div class="space-y-1">
-                            <span class="text-sm text-gray-400 block">
-                              {{ conceptRate.tipoConcepto.descripcion }}
-                            </span>
-                            <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded inline-block">
-                              {{ conceptRate.tipoConcepto.codigo }}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div class="col-span-3 px-4">
-                          @if (conceptRate.porEstrato && conceptRate.estratos && conceptRate.estratos.length > 0) {
-                            <div class="flex flex-col space-y-1">
-                              <span class="text-xs text-gray-400">Por Estrato:</span>
-                              @for (estrato of conceptRate.estratos; track estrato.id) {
-                                <div class="flex justify-between items-center text-sm">
-                                  <span class="text-gray-300">Est. {{estrato.estrato}}:</span>
-                                  <span class="text-green-400 font-bold">$ {{ estrato.valor | number:'1.2-2' }}</span>
-                                </div>
-                              }
-                            </div>
-                          } @else if (conceptRate.valor) {
-                            <div class="flex flex-col">
-                              <span class="text-xl font-bold text-green-400">
-                                $ {{ conceptRate.valor | number:'1.2-2' }}
-                              </span>
-                              <span class="text-xs text-gray-500">
-                                COP
-                              </span>
-                            </div>
-                          } @else {
-                            <span class="text-gray-500">Sin valor</span>
-                          }
-                        </div>
-
-                        <div class="col-span-1 px-0.5">
-                          <div class="flex items-center justify-center space-x-1">
-                            <button
-                              (click)="editConceptRate(conceptRate.id)"
-                              class="inline-flex items-center justify-center w-14 h-8 bg-blue-500/20 text-blue-400 rounded-full hover:bg-blue-500/30 transition-colors"
-                              title="Editar concepto">
-                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                              </svg>
-                            </button>
-                            <button
-                              (click)="deleteConceptRate(conceptRate.id)"
-                              class="inline-flex items-center justify-center w-14 h-8 bg-red-500/20 text-red-400 rounded-full hover:bg-red-500/30 transition-colors"
-                              title="Eliminar concepto">
-                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              }
+                }
+              </div>
             }
           </div>
         }
@@ -265,34 +240,56 @@ import { ToastService } from '@services/toast.service';
 
     <!-- Popup de confirmación de eliminación -->
     @if (showDeleteConfirm()) {
-      <app-pop-up
-        [open]="showDeleteConfirm"
-        [isConfirmation]="true"
-        title="Eliminar Concepto de Tarifa"
-        [message]="getDeleteConfirmMessage()"
-        confirmText="Eliminar"
-        cancelText="Cancelar"
-        (confirmAction)="confirmDeleteConceptRate()"
-        (cancelAction)="cancelDeleteConceptRate()"
-      >
-      </app-pop-up>
+      <app-confirm-delete-popup
+        [isOpen]="showDeleteConfirm()"
+        [isSubmitting]="deletingConceptRate()"
+        [headerTitle]="'Eliminar Concepto de Tarifa'"
+        [confirmMessage]="'¿Está seguro de eliminar este concepto de tarifa?'"
+        [warningMessage]="'Esta acción no se puede deshacer.'"
+        [itemLabel]="'Concepto'"
+        [itemName]="getConceptRateName()"
+        [confirmText]="'Eliminar'"
+        [cancelText]="'Cancelar'"
+        [loadingText]="'Eliminando...'"
+        (confirm)="confirmDeleteConceptRate()"
+        (cancel)="cancelDeleteConceptRate()"
+      />
     }
 
     <!-- Popup de edición de concepto de tarifa -->
     @if (showEditPopup()) {
-      <app-pop-up
-        [open]="showEditPopup"
-        [isConfirmation]="false"
-        title="Editar Concepto de Tarifa"
-        maxWidth="w-50 sm:max-w-2xl"
-        paddingTop="pt-[20px]"
-      >
-        <!-- Contenido scrolleable -->
-        <div class="overflow-y-auto overflow-x-hidden">
-          <div class="space-y-6 px-6">
+      <div class="fixed inset-0 z-[1002] flex items-center justify-center p-2 sm:p-4 pt-16 sm:pt-20">
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" (click)="closeEditPopup()"></div>
+
+        <div class="relative w-full max-w-2xl max-h-[calc(100vh-5rem)] sm:max-h-[calc(100vh-6rem)] flex flex-col bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border-2 border-white/10 rounded-2xl sm:rounded-3xl shadow-xl" (click)="$event.stopPropagation()">
+
+          <!-- Header fijo -->
+          <div class="flex-shrink-0 relative p-4 sm:p-6 pb-2 sm:pb-4 border-b border-white/10">
+            <!-- Botón de cerrar -->
+            <button
+              (click)="closeEditPopup()"
+              aria-label="Close"
+              class="absolute top-2 right-2 sm:top-3 sm:right-3 h-8 w-8 grid place-content-center text-gray-400 hover:bg-white/10 rounded-lg backdrop-blur-sm z-10"
+            >
+              <svg class="h-3 w-3" viewBox="0 0 14 14" fill="none">
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                />
+              </svg>
+            </button>
+
+            <!-- Título del modal -->
+            <h3 class="text-lg sm:text-xl font-semibold text-white text-center pr-8">
+              Editar Concepto de Tarifa
+            </h3>
+
+            <!-- Información del concepto -->
             @if (editingConceptRate) {
-              <!-- Información del concepto -->
-              <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-600/50">
+              <div class="mt-4 p-3 sm:p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
                 <h4 class="text-sm font-medium text-gray-300 mb-2">Información del Concepto</h4>
                 <div class="grid grid-cols-2 gap-4 text-sm">
                   <div>
@@ -305,174 +302,183 @@ import { ToastService } from '@services/toast.service';
                   </div>
                 </div>
               </div>
+            }
+          </div>
 
-              <!-- Toggle para tipo de tarifa -->
-              <div class="flex items-center space-x-3">
-                <label class="flex items-center">
-                  <input
-                    type="radio"
-                    [(ngModel)]="editForm.porEstrato"
-                    [value]="false"
-                    name="tipoTarifa"
-                    class="form-radio text-blue-600"
-                  >
-                  <span class="ml-2 text-gray-300">Valor único</span>
-                </label>
-                <label class="flex items-center">
-                  <input
-                    type="radio"
-                    [(ngModel)]="editForm.porEstrato"
-                    [value]="true"
-                    name="tipoTarifa"
-                    class="form-radio text-blue-600"
-                  >
-                  <span class="ml-2 text-gray-300">Por estratos</span>
-                </label>
-              </div>
-
-              <!-- Campo valor único -->
-              @if (!editForm.porEstrato) {
-                <div class="space-y-4">
-                  <div>
-                    <label class="block mb-2 text-sm font-medium text-gray-300">Valor</label>
+          <!-- Contenido con scroll -->
+          <div class="flex-1 overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4">
+            @if (editingConceptRate) {
+              <div class="space-y-6">
+                <!-- Toggle para tipo de tarifa -->
+                <div class="flex items-center space-x-3">
+                  <label class="flex items-center">
                     <input
-                      type="number"
-                      [(ngModel)]="editForm.valor"
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      class="block w-full rounded-lg border border-gray-600/70 bg-transparent px-3 py-2 text-sm text-gray-100 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-400/40"
+                      type="radio"
+                      [(ngModel)]="editForm.porEstrato"
+                      [value]="false"
+                      name="tipoTarifa"
+                      class="form-radio text-blue-600"
                     >
-                  </div>
-
-                  <!-- Checkbox para indCalcularMc -->
-                  <div>
-                    <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        [(ngModel)]="editForm.indCalcularMc"
-                        class="w-4 h-4 text-blue-600 bg-transparent border border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
-                      />
-                      <span>Calcular metros cubicos automáticamente</span>
-                    </label>
-                  </div>
+                    <span class="ml-2 text-gray-300">Valor único</span>
+                  </label>
+                  <label class="flex items-center">
+                    <input
+                      type="radio"
+                      [(ngModel)]="editForm.porEstrato"
+                      [value]="true"
+                      name="tipoTarifa"
+                      class="form-radio text-blue-600"
+                    >
+                    <span class="ml-2 text-gray-300">Por estratos</span>
+                  </label>
                 </div>
-              }
 
-              <!-- Estratos -->
-              @if (editForm.porEstrato) {
-                <div class="space-y-4">
-                  <h4 class="text-sm font-medium text-gray-300">Estratos</h4>
-
-                  <!-- Lista de estratos -->
-                  @if (editForm.estratos.length > 0) {
-                    <div class="space-y-2">
-                      @for (estrato of editForm.estratos; track estrato.estrato) {
-                        <div class="flex items-center space-x-3 p-2 bg-gray-800/30 rounded">
-                          <span class="text-sm text-gray-400 w-16">Estrato {{ estrato.estrato }}:</span>
-                          <input
-                            type="number"
-                            [value]="estrato.valor"
-                            (input)="updateEstratoInEdit(estrato.estrato, +$any($event.target).value)"
-                            min="0"
-                            step="0.01"
-                            class="w-20 sm:flex-1 rounded border border-gray-600/70 bg-transparent px-2 py-1 text-sm text-gray-100 outline-none focus:border-gray-300"
-                          >
-                          <button
-                            type="button"
-                            (click)="removeEstratoFromEdit(estrato.estrato)"
-                            class="text-red-400 hover:text-red-300"
-                            title="Eliminar estrato"
-                          >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                          </button>
-                        </div>
-                      }
-                    </div>
-                  } @else {
-                    <p class="text-gray-400 text-sm">No hay estratos configurados</p>
-                  }
-
-                  <!-- Agregar nuevo estrato -->
-                  <div class="flex items-end space-x-2">
-                    <div class="w-20 sm:flex-1">
-                      <label class="block text-xs text-gray-400 mb-1">Estrato</label>
+                <!-- Campo valor único -->
+                @if (!editForm.porEstrato) {
+                  <div class="space-y-4">
+                    <div>
+                      <label class="block mb-2 text-sm font-medium text-gray-300">Valor</label>
                       <input
                         type="number"
-                        #nuevoEstrato
-                        min="1"
-                        max="6"
-                        [value]="getSiguienteEstratoDisponible()"
-                        placeholder="1"
-                        class="block w-full rounded border border-gray-600/70 bg-transparent px-2 py-1 text-sm text-gray-100"
-                      >
-                    </div>
-                    <div class="w-20 sm:flex-1">
-                      <label class="block text-xs text-gray-400 mb-1">Valor</label>
-                      <input
-                        type="number"
-                        #nuevoValor
+                        [(ngModel)]="editForm.valor"
                         min="0"
                         step="0.01"
                         placeholder="0.00"
-                        class="block w-full rounded border border-gray-600/70 bg-transparent px-2 py-1 text-sm text-gray-100"
+                        class="block w-full rounded-lg border border-gray-600/70 bg-transparent px-3 py-2 text-sm text-gray-100 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-400/40"
                       >
                     </div>
-                    <button
-                      type="button"
-                      (click)="addEstratoToEdit(+nuevoEstrato.value, +nuevoValor.value); nuevoEstrato.value = getSiguienteEstratoDisponible().toString(); nuevoValor.value = ''"
-                      class="w-50 sm:px-3 px-2 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                    >
-                      Agregar
-                    </button>
-                  </div>
 
-                  <!-- Checkbox para indCalcularMc en estratos -->
-                  <div class="mt-4">
-                    <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        [(ngModel)]="editForm.indCalcularMc"
-                        class="w-4 h-4 text-blue-600 bg-transparent border border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
-                      />
-                      <span>Calcular MC automáticamente</span>
-                    </label>
+                    <!-- Checkbox para indCalcularMc -->
+                    <div>
+                      <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          [(ngModel)]="editForm.indCalcularMc"
+                          class="w-4 h-4 text-blue-600 bg-transparent border border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                        <span>Calcular metros cubicos automáticamente</span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-              }
+                }
+
+                <!-- Estratos -->
+                @if (editForm.porEstrato) {
+                  <div class="space-y-4">
+                    <h4 class="text-sm font-medium text-gray-300">Estratos</h4>
+
+                    <!-- Lista de estratos -->
+                    @if (editForm.estratos.length > 0) {
+                      <div class="space-y-2">
+                        @for (estrato of editForm.estratos; track estrato.estrato) {
+                          <div class="flex items-center space-x-3 p-2 bg-gray-800/30 rounded">
+                            <span class="text-sm text-gray-400 w-16">Estrato {{ estrato.estrato }}:</span>
+                            <input
+                              type="number"
+                              [value]="estrato.valor"
+                              (input)="updateEstratoInEdit(estrato.estrato, +$any($event.target).value)"
+                              min="0"
+                              step="0.01"
+                              class="w-20 sm:flex-1 rounded border border-gray-600/70 bg-transparent px-2 py-1 text-sm text-gray-100 outline-none focus:border-gray-300"
+                            >
+                            <button
+                              type="button"
+                              (click)="removeEstratoFromEdit(estrato.estrato)"
+                              class="text-red-400 hover:text-red-300"
+                              title="Eliminar estrato"
+                            >
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    } @else {
+                      <p class="text-gray-400 text-sm">No hay estratos configurados</p>
+                    }
+
+                    <!-- Agregar nuevo estrato -->
+                    <div class="flex items-end space-x-2">
+                      <div class="w-20 sm:flex-1">
+                        <label class="block text-xs text-gray-400 mb-1">Estrato</label>
+                        <input
+                          type="number"
+                          #nuevoEstrato
+                          min="1"
+                          max="6"
+                          [value]="getSiguienteEstratoDisponible()"
+                          placeholder="1"
+                          class="block w-full rounded border border-gray-600/70 bg-transparent px-2 py-1 text-sm text-gray-100"
+                        >
+                      </div>
+                      <div class="w-20 sm:flex-1">
+                        <label class="block text-xs text-gray-400 mb-1">Valor</label>
+                        <input
+                          type="number"
+                          #nuevoValor
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          class="block w-full rounded border border-gray-600/70 bg-transparent px-2 py-1 text-sm text-gray-100"
+                        >
+                      </div>
+                      <button
+                        type="button"
+                        (click)="addEstratoToEdit(+nuevoEstrato.value, +nuevoValor.value); nuevoEstrato.value = getSiguienteEstratoDisponible().toString(); nuevoValor.value = ''"
+                        class="w-50 sm:px-3 px-2 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                      >
+                        Agregar
+                      </button>
+                    </div>
+
+                    <!-- Checkbox para indCalcularMc en estratos -->
+                    <div class="mt-4">
+                      <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          [(ngModel)]="editForm.indCalcularMc"
+                          class="w-4 h-4 text-blue-600 bg-transparent border border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                        <span>Calcular MC automáticamente</span>
+                      </label>
+                    </div>
+                  </div>
+                }
+              </div>
             }
           </div>
-        </div>
 
-        <!-- Botones de acción fijos -->
-        <div class="flex justify-end space-x-3 pt-4 mt-4 border-t border-gray-600/50 px-6">
-          <button
-            type="button"
-            (click)="closeEditPopup()"
-            class="px-4 py-2 text-sm font-medium text-gray-300 bg-transparent border border-gray-600 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            (click)="updateConceptRate()"
-            [disabled]="updatingConceptRate() || (!editForm.porEstrato && !editForm.valor) || (editForm.porEstrato && editForm.estratos.length === 0)"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            @if (updatingConceptRate()) {
-              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Actualizando...
-            } @else {
-              Actualizar
-            }
-          </button>
+          <!-- Footer fijo con botones -->
+          <div class="flex-shrink-0 p-4 sm:p-6 pt-2 sm:pt-4 border-t border-white/10">
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <button
+                type="button"
+                (click)="closeEditPopup()"
+                class="w-full sm:flex-1 px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium text-gray-300 bg-transparent border border-gray-600/70 rounded-lg hover:bg-gray-600/10 focus:outline-none focus:ring-2 focus:ring-gray-500/40 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                (click)="updateConceptRate()"
+                [disabled]="updatingConceptRate() || (!editForm.porEstrato && !editForm.valor) || (editForm.porEstrato && editForm.estratos.length === 0)"
+                class="w-full sm:flex-1 px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                @if (updatingConceptRate()) {
+                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Actualizando...
+                } @else {
+                  Actualizar
+                }
+              </button>
+            </div>
+          </div>
         </div>
-        </app-pop-up>
+      </div>
     }
 
     <!-- Popup de confirmación de eliminación de estrato -->
@@ -503,6 +509,7 @@ export class ConceptRateEnterpice {
 
   showDeleteConfirm = signal(false);
   conceptRateToDelete: any = null;
+  deletingConceptRate = signal(false);
 
 
   showEditPopup = signal(false);
@@ -511,6 +518,9 @@ export class ConceptRateEnterpice {
 
   showDeleteConfirmEstrato = signal(false);
   estratoToDelete: { estrato: number; valor: number } | null = null;
+
+  // Search functionality
+  searchTerm = signal('');
 
   editForm = {
     valor: null as number | null,
@@ -557,7 +567,23 @@ export class ConceptRateEnterpice {
 
 conceptRatesData = computed(() => {
   const data = this.dataConceptRate.value()?.response ?? [];
-  return data;
+  const search = this.searchTerm().toLowerCase().trim();
+
+  if (!search) {
+    return data;
+  }
+
+  return data.filter(conceptRate => {
+    const tipoTarifaNombre = conceptRate.tipoTarifa?.nombre?.toLowerCase() || '';
+    const tipoTarifaCodigo = conceptRate.tipoTarifa?.codigo?.toLowerCase() || '';
+    const tipoConceptoDesc = conceptRate.tipoConcepto?.descripcion?.toLowerCase() || '';
+    const tipoConceptoCodigo = conceptRate.tipoConcepto?.codigo?.toLowerCase() || '';
+
+    return tipoTarifaNombre.includes(search) ||
+           tipoTarifaCodigo.includes(search) ||
+           tipoConceptoDesc.includes(search) ||
+           tipoConceptoCodigo.includes(search);
+  });
 });
 
   reloadData(): void {
@@ -608,16 +634,29 @@ conceptRatesData = computed(() => {
     return `¿Está seguro que desea eliminar el concepto de tarifa "${tipoTarifa} - ${tipoConcepto}"? Esta acción no se puede deshacer.`;
   }
 
+  getConceptRateName(): string {
+    if (!this.conceptRateToDelete) {
+      return '';
+    }
+    const tipoTarifa = this.conceptRateToDelete.tipoTarifa?.nombre || 'Sin nombre';
+    const tipoConcepto = this.conceptRateToDelete.tipoConcepto?.descripcion || 'Sin descripción';
+    return `${tipoTarifa} - ${tipoConcepto}`;
+  }
+
   confirmDeleteConceptRate(): void {
     if (this.conceptRateToDelete?.id) {
+      this.deletingConceptRate.set(true);
       this.conceptRateService.deleteConceptRate(this.conceptRateToDelete.id).subscribe({
         next: (response) => {
+          this.deletingConceptRate.set(false);
           if (response.success) {
             this.dataConceptRate.reload();
             this.toastService.success(
               'Éxito',
               'Concepto de tarifa eliminado exitosamente'
             );
+            this.showDeleteConfirm.set(false);
+            this.conceptRateToDelete = null;
           } else {
             this.toastService.error(
               'Error',
@@ -626,16 +665,13 @@ conceptRatesData = computed(() => {
           }
         },
         error: (error) => {
+          this.deletingConceptRate.set(false);
           console.error('Error al eliminar el concepto de tarifa:', error);
           this.toastService.error(
             'Error',
             'El concepto de tarifa no se pudo eliminar. Inténtelo de nuevo.'
           );
-        },
-        complete: () => {
-          this.showDeleteConfirm.set(false);
-          this.conceptRateToDelete = null;
-        },
+        }
       });
     }
   }

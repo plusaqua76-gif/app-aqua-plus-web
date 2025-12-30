@@ -23,7 +23,7 @@ export interface IEmpresaClienteContador {
   contador: IContador;
 }
 
-export interface IEstadoNovedad {
+export interface IParametroGeneral {
   id: number;
   codigoPadre: string;
   codigo: string;
@@ -34,7 +34,7 @@ export interface IClienteNovedad {
   id: number;
   tipoNovedad: ITipoNovedad;
   empresaClienteContador: IEmpresaClienteContador;
-  estado: IEstadoNovedad;
+  estado: IParametroGeneral;
   codigo: string;
   descripcion: string;
   activo: boolean;

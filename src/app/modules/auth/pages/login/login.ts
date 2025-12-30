@@ -2,10 +2,10 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
-import {  of } from 'rxjs';
+import { of } from 'rxjs';
 import { LoginFormComponent } from '../loginForm/loginForm';
 import { AuthUserService } from '../../service/authUser.service';
-import { Auth, AuthLoginResponse } from '@interfaces/IAuth';
+import { Auth, AuthLoginResponse, AuthResponse } from '@interfaces/IAuth';
 import { LoginParams } from '@interfaces/loginParams';
 
 @Component({
@@ -53,11 +53,17 @@ export class LoginComponent {
     params: () => ({ cred: this.cred(), shouldLogin: this.shouldLogin() }),
     stream: ({ params }) => {
       if (!params?.shouldLogin) return of(null);
+
       const { nombre, contrasena } = params.cred;
-      const trimmedNombre = (nombre ?? '').trim();
-      const trimmedContrasena = (contrasena ?? '').trim();
+      const trimmedNombre = nombre?.trim() ?? '';
+      const trimmedContrasena = contrasena?.trim() ?? '';
+
       if (!trimmedNombre || !trimmedContrasena) return of(null);
-      return this.auth.login({ nombre: trimmedNombre, contrasena: trimmedContrasena });
+
+      return this.auth.login({
+        nombre: trimmedNombre,
+        contrasena: trimmedContrasena
+      });
     },
   });
 
@@ -66,54 +72,65 @@ export class LoginComponent {
   );
 
   readonly onError = effect(() => {
-    const err = this.loginRes.error();
-    if (err) {
-      const http = err as HttpErrorResponse;
-      // Primero intentar obtener el mensaje procesado por el interceptor
-      let msg = 'Usuario o contraseña incorrectos';
-      if (http.error) {
-        if (http.error.userMessage) {
-          msg = http.error.userMessage;
-        }
-        else if (http.error.message) {
-          msg = http.error.message;
-        }
-        else if (http.error.msg) {
-          msg = http.error.msg;
-        }
-      }
-      this.errorMessage.set(String(msg));
+    const error = this.loginRes.error();
+    if (error) {
+      this.errorMessage.set(this.extractErrorMessage(error));
       this.shouldLogin.set(false);
     }
   });
 
   readonly onNavigate = effect(() => {
-    if (this.isSuccess()) {
-      this.errorMessage.set(null);
-      const res = this.loginRes.value()!;
-      const token = res.response?.token;
-      if (token) {
-        sessionStorage.setItem('authToken', token);
+    if (!this.isSuccess()) return;
 
-        // Crear objeto userData con personaId opcional
-        const userData = { ...res.response };
-        if (res.response?.personaId) {
-          userData.personaId = res.response.personaId;
-        }
+    const response = this.loginRes.value()!;
+    const authData = response.response;
 
-        sessionStorage.setItem('userData', JSON.stringify(userData));
-        this.router.navigate(['shell']);
-        this.cred.set({ nombre: '', contrasena: '' });
-        this.shouldLogin.set(false);
-      } else {
-        console.error('No se encontró el token en la respuesta');
-      }
+    if (!authData?.token) {
+      console.error('No se encontró el token en la respuesta');
+      return;
     }
+
+    this.saveAuthDataToStorage(authData);
+    this.resetLoginState();
+    this.router.navigate(['shell']);
   });
 
-  login(a: Auth) {
+  login(credentials: Auth): void {
     this.errorMessage.set(null);
-    this.cred.set(a);
+    this.cred.set(credentials);
     this.shouldLogin.set(true);
+  }
+
+  private extractErrorMessage(error: unknown): string {
+    const httpError = error as HttpErrorResponse;
+    const errorBody = httpError.error;
+
+    return errorBody?.userMessage
+      ?? errorBody?.message
+      ?? errorBody?.msg
+      ?? 'Usuario o contraseña incorrectos';
+  }
+
+  private saveAuthDataToStorage(authData: AuthResponse): void {
+    sessionStorage.setItem('authToken', authData.token);
+
+    const userData = {
+      id: authData.id,
+      nombre: authData.nombre,
+      rolId: authData.rolId,
+      rol: authData.rol,
+      personaId: authData.personaId,
+      empresaId: authData.empresaId,
+      idEmpresaDian: authData.empresa?.idEmpresaDian,
+      empresa: authData.empresa,
+    };
+
+    sessionStorage.setItem('userData', JSON.stringify(userData));
+  }
+
+  private resetLoginState(): void {
+    this.errorMessage.set(null);
+    this.cred.set({ nombre: '', contrasena: '' });
+    this.shouldLogin.set(false);
   }
 }

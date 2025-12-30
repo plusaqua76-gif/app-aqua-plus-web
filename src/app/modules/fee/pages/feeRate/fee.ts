@@ -19,7 +19,6 @@ import { TypeConceptsListComponent } from '../../components/type-concepts-list.c
 import { UseTypesListComponent } from '../../components/use-types-list.component';
 import { ConceptRateEnterpice } from '../fee-enterprice/concept-rate-enterpice';
 import { PaymentPoints } from '../payment-points/payment-points';
-import { DaysValidity } from '../days-validity/days-validity';
 import { CounterEnterprice } from '../company-accountant-reading/counter-enterprice';
 import { IrateTypes } from '@interfaces/IrateTypes';
 import { ToastService } from '@services/toast.service';
@@ -36,6 +35,7 @@ import {
 import { BackFill } from "../../components/drag-and-drop/back-fill";
 import { error } from 'console';
 import { UseService } from '../../services/use.service';
+import { TransversalRate } from "../transversal-rate/transversalRate";
 
 // esto es mala practica, nosotros ya tenemos creado una interface IrateTypes en core/interfaces/IrateTypes.ts
 
@@ -50,9 +50,9 @@ import { UseService } from '../../services/use.service';
     UseTypesListComponent,
     ConceptRateEnterpice,
     PaymentPoints,
-    DaysValidity,
     CounterEnterprice,
-    BackFill
+    BackFill,
+    TransversalRate
 ],
   styleUrls: ['./fee.css'],
   templateUrl: './fee.html',

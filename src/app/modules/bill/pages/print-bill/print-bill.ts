@@ -180,7 +180,7 @@ export class PrintBill {
   radioDisabled = computed(() => {
     const estado = this.selectedStatus();
     if (!estado) return true;
-    const estadosNoPermitidos = ['PAGADA', 'PAGO PARCIAL', 'INACTIVO'];
+    const estadosNoPermitidos = ['PAGADA', 'PAGO PARCIAL', 'INACTIVO', 'VENCIDA'];
     return estadosNoPermitidos.some(e => estado.toUpperCase().includes(e.toUpperCase()));
     })
 
@@ -421,15 +421,21 @@ export class PrintBill {
       return false;
     }
 
+    // Estados que NO permiten pago
+    const estadosNoPermitidos = ['PAGADA', 'PAGO PARCIAL', 'INACTIVO', 'VENCIDA'];
+    const esEstadoNoPermitido = estadosNoPermitidos.some((estado) =>
+      estadoActual.toUpperCase().includes(estado.toUpperCase())
+    );
+    if (esEstadoNoPermitido) {
+      return false;
+    }
+
+    // Estados que sí permiten pago
     const estadosPermitidos = [
       'PENDIENTE',
       'ACTIVO',
-      'VENCIDA',
       'AVISO DE SUSPENSIÓN',
-      'PAGO PARCIAL',
     ];
-
-    // Verificar si el estado actual está en la lista de permitidos
     const estadoPermitido = estadosPermitidos.some((estado) =>
       estadoActual.toUpperCase().includes(estado.toUpperCase())
     );
@@ -1053,13 +1059,13 @@ export class PrintBill {
     const estadoActual = this.selectedStatus();
     if (!estadoActual) return 'Estado de factura no disponible';
 
-    const estadosNoPermitidos = ['PAGADA', 'INACTIVO'];
+    const estadosNoPermitidos = ['PAGADA', 'PAGO PARCIAL', 'INACTIVO', 'VENCIDA'];
     const esEstadoNoPermitido = estadosNoPermitidos.some((estado) =>
       estadoActual.toUpperCase().includes(estado.toUpperCase())
     );
 
     if (esEstadoNoPermitido) {
-      return `Las facturas en estado "${estadoActual}" no permiten confirmación de pago.`;
+      return `La factura no se puede pagar en el estado: "${estadoActual}".`;
     }
 
     return `Estado actual: ${estadoActual}`;

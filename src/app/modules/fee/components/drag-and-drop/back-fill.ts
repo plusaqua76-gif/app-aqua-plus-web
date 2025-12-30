@@ -831,8 +831,8 @@ export class BackFill {
 
       if (event.dropPoint && this.billCanvas) {
         const canvasRect = this.billCanvas.nativeElement.getBoundingClientRect();
-        x = Math.max(0, Math.min(event.dropPoint.x - canvasRect.left, 914 - droppedElement.styles.width));
-        y = Math.max(0, Math.min(event.dropPoint.y - canvasRect.top, 1462 - droppedElement.styles.height));
+        x = Math.max(0, Math.min(event.dropPoint.x - canvasRect.left, 1114 - droppedElement.styles.width));
+        y = Math.max(0, Math.min(event.dropPoint.y - canvasRect.top, 1160 - droppedElement.styles.height));
       }
 
       const newElement: BillElement = {
@@ -855,9 +855,9 @@ export class BackFill {
     element.styles.x += position.x;
     element.styles.y += position.y;
 
-    // Asegurar que el elemento no salga del canvas (914x1462)
-    element.styles.x = Math.max(0, Math.min(element.styles.x, 914 - element.styles.width));
-    element.styles.y = Math.max(0, Math.min(element.styles.y, 1462 - element.styles.height));
+    // Asegurar que el elemento no salga del canvas (1114x1160)
+    element.styles.x = Math.max(0, Math.min(element.styles.x, 1114 - element.styles.width));
+    element.styles.y = Math.max(0, Math.min(element.styles.y, 1160 - element.styles.height));
 
     this.updateElement();
   }
@@ -938,10 +938,10 @@ export class BackFill {
     }
 
     // Asegurar que el elemento no salga del canvas
-    newX = Math.max(0, Math.min(newX, 914 - newWidth));
-    newY = Math.max(0, Math.min(newY, 1462 - newHeight));
-    newWidth = Math.min(newWidth, 914 - newX);
-    newHeight = Math.min(newHeight, 1462 - newY);
+    newX = Math.max(0, Math.min(newX, 1114 - newWidth));
+    newY = Math.max(0, Math.min(newY, 1160 - newHeight));
+    newWidth = Math.min(newWidth, 1114 - newX);
+    newHeight = Math.min(newHeight, 1160 - newY);
 
     // Actualizar el elemento
     element.styles.width = newWidth;
@@ -1153,7 +1153,7 @@ export class BackFill {
     }).join('');
 
     // Retornar solo el contenido del contenedor con las dimensiones finales
-    return `<div style="position: relative; width: 914px; height: 1462px; margin: 0 auto; background-color: white; font-family: Arial, sans-serif;">${elementsHTML}</div>`;
+    return `<div style="position: relative; width: 1114px; height: 1160px; margin: 0 auto; background-color: white; font-family: Arial, sans-serif;">${elementsHTML}</div>`;
   }
 
   private createHTMLModal(htmlContent: string): HTMLElement {

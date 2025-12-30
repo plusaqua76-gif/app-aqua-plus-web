@@ -3,6 +3,7 @@ import { environment } from '../../../environments/environment.local';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '@interfaces/Iresponse';
+import { SaveClientPayload, SaveClientResponse } from '@interfaces/ISaveClient';
 import {
   END_POINT_SERVICE,
   ENTERPRISE_CLIENT_COUNT,
@@ -86,9 +87,9 @@ export class EnterpriseClientCounterService {
     return this.http.post<Map<string, any>>(url, data);
   }
 
-  saveClient(data: any): Observable<any> {
+  saveClient(data: SaveClientPayload): Observable<SaveClientResponse> {
     const url = `${environment.apiUrl}/${ENTERPRISE_CLIENT_COUNT.ENT_CLI_COU}/${ENTERPRISE_CLIENT_COUNT.POST_SAVE_CLI}`;
-    return this.http.post<any>(url, data);
+    return this.http.post<SaveClientResponse>(url, data);
   }
 
   deleteClienteById(id: number): Observable<ApiResponse<any>> {
@@ -108,7 +109,6 @@ export class EnterpriseClientCounterService {
     return this.http.get<ApiResponse<IEnterpriseClientCounter>>(url);
   }
 
-  // Nuevo método para obtener cliente detallado por empresaClienteContadorId
   getClientByEmpresaClienteContadorId(
     empresaClienteContadorId: number
   ): Observable<IClienteDetalleApiResponse> {

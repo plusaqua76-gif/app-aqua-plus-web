@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { AppShellComponent } from './core/components/Shell';
 import { authGuard } from './core/guards/guard-auth/auth-guard-guard';
-import { hasRoleGuard } from './core/guards/guard-role/has-role-guard';
 
 export const routes: Routes = [
   {
@@ -81,7 +80,6 @@ export const routes: Routes = [
       },
       {
         path: 'user-access',
-        // canActivate: [hasRoleGuard(['SUPER ADMIN'])],
         loadChildren: () =>
           import('./modules/super-admin/admin.route').then((m) => m.default),
       },
@@ -122,6 +120,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./modules/user/pages/billsUsers').then((m) => m.BillUsers),
       },
+      {
+        path: 'electronic-invoicing',
+        loadChildren: () =>
+          import('./modules/electronic-invoicing/electronic-invoicing.route').then((m) => m.default),
+      }
     ],
   },
   {

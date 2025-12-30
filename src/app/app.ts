@@ -99,9 +99,9 @@ constructor() {
   ngOnInit(): void {
 
   //     if (isPlatformServer(this.platformId)) {
-  //   console.log('✅ Ejecutando en SERVIDOR (SSR)');
+  //   console.log('Ejecutando en SERVIDOR (SSR)');
   // } else {
-  //   console.log('✅ Ejecutando en NAVEGADOR (después de hydration)');
+  //   console.log('Ejecutando en NAVEGADOR (después de hydration)');
   // }
 
     if (isPlatformBrowser(this.platformId)) {

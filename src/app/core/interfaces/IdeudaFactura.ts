@@ -71,10 +71,6 @@ export interface IAbonoFactura{
     fechaModificacion: Date;
 }
 
-/**
- * Interfaz para la respuesta paginada de abono factura del backend
- * Esta estructura corresponde exactamente a la API de abono/empresa/{id}
- */
 export interface IAbonoFacturaResponse {
     cliente: string;
     codigoFactura: string;
