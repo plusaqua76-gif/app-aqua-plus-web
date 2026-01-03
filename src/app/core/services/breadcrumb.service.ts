@@ -38,6 +38,7 @@ export class BreadcrumbService {
     'Update-debt': 'Actualizar Deuda',
     'welcome-user': 'Bienvenida',
     'electronic-invoicing': 'Facturación Electrónica',
+    'enterprice-dian': 'Empresa DIAN',
 
 
     'reading': 'Lecturas',

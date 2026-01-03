@@ -10,4 +10,8 @@ export default [
     path: 'create',
     loadComponent: () => import('./components/create-invoice').then(m => m.CreateInvoiceComponent),
   },
+  {
+    path: 'enterprice-dian',
+    loadComponent: () => import('./pages/enterprice-dian/enterprice-dian').then(m => m.EnterpriceDian),
+  }
 ] as Routes;

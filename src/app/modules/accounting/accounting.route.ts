@@ -3,8 +3,15 @@ import { Routes } from '@angular/router';
 export default [
   {
     path: '',
-    redirectTo: 'inventory',
+    redirectTo: 'inventory/main',
     pathMatch: 'full',
+  },
+  {
+    path: 'inventory/main',
+    loadComponent: () =>
+      import('./pages/inventory/main-inventory/main-inventory').then(
+        (m) => m.MainInventory
+      ),
   },
   {
     path: 'inventory',
