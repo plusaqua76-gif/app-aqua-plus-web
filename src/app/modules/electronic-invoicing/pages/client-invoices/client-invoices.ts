@@ -117,6 +117,9 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       [showColumnFilters]="true"
       (action)="handleTableAction($event)"
       (serverPaginationChange)="onPaginationChange($event)"
+            [showSecondaryButton]="true"
+      [secondaryButtonText]="'Ver empresa DIAN'"
+            (secondaryButtonAction)="handleTableAction({ action: 'view-enterprise-dian' })"
     >
     </app-table-dynamic>
 
@@ -303,6 +306,8 @@ export class ClientInvoices {
       this.viewInvoiceDetail(event.row);
     } else if (event.action === 'download' && event.row) {
       this.downloadInvoice(event.row);
+    } else if (event.action === 'view-enterprise-dian') {
+      this.router.navigate(['/shell/electronic-invoicing/enterprice-dian']);
     }
   }
 

@@ -977,7 +977,6 @@ export class CreateInvoiceComponent {
   });
 
 
-
   constructor() {
     this.initForm();
     this.initNewProductForm();
@@ -1306,6 +1305,9 @@ export class CreateInvoiceComponent {
       idIdentificacion: codigoValue,
       id: codigoValue,
     };
+
+        //     "idIdentificacion":"1",
+        // "id":"001"
   }
 
   private buildInvoiceRequest(): any {
@@ -1343,8 +1345,8 @@ export class CreateInvoiceComponent {
     const productos = formValue.items.map((item: any) => {
       return {
         codigoEstandar: {
-          id: item.productoId || '',
-          idIdentificacion: codigoEstandar?.id || ''
+          idIdentificacion: item.productoId || '',
+          id: codigoEstandar?.id || ''
         },
         precio: item.precioUnitario,
         descuento: descuentoPorcentaje,

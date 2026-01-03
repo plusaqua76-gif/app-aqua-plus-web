@@ -6,7 +6,8 @@ import { DianInvoice, ProductDian, UnitCodes } from '@interfaces/invoice/dian-in
 import { ApiResponse } from '@interfaces/Iresponse';
 import { IFacturaElectronica } from '@interfaces/invoice/Iinvoice-client';
 import { IPaginatedResponse, IPaginationParams } from '@interfaces/IpaginatedResponse';
-import { EnterpriceInvoice, EnterpriceInvoiceResponse, SetTestResponse } from '@interfaces/invoice/invoice.interface';
+import { EnterpriceInvoice, EnterpriceInvoiceResponse, ResolutionDian, ResponseResolutionDian, SetTestResponse } from '@interfaces/invoice/invoice.interface';
+import { CreateAccount } from '../../accounting/pages/accounts/create-account';
 
 export interface DocumentInvoiceDian {
   file: {content:string}
@@ -21,11 +22,15 @@ export class InvoiceService {
   readonly platformId = inject(PLATFORM_ID);
   readonly apiUrl = `${environment.apiUrl}`;
 
+  getEnterpriceDian(idCompany: string): Observable<ApiResponse<EnterpriceInvoiceResponse>> {
+    return this.http.get<ApiResponse<EnterpriceInvoiceResponse>>(`${this.apiUrl}/empresa-dian/${idCompany}`);
+  }
+
   creteCompany(company: EnterpriceInvoice): Observable<ApiResponse<EnterpriceInvoiceResponse>>{
     return this.http.post<ApiResponse<EnterpriceInvoiceResponse>>(`${this.apiUrl}/empresa-dian/dar-alta`, company);
   }
 
-  sendTestDian(idCompany: number): Observable<ApiResponse<SetTestResponse>> {
+  sendTestDian(idCompany: string): Observable<ApiResponse<SetTestResponse>> {
     return this.http.post<ApiResponse<SetTestResponse>>(`${this.apiUrl}/empresa-dian/enviar-test/${idCompany}`, {});
   }
 
@@ -65,6 +70,14 @@ export class InvoiceService {
 
   getDocumentInvoiceDian(idDian:number): Observable<ApiResponse<DocumentInvoiceDian>> {
     return this.http.get<ApiResponse<DocumentInvoiceDian>>(`${this.apiUrl}/factura-dian/factura-documento/${idDian}/PDF`);
+  }
+
+  resolutionInvoiceDian(resolution:ResolutionDian): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/empresa-dian/resolucion`, resolution);
+  }
+
+  getResolutionDian(empresaId:number): Observable<ApiResponse<ResponseResolutionDian>> {
+    return this.http.get<ApiResponse<ResponseResolutionDian>>(`${this.apiUrl}/empresa-dian/resolucion/${empresaId}`);
   }
 
 
