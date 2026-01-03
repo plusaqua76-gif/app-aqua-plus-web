@@ -290,7 +290,6 @@ export class Invoice {
   onTestSetIdInput(event: Event) {
   const value = (event.target as HTMLInputElement).value;
   this.testId.set(value);
-  console.log('TestSetId:', value);
 }
 
 

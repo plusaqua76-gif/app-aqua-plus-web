@@ -325,14 +325,7 @@ export class EnterpriceDian {
     return data?.nombre || null;
   });
 
-  constructor() {
-    effect(() => {
-      console.log('🔍 DEBUG - Resolution completa:', this.dataResolution.value());
-      console.log('🔍 DEBUG - idEmpresaDian extraído:', this.idEmpresaDian());
-      console.log('🔍 DEBUG - Empresa DIAN completa:', this.dataEnterpriceDian.value());
-      console.log('🔍 DEBUG - Response de empresa:', this.dataEnterpriceDian.value()?.response);
-    })
-  }
+
 
   // Obtiene la resolución DIAN de la empresa
   dataResolution = rxResource({
