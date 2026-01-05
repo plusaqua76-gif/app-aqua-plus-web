@@ -118,14 +118,14 @@ import { catchError, of } from "rxjs";
               </div>
 
               <!-- Clave Técnica -->
-              <div class="space-y-2 md:col-span-2 lg:col-span-3">
+              <!-- <div class="space-y-2 md:col-span-2 lg:col-span-3">
                 <label class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                   Clave Técnica
                 </label>
                 <div class="px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl backdrop-blur-md">
                   <p class="text-gray-900 dark:text-white font-mono text-sm break-all">{{ resolution.claveTecnica }}</p>
                 </div>
-              </div>
+              </div> -->
 
               <!-- ID Empresa DIAN -->
               <!-- <div class="space-y-2 md:col-span-2 lg:col-span-3">

@@ -32,6 +32,8 @@ import { ProductDian } from '@interfaces/invoice/dian-invoice';
 import { GeneralsParamsService } from '@shared/services/generals-params.service';
 import { InvoiceService } from '../services/invoice.service';
 import { ToastService } from '@services/toast.service';
+import { InvoiceDianInitializationService } from '../services/invoice-dian-inicialization.service';
+import { ResolutionDianEagerInitializationService } from '../services/resolution-dian-eager-initialization.service';
 
 @Component({
   selector: 'app-create-invoice',
@@ -43,30 +45,72 @@ import { ToastService } from '@services/toast.service';
     ColombianCurrencyPipe,
   ],
   template: `
-    <div class="min-h-screen  text-white p-6">
+    <!-- Información de Empresa DIAN - Eager Initialization -->
+    @let empresaDian = enterpriceDian(); @let resolutionDianData =
+    resolutionDian();
+
+    <!-- @if (invoiceDianInitializationService.isLoading()) {
+    <div class="p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg mb-4">
+      <p class="text-blue-400 text-sm">Cargando información de empresa DIAN...</p>
+    </div>
+  } @else if (invoiceDianInitializationService.error()) {
+    <div class="p-4 bg-red-900/20 border border-red-500/30 rounded-lg mb-4">
+      <p class="text-red-400 text-sm">{{ invoiceDianInitializationService.error() }}</p>
+    </div>
+  }
+
+  @defer (when empresaDian != null) {
+    <div class="p-4 bg-green-900/20 border border-green-500/30 rounded-lg mb-4">
+      <h3 class="text-green-400 font-semibold mb-2">Empresa DIAN Configurada:</h3>
+      <ul class="text-white text-sm space-y-1">
+        <li><strong>ID:</strong> {{ empresaDian?.company?.id }}</li>
+        <li><strong>Razón Social:</strong> {{ empresaDian?.company?.name }}</li>
+        <li><strong>Nombre Comercial:</strong> {{ empresaDian?.company?.tradeName }}</li>
+        <li><strong>NIT:</strong> {{ empresaDian?.company?.identification }}-{{ empresaDian?.company?.dv }}</li>
+        <li><strong>Email:</strong> {{ empresaDian?.company?.email }}</li>
+        <li><strong>Régimen:</strong> {{ empresaDian?.company?.regimeCode }}</li>
+        <li><strong>Tipo:</strong> {{ empresaDian?.company?.type }}</li>
+        <li><strong>Certificado Alegra:</strong> {{ empresaDian?.company?.useAlegraCertificate ? '✓ Activo' : '✗ Inactivo' }}</li>
+        <li><strong>Notificación Email:</strong> {{ empresaDian?.company?.notificationByEmail?.enabled ? '✓ Habilitada' : '✗ Deshabilitada' }}</li>
+      </ul>
+    </div>
+  } -->
+
+    <div class="min-h-screen text-white p-3 sm:p-4 md:p-6">
       <div class="max-w-5xl mx-auto">
         <div
-          class="p-8 rounded-xl border border-gray-700/50 bg-gradient-to-b from-gray-900/80 to-gray-900/60 backdrop-blur-md space-y-6"
+          class="p-4 sm:p-6 md:p-8 rounded-xl border border-gray-700/50 bg-gradient-to-b from-gray-900/80 to-gray-900/60 backdrop-blur-md space-y-4 sm:space-y-6"
         >
           <div
-            class="flex justify-between items-start pb-6 border-b border-gray-700/50"
+            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 sm:pb-6 border-b border-gray-700/50"
           >
             <div>
-              <h1 class="text-3xl font-bold text-white mb-2">
+              <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">
                 FACTURA DE VENTA
               </h1>
-              <p class="text-sm text-gray-400">Factura Electrónica de Venta</p>
+              <p class="text-xs sm:text-sm text-gray-400">
+                Factura Electrónica de Venta
+              </p>
             </div>
-            <div class="text-right">
-              <div class="text-sm text-gray-400 mb-1">N° Factura</div>
-              <div class="text-2xl font-bold text-blue-400">SETT-0015</div>
-              <div class="text-xs text-gray-500 mt-1">Fecha: 17/12/2025</div>
+            <div class="text-left sm:text-right">
+              <div class="text-xs sm:text-sm text-gray-400 mb-1">Prefijo</div>
+              @defer (when resolutionDianData != null) {
+              <div class="text-xl sm:text-2xl font-bold text-blue-400">
+                {{ resolutionDianData?.prefijo }}
+              </div>
+              }@placeholder {
+              <div class="text-sm text-gray-500 italic">
+                Cargando prefijo...
+              </div>
+              }
             </div>
           </div>
 
           <!-- Datos Empresa -->
-          <div class="grid grid-cols-2 gap-6 pb-6 border-b border-gray-700/50">
-            <div>
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 pb-4 sm:pb-6 border-b border-gray-700/50"
+          >
+            <!-- <div>
               <h3
                 class="text-sm font-semibold text-blue-400 mb-3 uppercase tracking-wide"
               >
@@ -79,7 +123,37 @@ import { ToastService } from '@services/toast.service';
                 <p class="text-sm text-gray-400">NIT: 901859695-1</p>
                 <p class="text-sm text-gray-400">Persona Jurídica</p>
               </div>
+            </div> -->
+
+            @defer (when empresaDian != null) {
+            <div>
+              <h3
+                class="text-sm font-semibold text-blue-400 mb-3 uppercase tracking-wide"
+              >
+                Emisor
+              </h3>
+              <div class="space-y-1.5">
+                <p class="text-white font-semibold">
+                  {{ empresaDian?.company?.name }}
+                </p>
+                <p class="text-sm text-gray-400">
+                  NIT: {{ empresaDian?.company?.identification }}
+                </p>
+                <p class="text-sm text-gray-400">
+                  {{ empresaDian?.company?.type }}
+                </p>
+              </div>
             </div>
+            }@placeholder {
+            <div
+              class="p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg mb-4"
+            >
+              <p class="text-blue-400 text-sm">
+                Cargando información de empresa DIAN...
+              </p>
+            </div>
+            }
+
             <div>
               <h3
                 class="text-sm font-semibold text-blue-400 mb-3 uppercase tracking-wide"
@@ -234,191 +308,200 @@ import { ToastService } from '@services/toast.service';
               </p>
             </div>
             } @else {
-            <div class="overflow-x-auto">
-              <table class="w-full">
-                <thead>
-                  <tr class="border-b border-gray-700/50">
-                    <th
-                      class="text-left py-3 px-3 text-xs font-semibold text-gray-400 uppercase"
-                    >
-                      Producto a seleccionar
-                    </th>
-                    <th
-                      class="text-left py-3 px-3 text-xs font-semibold text-gray-400 uppercase"
-                    >
-                      Descripción
-                    </th>
-                    <th
-                      class="text-center py-3 px-3 text-xs font-semibold text-gray-400 uppercase"
-                    >
-                      Cant.
-                    </th>
-                    <th
-                      class="text-right py-3 px-3 text-xs font-semibold text-gray-400 uppercase"
-                    >
-                      Precio Unit.
-                    </th>
-                    <th
-                      class="text-center py-3 px-3 text-xs font-semibold text-gray-400 uppercase"
-                    >
-                      IVA
-                    </th>
-                    <th
-                      class="text-left py-3 px-3 text-xs font-semibold text-gray-400 uppercase"
-                    >
-                      Nota
-                    </th>
-                    <th
-                      class="text-right py-3 px-3 text-xs font-semibold text-gray-400 uppercase"
-                    >
-                      Total
-                    </th>
-                    <th class="py-3 px-3"></th>
-                  </tr>
-                </thead>
-                <tbody formArrayName="items">
-                  @for (item of items.controls; track $index) {
-                  <tr
-                    [formGroupName]="$index"
-                    class="border-b border-gray-700/30 hover:bg-gray-800/30"
-                  >
-                    <!-- Producto seleccionable -->
-                    <td class="py-3 px-3">
-                      <select
-                        formControlName="codigoProducto"
-                        (change)="onProductSelected($index, $event)"
-                        class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/40 invalid:text-gray-400"
-                        required
+            <div class="overflow-x-auto -mx-4 sm:mx-0">
+              <div class="inline-block min-w-full align-middle">
+                <table class="w-full min-w-[800px]">
+                  <thead>
+                    <tr class="border-b border-gray-700/50">
+                      <th
+                        class="text-left py-3 px-3 text-xs font-semibold text-gray-400 uppercase"
                       >
-                        <option
-                          value=""
-                          disabled
-                          selected
-                          hidden
-                          class="text-gray-400"
+                        Producto a seleccionar
+                      </th>
+                      <th
+                        class="text-left py-3 px-3 text-xs font-semibold text-gray-400 uppercase"
+                      >
+                        Descripción
+                      </th>
+                      <th
+                        class="text-center py-3 px-3 text-xs font-semibold text-gray-400 uppercase"
+                      >
+                        Cant.
+                      </th>
+                      <th
+                        class="text-right py-3 px-3 text-xs font-semibold text-gray-400 uppercase"
+                      >
+                        Precio Unit.
+                      </th>
+                      <th
+                        class="text-center py-3 px-3 text-xs font-semibold text-gray-400 uppercase"
+                      >
+                        IVA
+                      </th>
+                      <th
+                        class="text-left py-3 px-3 text-xs font-semibold text-gray-400 uppercase"
+                      >
+                        Nota
+                      </th>
+                      <th
+                        class="text-right py-3 px-3 text-xs font-semibold text-gray-400 uppercase"
+                      >
+                        Total
+                      </th>
+                      <th class="py-3 px-3"></th>
+                    </tr>
+                  </thead>
+                  <tbody formArrayName="items">
+                    @for (item of items.controls; track $index) {
+                    <tr
+                      [formGroupName]="$index"
+                      class="border-b border-gray-700/30 hover:bg-gray-800/30"
+                    >
+                      <!-- Producto seleccionable -->
+                      <td class="py-3 px-3">
+                        <select
+                          formControlName="codigoProducto"
+                          (change)="onProductSelected($index, $event)"
+                          class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/40 invalid:text-gray-400"
+                          required
                         >
-                          @if (ProductCodesDian.isLoading()) { Cargando productos... }
-                          @else if (ProductCodesDian.error()) { Error al cargar productos }
-                          @else { Seleccione producto }
-                        </option>
-                        @for (producto of ProductCodesDian.value()?.response ?? [];
-                        track producto.id) {
-                        <option
-                          [value]="producto.id"
-                          class="text-white bg-gray-700 py-2 px-4 hover:bg-gray-600"
-                        >
-                          {{ producto.nombre }} - {{ producto.descripcion }}
-                        </option>
-                        }
-                      </select>
+                          <option
+                            value=""
+                            disabled
+                            selected
+                            hidden
+                            class="text-gray-400"
+                          >
+                            @if (ProductCodesDian.isLoading()) { Cargando
+                            productos... } @else if (ProductCodesDian.error()) {
+                            Error al cargar productos } @else { Seleccione
+                            producto }
+                          </option>
+                          @for (producto of ProductCodesDian.value()?.response
+                          ?? []; track producto.id) {
+                          <option
+                            [value]="producto.id"
+                            class="text-white bg-gray-700 py-2 px-4 hover:bg-gray-600"
+                          >
+                            {{ producto.nombre }} - {{ producto.descripcion }}
+                          </option>
+                          }
+                        </select>
 
-                      <!-- Mensaje para crear producto -->
-                      <div class="mt-2">
+                        <!-- Mensaje para crear producto -->
+                        <div class="mt-2">
+                          <button
+                            type="button"
+                            (click)="toggleCambioTipo($index)"
+                            class="text-xs text-blue-400 hover:text-blue-300 underline"
+                          >
+                            ¿No encuentra su producto? Créelo aquí
+                          </button>
+                        </div>
+                      </td>
+                      <td class="py-3 px-3">
+                        <input
+                          type="text"
+                          formControlName="descripcion"
+                          placeholder="Descripción del producto"
+                          class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/50 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                        />
+                      </td>
+                      <td class="py-3 px-3 text-center">
+                        <input
+                          type="number"
+                          formControlName="cantidad"
+                          min=""
+                          class="w-16 text-center bg-gray-800/50 border border-gray-600/50 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                        />
+                      </td>
+                      <td class="py-3 px-3">
+                        <input
+                          type="text"
+                          [value]="
+                            item.get('precioUnitario')?.value
+                              | colombianCurrency
+                          "
+                          (input)="
+                            onNumberInput($event, $any(item), 'precioUnitario')
+                          "
+                          min="0"
+                          step="0.01"
+                          placeholder="$0"
+                          class="w-24 text-right bg-gray-800/50 border border-gray-600/50 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                        />
+                      </td>
+
+                      <!-- IVA -->
+                      <td class="py-3 px-3 text-center">
+                        <select
+                          formControlName="iva"
+                          class="w-16 text-center bg-gray-800/50 border border-gray-600/50 rounded px-1 py-1 text-white text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                        >
+                          <option value="0">0%</option>
+                          <option value="5">5%</option>
+                          <option value="19" selected>19%</option>
+                        </select>
+                      </td>
+
+                      <!-- Nota -->
+                      <td class="py-3 px-3">
+                        <input
+                          type="text"
+                          formControlName="nota"
+                          placeholder="Nota..."
+                          class="w-32 bg-gray-800/50 border border-gray-600/50 rounded px-2 py-1 text-white text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                        />
+                      </td>
+
+                      <!-- Total -->
+                      <td
+                        class="py-3 px-3 text-right text-white font-semibold text-sm"
+                      >
+                        {{ item.get('total')?.value | colombianCurrency }}
+                      </td>
+
+                      <!-- Eliminar -->
+                      <td class="py-3 px-3 text-center">
                         <button
                           type="button"
-                          (click)="toggleCambioTipo($index)"
-                          class="text-xs text-blue-400 hover:text-blue-300 underline"
+                          (click)="removeItem($index)"
+                          class="text-red-400 hover:text-red-300 p-1 transition-colors"
                         >
-                          ¿No encuentra su producto? Créelo aquí
+                          <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
                         </button>
-                      </div>
-                    </td>
-                    <td class="py-3 px-3">
-                      <input
-                        type="text"
-                        formControlName="descripcion"
-                        placeholder="Descripción del producto"
-                        class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/50 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40"
-                      />
-                    </td>
-                    <td class="py-3 px-3 text-center">
-                      <input
-                        type="number"
-                        formControlName="cantidad"
-                        min="1"
-                        class="w-16 text-center bg-gray-800/50 border border-gray-600/50 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40"
-                      />
-                    </td>
-                    <td class="py-3 px-3">
-                      <input
-                        type="number"
-                        formControlName="precioUnitario"
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                        class="w-24 text-right bg-gray-800/50 border border-gray-600/50 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40"
-                      />
-                    </td>
-
-                    <!-- IVA -->
-                    <td class="py-3 px-3 text-center">
-                      <select
-                        formControlName="iva"
-                        class="w-16 text-center bg-gray-800/50 border border-gray-600/50 rounded px-1 py-1 text-white text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/40"
-                      >
-                        <option value="0">0%</option>
-                        <option value="5">5%</option>
-                        <option value="19" selected>19%</option>
-                      </select>
-                    </td>
-
-                    <!-- Nota -->
-                    <td class="py-3 px-3">
-                      <input
-                        type="text"
-                        formControlName="nota"
-                        placeholder="Nota..."
-                        class="w-32 bg-gray-800/50 border border-gray-600/50 rounded px-2 py-1 text-white text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/40"
-                      />
-                    </td>
-
-                    <!-- Total -->
-                    <td
-                      class="py-3 px-3 text-right text-white font-semibold text-sm"
-                    >
-                      {{ item.get('total')?.value | colombianCurrency }}
-                    </td>
-
-                    <!-- Eliminar -->
-                    <td class="py-3 px-3 text-center">
-                      <button
-                        type="button"
-                        (click)="removeItem($index)"
-                        class="text-red-400 hover:text-red-300 p-1 transition-colors"
-                      >
-                        <svg
-                          class="w-4 h-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
-                    </td>
-                  </tr>
-                  }
-                </tbody>
-              </table>
+                      </td>
+                    </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
             </div>
             }
           </div>
 
           <!-- Totales y Forma de Pago -->
           <div
-            class="p-6 rounded-lg border border-gray-600/70 bg-gradient-to-br from-emerald-600/5 to-transparent"
+            class="p-4 sm:p-6 rounded-lg border border-gray-600/70 bg-gradient-to-br from-emerald-600/5 to-transparent"
           >
-            <div class="flex items-center gap-3 mb-4">
+            <div class="flex items-center gap-2 sm:gap-3 mb-4">
               <div
-                class="flex items-center justify-center w-10 h-10 rounded-full bg-emerald-600/20 border border-emerald-500/30"
+                class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-600/20 border border-emerald-500/30"
               >
                 <svg
-                  class="w-5 h-5 text-emerald-400"
+                  class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -431,13 +514,13 @@ import { ToastService } from '@services/toast.service';
                   />
                 </svg>
               </div>
-              <h2 class="text-xl font-semibold text-emerald-400">
+              <h2 class="text-lg sm:text-xl font-semibold text-emerald-400">
                 Forma de Pago y Totales
               </h2>
             </div>
 
             <div
-              class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-700/50"
+              class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 pt-4 sm:pt-6 border-t border-gray-700/50"
               [formGroup]="invoiceForm"
             >
               <!-- Forma de Pago -->
@@ -448,38 +531,47 @@ import { ToastService } from '@services/toast.service';
                   Forma de Pago
                 </h3>
 
-
-                  <!-- Medio de Pago -->
-                  <div>
-                    <label class="block text-xs text-gray-400 mb-1.5 tracking-wide uppercase">
-                      Medio de Pago
-                      <span class="text-red-400">*</span>
-                    </label>
-                    <select
-                      formControlName="medioPago"
-                      class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 invalid:text-gray-400 cursor-pointer"
-                      required
+                <!-- Medio de Pago -->
+                <div>
+                  <label
+                    class="block text-xs text-gray-400 mb-1.5 tracking-wide uppercase"
+                  >
+                    Medio de Pago
+                    <span class="text-red-400">*</span>
+                  </label>
+                  <select
+                    formControlName="medioPago"
+                    class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 invalid:text-gray-400 cursor-pointer"
+                    required
+                  >
+                    <option
+                      value=""
+                      disabled
+                      selected
+                      hidden
+                      class="text-gray-400"
                     >
-                      <option value="" disabled selected hidden class="text-gray-400">
-                        Seleccione medio de pago
-                      </option>
-                      @for (medio of ParamsGeneral.value()?.response ?? []; track medio.codigo) {
-                      @if (medio.codigoPadre === 'FORMA_PAGO_DIAN') {
-                      <option [value]="medio.codigo" class="text-white bg-gray-700 py-2 px-4 hover:bg-gray-600">
-                        {{ medio.descripcion }}
-                      </option>
-                      }
-                      }
-                    </select>
-                  </div>
+                      Seleccione medio de pago
+                    </option>
+                    @for (medio of ParamsGeneral.value()?.response ?? []; track
+                    medio.codigo) { @if (medio.codigoPadre ===
+                    'FORMA_PAGO_DIAN') {
+                    <option
+                      [value]="medio.codigo"
+                      class="text-white bg-gray-700 py-2 px-4 hover:bg-gray-600"
+                    >
+                      {{ medio.descripcion }}
+                    </option>
+                    } }
+                  </select>
+                </div>
                 <div class="space-y-3">
                   <!-- Tipo de Documento -->
                   <div>
                     <label
                       for="tipoDocumento"
                       class="block text-xs text-gray-400 mb-1.5 tracking-wide uppercase"
-                      >Forma de Pago
-                      <span class="text-red-400">*</span></label
+                      >Forma de Pago <span class="text-red-400">*</span></label
                     >
                     <select
                       id="tipoDocumento"
@@ -534,7 +626,7 @@ import { ToastService } from '@services/toast.service';
                       }
                     </select>
                   </div> -->
-<!--
+                  <!--
                                         <div class="col-span-3">
                           <select
                             formControlName="codigoRazon"
@@ -555,11 +647,15 @@ import { ToastService } from '@services/toast.service';
                       Total Anticipado
                     </label>
                     <input
-                      type="number"
-                      formControlName="totalAnticipado"
+                      type="text"
+                      [value]="
+                        invoiceForm.get('totalAnticipado')?.value
+                          | colombianCurrency
+                      "
+                      (input)="onTotalAnticipadoInput($event)"
                       min="0"
                       step="0.01"
-                      placeholder="0.00"
+                      placeholder="$0"
                       class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
                     />
                   </div>
@@ -583,11 +679,16 @@ import { ToastService } from '@services/toast.service';
                   </div>
 
                   @if (invoiceForm.get('aplicarDescuentoGlobal')?.value) {
-                  <div class="space-y-3 p-4 bg-gray-800/30 rounded-lg border border-gray-700/50">
+                  <div
+                    class="space-y-3 p-4 bg-gray-800/30 rounded-lg border border-gray-700/50"
+                  >
                     <div class="flex items-center justify-between mb-2">
-                      <h4 class="text-xs font-semibold text-emerald-400 uppercase tracking-wide">
+                      <h4
+                        class="text-xs font-semibold text-emerald-400 uppercase tracking-wide"
+                      >
                         Descuentos/Cargos Globales
                       </h4>
+                      @if (descuentos.length === 0) {
                       <button
                         type="button"
                         (click)="addDescuento()"
@@ -595,6 +696,7 @@ import { ToastService } from '@services/toast.service';
                       >
                         + Agregar
                       </button>
+                      }
                     </div>
 
                     <div formArrayName="descuentos" class="space-y-2">
@@ -603,41 +705,50 @@ import { ToastService } from '@services/toast.service';
                         [formGroupName]="$index"
                         class="grid grid-cols-12 gap-2 p-2 bg-gray-900/50 rounded border border-gray-700/30"
                       >
-                        <div class="col-span-2">
+                        <div class="col-span-6 sm:col-span-2">
                           <input
-                            type="number"
-                            formControlName="valor"
+                            type="text"
+                            [value]="
+                              descuento.get('valor')?.value | colombianCurrency
+                            "
+                            (input)="onDescuentoInput($event, $any(descuento))"
                             min="0"
                             max="100"
                             step="0.1"
-                            placeholder="%"
+                            placeholder="$0"
                             class="w-full px-2 py-1 bg-gray-800/50 border border-gray-600/70 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
                           />
                         </div>
-                        <div class="col-span-2 flex items-center">
+                        <div class="col-span-6 sm:col-span-2 flex items-center">
                           <label class="flex items-center cursor-pointer">
                             <input
                               type="checkbox"
                               formControlName="indCargo"
                               class="w-4 h-4 text-emerald-600 bg-gray-800 border-gray-600 rounded focus:ring-emerald-500"
                             />
-                            <span class="ml-1 text-xs text-gray-400">Cargo</span>
+                            <span class="ml-1 text-xs text-gray-400"
+                              >Cargo</span
+                            >
                           </label>
                         </div>
-                        <div class="col-span-2">
+                        <div class="col-span-8 sm:col-span-2">
                           <select
                             formControlName="codigoRazon"
                             class="w-full px-2 py-1 bg-gray-800/50 border border-gray-600/70 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
                           >
-                            <option value="" disabled selected hidden>Código</option>
-                            @for (razon of ParamsGeneral.value()?.response ?? []; track razon.codigo) {
-                            @if (razon.codigoPadre === 'RAZON_DESCUENTO_DIAN') {
-                            <option [value]="razon.codigo">{{ razon.descripcion }}</option>
-                            }
-                            }
+                            <option value="" disabled selected hidden>
+                              Código
+                            </option>
+                            @for (razon of ParamsGeneral.value()?.response ??
+                            []; track razon.codigo) { @if (razon.codigoPadre ===
+                            'RAZON_DESCUENTO_DIAN') {
+                            <option [value]="razon.codigo">
+                              {{ razon.descripcion }}
+                            </option>
+                            } }
                           </select>
                         </div>
-                        <div class="col-span-5">
+                        <div class="col-span-11 sm:col-span-5">
                           <input
                             type="text"
                             formControlName="razon"
@@ -645,20 +756,31 @@ import { ToastService } from '@services/toast.service';
                             class="w-full px-2 py-1 bg-gray-800/50 border border-gray-600/70 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
                           />
                         </div>
-                        <div class="col-span-1 flex items-center justify-center">
+                        <div
+                          class="col-span-1 sm:col-span-1 flex items-center justify-center"
+                        >
                           <button
                             type="button"
                             (click)="removeDescuento($index)"
                             class="text-red-400 hover:text-red-300 p-1"
                           >
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            <svg
+                              class="w-4 h-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"
+                              />
                             </svg>
                           </button>
                         </div>
                       </div>
-                      }
-                      @if (descuentos.length === 0) {
+                      } @if (descuentos.length === 0) {
                       <p class="text-xs text-gray-500 text-center py-2">
                         No hay descuentos/cargos globales agregados
                       </p>
@@ -702,18 +824,20 @@ import { ToastService } from '@services/toast.service';
                   @if (calculateTotals().totalDescuentos > 0) {
                   <div class="flex justify-between text-sm">
                     <span class="text-green-400">Descuentos:</span>
-                    <span class="text-green-400 font-medium">-{{
-                      calculateTotals().totalDescuentos | colombianCurrency
-                    }}</span>
+                    <span class="text-green-400 font-medium"
+                      >-{{
+                        calculateTotals().totalDescuentos | colombianCurrency
+                      }}</span
+                    >
                   </div>
-                  }
-
-                  @if (calculateTotals().totalCargos > 0) {
+                  } @if (calculateTotals().totalCargos > 0) {
                   <div class="flex justify-between text-sm">
                     <span class="text-orange-400">Cargos:</span>
-                    <span class="text-orange-400 font-medium">+{{
-                      calculateTotals().totalCargos | colombianCurrency
-                    }}</span>
+                    <span class="text-orange-400 font-medium"
+                      >+{{
+                        calculateTotals().totalCargos | colombianCurrency
+                      }}</span
+                    >
                   </div>
                   }
 
@@ -742,12 +866,14 @@ import { ToastService } from '@services/toast.service';
               </div>
             </div>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+          <div class="grid grid-cols-1 gap-3 sm:gap-4 pt-4">
             <button
               type="button"
               (click)="submitInvoice()"
-              [disabled]="!invoiceForm.valid || items.length === 0 || !selectedClient()"
-              class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed disabled:opacity-50 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all duration-200 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40"
+              [disabled]="
+                !invoiceForm.valid || items.length === 0 || !selectedClient()
+              "
+              class="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed disabled:opacity-50 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all duration-200 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 text-sm sm:text-base"
             >
               <span class="flex items-center justify-center gap-2">
                 <svg
@@ -787,10 +913,16 @@ import { ToastService } from '@services/toast.service';
 
     <!-- Modal para crear nuevo producto -->
     @if (showCreateProductModal()) {
-    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div class="bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 pt-16 sm:pt-20"
+    >
+      <div
+        class="bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl  dark:border-slate-700/30 rounded-xl sm:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto relative"
+      >
         <!-- Modal Header -->
-        <div class="sticky top-0 bg-gradient-to-r from-[#2563eb00] to-blue-500 px-6 py-4 rounded-t-2xl">
+        <div
+          class="sticky top-0 bg-gradient-to-r from-[#111E33] to-blue-500 backdrop-blur-lg px-6 py-4 rounded-t-2xl z-30 shadow-md"
+        >
           <div class="flex items-center justify-between">
             <h3 class="text-xl font-bold text-white flex items-center gap-2">
               <i class="fas fa-plus-circle"></i>
@@ -806,35 +938,53 @@ import { ToastService } from '@services/toast.service';
         </div>
 
         <!-- Modal Body -->
-        <div class="p-6 space-y-4">
+        <div class="p-4 sm:p-6 space-y-3 sm:space-y-4">
           <form [formGroup]="newProductForm" class="space-y-4">
             <!-- Código de Unidad -->
             <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              <label
+                class="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3 tracking-wider uppercase"
+              >
                 Código de Unidad
                 <span class="text-red-500">*</span>
               </label>
               <select
                 formControlName="codigoUnidad"
-                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
+                class="w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-lg sm:rounded-xl text-sm sm:text-base text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
               >
                 @if (UnitCodes.isLoading()) {
-                <option disabled selected class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">Cargando unidades...</option>
+                <option
+                  disabled
+                  selected
+                  class="text-gray-900 dark:text-white bg-white dark:bg-gray-700"
+                >
+                  Cargando unidades...
+                </option>
                 } @else if (UnitCodes.error()) {
-                <option disabled selected class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">Error al cargar unidades</option>
-                } @else {
-                @for (unitCode of UnitCodes.value()?.response ?? []; track unitCode.code) {
-                <option [value]="unitCode.code" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
+                <option
+                  disabled
+                  selected
+                  class="text-gray-900 dark:text-white bg-white dark:bg-gray-700"
+                >
+                  Error al cargar unidades
+                </option>
+                } @else { @for (unitCode of UnitCodes.value()?.response ?? [];
+                track unitCode.code) {
+                <option
+                  [value]="unitCode.code"
+                  class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
+                >
                   {{ unitCode.value }} ({{ unitCode.code }})
                 </option>
-                }
-                }
+                } }
               </select>
             </div>
 
             <!-- Nombre -->
             <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              <label
+                class="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3 tracking-wider uppercase"
+              >
                 Nombre del Producto
                 <span class="text-red-500">*</span>
               </label>
@@ -842,13 +992,15 @@ import { ToastService } from '@services/toast.service';
                 type="text"
                 formControlName="nombre"
                 placeholder="Ej: Agua Potable"
-                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+                class="w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-lg sm:rounded-xl text-sm sm:text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
               />
             </div>
 
             <!-- Descripción -->
             <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              <label
+                class="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3 tracking-wider uppercase"
+              >
                 Descripción
                 <span class="text-red-500">*</span>
               </label>
@@ -856,40 +1008,60 @@ import { ToastService } from '@services/toast.service';
                 formControlName="descripcion"
                 rows="3"
                 placeholder="Descripción detallada del producto..."
-                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 resize-none"
+                class="w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-lg sm:rounded-xl text-sm sm:text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 resize-none"
               ></textarea>
             </div>
 
             <!-- IVA -->
             <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              <label
+                class="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3 tracking-wider uppercase"
+              >
                 IVA (%)
                 <span class="text-red-500">*</span>
               </label>
               <select
                 formControlName="iva"
-                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
+                class="w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-lg sm:rounded-xl text-sm sm:text-base text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
               >
-                <option value="0" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">0%</option>
-                <option value="5" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">5%</option>
-                <option value="19" selected class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">19%</option>
+                <option
+                  value="0"
+                  class="text-gray-900 dark:text-white bg-white dark:bg-gray-700"
+                >
+                  0%
+                </option>
+                <option
+                  value="5"
+                  class="text-gray-900 dark:text-white bg-white dark:bg-gray-700"
+                >
+                  5%
+                </option>
+                <option
+                  value="19"
+                  selected
+                  class="text-gray-900 dark:text-white bg-white dark:bg-gray-700"
+                >
+                  19%
+                </option>
               </select>
             </div>
           </form>
         </div>
 
         <!-- Modal Footer -->
-        <div class="sticky bottom-0 bg-white/10 dark:bg-slate-700/30 backdrop-blur-md border-t border-white/20 dark:border-slate-600/30 px-6 py-4 rounded-b-2xl flex gap-3">
+        <div
+          class="sticky bottom-0 z-30 bg-white dark:bg-slate-700 backdrop-blur-lg border-t border-gray-300 dark:border-slate-600 px-4 sm:px-6 py-3 sm:py-4 rounded-b-xl sm:rounded-b-2xl flex gap-2 sm:gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]"
+        >
           <button
             (click)="closeCreateProductModal()"
-            class="flex-1 px-4 py-3 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md text-gray-900 dark:text-white hover:bg-white/20 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 font-semibold"
+            class="flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md text-gray-900 dark:text-white hover:bg-white/20 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 font-semibold text-sm sm:text-base"
           >
             Cancelar
           </button>
           <button
             (click)="createNewProduct()"
             [disabled]="!newProductForm.valid"
-            class="flex-1 px-4 py-3 bg-blue-600 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transform hover:scale-105"
+            class="flex-1 px-3 sm:px-4 py-2 sm:py-3 bg-blue-600 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transform hover:scale-105 text-sm sm:text-base"
           >
             <span>Crear Producto</span>
           </button>
@@ -919,6 +1091,18 @@ import { ToastService } from '@services/toast.service';
   ],
 })
 export class CreateInvoiceComponent {
+  // Patrón Eager Initialization - Auto-inicialización automática
+  protected invoiceDianInitializationService = inject(
+    InvoiceDianInitializationService
+  );
+  protected enterpriceDian =
+    this.invoiceDianInitializationService.enterpriceDianSignal;
+  protected resolutionDianEagerInitializationService = inject(
+    ResolutionDianEagerInitializationService
+  );
+  protected resolutionDian =
+    this.resolutionDianEagerInitializationService.enterpriceResolutionSignal;
+
   protected invoiceService = inject(InvoiceService);
   protected clientService = inject(EnterpriseClientCounterService);
   private generalsParamsService = inject(GeneralsParamsService);
@@ -956,7 +1140,7 @@ export class CreateInvoiceComponent {
 
   readonly usuario = computed(() => {
     const data = this.userData();
-    return data?.nombre  || '';
+    return data?.nombre || '';
   });
 
   UnitCodes = rxResource({
@@ -971,11 +1155,9 @@ export class CreateInvoiceComponent {
     stream: () => this.generalsParamsService.getGeneralsParams(),
   });
 
-
   ProductCodesDian = rxResource({
-    stream: () => this.invoiceService.getProductCodesDian('MTQ')
+    stream: () => this.invoiceService.getProductCodesDian('MTQ'),
   });
-
 
   constructor() {
     this.initForm();
@@ -1125,7 +1307,13 @@ export class CreateInvoiceComponent {
     this.calculateTotals();
   }
 
-  calculateTotals(): { subtotal: number; totalDescuentos: number; totalCargos: number; totalIva: number; total: number } {
+  calculateTotals(): {
+    subtotal: number;
+    totalDescuentos: number;
+    totalCargos: number;
+    totalIva: number;
+    total: number;
+  } {
     let subtotal = 0;
 
     // Calcular subtotal sin IVA
@@ -1209,7 +1397,10 @@ export class CreateInvoiceComponent {
 
   createNewProduct(): void {
     if (!this.newProductForm.valid) {
-      this.toast.error('Error', 'Por favor complete todos los campos requeridos');
+      this.toast.error(
+        'Error',
+        'Por favor complete todos los campos requeridos'
+      );
       return;
     }
 
@@ -1231,9 +1422,9 @@ export class CreateInvoiceComponent {
         if (activeIndex !== null && response.response) {
           const itemForm = this.items.at(activeIndex) as FormGroup;
           itemForm.patchValue({
-
             codigoProducto: response.response.id,
-            descripcion: response.response.descripcion || response.response.nombre,
+            descripcion:
+              response.response.descripcion || response.response.nombre,
             iva: response.response.iva || 19,
             tipoUnidad: response.response.codigoUnidad,
             activo: true,
@@ -1246,7 +1437,7 @@ export class CreateInvoiceComponent {
       error: (error) => {
         console.error('Error creando producto:', error);
         this.toast.error('Error', 'No se pudo crear el producto');
-      }
+      },
     });
   }
 
@@ -1306,8 +1497,8 @@ export class CreateInvoiceComponent {
       id: codigoValue,
     };
 
-        //     "idIdentificacion":"1",
-        // "id":"001"
+    //     "idIdentificacion":"1",
+    // "id":"001"
   }
 
   private buildInvoiceRequest(): any {
@@ -1341,12 +1532,11 @@ export class CreateInvoiceComponent {
       });
     }
 
-
     const productos = formValue.items.map((item: any) => {
       return {
         codigoEstandar: {
           idIdentificacion: item.productoId || '',
-          id: codigoEstandar?.id || ''
+          id: codigoEstandar?.id || '',
         },
         precio: item.precioUnitario,
         descuento: descuentoPorcentaje,
@@ -1359,13 +1549,11 @@ export class CreateInvoiceComponent {
       };
     });
 
-
     const request: any = {
       idEmpresa: empresaId,
       idCliente: cliente.id,
       productos: productos,
     };
-
 
     if (formValue.aplicarDescuentoGlobal && formValue.descuentos.length > 0) {
       request.descuentos = formValue.descuentos.map((desc: any) => ({
@@ -1374,7 +1562,6 @@ export class CreateInvoiceComponent {
         razon: (desc.razon || '').trim(),
       }));
     }
-
 
     request.medioPago = {
       forma: formValue.medioPago,
@@ -1405,11 +1592,65 @@ export class CreateInvoiceComponent {
 
     this.invoiceService.SendInvoiceDianClient(request).subscribe({
       next: (response) => {
-        this.toast.success('Exito', 'Factura creada y enviada a DIAN exitosamente.');
+        this.toast.success(
+          'Exito',
+          'Factura creada y enviada a DIAN exitosamente.'
+        );
       },
       error: (error) => {
         console.error('Error al crear factura:', error);
-      }
+      },
     });
+  }
+
+  /**
+   * Método para manejar inputs numéricos con formato de moneda
+   * Extrae el valor numérico del string formateado y actualiza el FormControl
+   */
+  onNumberInput(event: Event, itemForm: FormGroup, fieldName: string): void {
+    const input = event.target as HTMLInputElement;
+    const rawValue = input.value;
+
+    // Extraer solo números del string (eliminar $, puntos, comas, espacios)
+    const numericValue = rawValue.replace(/[^0-9]/g, '');
+    const parsedValue = numericValue ? parseInt(numericValue, 10) : 0;
+
+    // Actualizar el FormControl con el valor numérico
+    itemForm.get(fieldName)?.setValue(parsedValue, { emitEvent: true });
+  }
+
+  /**
+   * Método para manejar el input de totalAnticipado con formato de moneda
+   */
+  onTotalAnticipadoInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const rawValue = input.value;
+
+    // Extraer solo números del string
+    const numericValue = rawValue.replace(/[^0-9]/g, '');
+    const parsedValue = numericValue ? parseInt(numericValue, 10) : 0;
+
+    // Actualizar el FormControl
+    this.invoiceForm
+      .get('totalAnticipado')
+      ?.setValue(parsedValue, { emitEvent: false });
+  }
+
+  /**
+   * Método para manejar el input de valor de descuento con formato de moneda
+   */
+  onDescuentoInput(event: Event, descuentoForm: FormGroup): void {
+    const input = event.target as HTMLInputElement;
+    const rawValue = input.value;
+
+    // Extraer solo números y punto decimal
+    const numericValue = rawValue.replace(/[^0-9.]/g, '');
+    const parsedValue = numericValue ? parseFloat(numericValue) : 0;
+
+    // Limitar a 100 (porcentaje máximo)
+    const finalValue = Math.min(parsedValue, 100);
+
+    // Actualizar el FormControl
+    descuentoForm.get('valor')?.setValue(finalValue, { emitEvent: false });
   }
 }
