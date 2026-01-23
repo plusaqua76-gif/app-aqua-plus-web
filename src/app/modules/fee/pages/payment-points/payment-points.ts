@@ -15,85 +15,6 @@ import { PopupComponent } from '@shared/components/popUp';
   ],
   template: `
     <div class="max-w-4xl mx-auto px-4 py-8">
-      <!-- Header -->
-      <!-- <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-2">
-          Puntos de Pago
-        </h1>
-        <p class="text-gray-600 dark:text-gray-400">
-          Sube y gestiona las imágenes de tus puntos de pago
-        </p>
-      </div> -->
-
-      <!-- Upload Section -->
-      <div class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 mb-6">
-        <div class="p-6 sm:p-8">
-          <div class="text-center space-y-6">
-            <div class="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20">
-              <i class="fas fa-map-marker-alt text-3xl text-blue-600 dark:text-blue-400"></i>
-            </div>
-            @if (imagePreview()) {
-              <div class="relative inline-block">
-                <img
-                  [src]="imagePreview()!"
-                  alt="Preview"
-                  class="max-w-md max-h-64 rounded-xl border-4 border-white/20 dark:border-slate-600/30 shadow-xl object-contain"
-                />
-              </div>
-            }
-            <div>
-              <button
-                (click)="fileInput.click()"
-                [disabled]="isUploading()"
-                class="px-6 py-3 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-medium rounded-xl hover:border-blue-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
-                <i class="fas fa-upload mr-2"></i>
-                Seleccionar imagen
-              </button>
-              <input
-                #fileInput
-                type="file"
-                accept="image/*"
-                (change)="onImageSelected($event)"
-                class="hidden"
-              />
-            </div>
-
-            <!-- Action Buttons -->
-            @if (selectedFile()) {
-              <div class="flex items-center justify-center gap-2">
-                <button
-                  (click)="uploadPaymentPoint()"
-                  [disabled]="isUploading()"
-                  class="px-6 py-3 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 backdrop-blur-md text-green-700 dark:text-green-300 font-medium rounded-xl hover:border-green-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
-                  @if (isUploading()) {
-                    <div class="flex items-center gap-2">
-                      <div class="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-                      Subiendo...
-                    </div>
-                  } @else {
-                    <i class="fas fa-check mr-2"></i>
-                    Subir punto de pago
-                  }
-                </button>
-                <button
-                  (click)="cancelUpload()"
-                  [disabled]="isUploading()"
-                  class="px-6 py-3 bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:border-gray-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
-                  <i class="fas fa-times mr-2"></i>
-                  Cancelar
-                </button>
-              </div>
-            }
-
-            @if (!selectedFile()) {
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Formatos permitidos: JPG, PNG, GIF (máx. 5MB)
-              </p>
-            }
-          </div>
-        </div>
-      </div>
-
       <!-- Payment Points Gallery -->
       @if (paymentPointsData.isLoading()) {
         <div class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 mb-6">
@@ -111,6 +32,82 @@ import { PopupComponent } from '@shared/components/popUp';
               <i class="fas fa-map-marked-alt mr-2 text-blue-500"></i>
               Puntos de Pago Disponibles ({{ paymentPointsData.value()?.length ?? 0 }})
             </h3>
+
+            <!-- File Upload Container con estilo del register -->
+            <div style="position: relative; min-height: 48px; flex: 1; display: flex; flex-direction: column; gap: 0; margin-bottom: 24px;">
+              <div style="position: relative; min-height: 48px; display: flex; flex-direction: column;">
+                <input
+                  type="file"
+                  id="file_input_payment"
+                  #fileInput
+                  accept="image/*"
+                  (change)="onImageSelected($event)"
+                  style="position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer;"
+                />
+                <label for="file_input_payment" style="display: flex; align-items: center; justify-content: flex-start; gap: 8px; width: 100%; height: 48px; padding: 0 12px; background: rgb(255 255 255 / 4%); border: 2px solid transparent; border-radius: 6px; cursor: pointer; transition: 0.3s; color: rgb(156 163 175); font-size: 14px; position: relative;">
+                  <svg
+                    style="width: 18px; height: 18px; opacity: 0.7;"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 5v9m-5 0H5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-2M8 9l4-5 4 5m1 8h.01"
+                    />
+                  </svg>
+                  Subir imagen del punto de pago
+                </label>
+
+                @if (imagePreview()) {
+                  <div style="display: flex; gap: 12px; align-items: center; margin-top: 8px; padding: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.1); width: 100%; position: relative;">
+                    <img [src]="imagePreview()!" alt="Vista previa del archivo" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.2); flex-shrink: 0;" />
+                    <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0;">
+                      <span style="font-weight: 500; font-size: 12px; color: #ffffff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ previewName() }}</span>
+                      <span style="font-size: 11px; color: #ada5b4;">{{ previewSizeKB() }} KB</span>
+                    </div>
+                    <button type="button"
+                            style="padding: 4px 8px; border: 1px solid #ef4444; color: #ef4444; background: transparent; border-radius: 4px; cursor: pointer; font-size: 11px; transition: all 0.2s ease; flex-shrink: 0;"
+                            (click)="clearSelectedFile(fileInput)">
+                      Quitar imagen
+                    </button>
+                  </div>
+                }
+              </div>
+
+              @if (selectedFile()) {
+                <div class="flex items-center justify-start gap-2 mt-3">
+                  <button
+                    (click)="uploadPaymentPoint()"
+                    [disabled]="isUploading()"
+                    class="px-6 py-3 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 backdrop-blur-md text-green-700 dark:text-green-300 font-medium rounded-xl hover:border-green-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+                    @if (isUploading()) {
+                      <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                        Subiendo...
+                      </div>
+                    } @else {
+                      <i class="fas fa-check mr-2"></i>
+                      Subir punto de pago
+                    }
+                  </button>
+                  <button
+                    (click)="cancelUpload()"
+                    [disabled]="isUploading()"
+                    class="px-6 py-3 bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:border-gray-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                  </button>
+                </div>
+              }
+            </div>
+
             <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               @for (point of paymentPointsData.value() ?? []; track point.id ?? $index) {
                 <div class="group relative overflow-hidden rounded-xl bg-white/10 dark:bg-slate-700/20 border border-white/20 dark:border-slate-600/30 backdrop-blur-md hover:border-blue-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl">
@@ -195,6 +192,16 @@ export class PaymentPoints {
   deletingRuta = signal<string | null>(null);
   showDeleteConfirm = signal<boolean>(false);
   pointToDelete: any = null;
+
+  readonly previewName = computed(() => {
+    const file = this.selectedFile();
+    return file ? file.name : '';
+  });
+
+  readonly previewSizeKB = computed(() => {
+    const file = this.selectedFile();
+    return file ? Math.round(file.size / 1024) : 0;
+  });
 
  readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -328,6 +335,14 @@ export class PaymentPoints {
   cancelUpload(): void {
     this.selectedFile.set(null);
     this.imagePreview.set(null);
+  }
+
+  clearSelectedFile(fileInput: HTMLInputElement): void {
+    this.selectedFile.set(null);
+    this.imagePreview.set(null);
+    if (fileInput) {
+      fileInput.value = '';
+    }
   }
 
   deletePaymentPoint(point: any): void {

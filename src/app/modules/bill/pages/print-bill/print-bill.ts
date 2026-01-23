@@ -33,7 +33,7 @@ import { PopupComponent } from '@shared/components/popUp';
 import { IAbonoFactura, IDeudaCliente } from '@interfaces/IdeudaFactura';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY, of, catchError } from 'rxjs';
-import { ColombianCurrencyPipe } from '@shared/index';
+import { ColombianCurrencyPipe } from '@shared/pipes/colombian-currency.pipe';
 import { IBillBackResponse } from '@interfaces/bill/Ibill-back';
 import { DocumentAzureBlobService } from '../../../fee/services/document-azure-blob.service';
 

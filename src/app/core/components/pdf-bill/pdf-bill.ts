@@ -5,7 +5,7 @@ import { LegendsHistoryBill } from '../charts/legens-bill-history';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EnterpriseIdService } from '@services/enterpriceId.service';
 import { IBillDetailResponse, IPuntoPago } from '@interfaces/Ibill-detail';
-import { ColombianCurrencyPipe } from '@shared/index';
+import { ColombianCurrencyPipe } from '@shared/pipes/colombian-currency.pipe';
 import { DeudaService } from '../../../modules/bill/service/deuda.service';
 import { IDeudaClienteResponse } from '@interfaces/IdeudaFactura';
 
