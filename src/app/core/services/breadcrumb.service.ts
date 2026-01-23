@@ -52,6 +52,7 @@ export class BreadcrumbService {
     'create-employee': 'Crear Empleado',
     'update-employee': 'Actualizar Empleado',
     'employee-data': 'Empleado',
+    'payroll': 'Nómina',
 
 
     'counter': 'Contadores',

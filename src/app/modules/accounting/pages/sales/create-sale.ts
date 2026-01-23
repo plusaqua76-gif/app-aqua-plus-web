@@ -16,7 +16,7 @@ import { SalesService } from '../../service/sales.service';
 import { ToastService } from '@services/toast.service';
 import { ICreateVenta, IProductoVenta } from '@interfaces/ICreateVenta';
 import { InventarioService } from '../../service/inventario.service';
-import { ColombianCurrencyPipe } from '@shared/index';
+import { ColombianCurrencyPipe } from '@shared/pipes/colombian-currency.pipe';
 
 // Interfaz extendida para productos en venta con cálculos
 interface IProductoVentaDetalle extends IProductoVenta {

@@ -13,4 +13,8 @@ export default [
     path: 'update-employee/:id',
     loadComponent: () => import('./pages/update-employee/update-employee').then(m => m.UpdateEmployee)
   },
+  {
+    path: 'payroll',
+    loadComponent: () => import('./pages/payroll/payroll').then(m => m.Payroll)
+  }
 ] as Routes;

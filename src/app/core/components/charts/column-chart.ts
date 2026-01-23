@@ -3,8 +3,8 @@ import { AfterViewInit, ChangeDetectionStrategy, Component, computed, inject, On
 import { ClientesKpiService } from '@services/clientes-kpi.service';
 import { IColumnChartData } from '@interfaces/IBilledConsumption';
 import { Subscription } from 'rxjs';
-import { ColombianCurrencyPipe } from '@shared/index';
 import localeEs from '@angular/common/locales/es-CO';
+import { ColombianCurrencyPipe } from '../../../shared/pipes/colombian-currency.pipe';
 
 declare const ApexCharts: any;
 
@@ -292,16 +292,16 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const allMonths = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+    const allMonths = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
                        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    
+
     const uniqueMonths = new Set<string>();
-    
+
     // Filtrar solo los meses que tienen datos (consumo > 0 o facturado > 0)
     data.xAxis.forEach((monthName: string, index: number) => {
       const hasConsumo = data.yAxis.consumoM3[index] > 0;
       const hasFacturado = data.yAxis.facturadoPesos[index] > 0;
-      
+
       if ((hasConsumo || hasFacturado) && allMonths.includes(monthName)) {
         uniqueMonths.add(monthName);
       }
@@ -309,7 +309,7 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
 
     // Mantener el orden cronológico
     const sortedMonths = allMonths.filter(month => uniqueMonths.has(month));
-    
+
     this.availableMonths.set(sortedMonths);
   }
 

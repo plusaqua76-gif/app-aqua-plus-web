@@ -37,19 +37,20 @@ export interface TableColumn {
   imports: [NgTemplateOutlet, Datepicker, ColombianCurrencyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="px-4 sm:px-6 lg:px-8 py-6 pb-0">
-      <div class="mb-6">
-        <h1
-          class="text-2xl sm:text-3xl font-bold text-gray-700 dark:text-gray-200 mb-4"
-        >
-          {{ title() }}
-        </h1>
+    @if (title()) {
+      <div class="px-4 sm:px-6 lg:px-8 py-6 pb-0">
+        <div class="mb-6">
+          <h1
+            class="text-2xl sm:text-3xl font-bold text-gray-700 dark:text-gray-200 mb-4"
+          >
+            {{ title() }}
+          </h1>
 
-        <div
-          class="flex flex-col sm:flex-row sm:items-center gap-4 justify-between"
-        >
-          <div class="flex items-center gap-4">
-            @if (showExportButton()) {
+          <div
+            class="flex flex-col sm:flex-row sm:items-center gap-4 justify-between"
+          >
+            <div class="flex items-center gap-4">
+              @if (showExportButton()) {
               <div class="relative" data-export-dropdown>
                 <button
                   type="button"
@@ -177,9 +178,15 @@ export interface TableColumn {
         </div>
       </div>
     </div>
+    }
 
     <div
-      class="relative overflow-hidden shadow-2xl sm:rounded-t-2xl mx-4 sm:mx-6 lg:mx-8 bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border-t border-white/20 dark:border-slate-700/30"
+      class="relative overflow-hidden shadow-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border-t border-white/20 dark:border-slate-700/30"
+      [class.mx-4]="title()"
+      [class.sm:mx-6]="title()"
+      [class.lg:mx-8]="title()"
+      [class.sm:rounded-t-2xl]="pagination()"
+      [class.sm:rounded-2xl]="!pagination()"
     >
       <div class="overflow-x-auto">
         <table
@@ -310,8 +317,12 @@ export interface TableColumn {
     </div>
 
     <!-- Footer de paginación separado del scroll -->
-    <div
-      class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-slate-100/30 dark:bg-slate-700/20 backdrop-blur-xl text-gray-700 dark:text-gray-300 text-sm shadow-xl sm:rounded-b-2xl mx-4 sm:mx-6 lg:mx-8 mt-[-1px]"
+@if (pagination() == true){
+      <div
+      class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-slate-100/30 dark:bg-slate-700/20 backdrop-blur-xl text-gray-700 dark:text-gray-300 text-sm shadow-xl sm:rounded-b-2xl mt-[-1px]"
+      [class.mx-4]="title()"
+      [class.sm:mx-6]="title()"
+      [class.lg:mx-8]="title()"
     >
       <!-- Información de registros -->
       <span class="font-medium text-xs sm:text-sm text-center sm:text-left sm:mb-0">
@@ -372,9 +383,11 @@ export interface TableColumn {
         </div>
       </div>
     </div>
+}
   `,
 })
 export class TableComponent {
+  pagination = input<boolean>(true);
   private readonly destroyRef = inject(DestroyRef);
   private readonly filterSubject = new Subject<{ field: string; value: string }>();
 

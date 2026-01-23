@@ -483,18 +483,15 @@
                         <span class="text-red-400">*</span>
                       </label>
                       <div class="space-y-1">
-                        <div class="flex gap-2">
-                          <input
-                            type="number"
-                            formControlName="numeroActual"
-                            placeholder="17"
-                            min="1"
-                            class="flex-1 px-4 py-3 bg-gray-900/50 border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                            [class.border-red-500]="resolutionForm.get('numeroActual')?.invalid && resolutionForm.get('numeroActual')?.touched"
-                            [class.border-gray-600]="!resolutionForm.get('numeroActual')?.invalid || !resolutionForm.get('numeroActual')?.touched"
-                          />
-
-                        </div>
+                        <input
+                          type="number"
+                          formControlName="numeroActual"
+                          placeholder="17"
+                          min="1"
+                          class="w-full px-4 py-3 bg-gray-900/50 border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          [class.border-red-500]="resolutionForm.get('numeroActual')?.invalid && resolutionForm.get('numeroActual')?.touched"
+                          [class.border-gray-600]="!resolutionForm.get('numeroActual')?.invalid || !resolutionForm.get('numeroActual')?.touched"
+                        />
                         <p class="text-xs text-blue-300 flex items-center gap-1">
                           <i class="fas fa-info-circle"></i>
                             Si ya facturaste antes, pon aquí el número siguiente al de tu última factura.
@@ -775,7 +772,7 @@
                   <span class="font-semibold">Nota:</span> Si ya realizaste el proceso de asociar tus prefijos a Alegra y al ingresar desde la opción de Habilitación no te aparece el campo para indicar tu fecha de salida a producción, te recomendamos ingresar por el menú <span class="text-white font-medium">Participantes</span> y allí encontrarás esta opción disponible para elegir la fecha en que tu RUT será actualizado.
                 </p>
                    <p class="text-yellow-300 bg-yellow-900/30 rounded p-3 mt-4">
-                  <span class="font-semibold">Nota: </span>Por favor recuerda que para la habilitacion de la factura electronica debes inciar sesion
+                  <span class="font-semibold">Nota: </span>Por favor recuerda que para la habilitacion de la factura electronica debes cerrar sesion y volver a inciar sesion
                 </p>
               </div>
             </div>

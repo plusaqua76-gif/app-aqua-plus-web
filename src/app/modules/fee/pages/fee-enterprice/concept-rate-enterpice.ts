@@ -6,7 +6,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { PopupComponent } from '../../../../shared/components/popUp';
-import { ConfirmDeletePopupComponent } from '@shared/index';
+import { ConfirmDeletePopupComponent } from '@shared/components/confirm-delete-popup';
 import { ToastService } from '@services/toast.service';
 
 

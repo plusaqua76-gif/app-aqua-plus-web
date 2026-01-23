@@ -13,7 +13,7 @@ import { IUse } from '@interfaces/IUse';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { catchError, of } from 'rxjs';
 import { ToastService } from '@services/toast.service';
-import { ConfirmDeletePopupComponent } from '@shared/index';
+import { ConfirmDeletePopupComponent } from '@shared/components/confirm-delete-popup';
 
 @Component({
   selector: 'app-transversal-rate',

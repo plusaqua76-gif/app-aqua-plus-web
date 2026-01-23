@@ -24,7 +24,7 @@ import {
   switchMap,
   catchError,
 } from 'rxjs';
-import { ColombianCurrencyPipe } from '@shared/index';
+import { ColombianCurrencyPipe } from '@shared/pipes/colombian-currency.pipe';
 import { EnterpriseClientCounterService } from '../../client/service/enterpriseClientCounter.service';
 import { ClientRaw } from '@interfaces/client/IclientRaw';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
@@ -46,8 +46,7 @@ import { ResolutionDianEagerInitializationService } from '../services/resolution
   ],
   template: `
     <!-- Información de Empresa DIAN - Eager Initialization -->
-    @let empresaDian = enterpriceDian(); @let resolutionDianData =
-    resolutionDian();
+    @let empresaDian = enterpriceDian(); @let resolutionDianData = resolutionDian();
 
     <!-- @if (invoiceDianInitializationService.isLoading()) {
     <div class="p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg mb-4">
@@ -1100,8 +1099,7 @@ export class CreateInvoiceComponent {
   protected resolutionDianEagerInitializationService = inject(
     ResolutionDianEagerInitializationService
   );
-  protected resolutionDian =
-    this.resolutionDianEagerInitializationService.enterpriceResolutionSignal;
+  protected resolutionDian = this.resolutionDianEagerInitializationService.enterpriceResolutionSignal;
 
   protected invoiceService = inject(InvoiceService);
   protected clientService = inject(EnterpriseClientCounterService);
