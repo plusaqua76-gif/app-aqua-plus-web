@@ -36,5 +36,5 @@ export interface ParamsMetricasContables {
   mes?: number | null;
   desde?: string | null;
   hasta?: string | null;
-  cantidadPeriodos: number;
+  cantidadPeriodos?: number;
 }

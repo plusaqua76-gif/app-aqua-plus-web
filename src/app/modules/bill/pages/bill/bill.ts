@@ -269,35 +269,30 @@ export class Bill  {
     this.toastService.info('Preparando descarga', 'Generando PDF de la factura...');
 
     try {
-      // 1. Obtener los detalles de la factura
       const billDetailsResponse = await firstValueFrom(this.billDetailsService.getAllBillDetails(billId));
 
       if (!billDetailsResponse?.response) {
         throw new Error('No se pudieron obtener los detalles de la factura');
       }
 
-      // 2. Establecer los datos para renderizar el componente oculto
       this.billDataForPdf.set(billDetailsResponse.response);
 
-      // 3. Esperar a que el componente se renderice
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // 4. Buscar el elemento de la factura en el contenedor oculto
+
       const billElement = this.hiddenBillContainer.nativeElement.querySelector('.bill-content') as HTMLElement;
       if (!billElement) {
         throw new Error('No se encontró el contenido de la factura renderizada');
       }
 
-      // 5. Generar el PDF
       const filename = `factura-aquaplus-${billCode}-${Date.now()}.pdf`;
       await this.pdfService.convertElementToPdf(billElement, filename);
 
-      // 6. Esperar un momento antes de mostrar el éxito para asegurar que el PDF se descargó
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // 7. Mostrar toast de éxito más notorio
+
       this.toastService.success(
-        '✅ ¡Descarga Exitosa!',
+        '¡Descarga Exitosa!',
         `La factura ${billCode} se ha descargado correctamente. Revisa tu carpeta de descargas.`
       );
 

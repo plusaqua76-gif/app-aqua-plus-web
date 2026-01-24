@@ -40,11 +40,13 @@ export interface TableColumn {
     @if (title()) {
       <div class="px-4 sm:px-6 lg:px-8 py-6 pb-0">
         <div class="mb-6">
+          @if (!hideTitle()) {
           <h1
             class="text-2xl sm:text-3xl font-bold text-gray-700 dark:text-gray-200 mb-4"
           >
             {{ title() }}
           </h1>
+          }
 
           <div
             class="flex flex-col sm:flex-row sm:items-center gap-4 justify-between"
@@ -54,13 +56,16 @@ export interface TableColumn {
               <div class="relative" data-export-dropdown>
                 <button
                   type="button"
-                  class="flex w-full items-center justify-center rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-4 py-3 text-sm font-medium text-gray-900 dark:text-white hover:bg-white/20 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300"
+                  class="relative flex w-full items-center justify-center rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/20 backdrop-blur-md px-4 py-3 text-sm font-medium text-gray-900 dark:text-white hover:bg-blue-500/20 hover:border-blue-500/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 overflow-hidden group"
                   (click)="toggleExportDropdown()"
                 >
-                  Descargar
-                  <svg class="-me-0.5 ms-1.5 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
-                  </svg>
+                  <span class="relative z-20 flex items-center">
+                    Descargar
+                    <svg class="-me-0.5 ms-1.5 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
+                    </svg>
+                  </span>
+                  <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-blue-400/30 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"></span>
                 </button>
 
                 @if (showExportDropdown()) {
@@ -130,26 +135,29 @@ export interface TableColumn {
             @if (showColumnFilters()) {
               <button
                 type="button"
-                class="flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-medium backdrop-blur-md transition-all duration-300"
+                class="relative flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-medium backdrop-blur-md transition-all duration-300 overflow-hidden group"
                 [class]="buttonFilter()
                   ? 'border-green-500/30 bg-green-500/10 text-green-700 hover:bg-green-500/20 dark:border-green-400/30 dark:bg-green-400/10 dark:text-green-300 dark:hover:bg-green-400/20'
-                  : 'border-white/20 bg-white/10 text-gray-900 dark:text-white hover:bg-white/20 hover:border-white/30'"
+                  : 'border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/20 text-gray-900 dark:text-white hover:bg-blue-500/20 hover:border-blue-500/50'"
                 (click)="toggleFilters()"
                 [title]="buttonFilter() ? 'Ocultar filtros' : 'Mostrar filtros'"
               >
-                @if (buttonFilter()) {
-                  <!-- Icono de filtro activo -->
-                  <svg class="w-5 h-5 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M5.05 3C3.291 3 2.352 5.024 3.51 6.317l5.422 6.059v4.874c0 .472.227.917.613 1.2l3.069 2.25c1.01.742 2.454.036 2.454-1.2v-7.124l5.422-6.059C21.647 5.024 20.708 3 18.95 3H5.05Z"/>
-                  </svg>
-                  Filtros
-                } @else {
-                  <!-- Icono de filtro inactivo -->
-                  <svg class="w-5 h-5 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z"/>
-                  </svg>
-                  Filtros
-                }
+                <span class="relative z-20 flex items-center">
+                  @if (buttonFilter()) {
+                    <!-- Icono de filtro activo -->
+                    <svg class="w-5 h-5 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M5.05 3C3.291 3 2.352 5.024 3.51 6.317l5.422 6.059v4.874c0 .472.227.917.613 1.2l3.069 2.25c1.01.742 2.454.036 2.454-1.2v-7.124l5.422-6.059C21.647 5.024 20.708 3 18.95 3H5.05Z"/>
+                    </svg>
+                    Filtros
+                  } @else {
+                    <!-- Icono de filtro inactivo -->
+                    <svg class="w-5 h-5 mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z"/>
+                    </svg>
+                    Filtros
+                  }
+                </span>
+                <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-blue-400/30 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"></span>
               </button>
             }
           </div>
@@ -157,21 +165,27 @@ export interface TableColumn {
           <div class="flex flex-col sm:flex-row items-center gap-3">
             @if (showAddButton()) {
               <button
-                class="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-semibold py-3 px-6 rounded-xl hover:border-blue-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center gap-3 whitespace-nowrap cursor-pointer w-full sm:w-auto justify-center"
+                class="relative bg-gradient-to-br from-blue-500/10 to-blue-600/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-semibold py-3 px-6 rounded-xl hover:border-blue-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center gap-3 whitespace-nowrap cursor-pointer w-full sm:w-auto justify-center overflow-hidden group"
                 (click)="onAction('add', null)"
               >
-                <i [class]="addButtonIcon() + ' text-xl'" aria-hidden="true"></i>
-                {{ addButtonText() }}
+                <span class="relative z-20 flex items-center gap-3">
+                  <i [class]="addButtonIcon() + ' text-xl'" aria-hidden="true"></i>
+                  {{ addButtonText() }}
+                </span>
+                <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-blue-400/30 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"></span>
               </button>
             }
 
             @if (showSecondaryButton()) {
               <button
-                class="bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 backdrop-blur-md text-green-700 dark:text-green-300 font-semibold py-3 px-6 rounded-xl hover:border-green-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 active:scale-95 flex items-center gap-3 whitespace-nowrap cursor-pointer w-full sm:w-auto justify-center"
+                class="relative bg-gradient-to-br from-green-500/10 to-green-600/20 hover:bg-green-500/30 border border-green-500/30 backdrop-blur-md text-green-700 dark:text-green-300 font-semibold py-3 px-6 rounded-xl hover:border-green-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 active:scale-95 flex items-center gap-3 whitespace-nowrap cursor-pointer w-full sm:w-auto justify-center overflow-hidden group"
                 (click)="onSecondaryAction()"
               >
-                <i [class]="secondaryButtonIcon() + ' text-xl'" aria-hidden="true"></i>
-                {{ secondaryButtonText() }}
+                <span class="relative z-20 flex items-center gap-3">
+                  <i [class]="secondaryButtonIcon() + ' text-xl'" aria-hidden="true"></i>
+                  {{ secondaryButtonText() }}
+                </span>
+                <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-green-400/30 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"></span>
               </button>
             }
           </div>
@@ -406,7 +420,7 @@ export class TableComponent {
   showColumnFilters = input<boolean>(false);
   showExportButton = input<boolean>(false);
   exportFileName = input<string>('table_export');
-
+  hideTitle = input<boolean>(false);
   serverMode = input<boolean>(false);
   serverData = input<IPaginatedResponse<any> | null>(null);
   loading = input<boolean>(false);

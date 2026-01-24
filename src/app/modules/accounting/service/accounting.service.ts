@@ -30,7 +30,7 @@ export class AccountingService {
         params: {
           anio: params.año ? params.año.toString() : '',
           mes: params.mes ? params.mes.toString() : '',
-          cantidadPeriodos: params.cantidadPeriodos.toString(),
+          cantidadPeriodos: params.cantidadPeriodos ? params.cantidadPeriodos.toString() : '',
         },
       },
     );
