@@ -151,19 +151,20 @@
   </div>
 
   <!-- Tabla de resultados -->
-  <div class="mb-12">
-    <app-table-dynamic
-      [title]="''"
-      [columns]="reportColumns()"
-      [serverMode]="false"
-      [datasource]="reportData()"
-      [loading]="false"
-      [showExportButton]="true"
-      [showColumnFilters]="true"
-      [actionTemplate]="emptyActionsTemplate"
-    >
-    </app-table-dynamic>
-  </div>
+  <app-table-dynamic
+    [title]="'Resultados del Reporte'"
+    [hideTitle]="true"
+    [columns]="reportColumns()"
+    [serverMode]="false"
+    [datasource]="reportData()"
+    [loading]="false"
+    [showExportButton]="true"
+    [showColumnFilters]="true"
+    [actionTemplate]="emptyActionsTemplate"
+    [pagination]="true"
+    [exportFileName]="'reporte_resultados_' + selectedReportName()"
+  >
+  </app-table-dynamic>
 </div>
 }
 <!-- Popup de Filtros -->

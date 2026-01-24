@@ -31,6 +31,7 @@ import { AgePortfolioChartComponent } from "@components/charts/age-portfolio-cha
 import { CarteraEdadesFacturasService } from '../../../service/cartera-edades-facturas.service';
 import { CalculosContablesService } from '../../../service/calculos-contables.service';
 import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
+import { MetricasAcueductoEagerInicializationService } from '../../../service/metricas-acueducto-eager-inicialization.service';
 
 @Component({
   selector: 'app-main-inventory',
@@ -118,7 +119,7 @@ import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
                       />
                     </svg>
                     <span class="text-red-500 font-medium"
-                      >-{{ activosData.variacion }}%</span
+                      >{{ activosData.variacion |  number: '1.0-0' }}%</span
                     >
                   } @else {
                     <svg
@@ -133,7 +134,7 @@ import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
                       />
                     </svg>
                     <span class="text-emerald-500 font-medium"
-                      >{{ activosData.variacion }}%</span
+                      >{{ activosData.variacion |  number: '1.0-0' }}%</span
                     >
                   }
                   <span class="text-gray-500">vs mes anterior</span>
@@ -200,7 +201,7 @@ import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
                       />
                     </svg>
                     <span class="text-red-500 font-medium"
-                      >-{{ pasivosData.variacion  }}%</span
+                      >-{{ pasivosData.variacion | number: '1.0-0' }}%</span
                     >
                   } @else {
                     <svg
@@ -215,7 +216,7 @@ import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
                       />
                     </svg>
                     <span class="text-emerald-500 font-medium"
-                      >{{ pasivosData.variacion }}%</span
+                      >{{ pasivosData.variacion | number: '1.0-0' }}%</span
                     >
                   }
                   <span class="text-gray-500">vs mes anterior</span>
@@ -283,7 +284,7 @@ import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
                       />
                     </svg>
                     <span class="text-red-500 font-medium"
-                      >-{{ carteraData.variacion }}%</span
+                      >{{ carteraData.variacion | number: '1.0-0' }}%</span
                     >
                   } @else {
                     <svg
@@ -298,7 +299,7 @@ import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
                       />
                     </svg>
                     <span class="text-emerald-500 font-medium"
-                      >{{ carteraData.variacion }}%</span
+                      >{{ carteraData.variacion  | number: '1.0-0' }}%</span
                     >
                   }
                   <span class="text-gray-500">vs mes anterior</span>
@@ -365,7 +366,7 @@ import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
                       />
                     </svg>
                     <span class="text-red-500 font-medium"
-                      >-{{ patrimonioData.variacion }}%</span
+                      >-{{ patrimonioData.variacion | number: '1.0-0' }}%</span
                     >
                   } @else {
                     <svg
@@ -380,7 +381,7 @@ import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
                       />
                     </svg>
                     <span class="text-emerald-500 font-medium"
-                      >{{ patrimonioData.variacion }}%</span
+                      >{{ patrimonioData.variacion | number: '1.0-0' }}%</span
                     >
                   }
                   <span class="text-gray-500">vs mes anterior</span>
@@ -454,7 +455,7 @@ import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
                   @let carteraVencida = indicadores!.carteraVencidaPorcentaje;
                   <div class="flex items-end gap-3 mb-3">
                     <span class="text-4xl font-bold text-[#9B9B9B]">
-                      {{ carteraVencida | number: '' }}
+                      {{ carteraVencida | number: '1.0-0' }}%
                     </span>
                     <!-- <img
                       src="images/Combined Shape.svg"
@@ -486,7 +487,7 @@ import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
                   @let recaudo = indicadores!.recaudoPorcentaje;
                   <div class="flex items-end gap-3 mb-3">
                     <span class="text-4xl font-bold text-[#9B9B9B]">
-                      {{ recaudo | number: '1.2-2' }}%
+                      {{ recaudo | number: '1.0-0' }}%
                     </span>
                     <!-- <img
                       src="images/Combined Shape.svg"
@@ -518,7 +519,7 @@ import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
                   @let coberturaGastos = indicadores!.coberturaGastosOperativos;
                   <div class="flex items-end gap-3 mb-3">
                     <span class="text-4xl font-bold text-[#9B9B9B]">
-                      {{ coberturaGastos | number: '1.2-2' }}
+                      {{ coberturaGastos | number: '1.0-0' }}
                     </span>
                     <!-- <img
                       src="images/Combined Shape.svg"
@@ -542,13 +543,41 @@ import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
           <div
             class="rounded-xl border border-gray-700/10 bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-4"
           >
-            <h3 class="text-gray-400 text-sm font-medium mb-4">Historial de Movimientos Contables</h3>
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-gray-400 text-sm font-medium">Historial de Movimientos Contables</h3>
+<div class="flex gap-2">
+                <button
+                class="relative cursor-pointer py-1.5 px-4 text-center inline-flex justify-center text-xs uppercase text-gray-300 rounded-lg border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
+              >
+                <span class="relative z-20"></span>
+                <i class="fas fa-plus mr-2 mt-0.5"></i>
+                Crear Movimiento
+
+                <span
+                  class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"
+                ></span>
+              </button>
+                     <button
+                class="relative cursor-pointer py-1.5 px-4 text-center inline-flex justify-center text-xs uppercase text-gray-300 rounded-lg border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
+              >
+                <span class="relative z-20">Ver más</span>
+
+                <span
+                  class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"
+                ></span>
+              </button>
+</div>
+
+
+
+
+            </div>
             <app-table-dynamic
               [columns]="movimientosColumns()"
               [serverMode]="true"
               [serverData]="transformedMovimientosData() ?? null"
               [loading]="serverMovimientosData.isLoading()"
-              [pagination]="true"
+              [pagination]="false"
               [showColumnFilters]="true"
               (serverPaginationChange)="onMovimientosPaginationChange($event)"
             >
@@ -558,7 +587,19 @@ import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
 
         <!-- COLUMNA DERECHA (40%) -->
         <div class="space-y-6">
-          <div class="">
+          <div class="rounded-xl border border-gray-700/10 bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-4">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-gray-400 text-sm font-medium">Cuentas Contables</h3>
+              <button
+                class="relative cursor-pointer py-1.5 px-4 text-center inline-flex justify-center text-xs uppercase text-gray-300 rounded-lg border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
+              >
+                <span class="relative z-20">Ver más</span>
+
+                <span
+                  class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"
+                ></span>
+              </button>
+            </div>
             <app-table-dynamic
               [columns]="accountColumns()"
               [serverMode]="false"
@@ -570,105 +611,134 @@ import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Card Ingresos por tarifas -->
-            <div
-              class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-1.5 px-2.5 relative overflow-hidden"
-            >
-              <div class="absolute top-3 right-3 opacity-20">
-                <i class="fas fa-dollar-sign text-4xl text-purple-300"></i>
+            @defer (when metricasAcueductoService.enterpriceResolutionSignal() != null) {
+              @let metricasData = metricasAcueductoService.enterpriceResolutionSignal()!;
+              <div
+                class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-1.5 px-2.5 relative overflow-hidden"
+              >
+                <div class="absolute top-3 right-3 opacity-20">
+                  <i class="fas fa-dollar-sign text-4xl text-purple-300"></i>
+                </div>
+                <h3 class="text-gray-400 text-xs font-medium mb-1.5">
+                  Ingresos por tarifas
+                </h3>
+                <div class="mb-2">
+                  <span class="text-2xl font-bold text-[#9B9B9B]">
+                    {{ metricasData.totales.ingresosPorTarifa| colombianCurrency }}
+                  </span>
+                </div>
+                <div class="space-y-0.5 text-[10px] text-gray-500">
+                  @if (metricasData.totales.desgloseTarifas && metricasData.totales.desgloseTarifas.length > 0) {
+                    @for (tarifa of metricasData.totales.desgloseTarifas; track tarifa.nombreTarifa) {
+                      <div class="flex justify-between">
+                        <span>{{ tarifa.nombreTarifa }}</span>
+                        <span class="text-gray-400">{{ tarifa.valorTarifa | colombianCurrency }}</span>
+                      </div>
+                    }
+                  } @else {
+                    <div class="flex justify-between">
+                      <span>Valor m³ Acueducto</span>
+                      <span class="text-gray-400">{{ metricasData.valorMcAcueducto | colombianCurrency }}</span>
+                    </div>
+                  }
+                </div>
               </div>
-              <h3 class="text-gray-400 text-xs font-medium mb-1.5">
-                Ingresos por tarifas
-              </h3>
-              <div class="mb-2">
-                <span class="text-2xl font-bold text-[#9B9B9B]">
-                  $ 12,230,000
-                </span>
+            } @placeholder {
+              <div class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl">
+                <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
               </div>
-              <div class="space-y-0.5 text-[10px] text-gray-500">
-                <div class="flex justify-between">
-                  <span>Acueducto</span>
-                </div>
-                <div class="flex justify-between">
-                  <span>Aseo</span>
-                </div>
-                <div class="flex justify-between">
-                  <span>Alcantarillado</span>
-                </div>
-                <div class="flex justify-between">
-                  <span>Otros conceptos</span>
-                </div>
-              </div>
-            </div>
+            }
 
             <!-- Card Agua Facturada -->
-            <div
-              class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-1.5 px-2.5 relative overflow-hidden"
-            >
-              <div class="absolute top-3 right-3 opacity-20">
-                <i class="fas fa-tint text-4xl text-purple-300"></i>
+            @defer (when metricasAcueductoMesActual() != null) {
+              @let aguaFacturada = metricasAcueductoMesActual()!;
+              <div
+                class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-1.5 px-2.5 relative overflow-hidden"
+              >
+                <div class="absolute top-3 right-3 opacity-20">
+                  <i class="fas fa-tint text-4xl text-purple-300"></i>
+                </div>
+                <h3 class="text-gray-400 text-xs font-medium mb-1.5">
+                  Agua Facturada
+                </h3>
+                <div class="mb-1.5">
+                  <span class="text-2xl font-bold text-[#9B9B9B]">
+                    {{ aguaFacturada.vlrAguaFacturada | colombianCurrency }}
+                  </span>
+                </div>
+                <div class="mb-1.5">
+                  <span class="text-lg font-semibold text-blue-400">
+                    {{ aguaFacturada.mcAguaFacturada | number: '1.0-0' }} m³
+                  </span>
+                </div>
+                <p class="text-gray-500 text-[10px] leading-snug">
+                  Volumen de agua que se cobra a los usuarios.
+                </p>
               </div>
-              <h3 class="text-gray-400 text-xs font-medium mb-1.5">
-                Agua Facturada
-              </h3>
-              <div class="mb-1.5">
-                <span class="text-2xl font-bold text-[#9B9B9B]">
-                  $ 12,230,000
-                </span>
+            } @placeholder {
+              <div class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl">
+                <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
               </div>
-              <div class="mb-1.5">
-                <span class="text-lg font-semibold text-blue-400">
-                  124.500 m³
-                </span>
-              </div>
-              <p class="text-gray-500 text-[10px] leading-snug">
-                Volumen de agua que se cobra a los usuarios.
-              </p>
-            </div>
+            }
 
             <!-- Card Agua perdida -->
-            <div
-              class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-1.5 px-2.5 relative overflow-hidden"
-            >
-              <div class="absolute top-3 right-3 opacity-20">
-                <i class="fas fa-droplet-slash text-4xl text-purple-300"></i>
+            @defer (when metricasAcueductoMesActual() != null) {
+              @let aguaPerdida = metricasAcueductoMesActual()!;
+              <div
+                class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-1.5 px-2.5 relative overflow-hidden"
+              >
+                <div class="absolute top-3 right-3 opacity-20">
+                  <i class="fas fa-droplet-slash text-4xl text-purple-300"></i>
+                </div>
+                <h3 class="text-gray-400 text-xs font-medium mb-1.5">
+                  Agua perdida
+                </h3>
+                <div class="mb-1.5">
+                  <span class="text-2xl font-bold text-red-400">
+                    {{ aguaPerdida.vlrAguaPerdida | colombianCurrency }}
+                  </span>
+                </div>
+                <div class="mb-1.5">
+                  <span class="text-lg font-semibold text-red-300">
+                    {{ aguaPerdida.mcAguaPerdida | number: '1.0-0' }} m³
+                  </span>
+                </div>
+                <p class="text-gray-500 text-[10px] leading-snug">
+                  Agua producida que no genera ingresos.
+                </p>
               </div>
-              <h3 class="text-gray-400 text-xs font-medium mb-1.5">
-                Agua perdida
-              </h3>
-              <div class="mb-1.5">
-                <span class="text-2xl font-bold text-red-400">
-                  $ 3.000.000
-                </span>
+            } @placeholder {
+              <div class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl">
+                <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
               </div>
-              <div class="mb-1.5">
-                <span class="text-lg font-semibold text-red-300">
-                  500 m³
-                </span>
-              </div>
-              <p class="text-gray-500 text-[10px] leading-snug">
-                Agua producida que no genera ingresos.
-              </p>
-            </div>
+            }
 
             <!-- Card Eficiencia de facturación -->
-            <div
-              class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-1.5 px-2.5 relative overflow-hidden"
-            >
-              <div class="absolute top-3 right-3 opacity-20">
-                <i class="fas fa-chart-pie text-4xl text-purple-300"></i>
+            @defer (when metricasAcueductoMesActual() != null) {
+              @let eficiencia = metricasAcueductoMesActual()!;
+              <div
+                class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-1.5 px-2.5 relative overflow-hidden"
+              >
+                <div class="absolute top-3 right-3 opacity-20">
+                  <i class="fas fa-chart-pie text-4xl text-purple-300"></i>
+                </div>
+                <h3 class="text-gray-400 text-xs font-medium mb-1.5">
+                  Eficiencia de facturación
+                </h3>
+                <div class="flex items-end gap-2 mb-2">
+                  <span class="text-4xl font-bold text-emerald-500">
+                    {{ eficiencia.eficienciaFacturacion | number: '1.2-2' }}%
+                  </span>
+                </div>
+                <p class="text-gray-500 text-[10px] leading-snug">
+                  Porcentaje del agua producida que se factura.
+                </p>
               </div>
-              <h3 class="text-gray-400 text-xs font-medium mb-1.5">
-                Eficiencia de facturación
-              </h3>
-              <div class="flex items-end gap-2 mb-2">
-                <span class="text-4xl font-bold text-emerald-500">
-                  65%
-                </span>
+            } @placeholder {
+              <div class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl">
+                <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
               </div>
-              <p class="text-gray-500 text-[10px] leading-snug">
-                Porcentaje del agua producida que se factura.
-              </p>
-            </div>
+            }
           </div>
           <div class="grid grid-cols-1 gap-4">
             @defer (when carteraEdadesService.enterpriceResolutionSignal() != null) {
@@ -700,11 +770,22 @@ export class MainInventory {
   readonly isBrowser = isPlatformBrowser(this.platformId);
   protected readonly accountsService = inject(AccountsService);
   protected readonly accountingService = inject(AccountingService);
+  protected readonly calculosService = inject(CalculosContablesService);
+  protected readonly carteraEdadesService = inject(CarteraEdadesFacturasService);
   protected readonly metricasService = inject(MetricasContablesEagerInitializationService);
   protected readonly resultadosService = inject(ResultadosContablesEagerInitializationService);
-  protected readonly carteraEdadesService = inject(CarteraEdadesFacturasService);
-  protected readonly calculosService = inject(CalculosContablesService);
+  protected readonly metricasAcueductoService = inject(MetricasAcueductoEagerInicializationService);
   protected readonly toastService = inject(ToastService);
+
+  // Computed signal para obtener los datos del mes actual
+  readonly metricasAcueductoMesActual = computed(() => {
+    const data = this.metricasAcueductoService.enterpriceResolutionSignal();
+    if (!data?.porMes || data.porMes.length === 0) return null;
+
+    // Obtener el último mes del array (el más reciente)
+    return data.porMes[data.porMes.length - 1];
+  });
+
 
   readonly enterpriseId = computed(() => {
     if (!this.isBrowser) return null;

@@ -43,17 +43,11 @@ export class ReportsCreate {
   );
   shouldGenerateAfterLoad = signal(false);
   requiredFields = signal<string[]>([]);
-
-  // Nuevos estados para manejar listas dinámicas
   listOptions = signal<Record<string, Array<{ llave: number; valor: string }>>>(
     {}
   );
   loadingLists = signal<Record<string, boolean>>({});
-
-  // Estados para dropdown multiselect
   openDropdowns = signal<Record<string, boolean>>({});
-
-  // Event listener cleanup
   private clickListener?: (event: MouseEvent) => void;
 
   billColumns = signal([

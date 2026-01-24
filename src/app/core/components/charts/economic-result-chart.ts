@@ -235,12 +235,12 @@ export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
   private resizeObserver: ResizeObserver | null = null;
   private readonly containerWidth = signal<number>(0);
 
-  // ✅ Inputs con signals
+  //  Inputs con signals
   readonly data = input<EconomicResultData | null>(null);
   readonly chartId = input<string>('economic-result-chart-' + Math.random().toString(36).substring(7));
   readonly height = input<number>(350);
 
-  // ✅ Output para emitir cambios de período
+  //  Output para emitir cambios de período
   readonly periodChange = output<{ year: number; month: number }>();
 
   // Propiedades para los dropdowns
@@ -251,7 +251,7 @@ export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
   public availableYears: number[] = [];
   public availableMonths: string[] = [];
 
-  // ✅ Computed signals para valores derivados
+  //  Computed signals para valores derivados
   readonly formattedPeriod = computed(() => {
     const period = this.data()?.periodo;
     if (!period) return '';
@@ -282,7 +282,7 @@ export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
     ];
   });
 
-  // ✅ Computed para determinar cuántos ticks mostrar basado en el ancho
+  //  Computed para determinar cuántos ticks mostrar basado en el ancho
   readonly tickAmount = computed(() => {
     const width = this.containerWidth();
     if (width === 0) return 4; // Valor por defecto
@@ -293,7 +293,7 @@ export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
     return 6; // 6 valores
   });
 
-  // ✅ Computed para calcular el valor máximo del eje X
+  //  Computed para calcular el valor máximo del eje X
   readonly maxXValue = computed(() => {
     const values = this.chartValues();
     if (values.length === 0) return 100000;
@@ -303,7 +303,7 @@ export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
     return Math.ceil(maxValue / magnitude) * magnitude;
   });
 
-  // ✅ Computed para determinar si debe rotar las etiquetas
+  //  Computed para determinar si debe rotar las etiquetas
   readonly shouldRotateLabels = computed(() => this.containerWidth() < 500);
 
   // Función para formatear valores en pesos colombianos
@@ -312,7 +312,7 @@ export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
   }
 
   constructor() {
-    // ✅ Effect para actualizar el gráfico cuando cambian los datos
+    //  Effect para actualizar el gráfico cuando cambian los datos
     effect(() => {
       const currentData = this.data();
       if (this.isBrowser && this.chart && currentData) {
@@ -320,7 +320,7 @@ export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
       }
     });
 
-    // ✅ Effect para actualizar el gráfico cuando cambia el ancho
+    //  Effect para actualizar el gráfico cuando cambia el ancho
     effect(() => {
       const width = this.containerWidth();
       if (this.isBrowser && this.chart && width > 0) {
@@ -450,7 +450,7 @@ export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
     const resultGradientColor = resultado >= 0 ? '#22c55e' : '#ef4444';
 
     return {
-      colors: ['#312E63', '#312E63', '#2d2a5a', '#312E63'],
+      colors: ['#5b59a8', '#6b68b8', '#4a4890', '#5b59a8'],
       series: [{
         name: 'Millones ($)',
         data: values
@@ -540,11 +540,11 @@ export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
         gradient: {
           shade: 'dark',
           type: 'horizontal',
-          shadeIntensity: 0.3,
-          gradientToColors: ['#1F4E89', '#1F4E89', '#1a3a6b', resultGradientColor],
+          shadeIntensity: 0.6,
+          gradientToColors: ['#2f2d70', '#3d3a85', '#1f1d45', resultGradientColor],
           inverseColors: false,
           opacityFrom: 1,
-          opacityTo: 1,
+          opacityTo: 0.95,
           stops: [0, 100]
         }
       }
@@ -603,17 +603,17 @@ export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
       }]);
 
       this.chart.updateOptions({
-        colors: ['#312E63', '#312E63', '#2d2a5a', '#312E63'],
+        colors: ['#5b59a8', '#6b68b8', '#4a4890', '#5b59a8'],
         fill: {
           type: 'gradient',
           gradient: {
             shade: 'dark',
             type: 'horizontal',
-            shadeIntensity: 0.3,
-            gradientToColors: ['#1F4E89', '#1F4E89', '#1a3a6b', resultGradientColor],
+            shadeIntensity: 0.6,
+            gradientToColors: ['#2f2d70', '#3d3a85', '#1f1d45', resultGradientColor],
             inverseColors: false,
             opacityFrom: 1,
-            opacityTo: 1,
+            opacityTo: 0.95,
             stops: [0, 100]
           }
         }
