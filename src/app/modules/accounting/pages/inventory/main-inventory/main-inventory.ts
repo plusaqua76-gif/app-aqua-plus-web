@@ -27,7 +27,7 @@ import { AccountingService } from '../../../service/accounting.service';
 import { ToastService } from '../../../../../core/services/toast.service';
 import { MetricasContablesEagerInitializationService } from '../../../service/metricas-contables-eager-initialization.service';
 import { ResultadosContablesEagerInitializationService } from '../../../service/resultados-contables-eager-initialization.service';
-import { AgePortfolioChartComponent } from "@components/charts/age-portfolio-chart";
+import { AgePortfolioChartComponent } from '@components/charts/age-portfolio-chart';
 import { CarteraEdadesFacturasService } from '../../../service/cartera-edades-facturas.service';
 import { CalculosContablesService } from '../../../service/calculos-contables.service';
 import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
@@ -41,8 +41,8 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
     ColombianCurrencyPipe,
     EconomicResultChartComponent,
     TableComponent,
-    AgePortfolioChartComponent
-],
+    AgePortfolioChartComponent,
+  ],
   template: `
     @let activos = metricasService.activosData();
     @let pasivos = metricasService.pasivosData();
@@ -119,7 +119,7 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                       />
                     </svg>
                     <span class="text-red-500 font-medium"
-                      >{{ activosData.variacion |  number: '1.0-0' }}%</span
+                      >{{ activosData.variacion | number: '1.0-0' }}%</span
                     >
                   } @else {
                     <svg
@@ -134,14 +134,16 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                       />
                     </svg>
                     <span class="text-emerald-500 font-medium"
-                      >{{ activosData.variacion |  number: '1.0-0' }}%</span
+                      >{{ activosData.variacion | number: '1.0-0' }}%</span
                     >
                   }
                   <span class="text-gray-500">vs mes anterior</span>
                 </div>
               } @placeholder {
                 <div class="flex items-center justify-center h-full">
-                  <div class="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                  <div
+                    class="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"
+                  ></div>
                 </div>
               }
             </div>
@@ -223,7 +225,9 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                 </div>
               } @placeholder {
                 <div class="flex items-center justify-center h-full">
-                  <div class="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                  <div
+                    class="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"
+                  ></div>
                 </div>
               }
             </div>
@@ -299,14 +303,16 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                       />
                     </svg>
                     <span class="text-emerald-500 font-medium"
-                      >{{ carteraData.variacion  | number: '1.0-0' }}%</span
+                      >{{ carteraData.variacion | number: '1.0-0' }}%</span
                     >
                   }
                   <span class="text-gray-500">vs mes anterior</span>
                 </div>
               } @placeholder {
                 <div class="flex items-center justify-center h-full">
-                  <div class="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                  <div
+                    class="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"
+                  ></div>
                 </div>
               }
             </div>
@@ -340,7 +346,7 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                 <p
                   class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-[#9B9B9B] truncate leading-tight text-right"
                 >
-                  {{ patrimonioData.total  | colombianCurrency }}
+                  {{ patrimonioData.total | colombianCurrency }}
                 </p>
                 <div
                   class="w-full flex-1 min-h-[30px] sm:min-h-[35px] md:min-h-[45px] relative"
@@ -388,7 +394,9 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                 </div>
               } @placeholder {
                 <div class="flex items-center justify-center h-full">
-                  <div class="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                  <div
+                    class="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"
+                  ></div>
                 </div>
               }
             </div>
@@ -406,14 +414,16 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                 <app-economic-result-chart [data]="economicData" />
               } @placeholder {
                 <div class="flex items-center justify-center h-40">
-                  <div class="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                  <div
+                    class="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"
+                  ></div>
                 </div>
               }
             </div>
             <div class="space-y-6">
               <div
                 class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-2 px-3 relative overflow-hidden"
-               >
+              >
                 <div class="absolute top-4 right-4 opacity-20">
                   <i
                     class="fas fa-hand-holding-dollar text-5xl text-purple-300"
@@ -433,24 +443,29 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                     /> -->
                   </div>
                   <p class="text-gray-500 text-xs leading-relaxed">
-                    Indica si el acueducto puede pagar sus deudas en el corto plazo. Un valor mayor a 1 es saludable.
+                    Indica si el acueducto puede pagar sus deudas en el corto
+                    plazo. Un valor mayor a 1 es saludable.
                   </p>
                 } @placeholder {
                   <div class="flex items-center justify-center h-20">
-                    <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                    <div
+                      class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
+                    ></div>
                   </div>
                 }
               </div>
 
-                         <div
+              <div
                 class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-2 px-3 relative overflow-hidden"
-               >
+              >
                 <div class="absolute top-4 right-4 opacity-20">
                   <i
                     class="fas fa-file-invoice-dollar text-5xl text-purple-300"
                   ></i>
                 </div>
-                <h3 class="text-gray-400 text-sm font-medium mb-2">Cartera Vencida</h3>
+                <h3 class="text-gray-400 text-sm font-medium mb-2">
+                  Cartera Vencida
+                </h3>
                 @defer (when indicadores != null) {
                   @let carteraVencida = indicadores!.carteraVencidaPorcentaje;
                   <div class="flex items-end gap-3 mb-3">
@@ -464,11 +479,14 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                     /> -->
                   </div>
                   <p class="text-gray-500 text-xs leading-relaxed">
-                    Indica si el acueducto puede pagar sus deudas en el corto plazo. Un valor mayor a 1 es saludable.
+                    Indica si el acueducto puede pagar sus deudas en el corto
+                    plazo. Un valor mayor a 1 es saludable.
                   </p>
                 } @placeholder {
                   <div class="flex items-center justify-center h-20">
-                    <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                    <div
+                      class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
+                    ></div>
                   </div>
                 }
               </div>
@@ -496,11 +514,14 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                     /> -->
                   </div>
                   <p class="text-gray-500 text-xs leading-relaxed">
-                    Muestra qué porcentaje del servicio facturado se logra cobrar. Mayor a 80% es óptimo.
+                    Muestra qué porcentaje del servicio facturado se logra
+                    cobrar. Mayor a 80% es óptimo.
                   </p>
                 } @placeholder {
                   <div class="flex items-center justify-center h-20">
-                    <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                    <div
+                      class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
+                    ></div>
                   </div>
                 }
               </div>
@@ -510,11 +531,11 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                 class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-2 px-3 relative overflow-hidden"
               >
                 <div class="absolute top-4 right-4 opacity-20">
-                  <i
-                    class="fas fa-chart-column text-5xl text-purple-300"
-                  ></i>
+                  <i class="fas fa-chart-column text-5xl text-purple-300"></i>
                 </div>
-                <h3 class="text-gray-400 text-sm font-medium mb-2">Cobertura de Gastos</h3>
+                <h3 class="text-gray-400 text-sm font-medium mb-2">
+                  Cobertura de Gastos
+                </h3>
                 @defer (when indicadores != null) {
                   @let coberturaGastos = indicadores!.coberturaGastosOperativos;
                   <div class="flex items-end gap-3 mb-3">
@@ -528,11 +549,15 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                     /> -->
                   </div>
                   <p class="text-gray-500 text-xs leading-relaxed">
-                    Indica la capacidad del acueducto para cubrir sus gastos operativos con los ingresos recaudados. Un valor mayor a 1 es saludable.
+                    Indica la capacidad del acueducto para cubrir sus gastos
+                    operativos con los ingresos recaudados. Un valor mayor a 1
+                    es saludable.
                   </p>
                 } @placeholder {
                   <div class="flex items-center justify-center h-20">
-                    <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                    <div
+                      class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
+                    ></div>
                   </div>
                 }
               </div>
@@ -544,33 +569,31 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
             class="rounded-xl border border-gray-700/10 bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-4"
           >
             <div class="flex items-center justify-between mb-4">
-              <h3 class="text-gray-400 text-sm font-medium">Historial de Movimientos Contables</h3>
-<div class="flex gap-2">
+              <h3 class="text-gray-400 text-sm font-medium">
+                Historial de Movimientos Contables
+              </h3>
+              <!-- <div class="flex gap-2">
                 <button
-                class="relative cursor-pointer py-1.5 px-4 text-center inline-flex justify-center text-xs uppercase text-gray-300 rounded-lg border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
-              >
-                <span class="relative z-20"></span>
-                <i class="fas fa-plus mr-2 mt-0.5"></i>
-                Crear Movimiento
+                  class="relative cursor-pointer py-1.5 px-4 text-center inline-flex justify-center text-xs uppercase text-gray-300 rounded-lg border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
+                >
+                  <span class="relative z-20"></span>
+                  <i class="fas fa-plus mr-2 mt-0.5"></i>
+                  Crear Movimiento
 
-                <span
-                  class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"
-                ></span>
-              </button>
-                     <button
-                class="relative cursor-pointer py-1.5 px-4 text-center inline-flex justify-center text-xs uppercase text-gray-300 rounded-lg border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
-              >
-                <span class="relative z-20">Ver más</span>
+                  <span
+                    class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"
+                  ></span>
+                </button>
+                <button
+                  class="relative cursor-pointer py-1.5 px-4 text-center inline-flex justify-center text-xs uppercase text-gray-300 rounded-lg border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
+                >
+                  <span class="relative z-20">Ver más</span>
 
-                <span
-                  class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"
-                ></span>
-              </button>
-</div>
-
-
-
-
+                  <span
+                    class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"
+                  ></span>
+                </button>
+              </div> -->
             </div>
             <app-table-dynamic
               [columns]="movimientosColumns()"
@@ -587,9 +610,13 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
 
         <!-- COLUMNA DERECHA (40%) -->
         <div class="space-y-6">
-          <div class="rounded-xl border border-gray-700/10 bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-4">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-gray-400 text-sm font-medium">Cuentas Contables</h3>
+          <div
+            class="rounded-xl border border-gray-700/10 bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-4"
+          >
+            <!-- <div class="flex items-center justify-between mb-4">
+              <h3 class="text-gray-400 text-sm font-medium">
+                Cuentas Contables
+              </h3>
               <button
                 class="relative cursor-pointer py-1.5 px-4 text-center inline-flex justify-center text-xs uppercase text-gray-300 rounded-lg border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
               >
@@ -599,7 +626,7 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                   class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"
                 ></span>
               </button>
-            </div>
+            </div> -->
             <app-table-dynamic
               [columns]="accountColumns()"
               [serverMode]="false"
@@ -611,8 +638,11 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Card Ingresos por tarifas -->
-            @defer (when metricasAcueductoService.enterpriceResolutionSignal() != null) {
-              @let metricasData = metricasAcueductoService.enterpriceResolutionSignal()!;
+            @defer (
+              when metricasAcueductoService.enterpriceResolutionSignal() != null
+            ) {
+              @let metricasData =
+                metricasAcueductoService.enterpriceResolutionSignal()!;
               <div
                 class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-1.5 px-2.5 relative overflow-hidden"
               >
@@ -624,28 +654,44 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                 </h3>
                 <div class="mb-2">
                   <span class="text-2xl font-bold text-[#9B9B9B]">
-                    {{ metricasData.totales.ingresosPorTarifa| colombianCurrency }}
+                    {{
+                      metricasData.totales.ingresosPorTarifa | colombianCurrency
+                    }}
                   </span>
                 </div>
                 <div class="space-y-0.5 text-[10px] text-gray-500">
-                  @if (metricasData.totales.desgloseTarifas && metricasData.totales.desgloseTarifas.length > 0) {
-                    @for (tarifa of metricasData.totales.desgloseTarifas; track tarifa.nombreTarifa) {
+                  @if (
+                    metricasData.totales.desgloseTarifas &&
+                    metricasData.totales.desgloseTarifas.length > 0
+                  ) {
+                    @for (
+                      tarifa of metricasData.totales.desgloseTarifas;
+                      track tarifa.nombreTarifa
+                    ) {
                       <div class="flex justify-between">
                         <span>{{ tarifa.nombreTarifa }}</span>
-                        <span class="text-gray-400">{{ tarifa.valorTarifa | colombianCurrency }}</span>
+                        <span class="text-gray-400">{{
+                          tarifa.valorTarifa | colombianCurrency
+                        }}</span>
                       </div>
                     }
                   } @else {
                     <div class="flex justify-between">
                       <span>Valor m³ Acueducto</span>
-                      <span class="text-gray-400">{{ metricasData.valorMcAcueducto | colombianCurrency }}</span>
+                      <span class="text-gray-400">{{
+                        metricasData.valorMcAcueducto | colombianCurrency
+                      }}</span>
                     </div>
                   }
                 </div>
               </div>
             } @placeholder {
-              <div class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl">
-                <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+              <div
+                class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl"
+              >
+                <div
+                  class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
+                ></div>
               </div>
             }
 
@@ -676,8 +722,12 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                 </p>
               </div>
             } @placeholder {
-              <div class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl">
-                <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+              <div
+                class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl"
+              >
+                <div
+                  class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
+                ></div>
               </div>
             }
 
@@ -708,8 +758,12 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                 </p>
               </div>
             } @placeholder {
-              <div class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl">
-                <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+              <div
+                class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl"
+              >
+                <div
+                  class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
+                ></div>
               </div>
             }
 
@@ -735,17 +789,31 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                 </p>
               </div>
             } @placeholder {
-              <div class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl">
-                <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+              <div
+                class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl"
+              >
+                <div
+                  class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
+                ></div>
               </div>
             }
           </div>
           <div class="grid grid-cols-1 gap-4">
-            @defer (when carteraEdadesService.enterpriceResolutionSignal() != null) {
-              <app-age-portfolio-chart [data]="carteraEdadesService.enterpriceResolutionSignal() ?? null" />
+            @defer (
+              when carteraEdadesService.enterpriceResolutionSignal() != null
+            ) {
+              <app-age-portfolio-chart
+                [data]="
+                  carteraEdadesService.enterpriceResolutionSignal() ?? null
+                "
+              />
             } @placeholder {
-              <div class="flex items-center justify-center h-40 rounded-lg bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl">
-                <div class="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+              <div
+                class="flex items-center justify-center h-40 rounded-lg bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl"
+              >
+                <div
+                  class="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"
+                ></div>
               </div>
             }
           </div>
@@ -771,10 +839,18 @@ export class MainInventory {
   protected readonly accountsService = inject(AccountsService);
   protected readonly accountingService = inject(AccountingService);
   protected readonly calculosService = inject(CalculosContablesService);
-  protected readonly carteraEdadesService = inject(CarteraEdadesFacturasService);
-  protected readonly metricasService = inject(MetricasContablesEagerInitializationService);
-  protected readonly resultadosService = inject(ResultadosContablesEagerInitializationService);
-  protected readonly metricasAcueductoService = inject(MetricasAcueductoEagerInicializationService);
+  protected readonly carteraEdadesService = inject(
+    CarteraEdadesFacturasService,
+  );
+  protected readonly metricasService = inject(
+    MetricasContablesEagerInitializationService,
+  );
+  protected readonly resultadosService = inject(
+    ResultadosContablesEagerInitializationService,
+  );
+  protected readonly metricasAcueductoService = inject(
+    MetricasAcueductoEagerInicializationService,
+  );
   protected readonly toastService = inject(ToastService);
 
   // Computed signal para obtener los datos del mes actual
@@ -785,7 +861,6 @@ export class MainInventory {
     // Obtener el último mes del array (el más reciente)
     return data.porMes[data.porMes.length - 1];
   });
-
 
   readonly enterpriseId = computed(() => {
     if (!this.isBrowser) return null;
@@ -830,7 +905,7 @@ export class MainInventory {
     const rawData = this.serverAccountData.value();
     if (!rawData?.response) return [];
 
-    return rawData.response.map(account => ({
+    return rawData.response.map((account) => ({
       ...account,
       tipoNombre: account.tipoCuenta?.nombre || '',
     }));
@@ -842,11 +917,11 @@ export class MainInventory {
 
     return {
       ...rawData,
-      response: rawData.response.map(movimiento => ({
+      response: rawData.response.map((movimiento) => ({
         ...movimiento,
         categoriaNombre: movimiento.categoriaCuenta?.nombre || '',
         fechaCreacion: this.formatDate(movimiento.fechaCreacion),
-      }))
+      })),
     };
   });
 
@@ -879,14 +954,13 @@ export class MainInventory {
       if (!enterpriseId) {
         return of(null);
       }
-      return this.accountingService.getServerMovimientosContables(
-        enterpriseId,
-        pagination,
-      ).pipe(
-        catchError((error) => {
-          return of(null);
-        })
-      );
+      return this.accountingService
+        .getServerMovimientosContables(enterpriseId, pagination)
+        .pipe(
+          catchError((error) => {
+            return of(null);
+          }),
+        );
     },
   });
 
@@ -900,18 +974,21 @@ export class MainInventory {
     try {
       const datePart = dateString.split('T')[0];
       const [year, month, day] = datePart.split('-');
-      const date = new Date(Number.parseInt(year), Number.parseInt(month) - 1, Number.parseInt(day));
+      const date = new Date(
+        Number.parseInt(year),
+        Number.parseInt(month) - 1,
+        Number.parseInt(day),
+      );
 
       // Formatear como DD/MM/YYYY
       return date.toLocaleDateString('es-ES', {
         day: '2-digit',
         month: '2-digit',
-        year: 'numeric'
+        year: 'numeric',
       });
     } catch (error) {
       console.error('Error formatting date:', error);
       return dateString;
     }
   }
-
 }
