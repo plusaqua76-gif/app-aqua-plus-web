@@ -11,6 +11,7 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
   selector: 'app-credit-customer',
   imports: [ CommonModule, TableComponent, RouterModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
   template: `
     <app-table-dynamic
       [title]="title()"

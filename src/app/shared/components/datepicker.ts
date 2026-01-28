@@ -70,8 +70,8 @@ export class Datepicker implements AfterViewInit, OnDestroy {
         autohide: this.autohide(),
         todayBtn: true,
         clearBtn: true,
-        todayBtnText: 'Today',
-        clearBtnText: 'Clear'
+        todayBtnText: 'Hoy',
+        clearBtnText: 'Limpiar',
       });
       inputElement.addEventListener('changeDate', (event: any) => {
         this.dateChange.emit(event.target.value);

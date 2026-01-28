@@ -63,6 +63,8 @@ export class BreadcrumbService {
     'enterprise': 'Empresa',
     'create-enterprise': 'Crear Empresa',
     'update-enterprise': 'Actualizar Empresa',
+    'pqr-enterprice-clients': 'Clientes PQR',
+    'bills-users': 'Usuarios Facturación',
 
 
     'accounting': 'Contabilidad',
@@ -81,7 +83,7 @@ export class BreadcrumbService {
 
     'user-access': 'Acceso de Usuarios',
     'configuration-roles': 'Configuración de Roles',
-    'pqr-client': 'PQR Cliente',
+    'pqr-client': 'PQRS',
 
 
     'auth': 'Autenticación',

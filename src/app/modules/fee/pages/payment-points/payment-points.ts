@@ -240,7 +240,7 @@ export class PaymentPoints {
         return of([]);
       }
       return this.documentService
-        .getDocumentByCategoria('PUPA', params.idEmpresa)
+        .getDocumentPointsMethod('PUPA', params.idEmpresa)
         .pipe(
           map((response: any) => {
             if (response && typeof response === 'object' && !Array.isArray(response)) {

@@ -1,6 +1,6 @@
 export interface Metrica {
   rangoAntiguedad: string;
-  cantidadFacturas: number;
+  cantidadDeudas: number;
   valorCartera: number;
 }
 

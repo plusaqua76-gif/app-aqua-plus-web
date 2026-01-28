@@ -52,6 +52,13 @@ export class DocumentAzureBlobService {
     );
   }
 
+  // consultar puntos de pago
+    getDocumentPointsMethod(codigoCategoria: string, idEmpresa: number): Observable<responseDocument[]> {
+    return this.http.get<responseDocument[]>(
+      `${this.apiUrl}/documento/empresa/${idEmpresa}/categoria/${codigoCategoria}`
+    );
+  }
+
   deleteDocument(documentId: number, usuario: string): Observable<any> {
     return this.http.delete<any>(
       `${this.apiUrl}/documento/${documentId}`,

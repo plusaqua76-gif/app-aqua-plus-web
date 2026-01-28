@@ -244,19 +244,18 @@ export class Register implements OnInit, OnDestroy {
     try {
       const formData = this.registerForm.value;
 
-      // Preparar datos base
+      // Preparar datos base según interfaz IEnterpriseSp
       const empresaData: any = {
         usuario: formData.usuario,
         password: formData.password,
         nombreEmpresa: formData.nombreEmpresa,
+        codigoEmpresa: '0',
         nit: formData.nit,
-        correo: formData.correo,
-        telefono: formData.telefono,
-        idDepartamento: formData.idDepartamento,
-        idCiudad: formData.idCiudad,
-        idCorregimiento: formData.idCorregimiento || null,
+        idDepartamento: Number(formData.idDepartamento),
+        idCiudad: Number(formData.idCiudad),
+        idCorregimiento: formData.idCorregimiento ? Number(formData.idCorregimiento) : null,
         descripcionDireccion: formData.descripcionDireccion || null,
-        codigoVerificacion: formData.codigoVerificacion || null
+        codigoVerificacion: formData.codigoVerificacion && formData.codigoVerificacion.trim() !== '' ? formData.codigoVerificacion : '0'
       };
 
       if (this.selectedFile) {

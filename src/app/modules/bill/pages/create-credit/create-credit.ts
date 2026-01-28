@@ -11,6 +11,7 @@ import { ToastService } from '@services/toast.service';
   selector: 'app-create-credit',
   imports: [CommonModule,  ReactiveFormsModule],
   templateUrl: './create-credit.html',
+  standalone: true,
 
 })
 export class CreateCredit implements OnInit {

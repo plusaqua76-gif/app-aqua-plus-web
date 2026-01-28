@@ -6,9 +6,20 @@ export interface ITipoCuenta {
   descripcion: string;
 }
 
-export interface IEmpresa {
+ interface IEmpresa {
   id: number;
 }
+ interface TipoCuenta {
+  id: number;
+}
+
+ interface Naturaleza {
+  id: number;
+}
+interface ICuentaCategoria {
+  id: number;
+}
+
 
 export interface IAccount {
   id: number;
@@ -32,9 +43,9 @@ export interface IAccountFilters {
 export interface ICreateAccount {
   id?: number;
   empresa: IEmpresa;
-  tipoCuenta: {
-    id: number;
-  };
+  tipoCuenta: TipoCuenta;
+  naturaleza: Naturaleza;
+  categoriaCuenta: ICuentaCategoria;
   codigo: string;
   nombre: string;
   valor: number;
@@ -45,5 +56,28 @@ export interface ICreateAccount {
   fechaModificacion?: string;
 }
 
+
+
+
+// {
+//   "empresa": {
+//     "id": 5
+//   },
+//   "tipoCuenta": {
+//     "id": 2
+//   },
+//   "naturaleza": {
+//     "id": 1
+//   },
+//   "categoriaCuenta": {
+//     "id": 3
+//   },
+//   "codigo": "1105",
+//   "nombre": "Caja General",
+//   "valor": 5000000.50,
+//   "corriente": true,
+//   "activo": true,
+//   "usuarioCreacion": "admin"
+// }
 export interface IAccountDetail extends IAccount {}
 

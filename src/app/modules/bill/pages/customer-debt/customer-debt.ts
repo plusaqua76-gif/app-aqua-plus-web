@@ -7,10 +7,11 @@ import { TableComponent } from '@components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { map, EMPTY, catchError, of } from 'rxjs';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
+import { ConfirmDeletePopupComponent } from '@shared/components/confirm-delete-popup';
 
 @Component({
   selector: 'app-customer-debt',
-  imports: [CommonModule, TableComponent, RouterModule],
+  imports: [CommonModule, TableComponent, RouterModule, ConfirmDeletePopupComponent],
   template: `
     <ng-template #actionsTemplate let-row>
       <div class="flex items-center space-x-2">
@@ -69,6 +70,22 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
   (action)="handleTableAction($event)"
   (serverPaginationChange)="onPaginationChange($event)">
   </app-table-dynamic>
+
+  <app-confirm-delete-popup
+    [isOpen]="isDeleteModalOpen()"
+    [isSubmitting]="isDeletingDebt()"
+    headerTitle="Eliminar Deuda"
+    headerIcon="fas fa-exclamation-triangle"
+    confirmMessage="¿Está seguro de eliminar esta deuda?"
+    warningMessage="Esta acción no se puede deshacer. Toda la información asociada será eliminada permanentemente."
+    itemLabel="Deuda"
+    [itemName]="debtToDeleteName()"
+    confirmText="Eliminar Deuda"
+    cancelText="Cancelar"
+    loadingText="Eliminando..."
+    (confirm)="executeDelete()"
+    (cancel)="closeDeleteModal()">
+  </app-confirm-delete-popup>
 
   `
 })
@@ -135,7 +152,7 @@ export class CustomerDebt {
     stream: ({ params }) => {
       const { empresaId, pagination } = params;
       if (!empresaId) {
-        return EMPTY;
+        return of(null);
       }
       return this.deudaService.getAllDeudaPaginated(
         empresaId,
@@ -156,18 +173,7 @@ export class CustomerDebt {
           }))
         })),
         catchError(error => {
-          console.error('Error loading customer debt:', error);
-          // Retornar estructura compatible con IPaginatedResponse manteniendo la misma estructura
-          return of({
-            success: false,
-            message: 'Error al cargar deudas de clientes',
-            code: error.status || 500,
-            totalCount: 0,
-            pageSize: pagination.size,
-            currentPage: pagination.page,
-            totalPages: 0,
-            response: []
-          });
+          return of(null);
         })
       );
     },
@@ -176,6 +182,11 @@ export class CustomerDebt {
   debtData = computed(() => this.serverDebtData.value() ?? null);
   title = signal('Deuda de clientes');
 
+  // Señales para el modal de eliminación
+  isDeleteModalOpen = signal(false);
+  debtIdToDelete = signal<number | null>(null);
+  debtToDeleteName = signal<string>('');
+  isDeletingDebt = signal(false);
 
   handleTableAction(event: { action: string; row?: any }) {
   switch (event.action) {
@@ -195,15 +206,38 @@ export class CustomerDebt {
 
 
   confirmDelete(id: number) {
-    if (confirm('¿Eliminar deuda?')) {
-      this.deudaService.deleteDeudaById(id).subscribe({
-        next: () => {
-          this.toastService.success('Éxito', 'Deuda eliminada');
-          this.serverDebtData.reload?.();
-        },
-        error: () => this.toastService.error('Error', 'No se pudo eliminar')
-      });
-    }
+    const debtData = this.serverDebtData.value();
+    const debt = debtData?.response.find((d: any) => d.id === id);
+
+    this.debtIdToDelete.set(id);
+    this.debtToDeleteName.set(debt?.facturaCodigo || 'Sin identificar');
+    this.isDeleteModalOpen.set(true);
+  }
+
+  closeDeleteModal() {
+    this.isDeleteModalOpen.set(false);
+    this.debtIdToDelete.set(null);
+    this.debtToDeleteName.set('');
+    this.isDeletingDebt.set(false);
+  }
+
+  executeDelete() {
+    const id = this.debtIdToDelete();
+    if (!id) return;
+
+    this.isDeletingDebt.set(true);
+    this.deudaService.deleteDeudaById(id).subscribe({
+      next: () => {
+        this.toastService.success('Éxito', 'Deuda eliminada correctamente');
+        this.serverDebtData.reload?.();
+        this.closeDeleteModal();
+      },
+      error: (error) => {
+        this.toastService.error('Error', 'No se pudo eliminar la deuda');
+        this.isDeletingDebt.set(false);
+        console.error('Error deleting debt:', error);
+      }
+    });
   }
 
   onPaginationChange(params: IPaginationParams): void {

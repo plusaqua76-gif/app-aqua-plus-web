@@ -12,7 +12,7 @@ import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { Action, TableComponent } from '../../../../core/components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ToastService } from '@services/toast.service';
-import { EMPTY, catchError, of } from 'rxjs';
+import { catchError, of } from 'rxjs';
 import { PopupComponent } from '@shared/components/popUp';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
@@ -186,13 +186,14 @@ export class Client {
 
       if (!enterpriseId) {
         console.warn('No enterprise ID available');
-        return EMPTY;
+        return of(null);
       }
 
       return this.enterpriseClientCounterService
         .getAllClientsByIdEnterprisePaginated(enterpriseId, pagination)
         .pipe(
           catchError((error) => {
+            console.error('Error fetching clients:', error);
             return of(null);
           })
         );
