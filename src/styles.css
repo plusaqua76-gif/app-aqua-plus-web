@@ -6,7 +6,7 @@
 @source "../node_modules/flowbite-datepicker";
 
 /* Comentado temporalmente - puede causar warnings en build */
-/* @custom-variant dark (&:where(.dark, .dark *)); */
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --primary-text-color: #fff;
