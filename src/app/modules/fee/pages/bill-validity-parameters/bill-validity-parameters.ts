@@ -483,19 +483,19 @@ export class BillValidityParameters {
           : params.periodosInmediato.response;
 
         if (diasParam) {
-          this.diasVigencia = Number(diasParam.valorParametro) || 30;
+          this.diasVigencia = Number(diasParam.valorParametro) || 0;
           this.paramIds.diasVigencia = diasParam.id;
         }
         if (periodosParam) {
-          this.periodosFacturados = Number(periodosParam.valorParametro) || 1;
+          this.periodosFacturados = Number(periodosParam.valorParametro) || 0;
           this.paramIds.periodosFacturados = periodosParam.id;
         }
         if (vencidaParam) {
-          this.periodosNoPagosVencida = Number(vencidaParam.valorParametro) || 2;
+          this.periodosNoPagosVencida = Number(vencidaParam.valorParametro) || 0;
           this.paramIds.periodosVencida = vencidaParam.id;
         }
         if (inmediatoParam) {
-          this.periodosPagoInmediato = Number(inmediatoParam.valorParametro) || 3;
+          this.periodosPagoInmediato = Number(inmediatoParam.valorParametro) || 0;
           this.paramIds.periodosInmediato = inmediatoParam.id;
         }
       },
