@@ -869,10 +869,7 @@ import { ResolutionDianEagerInitializationService } from '../services/resolution
             <button
               type="button"
               (click)="submitInvoice()"
-              [disabled]="
-                !invoiceForm.valid || items.length === 0 || !selectedClient()
-              "
-              class="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed disabled:opacity-50 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all duration-200 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 text-sm sm:text-base"
+              class="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all duration-200 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 text-sm sm:text-base"
             >
               <span class="flex items-center justify-center gap-2">
                 <svg
@@ -1571,34 +1568,131 @@ export class CreateInvoiceComponent {
     return request;
   }
 
-  submitInvoice(): void {
-    if (!this.invoiceForm.valid || this.items.length === 0) {
-      console.warn('Formulario inválido o sin items');
-      return;
-    }
+  validateInvoice(): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
 
+    // Validar cliente seleccionado
     if (!this.selectedClient()) {
-      console.warn('Debe seleccionar un cliente');
+      errors.push(' Debe seleccionar un cliente');
+    }
+
+    // Validar items
+    if (this.items.length === 0) {
+      errors.push(' Debe agregar al menos un producto');
+    } else {
+      // Validar cada item
+      this.items.controls.forEach((item, index) => {
+        const itemForm = item as FormGroup;
+
+        if (!itemForm.get('codigoProducto')?.value) {
+          errors.push(` Producto ${index + 1}: Debe seleccionar un producto`);
+        }
+
+        if (!itemForm.get('descripcion')?.value?.trim()) {
+          errors.push(` Producto ${index + 1}: Debe agregar una descripción`);
+        }
+
+        const cantidad = itemForm.get('cantidad')?.value;
+        if (!cantidad || cantidad <= 0) {
+          errors.push(` Producto ${index + 1}: La cantidad debe ser mayor a 0`);
+        }
+
+        const precio = itemForm.get('precioUnitario')?.value;
+        if (!precio || precio <= 0) {
+          errors.push(` Producto ${index + 1}: El precio debe ser mayor a 0`);
+        }
+      });
+    }
+
+    if (!this.invoiceForm.get('tipoDocumento')?.value) {
+      errors.push(' Debe seleccionar una Forma de Pago');
+    }
+
+    if (!this.invoiceForm.get('medioPago')?.value) {
+      errors.push(' Debe seleccionar un Medio de Pago');
+    }
+
+    if (this.invoiceForm.get('aplicarDescuentoGlobal')?.value) {
+      const descuentos = this.descuentos.controls;
+      if (descuentos.length > 0) {
+        descuentos.forEach((desc, index) => {
+          const descForm = desc as FormGroup;
+
+          if (!descForm.get('codigoRazon')?.value) {
+            errors.push(` Descuento/Cargo ${index + 1}: Debe seleccionar un código de razón`);
+          }
+
+          if (!descForm.get('razon')?.value?.trim()) {
+            errors.push(` Descuento/Cargo ${index + 1}: Debe agregar una descripción`);
+          }
+
+          const valor = descForm.get('valor')?.value;
+          if (valor === null || valor === undefined || valor < 0) {
+            errors.push(` Descuento/Cargo ${index + 1}: El valor debe ser mayor o igual a 0`);
+          }
+        });
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
+
+  submitInvoice(): void {
+    const validation = this.validateInvoice();
+
+    if (!validation.isValid) {
+      validation.errors.forEach((error, index) => {
+        setTimeout(() => {
+          this.toast.error('Error de Validación', error);
+        }, index * 300);
+      });
+      console.warn(' Errores de validación:', validation.errors);
       return;
     }
 
-    const request = this.buildInvoiceRequest();
-    if (!request) {
-      console.error('No se pudo construir el request');
-      return;
-    }
+    try {
+      const request = this.buildInvoiceRequest();
 
-    this.invoiceService.SendInvoiceDianClient(request).subscribe({
-      next: (response) => {
-        this.toast.success(
-          'Exito',
-          'Factura creada y enviada a DIAN exitosamente.'
-        );
-      },
-      error: (error) => {
-        console.error('Error al crear factura:', error);
-      },
-    });
+      if (!request) {
+        this.toast.error('Error', 'No se pudo construir la factura. Verifique los datos.');
+        return;
+      }
+
+      console.log('📤 Enviando factura:', request);
+
+      this.invoiceService.SendInvoiceDianClient(request).subscribe({
+        next: (response) => {
+          console.log('✅ Factura creada exitosamente:', response);
+          this.toast.success(
+            'Éxito',
+            'Factura creada y enviada a DIAN exitosamente.'
+          );
+
+          // Limpiar formulario después de éxito
+          this.invoiceForm.reset({
+            tipoDocumento: '',
+            medioPago: '',
+            observaciones: '',
+            totalAnticipado: 0,
+            aplicarDescuentoGlobal: false,
+          });
+          this.items.clear();
+          this.descuentos.clear();
+          this.clearClient();
+        },
+        error: (error) => {
+          console.error(' Error al crear factura:', error);
+          const errorMessage = error?.error?.message || error?.message || 'Error al crear la factura. Intente nuevamente.';
+          this.toast.error('Error', errorMessage);
+        },
+      });
+    } catch (error) {
+      console.error(' Error construyendo request:', error);
+      this.toast.error('Error', 'Error al procesar la factura');
+    }
   }
 
   /**

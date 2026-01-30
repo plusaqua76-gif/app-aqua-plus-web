@@ -430,17 +430,16 @@ export class PrintBill {
       return false;
     }
 
-    // Estados que sí permiten pago
     const estadosPermitidos = [
       'PENDIENTE',
-      'ACTIVO',
+      'PAGO INMEDIATO',
       'AVISO DE SUSPENSIÓN',
     ];
     const estadoPermitido = estadosPermitidos.some((estado) =>
       estadoActual.toUpperCase().includes(estado.toUpperCase())
     );
 
-    // Para pago parcial, verificar que el valor sea válido
+
     if (this.tipoPago === 'parcial') {
       return (
         estadoPermitido &&

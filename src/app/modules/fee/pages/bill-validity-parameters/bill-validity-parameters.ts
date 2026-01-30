@@ -412,10 +412,10 @@ export class BillValidityParameters {
   private readonly counterEnterpriceService = inject(CounterEnterpriceService);
 
   // Propiedades normales para ngModel (no signals)
-  diasVigencia: number = 30;
-  periodosFacturados: number = 1;
-  periodosNoPagosVencida: number = 2;
-  periodosPagoInmediato: number = 3;
+  diasVigencia: number = 0;
+  periodosFacturados: number = 0;
+  periodosNoPagosVencida: number = 0;
+  periodosPagoInmediato: number = 0;
 
   guardando = signal<boolean>(false);
 
