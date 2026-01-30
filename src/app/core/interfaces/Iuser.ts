@@ -19,6 +19,7 @@ export interface Iuser {
     activo?: boolean;
     token?: string;
     nombreEmpresa: string
+    correo?: string;
 }
 
 export interface IAuthResponse {

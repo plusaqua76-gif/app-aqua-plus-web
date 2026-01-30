@@ -6,9 +6,20 @@ export interface ITipoCuenta {
   descripcion: string;
 }
 
-export interface IEmpresa {
+ interface IEmpresa {
   id: number;
 }
+ interface TipoCuenta {
+  id: number;
+}
+
+ interface Naturaleza {
+  id: number;
+}
+interface ICuentaCategoria {
+  id: number;
+}
+
 
 export interface IAccount {
   id: number;
@@ -32,9 +43,9 @@ export interface IAccountFilters {
 export interface ICreateAccount {
   id?: number;
   empresa: IEmpresa;
-  tipoCuenta: {
-    id: number;
-  };
+  tipoCuenta: TipoCuenta;
+  naturaleza?: Naturaleza;
+  categoriaCuenta: ICuentaCategoria;
   codigo: string;
   nombre: string;
   valor: number;
@@ -44,6 +55,7 @@ export interface ICreateAccount {
   usuarioModificacion?: string;
   fechaModificacion?: string;
 }
+
 
 export interface IAccountDetail extends IAccount {}
 

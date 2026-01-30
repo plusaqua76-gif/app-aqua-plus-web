@@ -11,7 +11,7 @@ import { IDepartament } from '@interfaces/Idepartament';
 import { ITipoDocumento } from '@interfaces/Iuser';
 import { EmpleadoService } from '../../service/empleado.service';
 import { ToastService } from '@services/toast.service';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { UserService } from '../../../auth/service/user.service';
 import { LocationService } from '@shared/services/location.service';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -263,6 +263,10 @@ loadTypeDocument = rxResource({
         console.error('Error al crear empleado:', error);
       }
     });
+  }
+
+  goBack(): void {
+    this.router.navigate(['/shell/employee']);
   }
 
 }

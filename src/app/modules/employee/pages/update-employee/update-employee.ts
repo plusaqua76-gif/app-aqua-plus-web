@@ -26,6 +26,7 @@ export class UpdateEmployee implements OnInit {
   updateForm!: FormGroup;
   selectedEmployee = signal<IEmpleadoEmpresaResponse | null>(null);
   tiposDocumento = signal<ITipoDocumento[]>([]);
+  initialFormValues: any = null;
 
   // Datos de ubicación
   selectedDepartmentId = signal<number | null>(null);
@@ -239,6 +240,9 @@ export class UpdateEmployee implements OnInit {
       direccion: '', // Dejar vacío inicialmente
       activo: employeeData.activo ?? true
     });
+
+    // Guardar los valores iniciales después de cargar los datos
+    this.saveInitialFormValues();
   }
 
   // Método específico para cargar datos desde la navegación (datos de la tabla)
@@ -262,6 +266,33 @@ export class UpdateEmployee implements OnInit {
       direccion: '', // Dejar vacío inicialmente
       activo: empleadoData.activo ?? true
     });
+
+    // Guardar los valores iniciales después de cargar los datos
+    this.saveInitialFormValues();
+  }
+
+  private saveInitialFormValues(): void {
+    this.initialFormValues = this.updateForm.value;
+  }
+
+  private getChangedFields(): any {
+    if (!this.initialFormValues) {
+      return null;
+    }
+
+    const currentValues = this.updateForm.value;
+    const changedFields: any = {};
+
+    Object.keys(currentValues).forEach(key => {
+      const currentValue = currentValues[key] === '' ? null : currentValues[key];
+      const initialValue = this.initialFormValues[key] === '' ? null : this.initialFormValues[key];
+
+      if (currentValue !== initialValue) {
+        changedFields[key] = currentValues[key];
+      }
+    });
+
+    return Object.keys(changedFields).length > 0 ? changedFields : null;
   }
 
   employeeById = rxResource({
@@ -294,28 +325,77 @@ export class UpdateEmployee implements OnInit {
       return;
     }
 
-    const formData = this.updateForm.value;
+    // Obtener solo los campos que fueron modificados
+    const changedFields = this.getChangedFields();
+
+    if (!changedFields) {
+      this.toast.info('Información', 'No se detectaron cambios');
+      return;
+    }
+
     const usuarioModificacion = this.usuarioModificacion();
 
-    // Usar el mismo formato que en cliente para actualizar persona
-    const updatePayload = {
-      id: empleadoSeleccionado.personaId || this.idEmployee(), // Usar personaId que es el ID de la persona
-      tipoDocumento: { id: formData.tipoDocumento ? Number(formData.tipoDocumento) : 1 },
-      numeroCedula: formData.numeroCedula || '',
-      nombre: formData.primerNombre || '',
-      segundoNombre: formData.segundoNombre || '',
-      apellido: formData.primerApellido || '',
-      segundoApellido: formData.segundoApellido || '',
-      telefono: formData.telefono || '',
-      correo: formData.correo || '',
-      direccion: {
-        id: 0, // ID de dirección (0 para nueva dirección)
-        ciudad: { id: formData.idCiudad ? Number(formData.idCiudad) : 0 },
-        corregimiento: formData.idCorregimiento ? { id: Number(formData.idCorregimiento) } : null,
-        descripcion: formData.direccion || ''
-      },
-      usuarioModificacion: usuarioModificacion
+    // Construir el payload solo con los campos modificados
+    const updatePayload: any = {
+      id: empleadoSeleccionado.personaId || this.idEmployee() // Siempre incluir el ID
     };
+
+    // Agregar campos modificados al payload
+    if (changedFields.tipoDocumento !== undefined) {
+      updatePayload.tipoDocumento = { id: Number(changedFields.tipoDocumento) };
+    }
+
+    if (changedFields.numeroCedula !== undefined) {
+      updatePayload.numeroCedula = changedFields.numeroCedula;
+    }
+
+    if (changedFields.primerNombre !== undefined) {
+      updatePayload.nombre = changedFields.primerNombre;
+    }
+
+    if (changedFields.segundoNombre !== undefined) {
+      updatePayload.segundoNombre = changedFields.segundoNombre;
+    }
+
+    if (changedFields.primerApellido !== undefined) {
+      updatePayload.apellido = changedFields.primerApellido;
+    }
+
+    if (changedFields.segundoApellido !== undefined) {
+      updatePayload.segundoApellido = changedFields.segundoApellido;
+    }
+
+    if (changedFields.telefono !== undefined) {
+      updatePayload.telefono = changedFields.telefono;
+    }
+
+    if (changedFields.correo !== undefined) {
+      updatePayload.correo = changedFields.correo;
+    }
+
+    // Solo incluir dirección si algún campo de dirección cambió
+    if (changedFields.idCiudad !== undefined ||
+        changedFields.idCorregimiento !== undefined ||
+        changedFields.direccion !== undefined) {
+      updatePayload.direccion = {
+        id: 0, // ID de dirección (0 para nueva dirección)
+        ciudad: changedFields.idCiudad ? { id: Number(changedFields.idCiudad) } : undefined,
+        corregimiento: changedFields.idCorregimiento ? { id: Number(changedFields.idCorregimiento) } : undefined,
+        descripcion: changedFields.direccion || ''
+      };
+
+      // Limpiar campos undefined en dirección
+      Object.keys(updatePayload.direccion).forEach(key => {
+        if (updatePayload.direccion[key] === undefined) {
+          delete updatePayload.direccion[key];
+        }
+      });
+    }
+
+    // Siempre incluir el usuario de modificación
+    updatePayload.usuarioModificacion = usuarioModificacion;
+
+    console.log('Payload de actualización (solo campos modificados):', updatePayload);
 
     // Usar el mismo servicio que en cliente
     this.personService.savaOrUpdatePerson(updatePayload as any).subscribe({

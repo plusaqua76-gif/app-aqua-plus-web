@@ -26,7 +26,7 @@ import { ConfirmDeletePopupComponent } from '@shared/components/confirm-delete-p
         <!-- Header -->
         <div class="flex justify-between items-center mb-6">
           <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">
-            Tarifas Transversales
+            Configuración de Servicios
           </h1>
           <button
             (click)="openCreateModal()"

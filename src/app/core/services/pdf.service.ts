@@ -1,15 +1,47 @@
 import { Injectable } from '@angular/core';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 
+/**
+ * Servicio para generación de PDFs con lazy loading.
+ * Las librerías pesadas (jsPDF y html2canvas) se cargan solo cuando se necesitan,
+ * reduciendo el bundle inicial en ~700KB.
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class PdfService {
+  // Cache de las librerías cargadas dinámicamente
+  private html2canvasPromise: Promise<typeof import('html2canvas').default> | null = null;
+  private jsPDFPromise: Promise<typeof import('jspdf').default> | null = null;
+
   constructor() {}
+
+  /**
+   * Carga html2canvas de forma lazy (solo la primera vez)
+   */
+  private async loadHtml2Canvas(): Promise<typeof import('html2canvas').default> {
+    if (!this.html2canvasPromise) {
+      this.html2canvasPromise = import('html2canvas').then(module => module.default);
+    }
+    return this.html2canvasPromise;
+  }
+
+  /**
+   * Carga jsPDF de forma lazy (solo la primera vez)
+   */
+  private async loadJsPDF(): Promise<typeof import('jspdf').default> {
+    if (!this.jsPDFPromise) {
+      this.jsPDFPromise = import('jspdf').then(module => module.default);
+    }
+    return this.jsPDFPromise;
+  }
 
   async convertElementToPdf(element: HTMLElement, filename: string = 'factura.pdf'): Promise<void> {
     try {
+      // Cargar librerías dinámicamente
+      const [html2canvas, jsPDF] = await Promise.all([
+        this.loadHtml2Canvas(),
+        this.loadJsPDF()
+      ]);
 
       const canvas = await html2canvas(element, {
         scale: 2,
@@ -50,6 +82,12 @@ export class PdfService {
    */
   async convertElementToPdfAndOpen(element: HTMLElement): Promise<void> {
     try {
+      // Cargar librerías dinámicamente
+      const [html2canvas, jsPDF] = await Promise.all([
+        this.loadHtml2Canvas(),
+        this.loadJsPDF()
+      ]);
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
@@ -87,6 +125,12 @@ export class PdfService {
    */
   async convertElementToPdfAndPrint(element: HTMLElement): Promise<void> {
     try {
+      // Cargar librerías dinámicamente
+      const [html2canvas, jsPDF] = await Promise.all([
+        this.loadHtml2Canvas(),
+        this.loadJsPDF()
+      ]);
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
@@ -137,6 +181,9 @@ export class PdfService {
     filename: string = 'factura-completa.pdf'
   ): Promise<void> {
     try {
+      // Cargar jsPDF (html2canvas se carga en captureElement)
+      const jsPDF = await this.loadJsPDF();
+
       // Capturar el frente
       const frontCapture = await this.captureElement(frontElement);
 
@@ -175,6 +222,9 @@ export class PdfService {
     backElement: HTMLElement
   ): Promise<void> {
     try {
+      // Cargar jsPDF (html2canvas se carga en captureElement)
+      const jsPDF = await this.loadJsPDF();
+
       // Capturar el frente
       const frontCapture = await this.captureElement(frontElement);
 
@@ -215,6 +265,9 @@ export class PdfService {
     backElement: HTMLElement
   ): Promise<void> {
     try {
+      // Cargar jsPDF (html2canvas se carga en captureElement)
+      const jsPDF = await this.loadJsPDF();
+
       // Capturar el frente
       const frontCapture = await this.captureElement(frontElement);
 
@@ -257,6 +310,9 @@ export class PdfService {
    * Esto evita problemas con transformaciones, visibilidad y animaciones
    */
   private async captureElement(element: HTMLElement): Promise<{ imgData: string; width: number; height: number }> {
+    // Cargar html2canvas dinámicamente
+    const html2canvas = await this.loadHtml2Canvas();
+
     // Crear un contenedor temporal para el clon
     const container = document.createElement('div');
     container.style.position = 'absolute';

@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment.local';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { catchError, Observable, throwError } from 'rxjs';
+import { catchError, Observable, of, throwError } from 'rxjs';
 import { ApiResponse } from '@interfaces/Iresponse';
 import {
   ParamsMetricasContables,
@@ -13,6 +13,10 @@ import {
   IPaginatedResponse,
   IPaginationParams,
 } from '@interfaces/IpaginatedResponse';
+import {
+  CuentaTotal,
+  ParamsCuentasTotales
+} from '@interfaces/accounting/ICuentaTotal';
 
 @Injectable({
   providedIn: 'root',
@@ -73,7 +77,64 @@ export class AccountingService {
 
     return this.http
       .get<IPaginatedResponse<MovimientoContable>>(url, { params: httpParams })
-      .pipe(catchError(this.handleError));
+      .pipe(catchError((error) => {
+        if (error.status === 404) {
+          return of({
+            success: true,
+            message: 'No se encontraron registros',
+            code: 404,
+            totalCount: 0,
+            pageSize: params.size,
+            currentPage: params.page,
+            totalPages: 0,
+            response: []
+          });
+        } else {
+          return this.handleError(error);
+        }
+      }));
+  }
+
+  getCuentasTotales(
+    params: ParamsCuentasTotales,
+    paginationParams: IPaginationParams
+  ): Observable<IPaginatedResponse<CuentaTotal>> {
+    const url = `${this.apiUrl}/cuenta-total/getCuenta-total`;
+
+    let httpParams = new HttpParams()
+      .set('idEmpresa', params.idEmpresa.toString())
+      .set('fechaInicio', params.fechaInicio)
+      .set('fechaFin', params.fechaFin)
+      .set('page', paginationParams.page.toString())
+      .set('size', paginationParams.size.toString());
+
+    if (paginationParams.search) {
+      httpParams = httpParams.set('search', paginationParams.search);
+    }
+
+    if (paginationParams.filters) {
+      httpParams = this.mapFiltersToHttpParams(httpParams, paginationParams.filters);
+    }
+
+    return this.http
+      .get<IPaginatedResponse<CuentaTotal>>(url, { params: httpParams })
+      .pipe(
+        catchError((error) => {
+          if (error.status === 404) {
+            return of({
+              success: true,
+              message: 'No se encontraron cuentas totales',
+              code: 404,
+              totalCount: 0,
+              pageSize: paginationParams.size,
+              currentPage: paginationParams.page,
+              totalPages: 0,
+              response: []
+            });
+          }
+          return this.handleError(error);
+        })
+      );
   }
 
   private mapFiltersToHttpParams(

@@ -17,5 +17,9 @@ export default [
   {
     path: 'counter-enterprice',
     loadComponent: () => import('./pages/company-accountant-reading/counter-enterprice').then(m => m.CounterEnterprice),
+  },
+  {
+    path: 'bill-validity',
+    loadComponent: () => import('./pages/bill-validity-parameters/bill-validity-parameters').then(m => m.BillValidityParameters),
   }
 ] as Routes;

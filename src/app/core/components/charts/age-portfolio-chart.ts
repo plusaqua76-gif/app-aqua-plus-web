@@ -38,22 +38,22 @@ declare const ApexCharts: any;
       <dl class="flex flex-col items-center justify-center">
         <dt class="text-gray-500 dark:text-gray-400 text-xs font-normal mb-1">0-30 días</dt>
         <dd class="text-gray-900 dark:text-white text-lg font-semibold">{{ chartData()!['0-30'] | colombianCurrency }}</dd>
-        <dd class="text-gray-500 dark:text-gray-400 text-xs mt-1">{{ invoiceCount()!['0-30'] }} facturas</dd>
+        <dd class="text-gray-500 dark:text-gray-400 text-xs mt-1">{{ debtCount()!['0-30'] }} deudas</dd>
       </dl>
       <dl class="flex flex-col items-center justify-center">
         <dt class="text-gray-500 dark:text-gray-400 text-xs font-normal mb-1">31-60 días</dt>
         <dd class="text-gray-900 dark:text-white text-lg font-semibold">{{ chartData()!['31-60'] | colombianCurrency }}</dd>
-        <dd class="text-gray-500 dark:text-gray-400 text-xs mt-1">{{ invoiceCount()!['31-60'] }} facturas</dd>
+        <dd class="text-gray-500 dark:text-gray-400 text-xs mt-1">{{ debtCount()!['31-60'] }} deudas</dd>
       </dl>
       <dl class="flex flex-col items-center justify-center">
         <dt class="text-gray-500 dark:text-gray-400 text-xs font-normal mb-1">61-90 días</dt>
         <dd class="text-gray-900 dark:text-white text-lg font-semibold">{{ chartData()!['61-90'] | colombianCurrency }}</dd>
-        <dd class="text-gray-500 dark:text-gray-400 text-xs mt-1">{{ invoiceCount()!['61-90'] }} facturas</dd>
+        <dd class="text-gray-500 dark:text-gray-400 text-xs mt-1">{{ debtCount()!['61-90'] }} deudas</dd>
       </dl>
       <dl class="flex flex-col items-center justify-center">
         <dt class="text-gray-500 dark:text-gray-400 text-xs font-normal mb-1">90+ días</dt>
         <dd class="text-gray-900 dark:text-white text-lg font-semibold">{{ chartData()!['90+'] | colombianCurrency }}</dd>
-        <dd class="text-gray-500 dark:text-gray-400 text-xs mt-1">{{ invoiceCount()!['90+'] }} facturas</dd>
+        <dd class="text-gray-500 dark:text-gray-400 text-xs mt-1">{{ debtCount()!['90+'] }} deudas</dd>
       </dl>
     </div>
 
@@ -93,7 +93,7 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
   protected isBrowser = isPlatformBrowser(this.platformId);
   public readonly data = input<CarteraEdadesFacturas | null>(null);
   public readonly chartData = signal<AgePortfolioData | null>(null);
-  public readonly invoiceCount = signal<AgePortfolioInvoiceCount | null>(null);
+  public readonly debtCount = signal<AgePortfolioInvoiceCount | null>(null);
   public isLoading = signal<boolean>(false);
   public hasError = signal<boolean>(false);
   public totalCartera = signal<number>(0);
@@ -146,21 +146,21 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
         // Normalizar el rango para que coincida con la estructura
         if (rango === '0-30' || rango.includes('0-30')) {
           transformedData['0-30'] = metrica.valorCartera;
-          invoiceCounts['0-30'] = metrica.cantidadFacturas;
+          invoiceCounts['0-30'] = metrica.cantidadDeudas;
         } else if (rango === '31-60' || rango.includes('31-60')) {
           transformedData['31-60'] = metrica.valorCartera;
-          invoiceCounts['31-60'] = metrica.cantidadFacturas;
+          invoiceCounts['31-60'] = metrica.cantidadDeudas;
         } else if (rango === '61-90' || rango.includes('61-90')) {
           transformedData['61-90'] = metrica.valorCartera;
-          invoiceCounts['61-90'] = metrica.cantidadFacturas;
+          invoiceCounts['61-90'] = metrica.cantidadDeudas;
         } else if (rango === '90+' || rango.includes('90') || rango.includes('+')) {
           transformedData['90+'] = metrica.valorCartera;
-          invoiceCounts['90+'] = metrica.cantidadFacturas;
+          invoiceCounts['90+'] = metrica.cantidadDeudas;
         }
       });
 
       this.chartData.set(transformedData);
-      this.invoiceCount.set(invoiceCounts);
+      this.debtCount.set(invoiceCounts);
       this.calculateTotals(transformedData);
       this.isLoading.set(false);
       this.hasError.set(false);
@@ -268,12 +268,12 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
           formatter: (value: number, opts?: any) => {
             const seriesIndex = opts?.seriesIndex ?? 0;
             const dataPointIndex = opts?.dataPointIndex ?? 0;
-            const invoices = this.invoiceCount();
+            const debts = this.debtCount();
 
-            if (invoices) {
+            if (debts) {
               const ranges = ['0-30', '31-60', '61-90', '90+'] as const;
               const range = ranges[dataPointIndex];
-              const count = invoices[range];
+              const count = debts[range];
               return `$${value.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} (${count} facturas)`;
             }
             return `$${value.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;

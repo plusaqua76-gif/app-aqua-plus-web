@@ -17,6 +17,7 @@ import { Router } from '@angular/router';
   selector: 'app-create-debt',
   imports: [FormsModule, ReactiveFormsModule, CommonModule],
   templateUrl: './create-debt.html',
+  standalone: true,
 })
 export class CreateDebt  {
 

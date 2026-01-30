@@ -25,13 +25,15 @@ import { PopupComponent } from '@shared/components/popUp';
             </div>
           </div>
         </div>
-      } @else if (paymentPointsData.value() && paymentPointsData.value()!.length > 0) {
+      } @else {
         <div class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 mb-6">
           <div class="p-6 sm:p-8">
-            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-6">
-              <i class="fas fa-map-marked-alt mr-2 text-blue-500"></i>
-              Puntos de Pago Disponibles ({{ paymentPointsData.value()?.length ?? 0 }})
-            </h3>
+            @if (paymentPointsData.value() && paymentPointsData.value()!.length > 0) {
+              <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-6">
+                <i class="fas fa-map-marked-alt mr-2 text-blue-500"></i>
+                Puntos de Pago Disponibles
+              </h3>
+            }
 
             <!-- File Upload Container con estilo del register -->
             <div style="position: relative; min-height: 48px; flex: 1; display: flex; flex-direction: column; gap: 0; margin-bottom: 24px;">
@@ -108,59 +110,59 @@ import { PopupComponent } from '@shared/components/popUp';
               }
             </div>
 
-            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              @for (point of paymentPointsData.value() ?? []; track point.id ?? $index) {
-                <div class="group relative overflow-hidden rounded-xl bg-white/10 dark:bg-slate-700/20 border border-white/20 dark:border-slate-600/30 backdrop-blur-md hover:border-blue-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl">
-                  <!-- Image -->
-                  <div class="aspect-video overflow-hidden bg-gray-200 dark:bg-gray-700">
-                    <img
-                      [src]="'data:image/png;base64,' + point.imagen"
-                      [alt]="point.nombre"
-                      class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      (error)="onImageError($event)"
-                    />
+            @if (paymentPointsData.value() && paymentPointsData.value()!.length > 0) {
+              <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                @for (point of paymentPointsData.value() ?? []; track point.id ?? $index) {
+                  <div class="group relative overflow-hidden rounded-xl bg-white/10 dark:bg-slate-700/20 border border-white/20 dark:border-slate-600/30 backdrop-blur-md hover:border-blue-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                    <!-- Image -->
+                    <div class="aspect-video overflow-hidden bg-gray-200 dark:bg-gray-700">
+                      <img
+                        [src]="'data:image/png;base64,' + point.imagen"
+                        [alt]="point.nombre"
+                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        (error)="onImageError($event)"
+                      />
+                    </div>
+                    <!-- Info -->
+                    <div class="p-4">
+                      <h4 class="font-semibold text-gray-800 dark:text-gray-200 mb-1">
+                        {{ point.nombre }}
+                      </h4>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        <i class="fas fa-folder-open mr-1"></i>
+                        {{ point.ruta }}
+                      </p>
+                    </div>
+                    <!-- Overlay on hover -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
+                      <button
+                        (click)="deletePaymentPoint(point)"
+                        [disabled]="deletingRuta() === point.ruta"
+                        class="px-6 py-2 bg-red-500/30 hover:bg-red-500/50 backdrop-blur-md border border-red-400/50 hover:border-red-400 text-white rounded-lg text-sm font-medium transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                        @if (deletingRuta() === point.ruta) {
+                          <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Eliminando...
+                          </div>
+                        } @else {
+                          <i class="fas fa-trash-alt mr-2"></i>
+                          Eliminar
+                        }
+                      </button>
+                    </div>
                   </div>
-                  <!-- Info -->
-                  <div class="p-4">
-                    <h4 class="font-semibold text-gray-800 dark:text-gray-200 mb-1">
-                      {{ point.nombre }}
-                    </h4>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      <i class="fas fa-folder-open mr-1"></i>
-                      {{ point.ruta }}
-                    </p>
-                  </div>
-                  <!-- Overlay on hover -->
-                  <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
-                    <button
-                      (click)="deletePaymentPoint(point)"
-                      [disabled]="deletingRuta() === point.ruta"
-                      class="px-6 py-2 bg-red-500/30 hover:bg-red-500/50 backdrop-blur-md border border-red-400/50 hover:border-red-400 text-white rounded-lg text-sm font-medium transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                      @if (deletingRuta() === point.ruta) {
-                        <div class="flex items-center gap-2">
-                          <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          Eliminando...
-                        </div>
-                      } @else {
-                        <i class="fas fa-trash-alt mr-2"></i>
-                        Eliminar
-                      }
-                    </button>
-                  </div>
+                }
+              </div>
+            } @else {
+              <div class="text-center py-8">
+                <div class="mx-auto w-16 h-16 bg-gray-300/20 dark:bg-gray-700/20 rounded-full flex items-center justify-center mb-4">
+                  <i class="fas fa-map-marker-alt text-3xl text-gray-400"></i>
                 </div>
-              }
-            </div>
-          </div>
-        </div>
-      } @else {
-        <div class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 mb-6">
-          <div class="p-6 sm:p-8 text-center">
-            <div class="mx-auto w-16 h-16 bg-gray-300/20 dark:bg-gray-700/20 rounded-full flex items-center justify-center mb-4">
-              <i class="fas fa-map-marker-alt text-3xl text-gray-400"></i>
-            </div>
-            <p class="text-gray-600 dark:text-gray-400">
-              No hay puntos de pago registrados aún
-            </p>
+                <p class="text-gray-600 dark:text-gray-400">
+                  No hay puntos de pago registrados aún. Sube tu primera imagen para comenzar.
+                </p>
+              </div>
+            }
           </div>
         </div>
       }
@@ -240,7 +242,7 @@ export class PaymentPoints {
         return of([]);
       }
       return this.documentService
-        .getDocumentByCategoria('PUPA', params.idEmpresa)
+        .getDocumentPointsMethod('PUPA', params.idEmpresa)
         .pipe(
           map((response: any) => {
             if (response && typeof response === 'object' && !Array.isArray(response)) {

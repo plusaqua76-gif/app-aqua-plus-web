@@ -25,6 +25,7 @@ import { PdfBill } from '@components/pdf-bill/pdf-bill';
 
 @Component({
   selector: 'app-bill',
+  standalone: true,
   imports: [CommonModule, TableComponent, RouterModule, PopupComponent, PdfBill],
   template: `
     <ng-template #actionsTemplate let-row>

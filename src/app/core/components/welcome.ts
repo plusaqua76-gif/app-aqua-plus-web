@@ -739,7 +739,7 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
             <h2
               class="reveal-up text-center text-5xl font-semibold uppercase leading-[90px] max-lg:text-4xl max-md:leading-snug"
             >
-              <span class="">
+              <span>
                 <span class="letter">T</span>
                 <span class="letter">o</span>
                 <span class="letter">d</span>
@@ -773,7 +773,7 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
                 <span class="letter">o</span>
               </span>
               <br />
-              <span class="">
+              <span >
                 <span class="letter">e</span>
                 <span class="letter">n</span>
                 <span class="letter">&nbsp;</span>
@@ -864,7 +864,14 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
         </div>
       </section>
 
-      <app-logo-carousel></app-logo-carousel>
+
+      @defer (on viewport) {
+        <app-logo-carousel></app-logo-carousel>
+      }@placeholder {
+              <div class="flex justify-center items-center min-h-[50vh]">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      }
 
       @defer (on viewport) {
         <section

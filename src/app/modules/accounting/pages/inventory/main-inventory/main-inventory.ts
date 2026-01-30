@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   PeriodoData,
   TrendDirection,
@@ -18,6 +19,8 @@ import {
   EconomicResultData,
 } from '@components/charts/economic-result-chart';
 import { TableComponent } from '@components/table';
+import { PopupComponent } from '@shared/components/popUp';
+import { Checkbox } from '@shared/components/checkbox';
 import { catchError, of } from 'rxjs';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 import { IAccountFilters } from '@interfaces/Iaccount';
@@ -32,16 +35,21 @@ import { CarteraEdadesFacturasService } from '../../../service/cartera-edades-fa
 import { CalculosContablesService } from '../../../service/calculos-contables.service';
 import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
 import { MetricasAcueductoEagerInicializationService } from '../../../service/metricas-acueducto-eager-inicialization.service';
+import { CuentasTotalesEagerInitializationService } from '../../../service/cuentas-totales-eager-initialization.service';
+import { CategoryCountEagerInitializationService } from '../../../service/category-count-eager-inicialization.service';
 
 @Component({
   selector: 'app-main-inventory',
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     TrendSparklineComponent,
     ColombianCurrencyPipe,
     EconomicResultChartComponent,
     TableComponent,
     AgePortfolioChartComponent,
+    PopupComponent,
+    Checkbox,
   ],
   template: `
     @let activos = metricasService.activosData();
@@ -49,20 +57,16 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
     @let cartera = metricasService.carteraData();
     @let patrimonio = metricasService.patrimonioData();
     @let economic = resultadosService.economicData();
+    @let categorias = categoryCount.categoryCount();
     @let indicadores = calculosService.enterpriceResolutionSignal();
-
-    <!-- CONTENEDOR GENERAL -->
     <div class="min-h-screen w-full p-6 grid gap-6">
-      <!-- GRID: TARJETAS SUPERIORES -->
       <div
         class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6"
       >
-        <!-- Card Activos Totales -->
         <div
           class="rounded-lg sm:rounded-xl border border-[#312f62a3] bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-2.5 sm:p-3 md:p-4"
         >
           <div class="flex gap-2.5 sm:gap-3 md:gap-4">
-            <!-- Columna Izquierda: Icono + Título -->
             <div class="flex flex-col items-start justify-between shrink-0">
               <div
                 class="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center"
@@ -77,8 +81,6 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                 Activos Totales
               </p>
             </div>
-
-            <!-- Columna Derecha: Valor + Gráfica + Variación -->
             <div
               class="flex-1 flex flex-col justify-between min-w-0 gap-0.5 sm:gap-1"
             >
@@ -572,8 +574,10 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
               <h3 class="text-gray-400 text-sm font-medium">
                 Historial de Movimientos Contables
               </h3>
-              <!-- <div class="flex gap-2">
+              <div class="flex gap-2">
                 <button
+                  #btnCrearMovimiento
+                  (click)="openMovimientoModal()"
                   class="relative cursor-pointer py-1.5 px-4 text-center inline-flex justify-center text-xs uppercase text-gray-300 rounded-lg border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
                 >
                   <span class="relative z-20"></span>
@@ -593,7 +597,7 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
                     class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"
                   ></span>
                 </button>
-              </div> -->
+              </div>
             </div>
             <app-table-dynamic
               [columns]="movimientosColumns()"
@@ -613,25 +617,38 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
           <div
             class="rounded-xl border border-gray-700/10 bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-4"
           >
-            <!-- <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-4">
               <h3 class="text-gray-400 text-sm font-medium">
-                Cuentas Contables
+                   Cuentas Contables
               </h3>
-              <button
-                class="relative cursor-pointer py-1.5 px-4 text-center inline-flex justify-center text-xs uppercase text-gray-300 rounded-lg border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
-              >
-                <span class="relative z-20">Ver más</span>
+              <div class="flex gap-2">
+                <!-- <button
+                  class="relative cursor-pointer py-1.5 px-4 text-center inline-flex justify-center text-xs uppercase text-gray-300 rounded-lg border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
+                >
+                  <span class="relative z-20"></span>
+                  <i class="fas fa-plus mr-2 mt-0.5"></i>
+                  Crear cuenta contable
 
-                <span
-                  class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"
-                ></span>
-              </button>
-            </div> -->
+                  <span
+                    class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"
+                  ></span>
+                </button> -->
+                <button
+                  class="relative cursor-pointer py-1.5 px-4 text-center inline-flex justify-center text-xs uppercase text-gray-300 rounded-lg border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
+                >
+                  <span class="relative z-20">Ver más</span>
+
+                  <span
+                    class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"
+                  ></span>
+                </button>
+              </div>
+            </div>
             <app-table-dynamic
               [columns]="accountColumns()"
               [serverMode]="false"
               [datasource]="transformedAccountData()"
-              [loading]="serverAccountData.isLoading()"
+              [loading]="cuentasTotalesService.isLoading()"
               [pagination]="false"
             >
             </app-table-dynamic>
@@ -830,15 +847,192 @@ import { MetricasAcueductoEagerInicializationService } from '../../../service/me
         ></div>
       </div> -->
     </div>
+
+    <!-- Modal para crear movimiento contable -->
+    @defer (on interaction(btnCrearMovimiento)) {
+      @if (isMovimientoModalOpen()) {
+        <app-pop-up
+          [open]="isMovimientoModalOpen"
+          [title]="'Crear Movimiento Contable'"
+          [isConfirmation]="false"
+          [maxWidth]="'max-w-2xl'"
+        >
+          <form [formGroup]="movimientoForm" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Nombre del Movimiento -->
+              <div class="md:col-span-2">
+                <label
+                  for="nombreMovimiento"
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+                >
+                  Nombre del Movimiento <span class="text-red-500">*</span>
+                </label>
+                <input
+                  id="nombreMovimiento"
+                  type="text"
+                  formControlName="nombre"
+                  placeholder="Ej: Caja General"
+                  class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+                />
+                @if (movimientoForm.get('nombre')?.invalid && movimientoForm.get('nombre')?.touched) {
+                  <p class="text-red-500 text-xs mt-2">El nombre es requerido</p>
+                }
+              </div>
+
+              <!-- Código -->
+              <div>
+                <label
+                  for="codigoMovimiento"
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+                >
+                  Código <span class="text-red-500">*</span>
+                </label>
+                <input
+                  id="codigoMovimiento"
+                  type="text"
+                  formControlName="codigo"
+                  placeholder="Ej: 1105"
+                  class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+                />
+                @if (movimientoForm.get('codigo')?.invalid && movimientoForm.get('codigo')?.touched) {
+                  <p class="text-red-500 text-xs mt-2">El código es requerido</p>
+                }
+              </div>
+
+              <!-- Valor -->
+              <div>
+                <label
+                  for="valorMovimiento"
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+                >
+                  Valor <span class="text-red-500">*</span>
+                </label>
+                <input
+                  id="valorMovimiento"
+                  type="number"
+                  formControlName="valor"
+                  placeholder="0.00"
+                  min="0"
+                  step="0.01"
+                  class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+                />
+                @if (movimientoForm.get('valor')?.invalid && movimientoForm.get('valor')?.touched) {
+                  <p class="text-red-500 text-xs mt-2">El valor debe ser mayor a 0</p>
+                }
+              </div>
+
+              <!-- Tipo de Cuenta -->
+              <div>
+                <label
+                  for="tipoCuenta"
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+                >
+                  Tipo de Cuenta <span class="text-red-500">*</span>
+                </label>
+                <select
+                  id="tipoCuenta"
+                  formControlName="idTipoCuenta"
+                  class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
+                >
+                  <option value="" disabled selected>Seleccione tipo de cuenta</option>
+                  @if (tiposCuentaResource.value() && tiposCuentaResource.value()!.response.length > 0) {
+                    @for (tipoCuenta of tiposCuentaResource.value()?.response; track tipoCuenta.id) {
+                      <option [value]="tipoCuenta.id">{{ tipoCuenta.nombre }}</option>
+                    }
+                  } @else if (tiposCuentaResource.isLoading()) {
+                    <option disabled>Cargando tipos de cuenta...</option>
+                  }
+                </select>
+                @if (movimientoForm.get('idTipoCuenta')?.invalid && movimientoForm.get('idTipoCuenta')?.touched) {
+                  <p class="text-red-500 text-xs mt-2">Seleccione un tipo de cuenta</p>
+                }
+              </div>
+
+              <!-- Categoría -->
+              <div class="md:col-span-2">
+                <label
+                  for="categoria"
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+                >
+                  Categoría <span class="text-red-500">*</span>
+                </label>
+                <select
+                  id="categoria"
+                  formControlName="idCategoriaCuenta"
+                  class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
+                >
+                  <option value="" disabled selected>Seleccione categoría</option>
+                  @if (categorias && categorias.length > 0) {
+                    @for (categoria of categorias; track categoria.id) {
+                      <option [value]="categoria.id">{{ categoria.nombre }}</option>
+                    }
+                  } @else {
+                    <option disabled>Cargando categorías...</option>
+                  }
+                </select>
+                @if (movimientoForm.get('idCategoriaCuenta')?.invalid && movimientoForm.get('idCategoriaCuenta')?.touched) {
+                  <p class="text-red-500 text-xs mt-2">Seleccione una categoría</p>
+                }
+              </div>
+
+              <!-- Cuenta Corriente -->
+              <div class="flex items-center gap-3">
+                <app-checkbox
+                  [checked]="esCuentaCorriente()"
+                  (checkedChange)="onCuentaCorrienteChange($event)"
+                />
+                <label
+                  class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none pb-1"
+                  (click)="onCuentaCorrienteChange(!esCuentaCorriente())"
+                >
+                  Cuenta Corriente
+                </label>
+              </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+              <button
+                type="button"
+                (click)="closeMovimientoModal()"
+                [disabled]="isCreatingMovimiento()"
+                class="px-6 py-2 bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:border-gray-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                (click)="createMovimiento()"
+                [disabled]="movimientoForm.invalid || isCreatingMovimiento()"
+                class="px-6 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-medium rounded-lg hover:border-blue-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                @if (isCreatingMovimiento()) {
+                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Creando...
+                } @else {
+                  <i class="fas fa-save"></i>
+                  Crear Movimiento
+                }
+              </button>
+            </div>
+          </form>
+        </app-pop-up>
+      }
+    }
   `,
 })
 export class MainInventory {
   title = signal('Gestión de Cuentas Contables');
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
+  protected readonly fb = inject(FormBuilder);
   protected readonly accountsService = inject(AccountsService);
   protected readonly accountingService = inject(AccountingService);
   protected readonly calculosService = inject(CalculosContablesService);
+  protected readonly categoryCount = inject(CategoryCountEagerInitializationService);
   protected readonly carteraEdadesService = inject(
     CarteraEdadesFacturasService,
   );
@@ -851,7 +1045,25 @@ export class MainInventory {
   protected readonly metricasAcueductoService = inject(
     MetricasAcueductoEagerInicializationService,
   );
+  protected readonly cuentasTotalesService = inject(
+    CuentasTotalesEagerInitializationService,
+  );
   protected readonly toastService = inject(ToastService);
+
+  isMovimientoModalOpen = signal<boolean>(false);
+  isCreatingMovimiento = signal<boolean>(false);
+  esCuentaCorriente = signal<boolean>(false);
+  movimientoForm!: FormGroup;
+
+  tiposCuentaResource = rxResource({
+    stream: () => {
+      return this.accountsService.getAllTypeAccountingAccounts();
+    }
+  });
+
+  constructor() {
+    this.initializeMovimientoForm();
+  }
 
   // Computed signal para obtener los datos del mes actual
   readonly metricasAcueductoMesActual = computed(() => {
@@ -888,10 +1100,10 @@ export class MainInventory {
   readonly filters = signal<IAccountFilters>({});
 
   readonly accountColumns = signal([
-    { field: 'codigo', header: 'Código', type: 'text' as const },
-    { field: 'nombre', header: 'Nombre', type: 'text' as const },
-    { field: 'tipoNombre', header: 'Tipo Cuenta', type: 'text' as const },
-    { field: 'valor', header: 'Valor', type: 'number' as const },
+    { field: 'categoriaNombre', header: 'Categoría', type: 'text' as const },
+    { field: 'total', header: 'Total', type: 'currency' as const },
+    { field: 'usuarioCreacion', header: 'Usuario', type: 'text' as const },
+    { field: 'fechaCreacion', header: 'Fecha', type: 'date' as const },
   ]);
 
   readonly movimientosColumns = signal([
@@ -902,12 +1114,13 @@ export class MainInventory {
   ]);
 
   readonly transformedAccountData = computed(() => {
-    const rawData = this.serverAccountData.value();
+    const rawData = this.cuentasTotalesService.transformedData();
     if (!rawData?.response) return [];
 
-    return rawData.response.map((account) => ({
-      ...account,
-      tipoNombre: account.tipoCuenta?.nombre || '',
+    return rawData.response.map((cuenta) => ({
+      ...cuenta,
+      categoriaNombre: cuenta.categoria?.nombre || '',
+      fechaCreacion: this.formatDate(cuenta.fechaCreacion),
     }));
   });
 
@@ -990,5 +1203,93 @@ export class MainInventory {
       console.error('Error formatting date:', error);
       return dateString;
     }
+  }
+
+  // ==================== GESTIÓN DE MOVIMIENTOS CONTABLES ====================
+
+  private initializeMovimientoForm(): void {
+    this.movimientoForm = this.fb.group({
+      nombre: ['', [Validators.required, Validators.minLength(3)]],
+      codigo: ['', [Validators.required]],
+      valor: [0, [Validators.required, Validators.min(0.01)]],
+      idTipoCuenta: ['', [Validators.required]],
+      idCategoriaCuenta: ['', [Validators.required]],
+    });
+  }
+
+  openMovimientoModal(): void {
+    this.movimientoForm.reset({
+      nombre: '',
+      codigo: '',
+      valor: 0,
+      idTipoCuenta: '',
+      idCategoriaCuenta: '',
+    });
+    this.esCuentaCorriente.set(false);
+    this.isMovimientoModalOpen.set(true);
+  }
+
+  closeMovimientoModal(): void {
+    this.isMovimientoModalOpen.set(false);
+    this.movimientoForm.reset();
+    this.esCuentaCorriente.set(false);
+  }
+
+  onCuentaCorrienteChange(checked: boolean): void {
+    this.esCuentaCorriente.set(checked);
+  }
+
+  createMovimiento(): void {
+    if (this.movimientoForm.invalid) {
+      this.movimientoForm.markAllAsTouched();
+      return;
+    }
+
+    const enterpriseId = this.enterpriseId();
+    if (!enterpriseId) {
+      this.toastService.error('Error', 'No se pudo obtener el ID de la empresa');
+      return;
+    }
+
+    // Obtener el usuario de sessionStorage
+    let usuarioCreacion = 'admin';
+    try {
+      const userData = sessionStorage.getItem('userData');
+      if (userData) {
+        const parsedUserData = JSON.parse(userData);
+        usuarioCreacion = parsedUserData.username || parsedUserData.email || 'admin';
+      }
+    } catch (e) {
+      console.error('Error al obtener usuario:', e);
+    }
+
+    this.isCreatingMovimiento.set(true);
+
+    const formData = this.movimientoForm.value;
+    const payload = {
+      empresa: { id: enterpriseId },
+      tipoCuenta: { id: Number(formData.idTipoCuenta) },
+      categoriaCuenta: { id: Number(formData.idCategoriaCuenta) },
+      codigo: formData.codigo,
+      nombre: formData.nombre,
+      valor: Number(formData.valor),
+      corriente: this.esCuentaCorriente(),
+      activo: true,
+      usuarioCreacion: usuarioCreacion,
+    };
+
+    this.accountsService.createAccount(payload).subscribe({
+      next: (response) => {
+        this.toastService.success('Éxito', 'Movimiento contable creado correctamente');
+        this.isCreatingMovimiento.set(false);
+        this.closeMovimientoModal();
+        this.serverMovimientosData.reload();
+      },
+      error: (error) => {
+        console.error('Error al crear cuenta:', error);
+        this.toastService.error('Error', error?.error?.message || 'No se pudo crear el movimiento contable');
+        this.isCreatingMovimiento.set(false);
+      }
+    });
   }
 }

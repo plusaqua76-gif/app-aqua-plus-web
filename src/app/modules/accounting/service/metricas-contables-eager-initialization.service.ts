@@ -114,7 +114,6 @@ export class MetricasContablesEagerInitializationService {
     }
   }
 
-  // Métodos públicos para actualizar parámetros si es necesario
   setFecha(año: number, mes: number) {
     this.año.set(año);
     this.mes.set(mes);
