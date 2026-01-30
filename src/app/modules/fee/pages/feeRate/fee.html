@@ -49,7 +49,19 @@
                     'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600')"
         >
           <i class="fas fa-calendar-check mr-2"></i>
-          Parametros Empresa
+          Parámetros de Facturación
+        </button>
+
+        <button
+          type="button"
+          (click)="selectTab('bill-validity')"
+          [class]="'flex-shrink-0 px-6 py-4 text-sm font-medium transition-all duration-300 border-b-2 ' +
+                   (activeTab() === 'bill-validity' ?
+                    'border-blue-500 text-blue-600 dark:text-blue-400 bg-white/20 dark:bg-slate-700/20' :
+                    'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600')"
+        >
+          <i class="fas fa-file-invoice-dollar mr-2"></i>
+          Configuración Empresarial
         </button>
 
         <button
@@ -1033,6 +1045,12 @@
     } @if (activeTab() === 'days-validity') {
     <div class="animate-fadeIn">
       <app-transversal-rate/>
+    </div>
+    }
+
+    @if (activeTab() === 'bill-validity') {
+    <div class="animate-fadeIn">
+      <app-bill-validity-parameters/>
     </div>
     }
 

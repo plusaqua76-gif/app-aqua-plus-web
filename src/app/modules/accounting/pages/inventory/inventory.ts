@@ -12,12 +12,10 @@ import { PopupComponent } from '../../../../shared/components/popUp';
 import { IProducto, ICategoria } from '@interfaces/Iaccounting';
 import { ProductoService } from '../../service/producto.service';
 import { ToastService } from '@services/toast.service';
-import { Sale } from '../sales/sale';
-import { Account } from '../accounts/account';
 
 @Component({
   selector: 'app-inventory-company',
-  imports: [CommonModule, RouterModule, TableComponent, FormsModule, ReactiveFormsModule, PopupComponent, Sale, Account],
+  imports: [CommonModule, RouterModule, TableComponent, FormsModule, ReactiveFormsModule, PopupComponent],
   styles: [`
     .scrollbar-hide {
       -ms-overflow-style: none;
@@ -64,55 +62,6 @@ import { Account } from '../accounts/account';
       {{ formatDate(row.fechaCreacion) }}
     </ng-template>
 
-    <div class="px-4 sm:px-6 lg:px-8 py-6">
-      <div class="">
-        <div class="relative overflow-hidden shadow-xl sm:rounded-2xl bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl border border-white/20 dark:border-slate-700/30">
-          <div class="flex overflow-x-auto scrollbar-hide border-b border-white/20 dark:border-slate-700/30">
-            <button
-              type="button"
-              (click)="selectTab('inventory')"
-              [class]="'flex-shrink-0 px-6 py-4 text-sm font-medium transition-all duration-300 border-b-2 ' +
-                       (navigationTab() === 'inventory' ?
-                        'border-blue-500 text-blue-600 dark:text-blue-400 bg-white/20 dark:bg-slate-700/20' :
-                        'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600')"
-            >
-              <i class="fas fa-warehouse mr-2"></i>
-              Inventario
-            </button>
-
-            <button
-              type="button"
-              (click)="selectTab('sales')"
-              [class]="'flex-shrink-0 px-6 py-4 text-sm font-medium transition-all duration-300 border-b-2 ' +
-                       (navigationTab() === 'sales' ?
-                        'border-blue-500 text-blue-600 dark:text-blue-400 bg-white/20 dark:bg-slate-700/20' :
-                        'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600')"
-            >
-              <i class="fas fa-shopping-cart mr-2"></i>
-              Ventas
-            </button>
-
-            <button
-              type="button"
-              (click)="selectTab('accounts')"
-              [class]="'flex-shrink-0 px-6 py-4 text-sm font-medium transition-all duration-300 border-b-2 ' +
-                       (navigationTab() === 'accounts' ?
-                        'border-blue-500 text-blue-600 dark:text-blue-400 bg-white/20 dark:bg-slate-700/20' :
-                        'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600')"
-            >
-              <i class="fas fa-users mr-2"></i>
-              Cuentas
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tab Content -->
-      <div class="relative">
-        @if (navigationTab() === 'inventory') {
-        <div class="animate-fadeIn">
-          <!-- Contenido original del inventario -->
-
     <app-table-dynamic
       [title]="title()"
       [columns]="inventoryColumns()"
@@ -135,22 +84,6 @@ import { Account } from '../accounts/account';
       (serverPaginationChange)="onPaginationChange($event)"
     >
     </app-table-dynamic>
-        </div>
-        }
-
-        @if (navigationTab() === 'sales') {
-        <div class="animate-fadeIn">
-          <app-sale></app-sale>
-        </div>
-        }
-
-        @if (navigationTab() === 'accounts') {
-        <div class="animate-fadeIn">
-          <app-account></app-account>
-        </div>
-        }
-      </div>
-    </div>
 
     <!-- Popup Unificado para Agregar Producto o Categoría -->
     <app-pop-up
@@ -626,8 +559,6 @@ export class InventoryCompany {
   showAddPopup = signal(false);
   // Señal para controlar el tab activo de los popups
   activeTab = signal<'producto' | 'categoria'>('producto');
-  // Señal para la navegación principal de tabs
-  navigationTab = signal<string>('inventory');
   // Señal para el popup de inventario (separado)
   showInventoryPopup = signal(false);
 
@@ -712,9 +643,9 @@ export class InventoryCompany {
     if (precioUnitario > 0 && porcentaje >= 0) {
       const precioVenta = precioUnitario + (precioUnitario * (porcentaje / 100));
 
-      // Actualizar el valor sin disparar el evento valueChanges
+      //Aqui tenemos la logica del porcentaje de contabilidad
       this.inventoryForm.get('precioVenta')?.setValue(
-        Math.round(precioVenta * 100) / 100, // Redondear a 2 decimales
+        Math.round(precioVenta * 100) / 100,
         { emitEvent: false }
       );
     } else if (precioUnitario > 0 && porcentaje === 0) {
@@ -948,16 +879,6 @@ export class InventoryCompany {
         }
       });
     }
-  }
-
-  // Tab navigation methods
-  selectTab(tabId: string): void {
-    this.navigationTab.set(tabId);
-  }
-
-  getTabClasses(tabId: string): string {
-    const isActive = this.navigationTab() === tabId;
-    return isActive ? 'active' : '';
   }
 
   // Método simplificado para formatear fechas

@@ -36,6 +36,7 @@ import { BackFill } from "../../components/drag-and-drop/back-fill";
 import { error } from 'console';
 import { UseService } from '../../services/use.service';
 import { TransversalRate } from "../transversal-rate/transversalRate";
+import { BillValidityParameters } from "../bill-validity-parameters/bill-validity-parameters";
 
 // esto es mala practica, nosotros ya tenemos creado una interface IrateTypes en core/interfaces/IrateTypes.ts
 
@@ -52,7 +53,8 @@ import { TransversalRate } from "../transversal-rate/transversalRate";
     PaymentPoints,
     CounterEnterprice,
     BackFill,
-    TransversalRate
+    TransversalRate,
+    BillValidityParameters
 ],
   styleUrls: ['./fee.css'],
   templateUrl: './fee.html',

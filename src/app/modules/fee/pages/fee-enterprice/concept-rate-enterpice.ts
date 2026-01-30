@@ -24,7 +24,7 @@ import { ToastService } from '@services/toast.service';
   template: `
     <section class="w-full bg-transparent text-gray-200">
       <div class="w-full px-2 pb-4">
-        <div class="">
+        <div>
           <!-- Header with title and search -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <h2 class="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight">

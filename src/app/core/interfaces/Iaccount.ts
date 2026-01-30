@@ -44,7 +44,7 @@ export interface ICreateAccount {
   id?: number;
   empresa: IEmpresa;
   tipoCuenta: TipoCuenta;
-  naturaleza: Naturaleza;
+  naturaleza?: Naturaleza;
   categoriaCuenta: ICuentaCategoria;
   codigo: string;
   nombre: string;
@@ -57,27 +57,5 @@ export interface ICreateAccount {
 }
 
 
-
-
-// {
-//   "empresa": {
-//     "id": 5
-//   },
-//   "tipoCuenta": {
-//     "id": 2
-//   },
-//   "naturaleza": {
-//     "id": 1
-//   },
-//   "categoriaCuenta": {
-//     "id": 3
-//   },
-//   "codigo": "1105",
-//   "nombre": "Caja General",
-//   "valor": 5000000.50,
-//   "corriente": true,
-//   "activo": true,
-//   "usuarioCreacion": "admin"
-// }
 export interface IAccountDetail extends IAccount {}
 

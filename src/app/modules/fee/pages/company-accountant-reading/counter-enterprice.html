@@ -8,10 +8,10 @@
       @if (dataCounterEnterprice.isLoading()) {
       <div class="text-center py-12">
         <div
-          class="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 mb-4"
+          class="mx-auto w-16 h-16 bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 mb-4"
         >
           <svg
-            class="animate-spin h-8 w-8 text-blue-500"
+            class="animate-spin h-8 w-8 text-[#b9b7eeb9]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -37,8 +37,8 @@
         <div class="relative overflow-hidden bg-gradient-to-br from-green-500/10 via-emerald-500/10 to-teal-500/10 dark:from-green-500/5 dark:via-emerald-500/5 dark:to-teal-500/5 rounded-2xl p-6">
           <div class="flex items-center justify-between flex-wrap gap-4">
             <div class="flex items-center gap-4">
-              <div class="w-16 h-16 bg-gradient-to-br from-green-800/20 to-emerald-500/5 rounded-2xl flex items-center justify-center backdrop-blur-md border border-green-500/30 shadow-lg shadow-green-500/10">
-                <i class="fas fa-tachometer-alt text-2xl text-green-600 dark:text-green-400"></i>
+              <div class="w-16 h-16 bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/20 dark:border-slate-700/30 shadow-lg">
+                <i class="fas fa-tachometer-alt text-2xl text-[#b9b7eeb9]"></i>
               </div>
               <div>
                 <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-1">
@@ -83,10 +83,10 @@
         <!-- Información del contador en cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <!-- Serial -->
-          <div class="group bg-white/10 dark:bg-slate-700/20 rounded-xl border border-white/20 dark:border-slate-600/30 backdrop-blur-md p-5 hover:bg-white/15 dark:hover:bg-slate-700/25 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/5 hover:border-blue-500/30">
+          <div class="group bg-white/10 dark:bg-slate-700/20 rounded-xl border border-white/20 dark:border-slate-600/30 backdrop-blur-md p-5 hover:bg-white/15 dark:hover:bg-slate-700/25 transition-all duration-300 hover:shadow-lg hover:border-white/30 dark:hover:border-slate-600/50">
             <div class="flex items-start gap-3">
-              <div class="w-10 h-10 bg-blue-500/10 dark:bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <i class="fas fa-barcode text-blue-600 dark:text-blue-400"></i>
+              <div class="w-10 h-10 bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <i class="fas fa-barcode text-[#b9b7eeb9]"></i>
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
@@ -100,10 +100,10 @@
           </div>
 
           <!-- Tipo de Contador -->
-          <div class="group bg-white/10 dark:bg-slate-700/20 rounded-xl border border-white/20 dark:border-slate-600/30 backdrop-blur-md p-5 hover:bg-white/15 dark:hover:bg-slate-700/25 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/5 hover:border-purple-500/30">
+          <div class="group bg-white/10 dark:bg-slate-700/20 rounded-xl border border-white/20 dark:border-slate-600/30 backdrop-blur-md p-5 hover:bg-white/15 dark:hover:bg-slate-700/25 transition-all duration-300 hover:shadow-lg hover:border-white/30 dark:hover:border-slate-600/50">
             <div class="flex items-start gap-3">
-              <div class="w-10 h-10 bg-purple-500/10 dark:bg-purple-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <i class="fas fa-tag text-purple-600 dark:text-purple-400"></i>
+              <div class="w-10 h-10 bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <i class="fas fa-tag text-[#b9b7eeb9]"></i>
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
@@ -118,10 +118,10 @@
 
           <!-- Fecha de Instalación -->
           @if (dataCounterEnterprice.value()?.response?.contador?.fechaInstalacion) {
-          <div class="group bg-white/10 dark:bg-slate-700/20 rounded-xl border border-white/20 dark:border-slate-600/30 backdrop-blur-md p-5 hover:bg-white/15 dark:hover:bg-slate-700/25 transition-all duration-300 hover:shadow-lg hover:shadow-green-500/5 hover:border-green-500/30">
+          <div class="group bg-white/10 dark:bg-slate-700/20 rounded-xl border border-white/20 dark:border-slate-600/30 backdrop-blur-md p-5 hover:bg-white/15 dark:hover:bg-slate-700/25 transition-all duration-300 hover:shadow-lg hover:border-white/30 dark:hover:border-slate-600/50">
             <div class="flex items-start gap-3">
-              <div class="w-10 h-10 bg-green-500/10 dark:bg-green-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <i class="fas fa-calendar-check text-green-600 dark:text-green-400"></i>
+              <div class="w-10 h-10 bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <i class="fas fa-calendar-check text-[#b9b7eeb9]"></i>
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
@@ -137,10 +137,10 @@
 
           <!-- Dirección -->
           @if (dataCounterEnterprice.value()?.response?.contador?.descripcion?.descripcion) {
-          <div class="group bg-white/10 dark:bg-slate-700/20 rounded-xl border border-white/20 dark:border-slate-600/30 backdrop-blur-md p-5 hover:bg-white/15 dark:hover:bg-slate-700/25 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/5 hover:border-orange-500/30 md:col-span-2 lg:col-span-3">
+          <div class="group bg-white/10 dark:bg-slate-700/20 rounded-xl border border-white/20 dark:border-slate-600/30 backdrop-blur-md p-5 hover:bg-white/15 dark:hover:bg-slate-700/25 transition-all duration-300 hover:shadow-lg hover:border-white/30 dark:hover:border-slate-600/50 md:col-span-2 lg:col-span-3">
             <div class="flex items-start gap-3">
-              <div class="w-10 h-10 bg-orange-500/10 dark:bg-orange-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <i class="fas fa-map-marker-alt text-orange-600 dark:text-orange-400"></i>
+              <div class="w-10 h-10 bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <i class="fas fa-map-marker-alt text-[#b9b7eeb9]"></i>
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
@@ -163,10 +163,10 @@
       <div class="text-center space-y-6">
         <!-- Icono informativo -->
         <div
-          class="mx-auto w-20 h-20 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20"
+          class="mx-auto w-20 h-20 bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] rounded-full flex items-center justify-center backdrop-blur-md border border-white/20"
         >
           <i
-            class="fas fa-exclamation-circle text-3xl text-yellow-600 dark:text-yellow-400"
+            class="fas fa-exclamation-circle text-3xl text-[#b9b7eeb9]"
           ></i>
         </div>
         <!-- Título y descripción -->
@@ -207,10 +207,10 @@
       @if (dataCounterEnterprice.error()) {
       <div class="text-center py-12">
         <div
-          class="mx-auto w-16 h-16 bg-gradient-to-br from-red-500/20 to-pink-500/20 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 mb-4"
+          class="mx-auto w-16 h-16 bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 mb-4"
         >
           <i
-            class="fas fa-exclamation-triangle text-3xl text-red-600 dark:text-red-400"
+            class="fas fa-exclamation-triangle text-3xl text-[#b9b7eeb9]"
           ></i>
         </div>
         <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -500,10 +500,10 @@
         <form [formGroup]="readingForm" class="space-y-6">
           <!-- Última Lectura (Info Card) -->
           @if (lastreadingAssignment()) {
-          <div class="relative overflow-hidden bg-gradient-to-br from-blue-500/10 via-cyan-500/10 to-teal-500/10 dark:from-blue-500/5 dark:via-cyan-500/5 dark:to-teal-500/5 rounded-xl border border-blue-500/20 dark:border-blue-500/30 backdrop-blur-md p-4">
+          <div class="relative overflow-hidden bg-gradient-to-br from-white/5 via-white/10 to-white/5 dark:from-slate-700/5 dark:via-slate-700/10 dark:to-slate-700/5 rounded-xl border border-white/20 dark:border-slate-700/30 backdrop-blur-md p-4">
             <div class="flex items-center gap-3">
-              <div class="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center backdrop-blur-md border border-blue-500/30 shadow-lg shadow-blue-500/10">
-                <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div class="w-12 h-12 bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] rounded-xl flex items-center justify-center backdrop-blur-md border border-white/20 dark:border-slate-700/30 shadow-lg">
+                <svg class="w-6 h-6 text-[#b9b7eeb9]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                 </svg>
               </div>
@@ -645,8 +645,8 @@
       <div class="border-b border-white/10 dark:border-slate-700/30 px-6 py-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 rounded-xl flex items-center justify-center backdrop-blur-md border border-purple-500/30">
-              <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="w-10 h-10 bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] rounded-xl flex items-center justify-center backdrop-blur-md border border-white/20 dark:border-slate-700/30">
+              <svg class="w-5 h-5 text-[#b9b7eeb9]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>

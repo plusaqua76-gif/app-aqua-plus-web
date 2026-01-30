@@ -36,6 +36,7 @@ import { CalculosContablesService } from '../../../service/calculos-contables.se
 import { MovimientoContable } from '@interfaces/accounting/IMovimientoContable';
 import { MetricasAcueductoEagerInicializationService } from '../../../service/metricas-acueducto-eager-inicialization.service';
 import { CuentasTotalesEagerInitializationService } from '../../../service/cuentas-totales-eager-initialization.service';
+import { CategoryCountEagerInitializationService } from '../../../service/category-count-eager-inicialization.service';
 
 @Component({
   selector: 'app-main-inventory',
@@ -56,6 +57,7 @@ import { CuentasTotalesEagerInitializationService } from '../../../service/cuent
     @let cartera = metricasService.carteraData();
     @let patrimonio = metricasService.patrimonioData();
     @let economic = resultadosService.economicData();
+    @let categorias = categoryCount.categoryCount();
     @let indicadores = calculosService.enterpriceResolutionSignal();
     <div class="min-h-screen w-full p-6 grid gap-6">
       <div
@@ -869,7 +871,7 @@ import { CuentasTotalesEagerInitializationService } from '../../../service/cuent
                   id="nombreMovimiento"
                   type="text"
                   formControlName="nombre"
-                  placeholder="Ingrese el nombre del movimiento"
+                  placeholder="Ej: Caja General"
                   class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
                 />
                 @if (movimientoForm.get('nombre')?.invalid && movimientoForm.get('nombre')?.touched) {
@@ -889,7 +891,7 @@ import { CuentasTotalesEagerInitializationService } from '../../../service/cuent
                   id="codigoMovimiento"
                   type="text"
                   formControlName="codigo"
-                  placeholder="Código del movimiento"
+                  placeholder="Ej: 1105"
                   class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
                 />
                 @if (movimientoForm.get('codigo')?.invalid && movimientoForm.get('codigo')?.touched) {
@@ -933,41 +935,21 @@ import { CuentasTotalesEagerInitializationService } from '../../../service/cuent
                   class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
                 >
                   <option value="" disabled selected>Seleccione tipo de cuenta</option>
-                  <option value="1">Activo</option>
-                  <option value="2">Pasivo</option>
-                  <option value="3">Patrimonio</option>
-                  <option value="4">Ingreso</option>
-                  <option value="5">Gasto</option>
+                  @if (tiposCuentaResource.value() && tiposCuentaResource.value()!.response.length > 0) {
+                    @for (tipoCuenta of tiposCuentaResource.value()?.response; track tipoCuenta.id) {
+                      <option [value]="tipoCuenta.id">{{ tipoCuenta.nombre }}</option>
+                    }
+                  } @else if (tiposCuentaResource.isLoading()) {
+                    <option disabled>Cargando tipos de cuenta...</option>
+                  }
                 </select>
                 @if (movimientoForm.get('idTipoCuenta')?.invalid && movimientoForm.get('idTipoCuenta')?.touched) {
                   <p class="text-red-500 text-xs mt-2">Seleccione un tipo de cuenta</p>
                 }
               </div>
 
-              <!-- Naturaleza -->
-              <div>
-                <label
-                  for="naturaleza"
-                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
-                >
-                  Naturaleza <span class="text-red-500">*</span>
-                </label>
-                <select
-                  id="naturaleza"
-                  formControlName="idNaturaleza"
-                  class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
-                >
-                  <option value="" disabled selected>Seleccione naturaleza</option>
-                  <option value="1">Crédito</option>
-                  <option value="2">Débito</option>
-                </select>
-                @if (movimientoForm.get('idNaturaleza')?.invalid && movimientoForm.get('idNaturaleza')?.touched) {
-                  <p class="text-red-500 text-xs mt-2">Seleccione una naturaleza</p>
-                }
-              </div>
-
               <!-- Categoría -->
-              <div>
+              <div class="md:col-span-2">
                 <label
                   for="categoria"
                   class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
@@ -980,11 +962,13 @@ import { CuentasTotalesEagerInitializationService } from '../../../service/cuent
                   class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
                 >
                   <option value="" disabled selected>Seleccione categoría</option>
-                  <option value="1">Facturas</option>
-                  <option value="2">Nomina</option>
-                  <option value="3">Ventas</option>
-                  <option value="4">Impuestos</option>
-
+                  @if (categorias && categorias.length > 0) {
+                    @for (categoria of categorias; track categoria.id) {
+                      <option [value]="categoria.id">{{ categoria.nombre }}</option>
+                    }
+                  } @else {
+                    <option disabled>Cargando categorías...</option>
+                  }
                 </select>
                 @if (movimientoForm.get('idCategoriaCuenta')?.invalid && movimientoForm.get('idCategoriaCuenta')?.touched) {
                   <p class="text-red-500 text-xs mt-2">Seleccione una categoría</p>
@@ -992,7 +976,7 @@ import { CuentasTotalesEagerInitializationService } from '../../../service/cuent
               </div>
 
               <!-- Cuenta Corriente -->
-              <div class="flex items-center gap-3 pt-8">
+              <div class="flex items-center gap-3">
                 <app-checkbox
                   [checked]="esCuentaCorriente()"
                   (checkedChange)="onCuentaCorrienteChange($event)"
@@ -1048,6 +1032,7 @@ export class MainInventory {
   protected readonly accountsService = inject(AccountsService);
   protected readonly accountingService = inject(AccountingService);
   protected readonly calculosService = inject(CalculosContablesService);
+  protected readonly categoryCount = inject(CategoryCountEagerInitializationService);
   protected readonly carteraEdadesService = inject(
     CarteraEdadesFacturasService,
   );
@@ -1065,13 +1050,11 @@ export class MainInventory {
   );
   protected readonly toastService = inject(ToastService);
 
-  // Signals para el modal de movimientos
   isMovimientoModalOpen = signal<boolean>(false);
   isCreatingMovimiento = signal<boolean>(false);
   esCuentaCorriente = signal<boolean>(false);
   movimientoForm!: FormGroup;
 
-  // rxResource para cargar tipos de cuenta
   tiposCuentaResource = rxResource({
     stream: () => {
       return this.accountsService.getAllTypeAccountingAccounts();
@@ -1230,7 +1213,6 @@ export class MainInventory {
       codigo: ['', [Validators.required]],
       valor: [0, [Validators.required, Validators.min(0.01)]],
       idTipoCuenta: ['', [Validators.required]],
-      idNaturaleza: ['', [Validators.required]],
       idCategoriaCuenta: ['', [Validators.required]],
     });
   }
@@ -1241,7 +1223,6 @@ export class MainInventory {
       codigo: '',
       valor: 0,
       idTipoCuenta: '',
-      idNaturaleza: '',
       idCategoriaCuenta: '',
     });
     this.esCuentaCorriente.set(false);
@@ -1270,34 +1251,34 @@ export class MainInventory {
       return;
     }
 
+    // Obtener el usuario de sessionStorage
+    let usuarioCreacion = 'admin';
+    try {
+      const userData = sessionStorage.getItem('userData');
+      if (userData) {
+        const parsedUserData = JSON.parse(userData);
+        usuarioCreacion = parsedUserData.username || parsedUserData.email || 'admin';
+      }
+    } catch (e) {
+      console.error('Error al obtener usuario:', e);
+    }
+
     this.isCreatingMovimiento.set(true);
 
     const formData = this.movimientoForm.value;
     const payload = {
       empresa: { id: enterpriseId },
       tipoCuenta: { id: Number(formData.idTipoCuenta) },
-      naturaleza: { id: Number(formData.idNaturaleza) },
       categoriaCuenta: { id: Number(formData.idCategoriaCuenta) },
-      nombre: formData.nombre,
       codigo: formData.codigo,
+      nombre: formData.nombre,
       valor: Number(formData.valor),
       corriente: this.esCuentaCorriente(),
       activo: true,
+      usuarioCreacion: usuarioCreacion,
     };
 
-    // Aquí deberías llamar al servicio real cuando esté disponible
-    // Por ahora simulo éxito
-    setTimeout(() => {
-      this.toastService.success('Éxito', 'Movimiento contable creado correctamente');
-      this.isCreatingMovimiento.set(false);
-      this.closeMovimientoModal();
-      // Recargar los datos
-      this.serverMovimientosData.reload();
-    }, 1000);
-
-    // Cuando tengas el servicio, descomenta esto:
-    /*
-    this.accountingService.createMovimiento(payload).subscribe({
+    this.accountsService.createAccount(payload).subscribe({
       next: (response) => {
         this.toastService.success('Éxito', 'Movimiento contable creado correctamente');
         this.isCreatingMovimiento.set(false);
@@ -1305,10 +1286,10 @@ export class MainInventory {
         this.serverMovimientosData.reload();
       },
       error: (error) => {
-        this.toastService.error('Error', 'No se pudo crear el movimiento contable');
+        console.error('Error al crear cuenta:', error);
+        this.toastService.error('Error', error?.error?.message || 'No se pudo crear el movimiento contable');
         this.isCreatingMovimiento.set(false);
       }
     });
-    */
   }
 }
