@@ -7,7 +7,6 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [`
-    /* From Uiverse.io by 00Kubi */
     .neon-checkbox {
       --primary: #3b82f6;
       --primary-dark: #2563eb;
@@ -302,7 +301,11 @@ import { CommonModule } from '@angular/common';
     }
   `],
   template: `
-    <label class="neon-checkbox" [class.disabled]="disabled()">
+    <label
+      class="neon-checkbox"
+      [class.disabled]="disabled()"
+      [style.--size]="widthHeight()"
+    >
       <input
         type="checkbox"
         [checked]="checked()"
@@ -339,11 +342,9 @@ import { CommonModule } from '@angular/common';
   `,
 })
 export class Checkbox {
-  // Input signals
+  widthHeight = input<string>('20px');
   checked = input<boolean>(false);
   disabled = input<boolean>(false);
-
-  // Output signal
   checkedChange = output<boolean>();
 
   onCheckboxChange(event: Event): void {

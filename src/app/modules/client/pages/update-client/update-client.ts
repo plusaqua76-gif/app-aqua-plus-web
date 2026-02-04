@@ -12,7 +12,7 @@ import { ITipoDocumento } from '@interfaces/Iuser';
 import { LocationService } from '@shared/services/location.service';
 import { EmpleadoService } from '../../../employee/service/empleado.service';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { EMPTY, of } from 'rxjs';
+import { catchError, EMPTY, of } from 'rxjs';
 import { EnterpriseClientCounterService } from '../../service/enterpriseClientCounter.service';
 import { IClienteDetalle } from '@interfaces/client/IclientDetail';
 import { TypeCounterService } from '../../../counter/service/typeCounter.service';
@@ -20,6 +20,7 @@ import { ITypeCounter } from '@interfaces/ItypeCounter';
 import { ConceptRateService } from '../../../fee/services/concept-rate.service';
 import { CounterService } from '../../service/couter.service';
 import { switchMap } from 'rxjs';
+import { error } from 'node:console';
 
 
 @Component({
@@ -123,7 +124,17 @@ export class UpdateClient implements OnInit {
 
   dataEmployee = rxResource({
     params: () => ({ enterpriseId: this.empresaId() }),
-    stream: ({ params: { enterpriseId } }) => enterpriseId ? this.empleadoService.getEmployeeByEnterprice(enterpriseId) : EMPTY
+    stream: ({ params: { enterpriseId } }) =>
+      enterpriseId
+        ? this.empleadoService.getEmployeeByEnterprice(enterpriseId).pipe(
+            catchError((error) => {
+              if (error.status === 404) {
+                return of(null);
+              }
+              return of(null);
+            })
+          )
+        : of(null)
   });
 
   loadTypeCounter = rxResource({
@@ -134,10 +145,17 @@ export class UpdateClient implements OnInit {
   feeConcept = rxResource({
     params: () => ({ enterpriseId: this.empresaId() }),
     stream: ({ params: { enterpriseId } }) =>
-      enterpriseId ?
-        this.conceptRateService.getConceptRateByEnterprise(enterpriseId)
+      enterpriseId
+        ? this.conceptRateService.getConceptRateByEnterprise(enterpriseId).pipe(
+            catchError((error) => {
+              if (error.status === 404) {
+                return of(null);
+              }
+              return of(null);
+            })
+          )
         : of(null)
-  })
+  });
 
   readonly employeeData = computed(() => this.dataEmployee.value()?.response || []);
   readonly clientData = computed(() => this.dataClient.value()?.response || null);
@@ -236,8 +254,8 @@ export class UpdateClient implements OnInit {
       idCiudad: ['', [Validators.required]],
       idCorregimiento: [''],
       direccion: ['', [Validators.required]],
-      telefono: ['', [Validators.required]],
-      correo: ['', [Validators.required, Validators.email]],
+      telefono: [''],
+      correo: ['', [Validators.email]],
       idEmpleadoEmpresa: ['', [Validators.required]],
       contadores: this.fb.array([]) // Agregar FormArray para contadores
     });

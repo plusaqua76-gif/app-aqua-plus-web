@@ -104,7 +104,37 @@ interface ChartOptions {
   <div id="legend-chart"></div>
   <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between mt-5">
     <div class="flex justify-between items-center pt-5">
-      <!-- Dropdown Container -->
+      <!-- Dropdown de Años -->
+      <div class="year-dropdown-container relative">
+        <!-- Button -->
+        <button
+          (click)="toggleYearDropdown()"
+          class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
+          type="button">
+          Año: {{ selectedYear() }}
+          <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+          </svg>
+        </button>
+        <!-- Dropdown menu -->
+        <div [class.hidden]="!isYearDropdownOpen" class="absolute bottom-full mb-1 z-50 bg-white divide-y divide-gray-100 rounded-lg shadow-lg w-32 dark:bg-gray-700">
+            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
+              @for (year of availableYears(); track year) {
+                <li>
+                  <button
+                    (click)="selectYear(year)"
+                    [class.bg-blue-100]="selectedYear() === year"
+                    [class.dark:bg-blue-900]="selectedYear() === year"
+                    class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                    {{ year }}
+                  </button>
+                </li>
+              }
+            </ul>
+        </div>
+      </div>
+
+      <!-- Dropdown de Meses -->
       <div class="dropdown-container relative">
         <!-- Button -->
         <button
@@ -184,6 +214,11 @@ export class Legends implements AfterViewInit, OnDestroy {
   public isDropdownOpen = false;
   public selectedMonth = 'Todos los meses';
 
+  // Propiedades para el dropdown de años
+  public isYearDropdownOpen = false;
+  public selectedYear = signal<number>(new Date().getFullYear());
+  public availableYears = signal<number[]>([2020, 2021, 2022, 2023, 2024, 2025, 2026]);
+
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
     try {
@@ -206,7 +241,7 @@ export class Legends implements AfterViewInit, OnDestroy {
   });
 
   readonly currentYear = computed(() => {
-    return this.currentDate().getFullYear();
+    return this.selectedYear();
   });
 
   // Signal computed que se actualiza cuando cambian empresaId o año
@@ -241,8 +276,12 @@ export class Legends implements AfterViewInit, OnDestroy {
   private closeDropdownOnOutsideClick(event: Event): void {
     const target = event.target as HTMLElement;
     const dropdown = target.closest('.dropdown-container');
+    const yearDropdown = target.closest('.year-dropdown-container');
     if (!dropdown) {
       this.isDropdownOpen = false;
+    }
+    if (!yearDropdown) {
+      this.isYearDropdownOpen = false;
     }
   }
 
@@ -279,14 +318,44 @@ export class Legends implements AfterViewInit, OnDestroy {
 
 
   /**
-   * Toggle del dropdown
+   * Toggle del dropdown de meses
    */
   toggleDropdown(): void {
     this.isDropdownOpen = !this.isDropdownOpen;
+    if (this.isDropdownOpen) {
+      this.isYearDropdownOpen = false;
+    }
   }
 
   /**
-   * Seleccionar mes y actualizar gráfico
+   * Toggle del dropdown de años
+   */
+  toggleYearDropdown(): void {
+    this.isYearDropdownOpen = !this.isYearDropdownOpen;
+    if (this.isYearDropdownOpen) {
+      this.isDropdownOpen = false;
+    }
+  }
+
+  /**
+   * Seleccionar año y recargar datos con animación
+   */
+  selectYear(year: number): void {
+    this.selectedYear.set(year);
+    this.isYearDropdownOpen = false;
+    this.selectedMonth = 'Todos los meses';
+
+    // Destruir la gráfica existente para forzar animación
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = null;
+    }
+
+    this.loadFacturasData();
+  }
+
+  /**
+   * Seleccionar mes y actualizar gráfico con animación
    */
   selectMonth(monthName: string): void {
     this.selectedMonth = monthName;
@@ -301,6 +370,12 @@ export class Legends implements AfterViewInit, OnDestroy {
     }
 
     this.isLoading.set(true);
+
+    // Destruir la gráfica existente para forzar animación
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = null;
+    }
 
     // Convertir nombre del mes a número (1-12) o undefined para "Todos los meses"
     const monthNumber = this.getMonthNumber(monthName);
@@ -323,7 +398,9 @@ export class Legends implements AfterViewInit, OnDestroy {
           this.chartData.set(monthData);
           this.isLoading.set(false);
           this.hasError.set(false);
-          this.updateChart(monthData);
+          setTimeout(() => {
+            this.initializeAreaChart();
+          }, 0);
         },
         error: (error: any) => {
           this.isLoading.set(false);
@@ -338,7 +415,9 @@ export class Legends implements AfterViewInit, OnDestroy {
           this.chartData.set(data);
           this.isLoading.set(false);
           this.hasError.set(false);
-          this.updateChart(data);
+          setTimeout(() => {
+            this.initializeAreaChart();
+          }, 0);
         },
         error: (error: any) => {
           this.isLoading.set(false);
@@ -356,32 +435,6 @@ export class Legends implements AfterViewInit, OnDestroy {
     };
 
     return months[monthName];
-  }
-
-  private updateChart(data: IFacturasData): void {
-    if (this.chart) {
-      const newSeries = [
-        {
-          name: 'Facturas Pagadas',
-          data: data.yAxis.facturasPagadas,
-        },
-        {
-          name: 'Facturas Pendientes',
-          data: data.yAxis.facturasPendientes,
-        },
-        {
-          name: 'Facturas Vencidas',
-          data: data.yAxis.facturasVencidas,
-        }
-      ];
-
-      this.chart.updateSeries(newSeries);
-      this.chart.updateOptions({
-        xaxis: {
-          categories: data.xAxis
-        }
-      });
-    }
   }
 
   private getOptions(): ChartOptions {

@@ -29,7 +29,7 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
     </ng-template>
 
     <ng-template #contadorTpl let-row>
-      {{ row.contador?.serial || 'N/A' }}
+      {{ row.contador?.serial || '' }}
     </ng-template>
 
     <ng-template #consumoAnormalTpl let-row>

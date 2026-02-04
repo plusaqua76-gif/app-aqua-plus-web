@@ -855,7 +855,7 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
           [open]="isMovimientoModalOpen"
           [title]="'Crear Movimiento Contable'"
           [isConfirmation]="false"
-          [maxWidth]="'max-w-2xl'"
+          [maxWidth]="'max-w-3xl'"
         >
           <form [formGroup]="movimientoForm" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -921,7 +921,7 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
                 }
               </div>
 
-              <!-- Tipo de Cuenta -->
+              <!-- Tipo de Cuenta y Cuenta Corriente juntos -->
               <div>
                 <label
                   for="tipoCuenta"
@@ -932,15 +932,22 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
                 <select
                   id="tipoCuenta"
                   formControlName="idTipoCuenta"
-                  class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
+                  class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+                  required
                 >
-                  <option value="" disabled selected>Seleccione tipo de cuenta</option>
+                  <option value="" disabled selected hidden class="text-gray-100">
+                    @if (tiposCuentaResource.isLoading()) {
+                      Cargando tipos de cuenta...
+                    } @else if (tiposCuentaResource.error()) {
+                      Error al cargar tipos de cuenta
+                    } @else {
+                      Seleccione tipo de cuenta
+                    }
+                  </option>
                   @if (tiposCuentaResource.value() && tiposCuentaResource.value()!.response.length > 0) {
                     @for (tipoCuenta of tiposCuentaResource.value()?.response; track tipoCuenta.id) {
-                      <option [value]="tipoCuenta.id">{{ tipoCuenta.nombre }}</option>
+                      <option [value]="tipoCuenta.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">{{ tipoCuenta.nombre }}</option>
                     }
-                  } @else if (tiposCuentaResource.isLoading()) {
-                    <option disabled>Cargando tipos de cuenta...</option>
                   }
                 </select>
                 @if (movimientoForm.get('idTipoCuenta')?.invalid && movimientoForm.get('idTipoCuenta')?.touched) {
@@ -948,8 +955,24 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
                 }
               </div>
 
-              <!-- Categoría -->
-              <div class="md:col-span-2">
+              <!-- Cuenta Corriente -->
+              <div class="flex flex-col justify-end pb-1">
+                <div class="flex items-center gap-3 px-4 pt-6 ">
+                  <app-checkbox
+                    [checked]="esCuentaCorriente()"
+                    (checkedChange)="onCuentaCorrienteChange($event)"
+                  />
+                  <label
+                    class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none flex-1 pb-1.5"
+                    (click)="onCuentaCorrienteChange(!esCuentaCorriente())"
+                  >
+                    Cuenta Corriente
+                  </label>
+                </div>
+              </div>
+
+              <!-- Categoría con Accordion -->
+              <div class="md:col-span-2 space-y-3">
                 <label
                   for="categoria"
                   class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
@@ -959,34 +982,109 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
                 <select
                   id="categoria"
                   formControlName="idCategoriaCuenta"
-                  class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
+                  class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+                  required
                 >
-                  <option value="" disabled selected>Seleccione categoría</option>
+                  <option value="" disabled selected hidden class="text-gray-100">
+                    @if (categoryCount.isLoading()) {
+                      Cargando categorías...
+                    } @else {
+                      Seleccione categoría
+                    }
+                  </option>
                   @if (categorias && categorias.length > 0) {
                     @for (categoria of categorias; track categoria.id) {
-                      <option [value]="categoria.id">{{ categoria.nombre }}</option>
+                      <option [value]="categoria.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">{{ categoria.nombre }}</option>
                     }
-                  } @else {
-                    <option disabled>Cargando categorías...</option>
                   }
                 </select>
                 @if (movimientoForm.get('idCategoriaCuenta')?.invalid && movimientoForm.get('idCategoriaCuenta')?.touched) {
                   <p class="text-red-500 text-xs mt-2">Seleccione una categoría</p>
                 }
-              </div>
 
-              <!-- Cuenta Corriente -->
-              <div class="flex items-center gap-3">
-                <app-checkbox
-                  [checked]="esCuentaCorriente()"
-                  (checkedChange)="onCuentaCorrienteChange($event)"
-                />
-                <label
-                  class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none pb-1"
-                  (click)="onCuentaCorrienteChange(!esCuentaCorriente())"
-                >
-                  Cuenta Corriente
-                </label>
+                <!-- Accordion para crear categoría -->
+                <div class="border border-purple-500/30 rounded-xl overflow-hidden bg-gradient-to-br from-purple-500/5 to-blue-500/5">
+                  <button
+                    type="button"
+                    (click)="toggleAccordion()"
+                    class="w-full px-4 py-3 flex items-center justify-between bg-white/5 dark:bg-slate-700/30 hover:bg-white/10 dark:hover:bg-slate-600/40 transition-all duration-300"
+                  >
+                    <span class="text-sm font-medium text-purple-600 dark:text-purple-400 flex items-center gap-2">
+                      <i class="fas fa-plus-circle"></i>
+                      ¿No existe la categoría? Créala aquí
+                    </span>
+                    <i [class]="isAccordionOpen() ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="text-purple-600 dark:text-purple-400 text-xs transition-transform duration-300"></i>
+                  </button>
+
+                  @if (isAccordionOpen()) {
+                    <div class="p-4 bg-white/5 dark:bg-slate-800/30 animate-fadeIn">
+                      <form [formGroup]="categoryForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <!-- Nombre de la Categoría -->
+                          <div>
+                            <label
+                              for="nombreCategoria"
+                              class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
+                            >
+                              Nombre <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                              id="nombreCategoria"
+                              type="text"
+                              formControlName="nombre"
+                              placeholder="Ej: Activos Corrientes"
+                              class="w-full px-3 py-2 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 text-sm transition-all duration-300"
+                            />
+                            @if (categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched) {
+                              <p class="text-red-500 text-xs mt-1">El nombre es requerido</p>
+                            }
+                          </div>
+
+                          <!-- Código de la Categoría -->
+                          <div>
+                            <label
+                              for="codigoCategoria"
+                              class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
+                            >
+                              Código <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                              id="codigoCategoria"
+                              type="text"
+                              formControlName="codigo"
+                              placeholder="Ej: AC-001"
+                              class="w-full px-3 py-2 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 text-sm transition-all duration-300"
+                            />
+                            @if (categoryForm.get('codigo')?.invalid && categoryForm.get('codigo')?.touched) {
+                              <p class="text-red-500 text-xs mt-1">El código es requerido</p>
+                            }
+                          </div>
+                        </div>
+
+                        <!-- Botón para crear categoría -->
+                        <div class="flex justify-end pt-2">
+                          <button
+                            type="button"
+                            (click)="createCategory()"
+                            [disabled]="categoryForm.invalid || isCreatingCategory()"
+                            class="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 backdrop-blur-md text-purple-700 dark:text-purple-300 font-medium rounded-lg hover:border-purple-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+                          >
+                            @if (isCreatingCategory()) {
+                              <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Creando categoría...
+                            } @else {
+                              <i class="fas fa-plus"></i>
+                              Crear Categoría
+                            }
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  }
+                </div>
               </div>
             </div>
 
@@ -1054,6 +1152,9 @@ export class MainInventory {
   isCreatingMovimiento = signal<boolean>(false);
   esCuentaCorriente = signal<boolean>(false);
   movimientoForm!: FormGroup;
+  categoryForm!: FormGroup;
+  isAccordionOpen = signal<boolean>(false);
+  isCreatingCategory = signal<boolean>(false);
 
   tiposCuentaResource = rxResource({
     stream: () => {
@@ -1063,14 +1164,12 @@ export class MainInventory {
 
   constructor() {
     this.initializeMovimientoForm();
+    this.initializeCategoryForm();
   }
 
-  // Computed signal para obtener los datos del mes actual
   readonly metricasAcueductoMesActual = computed(() => {
     const data = this.metricasAcueductoService.enterpriceResolutionSignal();
     if (!data?.porMes || data.porMes.length === 0) return null;
-
-    // Obtener el último mes del array (el más reciente)
     return data.porMes[data.porMes.length - 1];
   });
 
@@ -1102,7 +1201,6 @@ export class MainInventory {
   readonly accountColumns = signal([
     { field: 'categoriaNombre', header: 'Categoría', type: 'text' as const },
     { field: 'total', header: 'Total', type: 'currency' as const },
-    { field: 'usuarioCreacion', header: 'Usuario', type: 'text' as const },
     { field: 'fechaCreacion', header: 'Fecha', type: 'date' as const },
   ]);
 
@@ -1217,6 +1315,13 @@ export class MainInventory {
     });
   }
 
+  private initializeCategoryForm(): void {
+    this.categoryForm = this.fb.group({
+      nombre: ['', [Validators.required, Validators.minLength(3)]],
+      codigo: ['', [Validators.required]],
+    });
+  }
+
   openMovimientoModal(): void {
     this.movimientoForm.reset({
       nombre: '',
@@ -1226,17 +1331,66 @@ export class MainInventory {
       idCategoriaCuenta: '',
     });
     this.esCuentaCorriente.set(false);
+    this.isAccordionOpen.set(false);
     this.isMovimientoModalOpen.set(true);
   }
 
   closeMovimientoModal(): void {
     this.isMovimientoModalOpen.set(false);
     this.movimientoForm.reset();
+    this.categoryForm.reset();
     this.esCuentaCorriente.set(false);
+    this.isAccordionOpen.set(false);
   }
 
   onCuentaCorrienteChange(checked: boolean): void {
     this.esCuentaCorriente.set(checked);
+  }
+
+  toggleAccordion(): void {
+    this.isAccordionOpen.update(value => !value);
+  }
+
+  createCategory(): void {
+    if (this.categoryForm.invalid) {
+      this.categoryForm.markAllAsTouched();
+      return;
+    }
+
+    let usuarioCreacion = 'admin';
+    try {
+      const userData = sessionStorage.getItem('userData');
+      if (userData) {
+        const parsedUserData = JSON.parse(userData);
+        usuarioCreacion = parsedUserData.username || parsedUserData.email || 'admin';
+      }
+    } catch (e) {
+      console.error('Error al obtener usuario:', e);
+    }
+
+    this.isCreatingCategory.set(true);
+
+    const categoryData = {
+      ...this.categoryForm.value,
+      activo: true,
+      usuarioCreacion: usuarioCreacion,
+    };
+
+    this.categoryCount.createCategoryCount(categoryData).subscribe({
+      next: (response) => {
+        this.toastService.success('Éxito', 'Categoría creada correctamente');
+        this.categoryForm.reset();
+        this.isCreatingCategory.set(false);
+        this.isAccordionOpen.set(false);
+        this.tiposCuentaResource.reload();
+        // window.location.reload();
+      },
+      error: (error) => {
+        console.error('Error al crear categoría:', error);
+        this.toastService.error('Error', error?.error?.message || 'No se pudo crear la categoría');
+        this.isCreatingCategory.set(false);
+      }
+    });
   }
 
   createMovimiento(): void {
@@ -1251,7 +1405,6 @@ export class MainInventory {
       return;
     }
 
-    // Obtener el usuario de sessionStorage
     let usuarioCreacion = 'admin';
     try {
       const userData = sessionStorage.getItem('userData');

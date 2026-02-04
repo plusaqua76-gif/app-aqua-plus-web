@@ -1661,11 +1661,8 @@ export class CreateInvoiceComponent {
         return;
       }
 
-      console.log('📤 Enviando factura:', request);
-
       this.invoiceService.SendInvoiceDianClient(request).subscribe({
         next: (response) => {
-          console.log('✅ Factura creada exitosamente:', response);
           this.toast.success(
             'Éxito',
             'Factura creada y enviada a DIAN exitosamente.'

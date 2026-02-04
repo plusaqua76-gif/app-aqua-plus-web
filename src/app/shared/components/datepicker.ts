@@ -135,9 +135,6 @@ import { FormsModule } from '@angular/forms'
     .animate-fadeIn {
       animation: fadeIn 0.2s ease-out;
     }
-    select option {
-      @apply bg-slate-800 text-white;
-    }
   `]
 })
 export class Datepicker {
@@ -166,6 +163,25 @@ export class Datepicker {
     private renderer: Renderer2,
     private viewContainerRef: ViewContainerRef
   ) {
+    // Effect to parse input value when it changes
+    effect(() => {
+      const inputValue = this.value();
+
+      // Si no hay valor de entrada, limpiar la fecha seleccionada
+      if (!inputValue) {
+        this.selectedDate.set(null);
+        return;
+      }
+
+      // Si hay valor, intentar parsearlo
+      const parsedDate = this.parseInputDate(inputValue);
+      if (parsedDate) {
+        this.selectedDate.set(parsedDate);
+        this.currentMonth.set(parsedDate.getMonth());
+        this.currentYear.set(parsedDate.getFullYear());
+      }
+    });
+
     // Effect to handle modal rendering
     effect(() => {
       if (this.isOpen()) {
@@ -299,12 +315,21 @@ export class Datepicker {
 
   selectedDateFormatted = computed(() => {
     const date = this.selectedDate();
-    if (!date) return this.value();
 
+    // Si no hay fecha seleccionada, retornar string vacío
+    if (!date) return '';
+
+    const format = this.format();
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
 
+    // Formato ISO (yyyy-mm-dd) para APIs
+    if (format === 'yyyy-mm-dd') {
+      return `${year}-${month}-${day}`;
+    }
+
+    // Formato legible (dd/mm/yyyy) para UI
     return `${day}/${month}/${year}`;
   });
 
@@ -376,6 +401,41 @@ export class Datepicker {
     return date.getDate() === selected.getDate() &&
            date.getMonth() === selected.getMonth() &&
            date.getFullYear() === selected.getFullYear();
+  }
+
+  /**
+   * Parsea una fecha de string a Date
+   * Soporta formatos: yyyy-mm-dd, dd/mm/yyyy
+   */
+  private parseInputDate(value: string): Date | null {
+    if (!value?.trim()) return null;
+
+    // Formato ISO: yyyy-mm-dd
+    const isoRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
+    const isoMatch = value.match(isoRegex);
+    if (isoMatch) {
+      const [, year, month, day] = isoMatch;
+      const date = new Date(Number(year), Number(month) - 1, Number(day));
+      return this.isValidDate(date) ? date : null;
+    }
+
+    // Formato dd/mm/yyyy
+    const ddmmyyyyRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    const ddmmyyyyMatch = value.match(ddmmyyyyRegex);
+    if (ddmmyyyyMatch) {
+      const [, day, month, year] = ddmmyyyyMatch;
+      const date = new Date(Number(year), Number(month) - 1, Number(day));
+      return this.isValidDate(date) ? date : null;
+    }
+
+    return null;
+  }
+
+  /**
+   * Valida que un objeto Date sea válido
+   */
+  private isValidDate(date: Date): boolean {
+    return date instanceof Date && !isNaN(date.getTime());
   }
 
   getDayClasses(day: any): string {

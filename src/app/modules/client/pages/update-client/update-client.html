@@ -128,7 +128,7 @@
             for="correo"
             class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
           >
-            Correo Electrónico <span class="text-red-500">*</span>
+            Correo Electrónico
           </label>
           <div class="relative">
             <input
@@ -166,8 +166,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-            @if (updateForm.get('correo')?.errors?.['required']) { El correo es
-            requerido } @else if (updateForm.get('correo')?.errors?.['email']) {
+            @if (updateForm.get('correo')?.errors?.['email']) {
             El correo debe tener un formato válido }
           </p>
           }
@@ -349,7 +348,7 @@
             for="telefono"
             class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
           >
-            Teléfono <span class="text-red-500">*</span>
+            Teléfono
           </label>
           <div class="relative">
             <input
@@ -387,7 +386,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-            El teléfono es requerido
+            El teléfono no es válido
           </p>
           }
         </div>
@@ -831,9 +830,9 @@
                     type="number"
                     id="estrato_{{i}}"
                     formControlName="estrato"
-                    min="1"
+                    min="0"
                     max="6"
-                    placeholder="1-6"
+                    placeholder="0"
                     class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
                   />
                   <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
