@@ -132,8 +132,8 @@ export class UpdateEmployee implements OnInit {
       idCorregimiento: [''],
       direccion: [''], // Quitar requerido inicialmente
       codigo: ['', [Validators.required]],
-      correo: ['', [Validators.required, Validators.email]],
-      telefono: ['', [Validators.required]],
+      correo: ['', [Validators.email]],
+      telefono: [''],
       activo: [true]
     });
   }
@@ -373,18 +373,16 @@ export class UpdateEmployee implements OnInit {
       updatePayload.correo = changedFields.correo;
     }
 
-    // Solo incluir dirección si algún campo de dirección cambió
     if (changedFields.idCiudad !== undefined ||
         changedFields.idCorregimiento !== undefined ||
         changedFields.direccion !== undefined) {
       updatePayload.direccion = {
-        id: 0, // ID de dirección (0 para nueva dirección)
+        id: 0,
         ciudad: changedFields.idCiudad ? { id: Number(changedFields.idCiudad) } : undefined,
         corregimiento: changedFields.idCorregimiento ? { id: Number(changedFields.idCorregimiento) } : undefined,
         descripcion: changedFields.direccion || ''
       };
 
-      // Limpiar campos undefined en dirección
       Object.keys(updatePayload.direccion).forEach(key => {
         if (updatePayload.direccion[key] === undefined) {
           delete updatePayload.direccion[key];
@@ -392,12 +390,8 @@ export class UpdateEmployee implements OnInit {
       });
     }
 
-    // Siempre incluir el usuario de modificación
     updatePayload.usuarioModificacion = usuarioModificacion;
 
-    console.log('Payload de actualización (solo campos modificados):', updatePayload);
-
-    // Usar el mismo servicio que en cliente
     this.personService.savaOrUpdatePerson(updatePayload as any).subscribe({
       next: (response: any) => {
         this.toast.success('Éxito', 'Empleado actualizado correctamente');
@@ -405,7 +399,6 @@ export class UpdateEmployee implements OnInit {
       },
       error: (err: any) => {
         console.error('Error al actualizar empleado:', err);
-        // Manejar casos donde el backend devuelve 200 pero con error HTTP
         if (err.status === 200 || err.status === 201 || err.status === 204) {
           this.toast.success('Éxito', 'Empleado actualizado correctamente');
           this.router.navigate(['/shell/employee']);

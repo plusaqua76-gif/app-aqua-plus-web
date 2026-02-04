@@ -3,13 +3,16 @@ import { inject, Injectable } from "@angular/core";
 import { environment } from "../../../environments/environment.local";
 import { rxResource } from "@angular/core/rxjs-interop";
 import { ApiResponse } from "@interfaces/Iresponse";
-import { catchError, map, of } from "rxjs";
+import { catchError, map, Observable, of } from "rxjs";
 
 export interface CategoryCount {
     id: number;
     nombre: string;
     codigo: string;
+    activo?: boolean;
+    usuarioCreacion?: string;
 }
+
 
 
 @Injectable({
@@ -19,6 +22,19 @@ export class CategoryCountEagerInitializationService {
 
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}`;
+
+  createCategoryCount(categoryCount: CategoryCount):Observable<any> {
+    return this.http.post<CategoryCount>(
+      `${this.apiUrl}/categoria-cuenta`,
+      categoryCount
+    );
+  }
+
+  deleteCategoryCount(id: number):Observable<any> {
+    return this.http.delete(
+      `${this.apiUrl}/categoria-cuenta/${id}`
+    );
+  }
 
   private categoryResource = rxResource({
     stream: () => {

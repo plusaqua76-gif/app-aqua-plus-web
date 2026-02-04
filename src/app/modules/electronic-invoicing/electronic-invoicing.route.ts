@@ -1,7 +1,7 @@
 
 import { Routes } from '@angular/router';
 
-export default [
+const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./pages/electronic-invoicing-wrapper/electronic-invoicing-wrapper').then(m => m.ElectronicInvoicingWrapper),
@@ -14,4 +14,6 @@ export default [
     path: 'enterprice-dian',
     loadComponent: () => import('./pages/enterprice-dian/enterprice-dian').then(m => m.EnterpriceDian),
   }
-] as Routes;
+];
+
+export default routes;

@@ -160,7 +160,7 @@ export class PdfBill {
   }
 
   formatDate(dateString: string | undefined): string {
-    if (!dateString) return 'N/A';
+    if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('es-CO');
   }

@@ -143,7 +143,37 @@ interface ColumnChartOptions {
 
   <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between mt-5">
     <div class="flex justify-between items-center pt-5">
-      <!-- Dropdown Container -->
+      <!-- Dropdown de Años -->
+      <div class="year-dropdown-container relative">
+        <!-- Button -->
+        <button
+          (click)="toggleYearDropdown()"
+          class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
+          type="button">
+          Año: {{ selectedYear() }}
+          <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+          </svg>
+        </button>
+        <!-- Dropdown menu -->
+        <div [class.hidden]="!isYearDropdownOpen" class="absolute bottom-full mb-1 z-50 bg-white divide-y divide-gray-100 rounded-lg shadow-lg w-32 dark:bg-gray-700">
+            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
+              @for (year of availableYears(); track year) {
+                <li>
+                  <button
+                    (click)="selectYear(year)"
+                    [class.bg-blue-100]="selectedYear() === year"
+                    [class.dark:bg-blue-900]="selectedYear() === year"
+                    class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                    {{ year }}
+                  </button>
+                </li>
+              }
+            </ul>
+        </div>
+      </div>
+
+      <!-- Dropdown de Meses -->
       <div class="dropdown-container relative">
         <!-- Button -->
         <button
@@ -186,10 +216,15 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
   public isLoading = signal<boolean>(true);
   public hasError = signal<boolean>(false);
 
-  // Propiedades para el dropdown
+  // Propiedades para el dropdown de meses
   public isDropdownOpen = false;
   public selectedMonth = 'Todos los meses';
   public availableMonths = signal<string[]>([]);
+
+  // Propiedades para el dropdown de años
+  public isYearDropdownOpen = false;
+  public selectedYear = signal<number>(new Date().getFullYear());
+  public availableYears = signal<number[]>([2020, 2021, 2022, 2023, 2024, 2025, 2026]);
 
   // Propiedades calculadas como signals
   public totalConsumo = signal<number>(0);
@@ -218,7 +253,7 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
   });
 
   readonly currentYear = computed(() => {
-    return this.currentDate().getFullYear();
+    return this.selectedYear();
   });  constructor() {
     // Registrar locale colombiano
     registerLocaleData(localeEs);
@@ -247,8 +282,12 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
   private closeDropdownOnOutsideClick(event: Event): void {
     const target = event.target as HTMLElement;
     const dropdown = target.closest('.dropdown-container');
+    const yearDropdown = target.closest('.year-dropdown-container');
     if (!dropdown) {
       this.isDropdownOpen = false;
+    }
+    if (!yearDropdown) {
+      this.isYearDropdownOpen = false;
     }
   }
 
@@ -331,15 +370,29 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Toggle del dropdown
+   * Toggle del dropdown de meses
    */
   toggleDropdown(): void {
     this.isDropdownOpen = !this.isDropdownOpen;
+    if (this.isDropdownOpen) {
+      this.isYearDropdownOpen = false;
+    }
   }
 
-  /**
-   * Seleccionar mes y actualizar gráfico
-   */
+  toggleYearDropdown(): void {
+    this.isYearDropdownOpen = !this.isYearDropdownOpen;
+    if (this.isYearDropdownOpen) {
+      this.isDropdownOpen = false;
+    }
+  }
+
+  selectYear(year: number): void {
+    this.selectedYear.set(year);
+    this.isYearDropdownOpen = false;
+    this.selectedMonth = 'Todos los meses';
+    this.loadConsumoData();
+  }
+
   selectMonth(monthName: string): void {
     this.selectedMonth = monthName;
     this.isDropdownOpen = false;
@@ -353,12 +406,9 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
     }
 
     this.isLoading.set(true);
-
-    // Convertir nombre del mes a número (1-12) o undefined para "Todos los meses"
     const monthNumber = this.getMonthNumber(monthName);
 
     if (monthNumber) {
-      // Cargar datos para un mes específico
       this.subscription?.unsubscribe();
       this.subscription = this.clientesKpiService.getBilledConsumptionForChart(empresaId, anio, monthNumber).subscribe({
         next: (data: IColumnChartData) => {
@@ -374,7 +424,6 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
         }
       });
     } else {
-      // Cargar datos para todos los meses
       this.subscription?.unsubscribe();
       this.subscription = this.clientesKpiService.getBilledConsumptionForChart(empresaId, anio).subscribe({
         next: (data: IColumnChartData) => {
@@ -423,7 +472,6 @@ export class ColumnChartCardComponent implements AfterViewInit, OnDestroy {
         }
       });
     } else if (this.chart && (!data || data.xAxis.length === 0)) {
-      // Si no hay datos, actualizar con series vacías pero NO destruir el gráfico
       const emptySeries = [
         {
           name: 'Consumo (m³)',

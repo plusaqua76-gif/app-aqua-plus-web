@@ -148,7 +148,7 @@ interface IInventarioDetallado {
                       Código
                     </label>
                     <div class="px-4 py-3 bg-white/20 dark:bg-slate-700/30 border border-blue-500/20 rounded-xl text-gray-900 dark:text-white backdrop-blur-md">
-                      {{ currentInventory()?.producto?.codigo || 'N/A' }}
+                      {{ currentInventory()?.producto?.codigo || '' }}
                     </div>
                   </div>
 
@@ -158,7 +158,7 @@ interface IInventarioDetallado {
                       Producto
                     </label>
                     <div class="px-4 py-3 bg-white/20 dark:bg-slate-700/30 border border-blue-500/20 rounded-xl text-gray-900 dark:text-white backdrop-blur-md">
-                      {{ currentInventory()?.producto?.nombre || 'N/A' }}
+                      {{ currentInventory()?.producto?.nombre || '' }}
                     </div>
                   </div>
 
@@ -168,7 +168,7 @@ interface IInventarioDetallado {
                       Categoría
                     </label>
                     <div class="px-4 py-3 bg-white/20 dark:bg-slate-700/30 border border-blue-500/20 rounded-xl text-gray-900 dark:text-white backdrop-blur-md">
-                      {{ currentInventory()?.producto?.categoria?.nombre || 'N/A' }}
+                      {{ currentInventory()?.producto?.categoria?.nombre || '' }}
                     </div>
                   </div>
                 </div>

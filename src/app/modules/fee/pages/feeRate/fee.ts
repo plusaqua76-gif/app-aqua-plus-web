@@ -24,19 +24,19 @@ import { IrateTypes } from '@interfaces/IrateTypes';
 import { ToastService } from '@services/toast.service';
 import { TypeConceptService } from '../../services/type-concept.service';
 import { ConceptRateService } from '../../services/concept-rate.service';
-import { EMPTY, of, catchError } from 'rxjs';
+import { EMPTY, of, catchError, forkJoin } from 'rxjs';
 import {
   Estrato,
   NuevoItem,
 } from '../../../../core/interfaces/tipo-tarifa/ITarifaItem';
-import {
-  EstratoConcepto
-} from '../../../../core/interfaces/IConceptoEstrato';
-import { BackFill } from "../../components/drag-and-drop/back-fill";
+import { EstratoConcepto } from '../../../../core/interfaces/IConceptoEstrato';
+import { BackFill } from '../../components/drag-and-drop/back-fill';
 import { error } from 'console';
 import { UseService } from '../../services/use.service';
-import { TransversalRate } from "../transversal-rate/transversalRate";
-import { BillValidityParameters } from "../bill-validity-parameters/bill-validity-parameters";
+import { CounterEnterpriceService } from '../../services/counter-enterprice.service';
+import { TransversalRate } from '../transversal-rate/transversalRate';
+import { BillValidityParameters } from '../bill-validity-parameters/bill-validity-parameters';
+import { Checkbox } from '../../../../shared/components/checkbox';
 
 // esto es mala practica, nosotros ya tenemos creado una interface IrateTypes en core/interfaces/IrateTypes.ts
 
@@ -54,13 +54,15 @@ import { BillValidityParameters } from "../bill-validity-parameters/bill-validit
     CounterEnterprice,
     BackFill,
     TransversalRate,
-    BillValidityParameters
-],
+    BillValidityParameters,
+    Checkbox,
+  ],
   styleUrls: ['./fee.css'],
   templateUrl: './fee.html',
 })
 export class FeeComponent implements AfterViewInit {
-  @ViewChild(ConceptRateEnterpice) conceptRateEnterpiceComponent?: ConceptRateEnterpice;
+  @ViewChild(ConceptRateEnterpice)
+  conceptRateEnterpiceComponent?: ConceptRateEnterpice;
 
   protected readonly rateTypeService = inject(RateTypeService);
   protected readonly toastService = inject(ToastService);
@@ -68,6 +70,7 @@ export class FeeComponent implements AfterViewInit {
   protected readonly router = inject(Router);
   protected typeConceptService = inject(TypeConceptService);
   protected conceptRateService = inject(ConceptRateService);
+  protected counterEnterpriceService = inject(CounterEnterpriceService);
   protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
 
@@ -82,10 +85,11 @@ export class FeeComponent implements AfterViewInit {
   estratosActuales: Estrato[] = [];
   nuevoEstratoNumero: number = 1;
   nuevoEstratoValor: number | null = null;
-  nuevoEstratoRango: number | null = null;
   guardandoTarifa = signal(false);
   cargandoEstratos = signal(false);
   indCalcularMc = signal(false);
+  indAplicarRango = signal(false);
+  valorRango = signal<number | null>(null);
 
   showPopupVisualizarTarifas = signal(false);
   showDeleteConfirm = signal(false);
@@ -121,6 +125,9 @@ export class FeeComponent implements AfterViewInit {
   guardandoTipoUso = signal(false);
   editandoTipoUso = signal(false);
   useTypeToEdit: any = null;
+  valorUnitario = signal<number | null>(null);
+  valorComplementario = signal<number | null>(null);
+  valorBasico = signal<number | null>(null);
   nuevoTipoUso: NuevoItem = {
     nombre: '',
     descripcion: '',
@@ -134,6 +141,63 @@ export class FeeComponent implements AfterViewInit {
   estratoToDelete: Estrato | null = null;
 
   showSaveConfirm = signal(false);
+
+  showGuidePopup = signal(false);
+
+  consumoMinimo = signal<number>(0);
+  consumoMaximo = signal<number>(0);
+  guardandoParametrosConsumo = signal(false);
+
+  paramConsumptionIds = {
+    consubas: undefined as number | undefined,
+    consucomp: undefined as number | undefined,
+    consunt: undefined as number | undefined,
+  };
+
+  rangosConsumo = computed(() => {
+    const minimo = this.consumoMinimo();
+    const maximo = this.consumoMaximo();
+
+    return {
+      consubas: `0 - ${minimo}`,
+      consucomp: `${minimo} - ${maximo}`,
+      consunt: `${maximo} en adelante`
+    };
+  });
+
+  constructor() {
+    effect(() => {
+      const paramsData = this.consumptionParamsData();
+
+      if (paramsData && paramsData.length > 0) {
+        // Extraer valores de los parámetros
+        const consubasParam = paramsData.find(p => p.key === 'CONSUBAS');
+        const consucompParam = paramsData.find(p => p.key === 'CONSUCOMP');
+
+        if (consubasParam?.value && consubasParam.value !== '') {
+          // CONSUBAS tiene formato "0-15", extraer el valor máximo
+          const parts = consubasParam.value.split('-');
+          if (parts.length === 2) {
+            const minValue = parseInt(parts[1]);
+            if (!isNaN(minValue)) {
+              this.consumoMinimo.set(minValue);
+            }
+          }
+        }
+
+        if (consucompParam?.value && consucompParam.value !== '') {
+          // CONSUCOMP tiene formato "15-50", extraer el valor máximo
+          const parts = consucompParam.value.split('-');
+          if (parts.length === 2) {
+            const maxValue = parseInt(parts[1]);
+            if (!isNaN(maxValue)) {
+              this.consumoMaximo.set(maxValue);
+            }
+          }
+        }
+      }
+    });
+  }
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -156,21 +220,20 @@ export class FeeComponent implements AfterViewInit {
     return data?.nombre || null;
   });
 
-
   typeUse = rxResource({
     params: () => ({
-      enterpriseId: this.empresaId()
+      enterpriseId: this.empresaId(),
     }),
     stream: ({ params }) => {
       if (!params.enterpriseId) {
         return of(null);
       }
       return this.useService.getTypeUse(params.enterpriseId).pipe(
-        catchError(error => {
+        catchError((error) => {
           return of(null);
-        })
+        }),
       );
-    }
+    },
   });
 
   typeRates = rxResource({
@@ -178,9 +241,13 @@ export class FeeComponent implements AfterViewInit {
     stream: ({ params: { enterpriseId } }) =>
       enterpriseId
         ? this.rateTypeService.getRateTypes(enterpriseId).pipe(
-            catchError(error => {
-              return of({ success: false, response: [], message: 'Error al cargar tipos de tarifa' });
-            })
+            catchError((error) => {
+              return of({
+                success: false,
+                response: [],
+                message: 'Error al cargar tipos de tarifa',
+              });
+            }),
           )
         : EMPTY,
   });
@@ -208,9 +275,13 @@ export class FeeComponent implements AfterViewInit {
     stream: ({ params: { enterpriseId } }) =>
       enterpriseId
         ? this.typeConceptService.getAllTypeConcepts(enterpriseId).pipe(
-            catchError(error => {
-              return of({ success: false, response: [], message: 'Error al cargar tipos de concepto' });
-            })
+            catchError((error) => {
+              return of({
+                success: false,
+                response: [],
+                message: 'Error al cargar tipos de concepto',
+              });
+            }),
           )
         : EMPTY,
   });
@@ -224,6 +295,74 @@ export class FeeComponent implements AfterViewInit {
     }
   });
 
+  consumptionParams = rxResource({
+    params: () => ({ enterpriseId: this.empresaId() }),
+    stream: ({ params: { enterpriseId } }) =>
+      enterpriseId
+        ? forkJoin({
+            consubas: this.counterEnterpriceService
+              .getParamsEnterprice(enterpriseId, 'CONSUBAS')
+              .pipe(catchError(() => of({ success: false, response: null }))),
+            consucomp: this.counterEnterpriceService
+              .getParamsEnterprice(enterpriseId, 'CONSUCOMP')
+              .pipe(catchError(() => of({ success: false, response: null }))),
+            consunt: this.counterEnterpriceService
+              .getParamsEnterprice(enterpriseId, 'CONSUNT')
+              .pipe(catchError(() => of({ success: false, response: null }))),
+          })
+        : EMPTY,
+  });
+
+  consumptionParamsData = computed(() => {
+    try {
+      const data = this.consumptionParams.value();
+      if (!data) return [];
+
+      const extractValue = (param: any, key: 'consubas' | 'consucomp' | 'consunt') => {
+        const response = Array.isArray(param?.response)
+          ? param.response[0]
+          : param?.response;
+
+        if (response?.id) {
+          this.paramConsumptionIds[key] = response.id;
+        }
+
+        return {
+          value: response?.valorParametro || '',
+          active: response?.activo ?? false,
+        };
+      };
+
+      return [
+        {
+          key: 'CONSUBAS',
+          description: 'Consumo Básico',
+          ...extractValue(data.consubas, 'consubas'),
+        },
+        {
+          key: 'CONSUCOMP',
+          description: 'Consumo Complementario',
+          ...extractValue(data.consucomp, 'consucomp'),
+        },
+        {
+          key: 'CONSUNT',
+          description: 'Consumo Unitario',
+          ...extractValue(data.consunt, 'consunt'),
+        }
+      ];
+    } catch (error) {
+      console.error('Error procesando parámetros de consumo:', error);
+      return [];
+    }
+  });
+
+mostrardata = this.consumptionParamsData().forEach(param => {
+    console.log('Parámetro:', param.description, 'Valor:', param.value);
+    this.valorComplementario.set(param.key === 'CONSUCOMP' ? param.value : null);
+    this.valorUnitario.set(param.key === 'CONSUNT' ? param.value : null);
+    this.valorBasico.set(param.key === 'CONSUBAS' ? param.value : null);
+  });
+
   private resetFormularioItem(): NuevoItem {
     return { nombre: '', descripcion: '' };
   }
@@ -232,7 +371,7 @@ export class FeeComponent implements AfterViewInit {
     return {
       id: estratoApi.id,
       numero: estratoApi.estrato,
-      valor: estratoApi.valor
+      valor: estratoApi.valor,
     };
   }
 
@@ -295,9 +434,9 @@ export class FeeComponent implements AfterViewInit {
         : this.selectedTipoConcepto;
     const tipoUsoId =
       this.selectedTipoUso !== null && this.selectedTipoUso !== undefined
-        ? (typeof this.selectedTipoUso === 'string'
-            ? parseInt(this.selectedTipoUso)
-            : this.selectedTipoUso)
+        ? typeof this.selectedTipoUso === 'string'
+          ? parseInt(this.selectedTipoUso)
+          : this.selectedTipoUso
         : null;
 
     this.guardandoTarifa.set(true);
@@ -309,28 +448,30 @@ export class FeeComponent implements AfterViewInit {
       activo: true,
       concepto: {
         idTipoConcepto: tipoConceptoId,
-        indCalcularMc: this.indCalcularMc()
-      }
+        indCalcularMc: this.indCalcularMc(),
+        indAplicarRango: this.indAplicarRango(),
+      },
     };
 
-    // Agregar idTipoUso si está seleccionado (incluso si es 0, pero no si es null)
+    if (this.indAplicarRango() && this.valorRango() !== null) {
+      item.concepto.valorRango = this.valorRango();
+    }
+
     if (tipoUsoId !== null && tipoUsoId !== undefined) {
       item.idTipoUso = tipoUsoId;
     }
 
-    // Agregar valores según el tipo (con o sin estratos)
     if (this.mostrarTablaEstratos && this.estratosActuales.length > 0) {
-      item.concepto.valoresEstrato = this.estratosActuales.map(estrato => ({
+      item.concepto.valoresEstrato = this.estratosActuales.map((estrato) => ({
         estrato: estrato.numero,
         valor: estrato.valor,
-        rango: estrato.rango || 0
       }));
     } else {
       item.concepto.valor = this.valorTarifa;
     }
 
     const payload = {
-      items: [item]
+      items: [item],
     };
 
     this.conceptRateService.saveFeeConceptRate(payload).subscribe({
@@ -353,7 +494,7 @@ export class FeeComponent implements AfterViewInit {
         this.conceptRatesEnterprise.reload();
         // Recargar datos del componente hijo
         this.conceptRateEnterpiceComponent?.reloadData();
-      }
+      },
     });
   }
 
@@ -366,8 +507,9 @@ export class FeeComponent implements AfterViewInit {
     this.mostrarTablaEstratos = false;
     this.nuevoEstratoNumero = 1;
     this.nuevoEstratoValor = null;
-    this.nuevoEstratoRango = null;
     this.indCalcularMc.set(true);
+    this.indAplicarRango.set(false);
+    this.valorRango.set(null);
   }
 
   onTipoTarifaChange(): void {
@@ -384,72 +526,84 @@ export class FeeComponent implements AfterViewInit {
 
   private verificarEstratos(): void {
     const empresaId = this.empresaId();
-    const tipoTarifaId = typeof this.selectedTipoTarifa === 'string'
-      ? parseInt(this.selectedTipoTarifa)
-      : this.selectedTipoTarifa;
-    const tipoConceptoId = typeof this.selectedTipoConcepto === 'string'
-      ? parseInt(this.selectedTipoConcepto)
-      : this.selectedTipoConcepto;
+    const tipoTarifaId =
+      typeof this.selectedTipoTarifa === 'string'
+        ? parseInt(this.selectedTipoTarifa)
+        : this.selectedTipoTarifa;
+    const tipoConceptoId =
+      typeof this.selectedTipoConcepto === 'string'
+        ? parseInt(this.selectedTipoConcepto)
+        : this.selectedTipoConcepto;
 
     if (!empresaId || !tipoTarifaId || !tipoConceptoId) {
       return;
     }
 
-
     this.cargandoEstratos.set(true);
-    this.conceptRateService.getConceptRateByEnterprise(empresaId)
-      .subscribe({
-        next: (response) => {
-          if (response.success && response.response) {
-
-            const conceptRateExistente = response.response.find(cr =>
+    this.conceptRateService.getConceptRateByEnterprise(empresaId).subscribe({
+      next: (response) => {
+        if (response.success && response.response) {
+          const conceptRateExistente = response.response.find(
+            (cr) =>
               cr.tipoTarifa.id === tipoTarifaId &&
-              cr.tipoConcepto.id === tipoConceptoId
-            );
+              cr.tipoConcepto.id === tipoConceptoId,
+          );
 
-            if (conceptRateExistente) {
-
-              if (conceptRateExistente.porEstrato && conceptRateExistente.estratos && conceptRateExistente.estratos.length > 0) {
-
-                this.mostrarTablaEstratos = true;
-                this.valorTarifa = null;
-                this.estratosActuales = conceptRateExistente.estratos.map(estrato => ({
+          if (conceptRateExistente) {
+            if (
+              conceptRateExistente.porEstrato &&
+              conceptRateExistente.estratos &&
+              conceptRateExistente.estratos.length > 0
+            ) {
+              this.mostrarTablaEstratos = true;
+              this.valorTarifa = null;
+              this.estratosActuales = conceptRateExistente.estratos.map(
+                (estrato) => ({
                   id: estrato.id,
                   numero: estrato.estrato,
                   valor: estrato.valor,
-                  rango: estrato.rango ? Number(estrato.rango) : 0
-                }));
-                // Actualizar el autoincremental para el próximo estrato
-                this.actualizarAutoincrementalEstrato();
-              }
-              // Verificar si tiene un valor único (sin estratos)
-              else if (conceptRateExistente.valor !== null && conceptRateExistente.valor !== undefined) {
-                // Existe un valor único, cargarlo en el input
-                this.mostrarTablaEstratos = false;
-                this.estratosActuales = [];
-                this.valorTarifa = conceptRateExistente.valor;
-              }
-              // Cargar el estado del checkbox
-              this.indCalcularMc.set(conceptRateExistente.indCalcularMc);
-            } else {
-              // No existen datos, resetear el estado y permitir al usuario decidir
+                }),
+              );
+              // Actualizar el autoincremental para el próximo estrato
+              this.actualizarAutoincrementalEstrato();
+            }
+            // Verificar si tiene un valor único (sin estratos)
+            else if (
+              conceptRateExistente.valor !== null &&
+              conceptRateExistente.valor !== undefined
+            ) {
+              // Existe un valor único, cargarlo en el input
               this.mostrarTablaEstratos = false;
               this.estratosActuales = [];
-              this.valorTarifa = null;
-              this.indCalcularMc.set(true);
+              this.valorTarifa = conceptRateExistente.valor;
             }
+            // Cargar el estado de los checkboxes
+            this.indCalcularMc.set(conceptRateExistente.indCalcularMc);
+            this.indAplicarRango.set((conceptRateExistente as any).indAplicarRango || false);
+            this.valorRango.set((conceptRateExistente as any).valorRango || null);
           } else {
-            // No existen datos, resetear el estado
+            // No existen datos, resetear el estado y permitir al usuario decidir
             this.mostrarTablaEstratos = false;
             this.estratosActuales = [];
             this.valorTarifa = null;
             this.indCalcularMc.set(true);
+            this.indAplicarRango.set(false);
+            this.valorRango.set(null);
           }
-        },
-        complete: () => {
-          this.cargandoEstratos.set(false);
+        } else {
+          // No existen datos, resetear el estado
+          this.mostrarTablaEstratos = false;
+          this.estratosActuales = [];
+          this.valorTarifa = null;
+          this.indCalcularMc.set(true);
+          this.indAplicarRango.set(false);
+          this.valorRango.set(null);
         }
-      });
+      },
+      complete: () => {
+        this.cargandoEstratos.set(false);
+      },
+    });
   }
 
   toggleTablaEstratos(): void {
@@ -460,7 +614,6 @@ export class FeeComponent implements AfterViewInit {
         this.estratosActuales = [];
         this.nuevoEstratoNumero = 1;
       } else {
-        // Si hay estratos existentes, actualizar el autoincremental
         this.actualizarAutoincrementalEstrato();
       }
     }
@@ -468,30 +621,28 @@ export class FeeComponent implements AfterViewInit {
 
   agregarNuevoEstrato(): void {
     if (this.nuevoEstratoValor !== null && this.nuevoEstratoValor > 0) {
-      const maxId =
+      const minId =
         this.estratosActuales.length > 0
-          ? Math.max(...this.estratosActuales.map((e) => e.id))
+          ? Math.min(...this.estratosActuales.map((e) => e.id))
           : 0;
+      const tempId = minId >= 0 ? -1 : minId - 1;
 
       const nuevoEstrato: Estrato = {
-        id: maxId + 1,
+        id: tempId,
         numero: this.nuevoEstratoNumero,
         valor: this.nuevoEstratoValor,
-        rango: this.nuevoEstratoRango || 0
       };
 
       this.estratosActuales.push(nuevoEstrato);
       this.estratosActuales.sort((a, b) => a.numero - b.numero);
 
-      // Limpiar campos y actualizar autoincremental
       this.actualizarAutoincrementalEstrato();
       this.nuevoEstratoValor = null;
-      this.nuevoEstratoRango = null;
     }
   }
 
   eliminarEstrato(id: number): void {
-    const estrato = this.estratosActuales.find(e => e.id === id);
+    const estrato = this.estratosActuales.find((e) => e.id === id);
     if (estrato) {
       this.estratoToDelete = estrato;
       this.showDeleteConfirmEstrato.set(true);
@@ -532,7 +683,7 @@ export class FeeComponent implements AfterViewInit {
     if (!usuario) {
       this.toastService.error(
         'error',
-        'Error: No se pudo obtener el usuario actual'
+        'Error: No se pudo obtener el usuario actual',
       );
       return;
     }
@@ -575,7 +726,7 @@ export class FeeComponent implements AfterViewInit {
         } else {
           this.toastService.error(
             'error',
-            'El tipo de Tarifa no se pudo Guardar'
+            'El tipo de Tarifa no se pudo Guardar',
           );
         }
         this.guardandoTipoTarifa.set(false);
@@ -626,12 +777,12 @@ export class FeeComponent implements AfterViewInit {
             this.typeRates.reload();
             this.toastService.success(
               'Éxito',
-              'Tipo de tarifa eliminado exitosamente'
+              'Tipo de tarifa eliminado exitosamente',
             );
           } else {
             this.toastService.success(
               'error',
-              'El tipo de tarifa no se pudo eliminar'
+              'El tipo de tarifa no se pudo eliminar',
             );
           }
         },
@@ -675,7 +826,7 @@ export class FeeComponent implements AfterViewInit {
     if (!usuario) {
       this.toastService.error(
         'error',
-        'Error: No se pudo obtener el usuario actual'
+        'Error: No se pudo obtener el usuario actual',
       );
       return;
     }
@@ -736,15 +887,18 @@ export class FeeComponent implements AfterViewInit {
     this.showPopupVisualizarConceptos.set(false);
   }
 
-
   conceptRatesEnterprise = rxResource({
     params: () => ({ enterpriseId: this.empresaId() }),
     stream: ({ params: { enterpriseId } }) =>
       enterpriseId
         ? this.conceptRateService.getConceptRateByEnterprise(enterpriseId).pipe(
-            catchError(error => {
-              return of({ success: false, response: [], message: 'Error al cargar tarifas concepto' });
-            })
+            catchError((error) => {
+              return of({
+                success: false,
+                response: [],
+                message: 'Error al cargar tarifas concepto',
+              });
+            }),
           )
         : EMPTY,
   });
@@ -798,12 +952,12 @@ export class FeeComponent implements AfterViewInit {
               this.dataTypeConcepts.reload();
               this.toastService.success(
                 'Éxito',
-                'Tipo de concepto eliminado exitosamente'
+                'Tipo de concepto eliminado exitosamente',
               );
             } else {
               this.toastService.error(
                 'error',
-                'El tipo de concepto no se pudo eliminar'
+                'El tipo de concepto no se pudo eliminar',
               );
             }
           },
@@ -846,7 +1000,7 @@ export class FeeComponent implements AfterViewInit {
     if (!usuario) {
       this.toastService.error(
         'Error',
-        'No se pudo obtener la información del usuario'
+        'No se pudo obtener la información del usuario',
       );
       return;
     }
@@ -874,9 +1028,14 @@ export class FeeComponent implements AfterViewInit {
       (tipoUsoData as any).id = this.useTypeToEdit.id;
     }
 
-    const operation = this.editandoTipoUso() && this.useTypeToEdit?.id
-      ? this.useService.updateUse({ id: this.useTypeToEdit.id, nombre: tipoUsoData.nombre, usuarioModificacion: usuario })
-      : this.useService.createUse(tipoUsoData);
+    const operation =
+      this.editandoTipoUso() && this.useTypeToEdit?.id
+        ? this.useService.updateUse({
+            id: this.useTypeToEdit.id,
+            nombre: tipoUsoData.nombre,
+            usuarioModificacion: usuario,
+          })
+        : this.useService.createUse(tipoUsoData);
 
     operation.subscribe({
       next: (response) => {
@@ -886,13 +1045,13 @@ export class FeeComponent implements AfterViewInit {
             'Éxito',
             this.editandoTipoUso()
               ? 'Tipo de uso actualizado exitosamente'
-              : 'Nuevo tipo de uso creado exitosamente'
+              : 'Nuevo tipo de uso creado exitosamente',
           );
           this.cerrarPopupTipoUso();
         } else {
           this.toastService.error(
             'Error',
-            response.message || 'No se pudo guardar el tipo de uso'
+            response.message || 'No se pudo guardar el tipo de uso',
           );
         }
       },
@@ -941,12 +1100,12 @@ export class FeeComponent implements AfterViewInit {
             this.typeUse.reload();
             this.toastService.success(
               'Éxito',
-              'Tipo de uso eliminado exitosamente'
+              'Tipo de uso eliminado exitosamente',
             );
           } else {
             this.toastService.error(
               'Error',
-              'No se pudo eliminar el tipo de uso'
+              'No se pudo eliminar el tipo de uso',
             );
           }
         },
@@ -983,42 +1142,43 @@ export class FeeComponent implements AfterViewInit {
     const estratoId = this.estratoToDelete.id;
     const estratoInfo = `${this.estratoToDelete.numero} (Valor: $${this.estratoToDelete.valor.toLocaleString()})`;
 
-    // Si el estrato tiene ID (existe en BD), hacer petición al servidor
-    if (estratoId && estratoId > 0) {
+    // Si el estrato tiene ID positivo, existe en BD y requiere petición al servidor
+    // Si el estrato tiene ID negativo, es temporal y solo se elimina del array local
+    if (estratoId > 0) {
       this.conceptRateService.deleteConceptStratum(estratoId).subscribe({
         next: (response) => {
           if (response?.success === true) {
             // Eliminar del array local solo si la petición fue exitosa
             this.estratosActuales = this.estratosActuales.filter(
-              (estrato) => estrato.id !== estratoId
+              (estrato) => estrato.id !== estratoId,
             );
             // Actualizar autoincremental después de eliminar
             this.actualizarAutoincrementalEstrato();
             this.toastService.success(
               'Éxito',
-              `Se eliminó exitosamente el estrato ${estratoInfo}`
+              `Se eliminó exitosamente el estrato ${estratoInfo}`,
             );
           } else {
             this.toastService.error(
               'Error',
-              response?.message || 'No se pudo eliminar el estrato'
+              response?.message || 'No se pudo eliminar el estrato',
             );
           }
         },
         complete: () => {
           this.cancelDeleteEstrato();
-        }
+        },
       });
     } else {
-      // Si no tiene ID (elemento temporal), eliminar directamente del array
+      // Estrato temporal (ID negativo o 0), eliminar directamente del array
       this.estratosActuales = this.estratosActuales.filter(
-        (estrato) => estrato.id !== estratoId
+        (estrato) => estrato.id !== estratoId,
       );
       // Actualizar autoincremental después de eliminar
       this.actualizarAutoincrementalEstrato();
       this.toastService.success(
         'Éxito',
-        `Se eliminó el estrato ${estratoInfo}`
+        `Se eliminó el estrato ${estratoInfo}`,
       );
       this.cancelDeleteEstrato();
     }
@@ -1037,8 +1197,12 @@ export class FeeComponent implements AfterViewInit {
   }
 
   getSaveConfirmMessage(): string {
-    const tipoTarifaNombre = this.typeRatesData().find(t => t.id == this.selectedTipoTarifa)?.nombre || 'Sin nombre';
-    const tipoConceptoNombre = this.typeConceptsData().find(t => t.id == this.selectedTipoConcepto)?.descripcion || 'Sin descripción';
+    const tipoTarifaNombre =
+      this.typeRatesData().find((t) => t.id == this.selectedTipoTarifa)
+        ?.nombre || 'Sin nombre';
+    const tipoConceptoNombre =
+      this.typeConceptsData().find((t) => t.id == this.selectedTipoConcepto)
+        ?.descripcion || 'Sin descripción';
 
     let valorInfo = '';
     if (this.mostrarTablaEstratos && this.estratosActuales.length > 0) {
@@ -1103,5 +1267,97 @@ export class FeeComponent implements AfterViewInit {
     if (typeof window !== 'undefined' && (window as any).initFlowbite) {
       (window as any).initFlowbite();
     }
+  }
+
+  // Métodos para el popup de guía
+  abrirGuia(): void {
+    this.showGuidePopup.set(true);
+  }
+
+  cerrarGuia(): void {
+    this.showGuidePopup.set(false);
+  }
+
+  // Método para limpiar parámetros de consumo
+  limpiarParametrosConsumo(): void {
+    this.consumoMinimo.set(15);
+    this.consumoMaximo.set(50);
+  }
+
+  // Método para actualizar parámetros de consumo
+  actualizarParametrosConsumo(): void {
+    const min = this.consumoMinimo();
+    const max = this.consumoMaximo();
+
+    // Validación
+    if (min >= max) {
+      this.toastService.error('Error', 'El consumo mínimo debe ser menor que el máximo');
+      return;
+    }
+
+    const empresaId = this.empresaId();
+    const usuario = this.nombreUsuario();
+
+    if (!empresaId) {
+      this.toastService.error('Error', 'No se pudo obtener el ID de la empresa');
+      return;
+    }
+
+    if (!usuario) {
+      this.toastService.error('Error', 'No se pudo obtener el usuario');
+      return;
+    }
+
+    this.guardandoParametrosConsumo.set(true);
+
+    const buildParam = (key: 'consubas' | 'consucomp' | 'consunt', llave: string, valorParametro: string) => {
+      const param: any = {
+        empresa: { id: empresaId },
+        llave: llave,
+        valorParametro: valorParametro,
+        activo: true,
+        usuarioCreacion: usuario,
+      };
+
+      if (this.paramConsumptionIds[key]) {
+        param.id = this.paramConsumptionIds[key];
+      }
+
+      return param;
+    };
+
+    const params: any[] = [
+      buildParam('consubas', 'CONSUBAS', `0-${min}`),
+      buildParam('consucomp', 'CONSUCOMP', `${min}-${max}`),
+      buildParam('consunt', 'CONSUNT', `${max}+`),
+    ];
+
+    forkJoin(
+      params.map((param) =>
+        this.counterEnterpriceService.createParamsEnterprice(param).pipe(
+          catchError((error) => {
+            console.error('Error guardando parámetro:', param.llave, error);
+            return of(null);
+          })
+        )
+      )
+    ).subscribe({
+      next: (results) => {
+        this.guardandoParametrosConsumo.set(false);
+        const allSuccess = results.every((result) => result !== null);
+
+        if (allSuccess) {
+          this.toastService.success('Éxito', 'Parámetros de consumo actualizados correctamente');
+          this.consumptionParams.reload();
+        } else {
+          this.toastService.error('Error parcial', 'Algunos parámetros no pudieron guardarse');
+        }
+      },
+      error: (error) => {
+        console.error('Error al actualizar parámetros:', error);
+        this.toastService.error('Error', 'Error al actualizar los parámetros de consumo');
+        this.guardandoParametrosConsumo.set(false);
+      }
+    });
   }
 }
