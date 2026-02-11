@@ -89,6 +89,7 @@ export interface IClienteDetalle {
   empleadoNombre: string;
   correo: string;
   telefono: string;
+  codigosResidenciaFiscal?: string; // Formato: "O-13;230;24"
   tarifasContadores: ITarifa[];
   tiposTarifaFaltantes: ITipoTarifa[];
 }

@@ -267,9 +267,6 @@ export class Invoice {
     }
   })
 
-  //   ParamsGeneral = rxResource({
-  //   stream: () => this.generalsParamsService.getGeneralsParams(),
-  // });
 
   onDepartmentChange(departmentCode: string): void {
     this.selectedDepartment.set(departmentCode);
@@ -371,11 +368,7 @@ export class Invoice {
     this.invoiceService.resolutionInvoiceDian(payload).subscribe({
       next: (response) => {
         this.isLoadingResolution = false;
-
-        // Limpiar el flag del proceso de habilitación después del último paso exitoso
         this.clearDianProcessFlag();
-
-        // Mostrar mensajes de éxito y siguiente paso
         this.toast.success('¡Resolución registrada!', 'Ya puedes comenzar a emitir facturas electrónicas');
         this.toast.info('info', 'Cierra sesión y vuelve a iniciar, Para que la facturación electrónica quede completamente habilitada, por favor cierra tu sesión actual y vuelve a iniciar sesión.');
       },

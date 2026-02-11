@@ -1,26 +1,60 @@
 import { isPlatformBrowser, CommonModule } from "@angular/common";
-import { Component, computed, effect, inject, PLATFORM_ID } from "@angular/core";
+import { Component, computed, effect, inject, PLATFORM_ID, signal } from "@angular/core";
 import { rxResource } from "@angular/core/rxjs-interop";
 import { InvoiceService } from "../../services/invoice.service";
 import { LocationDianService } from "../../services/locations.service";
 import { catchError, of } from "rxjs";
+import { ConfigurationMasiveBillService, UpdateMasiveBillRequest } from "../../services/configuration-masive-bill.service";
+import { PopupComponent } from "../../../../shared/components/popUp";
+import { ToastService } from "@services/toast.service";
 
 @Component({
   selector: 'app-enterprice-dian',
   standalone: true,
-  imports:[CommonModule],
+  imports:[CommonModule, PopupComponent],
   template: `
     <div class="min-h-screen p-4 sm:p-6 lg:p-8">
       <div class="max-w-7xl mx-auto space-y-6">
 
         <!-- Header -->
         <div class="backdrop-blur-xl bg-white/20 dark:bg-slate-800/20 rounded-3xl border border-white/20 dark:border-slate-700/30 shadow-2xl p-6">
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Información DIAN
-          </h1>
-          <p class="text-gray-600 dark:text-gray-300">
-            Datos de la resolución y empresa registrada en DIAN
-          </p>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                Información DIAN
+              </h1>
+              <p class="text-gray-600 dark:text-gray-300">
+                Datos de la resolución y empresa registrada en DIAN
+              </p>
+            </div>
+            <button
+              type="button"
+              (click)="abrirConfirmacionEstado()"
+              [disabled]="actualizandoEstado() || !puedeActivarFacturacion()"
+              class="relative flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-medium backdrop-blur-md transition-all duration-300 overflow-hidden group bg-gradient-to-br border-blue-500/30 dark:text-white from-blue-500/10 hover:bg-blue-500/20 hover:border-blue-500/50 text-gray-900 to-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              [title]="!puedeActivarFacturacion() ? 'La facturación masiva ya está activa' : 'Activar facturación masiva'"
+            >
+              @if (actualizandoEstado()) {
+                <svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Actualizando...
+              } @else {
+                @if (puedeActivarFacturacion()) {
+                  <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Activar Facturación Masiva
+                } @else {
+                  <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Facturación Masiva Activa
+                }
+              }
+            </button>
+          </div>
         </div>
 
         <!-- Loading State -->
@@ -294,15 +328,29 @@ import { catchError, of } from "rxjs";
 
       </div>
     </div>
-  `,
+    <!-- Popup de confirmación para cambiar estado de facturación masiva -->
+    <app-pop-up
+      [open]="showConfirmEstado"
+      [isConfirmation]="true"
+      title="Configurar Facturación Masiva"
+      [message]="getMensajeConfirmacion()"
+      confirmText="Confirmar"
+      cancelText="Cancelar"
+      confirmButtonClass="text-white bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
+      (confirmAction)="confirmarCambioEstado()"
+      (cancelAction)="cancelarCambioEstado()"
+    >
+    </app-pop-up>  `,
   styles: [``]
 })
 export class EnterpriceDian {
 
-    protected platformId = inject(PLATFORM_ID);
+  protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
   protected invoiceService = inject(InvoiceService);
   protected locationService = inject(LocationDianService);
+  protected toast = inject(ToastService);
+  protected configurationMasiveBillService = inject(ConfigurationMasiveBillService);
 
     readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -433,5 +481,64 @@ export class EnterpriceDian {
     const city = municipalities.find((m: any) => m.code === cityCode);
     return city?.value || cityCode;
   });
+
+
+  showConfirmEstado = signal(false);
+  actualizandoEstado = signal(false);
+  estadoActual = signal<'PEND_PROC' | 'PEND'>('PEND_PROC');
+  readonly puedeActivarFacturacion = computed(() => {
+    return this.estadoActual() === 'PEND_PROC';
+  });
+
+  abrirConfirmacionEstado() {
+    this.showConfirmEstado.set(true);
+  }
+
+  cancelarCambioEstado() {
+    this.showConfirmEstado.set(false);
+  }
+
+  getMensajeConfirmacion(): string {
+    return '¿Está seguro de activar la facturación masiva? Esto generará la facturación electrónica de todas las facturas pendientes.';
+  }
+
+  confirmarCambioEstado() {
+    if (this.estadoActual() !== 'PEND_PROC') {
+      this.toast.error('error', 'La facturación masiva ya está activa');
+      this.showConfirmEstado.set(false);
+      return;
+    }
+
+    this.actualizandoEstado.set(true);
+
+    const usuario = this.nombreUsuario() || 'usuario';
+    const estadoActualValue = 'PEND_PROC';
+    const nuevoEstado = 'PEND';
+
+    const request: UpdateMasiveBillRequest = {
+      idEmpresa: this.empresaId(),
+      estadoActual: estadoActualValue,
+      nuevoEstado: nuevoEstado,
+      usuario: usuario
+    };
+
+    this.configurationMasiveBillService.updateStatusMasiveBill(request)
+      .pipe(
+        catchError(error => {
+          console.error('Error al actualizar estado:', error);
+          this.toast.error('error', 'Error al actualizar el estado de facturación masiva');
+          this.actualizandoEstado.set(false);
+          return of(null);
+        })
+      )
+      .subscribe(response => {
+        if (response) {
+          this.estadoActual.set('PEND');
+          this.toast.success('exito', 'Facturación masiva activada exitosamente. Se generarán las facturas electrónicas.');
+        }
+        this.actualizandoEstado.set(false);
+        this.showConfirmEstado.set(false);
+      });
+  }
 
 }
