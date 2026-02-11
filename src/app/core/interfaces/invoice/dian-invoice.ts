@@ -23,6 +23,7 @@ export interface DianInvoice {
   medioPago: {
     forma: string;
     medio: string;
+    fechaFin?: string;
   };
   totalAnticipado: number;
   usuario: string;

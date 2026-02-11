@@ -118,7 +118,7 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       (action)="handleTableAction($event)"
       (serverPaginationChange)="onPaginationChange($event)"
             [showSecondaryButton]="true"
-      [secondaryButtonText]="'Ver empresa DIAN'"
+      [secondaryButtonText]="'Configuración '"
             (secondaryButtonAction)="handleTableAction({ action: 'view-enterprise-dian' })"
     >
     </app-table-dynamic>

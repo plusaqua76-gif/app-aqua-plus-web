@@ -658,6 +658,78 @@ import { ResolutionDianEagerInitializationService } from '../services/resolution
                       class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
                     />
                   </div>
+
+                  <!-- Opciones de Crédito - Solo visible cuando medio de pago es Crédito -->
+                  @if (invoiceForm.get('medioPago')?.value === '2') {
+                  <div>
+                    <label class="block text-xs text-gray-400 mb-2 tracking-wide uppercase">
+                      Plazo de Pago para Crédito
+                      <span class="text-red-400">*</span>
+                    </label>
+
+                    <!-- Grid con 2 columnas para inputs lado a lado -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+                      <!-- Opción 1: Días Predefinidos -->
+                      <div>
+                        <div class="relative">
+                          <select
+                            placeholder="Seleccione días"
+                            formControlName="diasPredefinidos"
+                            class="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 cursor-pointer focus:border-emerald-500/70 hover:border-gray-500/80 transition-all appearance-none"
+                          >
+                            <option value="" selected class="bg-gray-700">Seleccione días</option>
+                            <option value="15" class="bg-gray-700">15 días</option>
+                            <option value="30" class="bg-gray-700">30 días</option>
+                            <option value="45" class="bg-gray-700">45 días</option>
+                            <option value="60" class="bg-gray-700">60 días</option>
+                            <option value="90" class="bg-gray-700">90 días</option>
+                            <option value="120" class="bg-gray-700">120 días</option>
+                            <option value="360" class="bg-gray-700">360 días</option>
+                          </select>
+                        </div>
+                        @if (invoiceForm.get('diasPredefinidos')?.value) {
+                        <p class="text-xs text-emerald-400 mt-1.5 flex items-center gap-1">
+                          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>Vence: <strong>{{ calcularFechaVencimientoDesdeHoy(invoiceForm.get('diasPredefinidos')?.value) }}</strong></span>
+                        </p>
+                        }
+                      </div>
+
+                      <!-- Opción 2: Fecha Específica -->
+                      <div>
+                        <div class="relative">
+                          <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <svg class="w-4 h-4 text-emerald-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 10h16m-8-3V4M7 7V4m10 3V4M5 20h14a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Zm3-7h.01v.01H8V13Zm4 0h.01v.01H12V13Zm4 0h.01v.01H16V13Zm-8 4h.01v.01H8V17Zm4 0h.01v.01H12V17Zm4 0h.01v.01H16V17Z"/>
+                            </svg>
+                          </div>
+                          <input
+                            type="date"
+                            formControlName="fechaVencimiento"
+                            [min]="getFechaMinima()"
+                            class="block w-full pl-10 pr-3 py-2.5 bg-gray-800/50 border border-gray-600/70 text-white text-sm rounded-lg focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/70 hover:border-gray-500/80 transition-all shadow-sm placeholder:text-gray-500 cursor-pointer"
+                            style="color-scheme: dark;"
+                            placeholder="Seleccione fecha"
+                          />
+                        </div>
+                        @if (invoiceForm.get('fechaVencimiento')?.value) {
+                        <p class="text-xs text-emerald-400 mt-1.5 flex items-center gap-1">
+                          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>Plazo: <strong>{{ calcularDiasDesdeHoy(invoiceForm.get('fechaVencimiento')?.value) }} días</strong></span>
+                        </p>
+                        }
+                      </div>
+                    </div>
+
+                    <p class="text-xs text-gray-500 mt-2 italic">
+                      Elija días predefinidos o seleccione una fecha específica
+                    </p>
+                  </div>
+                  }
                 </div>
 
                 <!-- Descuentos Globales -->
@@ -718,7 +790,7 @@ import { ResolutionDianEagerInitializationService } from '../services/resolution
                             class="w-full px-2 py-1 bg-gray-800/50 border border-gray-600/70 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
                           />
                         </div>
-                        <div class="col-span-6 sm:col-span-2 flex items-center">
+                        <!-- <div class="col-span-6 sm:col-span-2 flex items-center">
                           <label class="flex items-center cursor-pointer">
                             <input
                               type="checkbox"
@@ -729,7 +801,7 @@ import { ResolutionDianEagerInitializationService } from '../services/resolution
                               >Cargo</span
                             >
                           </label>
-                        </div>
+                        </div> -->
                         <div class="col-span-8 sm:col-span-2">
                           <select
                             formControlName="codigoRazon"
@@ -1238,9 +1310,41 @@ export class CreateInvoiceComponent {
       medioPago: ['', Validators.required],
       observaciones: [''],
       totalAnticipado: [0, [Validators.min(0)]],
+      diasPredefinidos: [null],
+      fechaVencimiento: [null],
       aplicarDescuentoGlobal: [false],
       descuentos: this.fb.array([]),
       items: this.fb.array([]),
+    });
+
+    // Escuchar cambios en medioPago para validar días/fecha
+    this.invoiceForm.get('medioPago')?.valueChanges.subscribe(medioPago => {
+      const diasControl = this.invoiceForm.get('diasPredefinidos');
+      const fechaControl = this.invoiceForm.get('fechaVencimiento');
+
+      if (medioPago !== '2') { // Si no es crédito, limpiar ambos
+        diasControl?.setValue(null);
+        fechaControl?.setValue(null);
+        diasControl?.clearValidators();
+        fechaControl?.clearValidators();
+      }
+
+      diasControl?.updateValueAndValidity();
+      fechaControl?.updateValueAndValidity();
+    });
+
+    // Cuando se selecciona días predefinidos, limpiar fecha
+    this.invoiceForm.get('diasPredefinidos')?.valueChanges.subscribe(dias => {
+      if (dias) {
+        this.invoiceForm.get('fechaVencimiento')?.setValue(null, { emitEvent: false });
+      }
+    });
+
+    // Cuando se selecciona fecha, limpiar días predefinidos
+    this.invoiceForm.get('fechaVencimiento')?.valueChanges.subscribe(fecha => {
+      if (fecha) {
+        this.invoiceForm.get('diasPredefinidos')?.setValue(null, { emitEvent: false });
+      }
     });
   }
 
@@ -1471,6 +1575,51 @@ export class CreateInvoiceComponent {
     );
   }
 
+  getFechaMinima(): string {
+    const hoy = new Date();
+    return hoy.toISOString().split('T')[0];
+  }
+
+  calcularDiasDesdeHoy(fechaStr: string): number {
+    if (!fechaStr) return 0;
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    const fechaSeleccionada = new Date(fechaStr);
+    fechaSeleccionada.setHours(0, 0, 0, 0);
+    const diferenciaMs = fechaSeleccionada.getTime() - hoy.getTime();
+    const dias = Math.ceil(diferenciaMs / (1000 * 60 * 60 * 24));
+
+    return dias;
+  }
+
+  calcularFechaVencimientoDesdeHoy(dias: number): string {
+    if (!dias) return '';
+
+    const hoy = new Date();
+    const fechaVencimiento = new Date(hoy);
+    fechaVencimiento.setDate(hoy.getDate() + dias);
+
+    const opciones: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    };
+
+    return fechaVencimiento.toLocaleDateString('es-CO', opciones);
+  }
+
+  calcularFechaISO(dias: number): string {
+    if (!dias) return '';
+
+    const hoy = new Date();
+    const fechaCalculada = new Date(hoy);
+    fechaCalculada.setDate(hoy.getDate() + dias);
+
+    return fechaCalculada.toISOString().split('T')[0];
+  }
+
   private createDescuento(): FormGroup {
     return this.fb.group({
       valor: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
@@ -1570,9 +1719,20 @@ export class CreateInvoiceComponent {
       }));
     }
 
+    let fechaParaEnviar = "";
+    if (formValue.medioPago === '2') {
+      if (formValue.diasPredefinidos) {
+        fechaParaEnviar = this.calcularFechaISO(formValue.diasPredefinidos);
+      }
+      else if (formValue.fechaVencimiento) {
+        fechaParaEnviar = formValue.fechaVencimiento;
+      }
+    }
+
     request.medioPago = {
       forma: formValue.medioPago,
       medio: formValue.tipoDocumento,
+      fechaFin: fechaParaEnviar
     };
     request.totalAnticipado = formValue.totalAnticipado || 0;
     request.usuario = usuario || 'sistema';
@@ -1622,6 +1782,24 @@ export class CreateInvoiceComponent {
 
     if (!this.invoiceForm.get('medioPago')?.value) {
       errors.push(' Debe seleccionar un Medio de Pago');
+    }
+
+    // Validar que al menos una opción de plazo esté seleccionada si es crédito
+    if (this.invoiceForm.get('medioPago')?.value === '2') {
+      const diasPredefinidos = this.invoiceForm.get('diasPredefinidos')?.value;
+      const fechaVencimiento = this.invoiceForm.get('fechaVencimiento')?.value;
+
+      if (!diasPredefinidos && !fechaVencimiento) {
+        errors.push(' Debe seleccionar días predefinidos o fecha de vencimiento');
+      }
+
+      // Validar que la fecha sea posterior a hoy
+      if (fechaVencimiento) {
+        const dias = this.calcularDiasDesdeHoy(fechaVencimiento);
+        if (dias <= 0) {
+          errors.push(' La fecha de vencimiento debe ser posterior a hoy');
+        }
+      }
     }
 
     if (this.invoiceForm.get('aplicarDescuentoGlobal')?.value) {
@@ -1680,7 +1858,6 @@ export class CreateInvoiceComponent {
             'Factura creada y enviada a DIAN exitosamente.'
           );
 
-          // Limpiar formulario después de éxito
           this.invoiceForm.reset({
             tipoDocumento: '',
             medioPago: '',
@@ -1704,54 +1881,35 @@ export class CreateInvoiceComponent {
     }
   }
 
-  /**
-   * Método para manejar inputs numéricos con formato de moneda
-   * Extrae el valor numérico del string formateado y actualiza el FormControl
-   */
+
   onNumberInput(event: Event, itemForm: FormGroup, fieldName: string): void {
     const input = event.target as HTMLInputElement;
     const rawValue = input.value;
 
-    // Extraer solo números del string (eliminar $, puntos, comas, espacios)
     const numericValue = rawValue.replace(/[^0-9]/g, '');
     const parsedValue = numericValue ? parseInt(numericValue, 10) : 0;
 
-    // Actualizar el FormControl con el valor numérico
     itemForm.get(fieldName)?.setValue(parsedValue, { emitEvent: true });
   }
 
-  /**
-   * Método para manejar el input de totalAnticipado con formato de moneda
-   */
   onTotalAnticipadoInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const rawValue = input.value;
 
-    // Extraer solo números del string
     const numericValue = rawValue.replace(/[^0-9]/g, '');
     const parsedValue = numericValue ? parseInt(numericValue, 10) : 0;
 
-    // Actualizar el FormControl
     this.invoiceForm
       .get('totalAnticipado')
       ?.setValue(parsedValue, { emitEvent: false });
   }
 
-  /**
-   * Método para manejar el input de valor de descuento con formato de moneda
-   */
   onDescuentoInput(event: Event, descuentoForm: FormGroup): void {
     const input = event.target as HTMLInputElement;
     const rawValue = input.value;
-
-    // Extraer solo números y punto decimal
     const numericValue = rawValue.replace(/[^0-9.]/g, '');
     const parsedValue = numericValue ? parseFloat(numericValue) : 0;
-
-    // Limitar a 100 (porcentaje máximo)
     const finalValue = Math.min(parsedValue, 100);
-
-    // Actualizar el FormControl
     descuentoForm.get('valor')?.setValue(finalValue, { emitEvent: false });
   }
 }

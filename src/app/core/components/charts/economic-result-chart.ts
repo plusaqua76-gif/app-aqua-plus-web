@@ -27,21 +27,6 @@ export interface EconomicResultData {
   fechaFin: string;
 }
 
-//  { lo que llega de la api
-//         "costos": 0,
-//         "gastos": 0,
-//         "periodo": {
-//             "mes": 1,
-//             "anio": 2026,
-//             "desde": "2026-01-01",
-//             "hasta": "2026-01-31"
-//         },
-//         "ingresos": 100000,
-//         "resultado": 100000,
-//         "empresa_id": 14,
-//         "ultimaActualizacion": "2026-01-21T21:47:21"
-//     }
-
 interface HorizontalBarSeries {
   name: string;
   data: number[];
