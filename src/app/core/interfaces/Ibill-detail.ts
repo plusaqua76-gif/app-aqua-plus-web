@@ -10,16 +10,34 @@ export interface IDireccion {
 
 export interface ICliente {
   id: number;
-  codigo: string;
+  codigo: string | null;
   estrato: number;
   direccion: IDireccion;
-  descripcion: string;
+  descripcion: string | null;
   numeroCedula: string;
   primerNombre: string;
   segundoNombre: string;
   primerApellido: string;
   segundoApellido: string;
   tipoDocumentoNombre: string;
+}
+
+export interface IPuntoPago {
+  id?: number;
+  nombre?: string;
+  imagen?: string;
+  contentType?: string;
+  codigoQr?: string;
+}
+
+export interface IPuntoPagoEmpresa {
+  nombre: string;
+  imagen: string;
+}
+
+export interface ICodigoQr {
+  nombre: string;
+  imagen: string;
 }
 
 export interface IEmpresa {
@@ -30,6 +48,8 @@ export interface IEmpresa {
   nombre: string;
   direccion: IDireccion;
   idUsuario: number;
+  puntosPago: IPuntoPagoEmpresa[];
+  codigoQr: ICodigoQr;
 }
 
 export interface ILectura {
@@ -48,9 +68,12 @@ export interface IFactura {
   precio: number;
   lectura: ILectura;
   fechaFin: string;
+  consumoReal: number;
   estadoNombre: string;
   fechaEmision: string;
+  lecturaActual: number;
   tipoPagoNombre: string;
+  lecturaAnterior: number;
   idEmpresaClienteContador: number;
 }
 
@@ -79,6 +102,7 @@ export interface ITarifa {
 export interface IContador {
   id: number;
   serial: string;
+  estrato: number;
   direccion: IDireccion;
   idPersona: number;
   tipoContadorNombre: string;
@@ -87,11 +111,11 @@ export interface IContador {
 export interface IDeudaCliente {
   id: number;
   valor: number;
-  idFactura: number;
+  idFactura: number | null;
+  plazoPago: string;
   fechaDeuda: string;
   descripcion: string;
   tipoDeudaNombre: string;
-  plazoPagoDescripcion: string;
 }
 
 export interface ITotalesTarifas {
@@ -102,18 +126,25 @@ export interface ITotalesTarifas {
 export interface ILecturaHistorico {
   id: number;
   precio: number | null;
+  consumo: number;
   lectura: number;
   descripcion: string;
   fechaLectura: string;
   consumoAnormal: boolean;
 }
 
-export interface IPuntoPago {
-  id?: number;
-  nombre?: string;
-  imagen?: string;
-  contentType?: string;
-  codigoQr?: string;
+
+
+export interface ITipoConcepto {
+  rango: string;
+  valor: number;
+  codigo: string;
+  descripcion: string;
+}
+
+export interface IValoresMetrosCubicos {
+  total: number;
+  tipoConcepto: ITipoConcepto[];
 }
 
 export interface IBillDetailResponse {
@@ -125,6 +156,7 @@ export interface IBillDetailResponse {
   deudaCliente: IDeudaCliente[];
   totalesTarifas: ITotalesTarifas;
   lecturasHistorico: ILecturaHistorico[];
+  valoresMetrosCubicos: IValoresMetrosCubicos;
   puntosPago?: IPuntoPago[];
 }
 

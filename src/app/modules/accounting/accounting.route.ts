@@ -57,6 +57,14 @@ export default [
           ),
       },
       {
+        // Lista de cuentas
+        path: 'accounts-list',
+        loadComponent: () =>
+          import('./pages/accounts/accounts-list').then(
+            (m) => m.AccountsList
+          ),
+      },
+      {
         // Crear cuenta
         path: 'accounts/create',
         loadComponent: () =>

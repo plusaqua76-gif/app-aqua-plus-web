@@ -31,8 +31,7 @@
       </div>
 
       <div class="header-center">
-        <div class="address-info">
-        </div>
+        <div class="address-info"></div>
       </div>
 
       <div class="header-right">
@@ -50,7 +49,7 @@
                 />
               </svg>
             </div> -->
-            <span class="titleTwo">Cliente, Consumo y Contador</span>
+            <span class="titleTwo">CLIENTE, CONSUMO Y CONTADOR</span>
           </div>
           <div class="header-column">
             <!-- <div class="column-icon">
@@ -60,7 +59,7 @@
                 />
               </svg>
             </div> -->
-            <span class="titleTwo">Contenido Adicional</span>
+            <span class="titleTwo">CONTENIDO ADICIONAL</span>
           </div>
         </div>
 
@@ -70,7 +69,7 @@
               <div class="client-content">
                 <div class="client-column">
                   <div class="client-info-item">
-                    <span class="label">Nombre:</span>
+                    <span class="label">NOMBRE:</span>
                     <span class="value">
                       {{ billData()?.cliente?.primerNombre || '' }} {{
                       billData()?.cliente?.segundoNombre || '' }} {{
@@ -79,31 +78,30 @@
                     </span>
                   </div>
                   <div class="client-info-item">
-                    <span class="label">Estrato</span>
+                    <span class="label">ESTRATO:</span>
                     <span class="value">
                       {{ billData()?.cliente?.estrato }}</span
                     >
                   </div>
                   <div class="client-info-item">
-                    <span class="label">Número de documento:</span>
+                    <span class="label">NÚMERO DE DOCUMENTO:</span>
                     <span class="value"
                       >{{ billData()?.cliente?.numeroCedula || '' }}</span
                     >
                   </div>
                   <div class="client-info-item">
-                    <span class="label">Código Cliente:</span>
+                    <span class="label">CÓDIGO CLIENTE:</span>
                     <span class="value"
                       >{{ billData()?.cliente?.codigo || '' }}</span
                     >
                   </div>
                   <div class="client-info-item">
-                    <span class="label">Dirección:</span>
+                    <span class="label">DIRECCIÓN:</span>
                     <span class="value">
-                      {{ billData()?.cliente?.direccion?.departamentoNombre ||
-                      '' }}, {{ billData()?.cliente?.direccion?.ciudadNombre ||
-                      '' }}, {{
-                      billData()?.cliente?.direccion?.corregimientoNombre || ''
-                      }} {{ billData()?.cliente?.direccion?.descripcion || '' }}
+                      {{ billData()?.cliente?.direccion?.ciudadNombre || '' }},
+                      {{ billData()?.cliente?.direccion?.corregimientoNombre ||
+                      '' }} {{ billData()?.cliente?.direccion?.descripcion || ''
+                      }}
                     </span>
                   </div>
                 </div>
@@ -111,49 +109,49 @@
                 <!-- Columna 2: Todos los datos de consumo y contador en dos sub-columnas -->
                 <div class="client-column consumption-two-cols">
                   <div class="consumption-item">
-                    <div class="item-label">Periodo</div>
+                    <div class="item-label">PERIODO</div>
                     <div class="item-value">
                       {{ getMonthName(billData()?.factura?.fechaEmision) }}
                     </div>
                   </div>
                   <div class="consumption-item">
-                    <div class="item-label">Lectura</div>
+                    <div class="item-label">LECTURA</div>
                     <div class="item-value">
                       {{ billData()?.factura?.lectura?.lectura || '' }} m³
                     </div>
                   </div>
                   <div class="consumption-item">
-                    <div class="item-label">Fecha Lectura</div>
+                    <div class="item-label">FECHA LECTURA</div>
                     <div class="item-value">
                       {{ billData()?.factura?.lectura?.fechaLectura }}
                     </div>
                   </div>
                   <div class="consumption-item">
-                    <div class="item-label">Fecha de Emision</div>
+                    <div class="item-label">FECHA DE EMISIÓN</div>
                     <div class="item-value">
                       {{ billData()?.factura?.fechaEmision }}
                     </div>
                   </div>
                   <div class="consumption-item">
-                    <div class="item-label">Contador</div>
+                    <div class="item-label">CONTADOR</div>
                     <div class="item-value">
                       {{ billData()?.contador?.tipoContadorNombre }}
                     </div>
                   </div>
                   <div class="consumption-item">
-                    <div class="item-label">Serial</div>
+                    <div class="item-label">SERIAL</div>
                     <div class="item-value">
                       {{ billData()?.contador?.serial }}
                     </div>
                   </div>
                   <div class="consumption-item">
-                    <div class="item-label">Dirección</div>
+                    <div class="item-label">DIRECCIÓN</div>
                     <div class="item-value">
                       {{ getDirectionCompleteCounter() }}
                     </div>
                   </div>
                   <div class="consumption-item">
-                    <div class="item-label bg-amber-500">Valor Facturado:</div>
+                    <div class="item-label bg-amber-500">VALOR FACTURADO:</div>
                     <div class="item-value">
                       {{ billData()?.factura?.lectura?.precio |
                       colombianCurrency }}
@@ -170,33 +168,176 @@
                 </app-legends-bill-history>
               </div>
             </div>
-                        <div class="tarifas-consumo-section">
-              <div class="tarifas-consumo-table">
-                <div class="tarifas-consumo-header">
-                  <div class="tarifa-header-cell"></div>
-                  <div class="tarifa-header-cell">Tarifa por m³<br>consumo de<br>0 a 20 m³</div>
-                  <div class="tarifa-header-cell">Tarifa por m³<br>consumo de<br>21a 40 m³</div>
-                  <div class="tarifa-header-cell">Tarifa por m³<br>consumo<br>mayor de 40 m³</div>
-                  <div class="tarifa-header-cell">VALOR TOTAL<br>COBRADO</div>
-                </div>
+<div class="tarifas-consumo-section">
+  <div class="tarifas-consumo-table">
 
-                <div class="tarifas-consumo-row">
-                  <div class="tarifa-service-label">ACUEDUCTO (TASA POR USO)</div>
-                  <div class="tarifa-value-cell"></div>
-                  <div class="tarifa-value-cell"></div>
-                  <div class="tarifa-value-cell"></div>
-                  <div class="tarifa-value-cell"></div>
-                </div>
+    @let itemsMTC = billData()?.valoresMetrosCubicos?.tipoConcepto ?? [];
+    @let total = billData()?.valoresMetrosCubicos?.total ?? 0;
 
-                <div class="tarifas-consumo-row">
-                  <div class="tarifa-service-label">ALCANTARILLADO (TASA RETRIBUTIVA)</div>
-                  <div class="tarifa-value-cell"></div>
-                  <div class="tarifa-value-cell"></div>
-                  <div class="tarifa-value-cell"></div>
-                  <div class="tarifa-value-cell"></div>
-                </div>
-              </div>
-            </div>
+    <!-- ================= HEADER ACUEDUCTO ================= -->
+
+    <div class="tarifas-consumo-header">
+      <div class="tarifa-header-cell"></div>
+
+      <!-- ACUCONBAS -->
+      <div class="tarifa-header-cell">
+        TARIFA POR M³<br />
+        CONSUMO DE<br />
+        @for (item of itemsMTC; track item.codigo) {
+          @if (item.codigo === 'ACUCONBAS') {
+            {{ item.rango }} M³
+          }
+        }
+      </div>
+
+      <!-- ACUCONCOM -->
+      <div class="tarifa-header-cell">
+        TARIFA POR M³<br />
+        CONSUMO DE<br />
+        @for (item of itemsMTC; track item.codigo) {
+          @if (item.codigo === 'ACUCONCOM') {
+            {{ item.rango }} M³
+          }
+        }
+      </div>
+
+      <!-- ACUCONSUN -->
+      <div class="tarifa-header-cell">
+        TARIFA POR M³<br />
+        CONSUMO<br />
+        @for (item of itemsMTC; track item.codigo) {
+          @if (item.codigo === 'ACUCONSUN') {
+            {{ item.rango || '0' }} M³
+          }
+        }
+      </div>
+
+      <div class="tarifa-header-cell">
+        VALOR TOTAL<br />COBRADO
+      </div>
+    </div>
+
+    <!-- ================= ROW ACUEDUCTO ================= -->
+
+    <div class="tarifas-consumo-row">
+      <div class="tarifa-service-label">
+        ACUEDUCTO (TASA POR USO)
+      </div>
+
+      <!-- ACUCONBAS -->
+      <div class="tarifa-value-cell">
+        @for (item of itemsMTC; track item.codigo) {
+          @if (item.codigo === 'ACUCONBAS') {
+            {{ item.valor | colombianCurrency }}
+          }
+        }
+      </div>
+
+      <!-- ACUCONCOM -->
+      <div class="tarifa-value-cell">
+        @for (item of itemsMTC; track item.codigo) {
+          @if (item.codigo === 'ACUCONCOM') {
+            {{ item.valor | colombianCurrency }}
+          }
+        }
+      </div>
+
+      <!-- ACUCONSUN -->
+      <div class="tarifa-value-cell">
+        @for (item of itemsMTC; track item.codigo) {
+          @if (item.codigo === 'ACUCONSUN') {
+            {{ item.valor | colombianCurrency }}
+          }
+        }
+      </div>
+
+      <div class="tarifa-value-cell">
+        {{ total | colombianCurrency }}
+      </div>
+    </div>
+
+    <!-- ================= HEADER ALCANTARILLADO ================= -->
+
+    <div class="tarifas-consumo-header">
+      <div class="tarifa-header-cell"></div>
+
+      <!-- ALCCONBAS -->
+      <div class="tarifa-header-cell">
+        TARIFA POR M³<br />
+        CONSUMO DE<br />
+        @for (item of itemsMTC; track item.codigo) {
+          @if (item.codigo === 'ALCCONBAS') {
+            {{ item.rango }} M³
+          }
+        }
+      </div>
+
+      <!-- ALCCONCOM -->
+      <div class="tarifa-header-cell">
+        TARIFA POR M³<br />
+        CONSUMO DE<br />
+        @for (item of itemsMTC; track item.codigo) {
+          @if (item.codigo === 'ALCCONCOM') {
+            {{ item.rango }} M³
+          }
+        }
+      </div>
+
+      <!-- ALCCONSUN -->
+      <div class="tarifa-header-cell">
+        TARIFA POR M³<br />
+        CONSUMO<br />
+        @for (item of itemsMTC; track item.codigo) {
+          @if (item.codigo === 'ALCCONSUN') {
+            {{ item.rango }} M³
+          }
+        }
+      </div>
+
+      <div class="tarifa-header-cell">
+        VALOR TOTAL<br />COBRADO
+      </div>
+    </div>
+
+    <!-- ================= ROW ALCANTARILLADO ================= -->
+
+    <div class="tarifas-consumo-row">
+      <div class="tarifa-service-label">
+        ALCANTARILLADO (TASA RETRIBUTIVA)
+      </div>
+
+      <div class="tarifa-value-cell">
+        @for (item of itemsMTC; track item.codigo) {
+          @if (item.codigo === 'ALCCONBAS') {
+            {{ item.valor | colombianCurrency }}
+          }
+        }
+      </div>
+
+      <div class="tarifa-value-cell">
+        @for (item of itemsMTC; track item.codigo) {
+          @if (item.codigo === 'ALCCONCOM') {
+            {{ item.valor | colombianCurrency }}
+          }
+        }
+      </div>
+
+      <div class="tarifa-value-cell">
+        @for (item of itemsMTC; track item.codigo) {
+          @if (item.codigo === 'ALCCONSUN') {
+            {{ item.valor | colombianCurrency }}
+          }
+        }
+      </div>
+
+      <div class="tarifa-value-cell">
+        {{ total | colombianCurrency }}
+      </div>
+    </div>
+
+  </div>
+</div>
+
           </div>
 
           <!-- Columna derecha: Espacio para contenido adicional -->
@@ -248,22 +389,28 @@
 
             <!-- Tabla 2: Tarifa del Servicio de Aseo -->
             <div class="aseo-tarifa-container">
-              <div class="aseo-table-header">TARIFA DEL SERVICIO DE ASEO (MES / UNIDAD)</div>
+              <div class="aseo-table-header">
+                TARIFA DEL SERVICIO DE ASEO (MES / UNIDAD)
+              </div>
 
               <div class="aseo-tarifa-row">
                 <div class="aseo-tarifa-label">RESIDENCIAL</div>
                 <div class="aseo-tarifa-value">TARIFA UNIDAD OCUPADA</div>
-                <div class="aseo-tarifa-value">CARGO FIJO UNIDAD DESOCUPADA</div>
+                <div class="aseo-tarifa-value">
+                  CARGO FIJO UNIDAD DESOCUPADA
+                </div>
               </div>
 
               <div class="aseo-tarifa-row">
                 <div class="aseo-tarifa-label">NO RESIDENCIAL</div>
                 <div class="aseo-tarifa-value">TARIFA UNIDAD OCUPADA</div>
-                <div class="aseo-tarifa-value">CARGO FIJO UNIDAD DESOCUPADA</div>
+                <div class="aseo-tarifa-value">
+                  CARGO FIJO UNIDAD DESOCUPADA
+                </div>
               </div>
             </div>
 
-            <!-- Tabla 3: Últimos Cobros de Aseo -->
+            <!-- Tabla 3: Últimos Cobros de Aseo
             <div class="aseo-cobros-container">
               <div class="aseo-table-header">ÚLTIMOS COBROS DE ASEO</div>
               <div class="aseo-cobros-row">
@@ -274,77 +421,81 @@
                 <div class="aseo-cobro-cell"></div>
                 <div class="aseo-cobro-cell"></div>
               </div>
-            </div>
+            </div> -->
 
-            <!-- Tabla 4: Datos del Consumo -->
-            <div class="consumo-data-container">
-              <div class="consumo-header">DATOS DEL CONSUMO</div>
-
-              <div class="consumo-row">
-                <div class="consumo-label">LECTURA ANTERIOR</div>
-                <div class="consumo-label">LECTURA ACTUAL</div>
-                <div class="consumo-label">FACTURADO CON</div>
-                <div class="consumo-label">CONSUMO (m³)</div>
-                <div class="consumo-label">PROMEDIO ÚLTIMOS 6 MESES</div>
-              </div>
-
-              <div class="consumo-row consumo-values">
-                <div class="consumo-value">0</div>
-                <div class="consumo-value">0</div>
-                <div class="consumo-value">Lectura</div>
-                <div class="consumo-value">0</div>
-                <div class="consumo-value">0</div>
-              </div>
-            </div>
-
-            <!-- Tabla 5: Tabla para Liquidar Consumos -->
             <div class="liquidar-container">
               <div class="liquidar-header">TABLA PARA LIQUIDAR CONSUMOS</div>
 
               <!-- Fila de títulos de servicios -->
               <div class="liquidar-service-headers">
                 <div class="liquidar-rango-title">RANGO</div>
-                <div class="liquidar-service-title acueducto-title">ACUEDUCTO</div>
-                <div class="liquidar-service-title alcantarillado-title">ALCANTARILLADO</div>
+                <div class="liquidar-service-title acueducto-title">
+                  ACUEDUCTO
+                </div>
+                <div class="liquidar-service-title alcantarillado-title">
+                  ALCANTARILLADO
+                </div>
               </div>
 
               <!-- Fila 1: Labels de columnas -->
               <div class="liquidar-labels-row">
-                <div class="liquidar-rango-cell rango-first">Consumo menor</div>
-                <div class="liquidar-acueducto-label">Cons. m³</div>
-                <div class="liquidar-acueducto-label">$ /m³</div>
+                <div class="liquidar-rango-cell rango-first">
+                  CONSUMO BÁSICO
+                </div>
+                <div class="liquidar-acueducto-label">RANGO M³</div>
+                <div class="liquidar-acueducto-label">$ /M³</div>
                 <div class="liquidar-acueducto-label">SUBTOTAL</div>
-                <div class="liquidar-alcantarillado-label">410.44</div>
+                <div class="liquidar-alcantarillado-label">$ /M³</div>
                 <div class="liquidar-alcantarillado-label">SUBTOTAL</div>
               </div>
 
               <!-- Fila 2: Valores primera fila -->
               <div class="liquidar-values-row">
                 <div class="liquidar-empty"></div>
-                <div class="liquidar-value">13</div>
-                <div class="liquidar-value">13,077</div>
-                <div class="liquidar-subtotal" rowspan="2">39,232</div>
-                <div class="liquidar-value">5,336</div>
-                <div class="liquidar-subtotal" rowspan="2">16,007</div>
+                <div class="liquidar-value">0</div>
+                <div class="liquidar-value"></div>
+                <div class="liquidar-subtotal"></div>
+                <div class="liquidar-value"></div>
+                <div class="liquidar-subtotal"></div>
               </div>
 
               <!-- Fila 3: Segundo rango -->
               <div class="liquidar-labels-row">
-                <div class="liquidar-rango-cell">Consumo Mayor</div>
-                <div class="liquidar-value">Cons. m³</div>
-                <div class="liquidar-value">13.098</div>
+                <div class="liquidar-rango-cell">CONSUMO COMPLEMENTARIO</div>
+                <div class="liquidar-acueducto-label">RANGO M³</div>
+                <div class="liquidar-value">$ /M³</div>
                 <div class="liquidar-acueducto-empty"></div>
-                <div class="liquidar-alcantarillado-label">410.44</div>
+                <div class="liquidar-alcantarillado-label">$ /M³</div>
                 <div class="liquidar-alcantarillado-empty"></div>
               </div>
 
               <!-- Fila 4: Valores segunda fila -->
               <div class="liquidar-values-row">
                 <div class="liquidar-empty"></div>
-                <div class="liquidar-value">13</div>
-                <div class="liquidar-value">13,077</div>
+                <div class="liquidar-value">0</div>
+                <div class="liquidar-value"></div>
                 <div class="liquidar-empty"></div>
-                <div class="liquidar-value">5,336</div>
+                <div class="liquidar-value"></div>
+                <div class="liquidar-empty"></div>
+              </div>
+
+              <!-- Fila 5: Tercer rango -->
+              <div class="liquidar-labels-row">
+                <div class="liquidar-rango-cell">CONSUMO SUNTUARIO</div>
+                <div class="liquidar-acueducto-label">RANGO M³</div>
+                <div class="liquidar-value">$ /M³</div>
+                <div class="liquidar-acueducto-empty"></div>
+                <div class="liquidar-alcantarillado-label">$ /M³</div>
+                <div class="liquidar-alcantarillado-empty"></div>
+              </div>
+
+              <!-- Fila 6: Valores tercera fila -->
+              <div class="liquidar-values-row">
+                <div class="liquidar-empty"></div>
+                <div class="liquidar-value">0</div>
+                <div class="liquidar-value"></div>
+                <div class="liquidar-empty"></div>
+                <div class="liquidar-value"></div>
                 <div class="liquidar-empty"></div>
               </div>
 
@@ -353,22 +504,22 @@
                 <span class="liquidar-total-arrow">→</span>
               </div>
             </div>
-                        <div class="consumo-data-container">
+            <div class="consumo-data-container">
               <div class="consumo-header">DATOS DEL CONSUMO</div>
 
               <div class="consumo-row">
                 <div class="consumo-label">LECTURA ANTERIOR</div>
                 <div class="consumo-label">LECTURA ACTUAL</div>
                 <div class="consumo-label">FACTURADO CON</div>
-                <div class="consumo-label">CONSUMO (m³)</div>
+                <div class="consumo-label">CONSUMO (M³)</div>
                 <div class="consumo-label">PROMEDIO ÚLTIMOS 6 MESES</div>
               </div>
 
               <div class="consumo-row consumo-values">
-                <div class="consumo-value">0</div>
-                <div class="consumo-value">0</div>
-                <div class="consumo-value">Lectura</div>
-                <div class="consumo-value">0</div>
+                <div class="consumo-value">{{ billData()?.factura?.lecturaAnterior }}</div>
+                <div class="consumo-value">{{ billData()?.factura?.lecturaActual }}</div>
+                <div class="consumo-value">lectura</div>
+                <div class="consumo-value">{{ billData()?.factura?.consumoReal }}</div>
                 <div class="consumo-value">0</div>
               </div>
             </div>
@@ -499,7 +650,7 @@
               </div>
             </div>
             <div class="service-column">
-              <div class="service-column-title otros-title">Otros</div>
+              <div class="service-column-title otros-title">OTROS</div>
               <div class="service-items">
                 @if (tieneOtrasTarifas()) { @for (tarifa of
                 getTarifasRestantes(); track tarifa.idTipoTarifa) {
@@ -523,9 +674,7 @@
         <!-- Segunda fila, segunda columna: Puntos de pago -->
         <div class="service-card-wrapper">
           <div class="service-card puntos-pago">
-            <div class="puntos-pago-title">
-              Puntos de pago
-            </div>
+            <div class="puntos-pago-title">PUNTOS DE PAGO</div>
             <div class="puntos-pago-grid" [ngClass]="getPuntosGridClass()">
               <!-- Código QR de la empresa - Comentado según requerimiento -->
               <!-- @if (hasEmpresaCodigoQr()) {
@@ -555,7 +704,9 @@
                 }
               </div>
               } } @else {
-              <p style="font-size: 10px; color: #999; text-align: center;">No se cargaron las imágenes</p>
+              <p style="font-size: 10px; color: #999; text-align: center">
+                No se cargaron las imágenes
+              </p>
               }
             </div>
           </div>
@@ -565,38 +716,50 @@
         <div class="deuda-header">INFORMACIÓN DE DEUDA</div>
 
         <div class="deuda-labels-row">
-          <div class="deuda-label-cell">Tipo de deuda</div>
-          <div class="deuda-label-cell">Codigo tipo deuda</div>
-          <div class="deuda-label-cell">Número de cuotas</div>
-          <div class="deuda-label-cell">Valor cuota</div>
-          <div class="deuda-label-cell">Abonos realizados</div>
-          <div class="deuda-label-cell">Cuotas canceladas</div>
-          <div class="deuda-label-cell">Cuotas pendientes</div>
-          <div class="deuda-label-cell">Nuevo saldo</div>
+          <div class="deuda-label-cell">TIPO DE DEUDA</div>
+          <div class="deuda-label-cell">CÓDIGO TIPO DEUDA</div>
+          <div class="deuda-label-cell">NÚMERO DE CUOTAS</div>
+          <div class="deuda-label-cell">VALOR CUOTA</div>
+          <div class="deuda-label-cell">ABONOS REALIZADOS</div>
+          <div class="deuda-label-cell">CUOTAS CANCELADAS</div>
+          <div class="deuda-label-cell">CUOTAS PENDIENTES</div>
+          <div class="deuda-label-cell">NUEVO SALDO</div>
         </div>
 
         @if (dataDeudaConsolidada() && dataDeudaConsolidada()!.length > 0) {
-          @for (deuda of dataDeudaConsolidada(); track deuda.idTipoDeuda) {
-            <div class="deuda-values-row">
-              <div class="deuda-value-cell">{{ deuda.nombreTipoDeuda }}</div>
-              <div class="deuda-value-cell">{{ deuda.codigoTipoDeuda }}</div>
-              <div class="deuda-value-cell">{{ deuda.numeroCuotas }}</div>
-              <div class="deuda-value-cell">{{ deuda.valorCuota | colombianCurrency }}</div>
-              <div class="deuda-value-cell">{{ deuda.abonosRealizados | colombianCurrency }}</div>
-              <div class="deuda-value-cell">{{ deuda.cuotasCanceladas }}</div>
-              <div class="deuda-value-cell">{{ deuda.cuotasPendientes }}</div>
-              <div class="deuda-value-cell">{{ deuda.nuevoSaldo | colombianCurrency }}</div>
-            </div>
-          }
-        } @else {
-          <div class="deuda-values-row">
-            <div class="deuda-value-cell" style="grid-column: 1 / -1; text-align: center; padding: 1rem; color: #666;">
-              No hay información de deudas consolidadas
-            </div>
+        @for (deuda of dataDeudaConsolidada(); track deuda.idTipoDeuda) {
+        <div class="deuda-values-row">
+          <div class="deuda-value-cell">{{ deuda.nombreTipoDeuda }}</div>
+          <div class="deuda-value-cell">{{ deuda.codigoTipoDeuda }}</div>
+          <div class="deuda-value-cell">{{ deuda.numeroCuotas }}</div>
+          <div class="deuda-value-cell">
+            {{ deuda.valorCuota | colombianCurrency }}
           </div>
+          <div class="deuda-value-cell">
+            {{ deuda.abonosRealizados | colombianCurrency }}
+          </div>
+          <div class="deuda-value-cell">{{ deuda.cuotasCanceladas }}</div>
+          <div class="deuda-value-cell">{{ deuda.cuotasPendientes }}</div>
+          <div class="deuda-value-cell">
+            {{ deuda.nuevoSaldo | colombianCurrency }}
+          </div>
+        </div>
+        } } @else {
+        <div class="deuda-values-row">
+          <div
+            class="deuda-value-cell"
+            style="
+              grid-column: 1 / -1;
+              text-align: center;
+              padding: 1rem;
+              color: #666;
+            "
+          >
+            No hay información de deudas consolidadas
+          </div>
+        </div>
         }
       </div>
-
 
       <div class="dashed-line"></div>
       <div class="bottom-section">
@@ -613,15 +776,19 @@
           </div>
           <div class="empresa-info">
             <div class="empresa-item">
-              <span class="empresa-label">Nombre:</span>
-              <span class="empresa-value">{{ enterpriseInfo.value()?.nombre || '' }}</span>
+              <span class="empresa-label">NOMBRE:</span>
+              <span class="empresa-value"
+                >{{ enterpriseInfo.value()?.nombre || '' }}</span
+              >
             </div>
             <div class="empresa-item">
               <span class="empresa-label">NIT:</span>
-              <span class="empresa-value">{{ billData()?.empresa?.nit || '' }}</span>
+              <span class="empresa-value"
+                >{{ billData()?.empresa?.nit || '' }}</span
+              >
             </div>
             <div class="empresa-item">
-              <span class="empresa-label">Dirección:</span>
+              <span class="empresa-label">DIRECCIÓN:</span>
               <span class="empresa-value">{{ GetDirectiomComplete() }}</span>
             </div>
           </div>
@@ -629,33 +796,37 @@
 
         <!-- Segunda columna: Información del usuario -->
         <div class="bottom-column usuario-column">
-          <div class="usuario-title">Información del Usuario</div>
+          <div class="usuario-title">INFORMACIÓN DEL USUARIO</div>
           <div class="usuario-info">
             <div class="usuario-item">
-              <span class="usuario-label">Nombre:</span>
+              <span class="usuario-label">NOMBRE:</span>
               <span class="usuario-value">
-                {{ billData()?.cliente?.primerNombre || '' }}
-                {{ billData()?.cliente?.segundoNombre || '' }}
-                {{ billData()?.cliente?.primerApellido || '' }}
-                {{ billData()?.cliente?.segundoApellido || '' }}
+                {{ billData()?.cliente?.primerNombre || '' }} {{
+                billData()?.cliente?.segundoNombre || '' }} {{
+                billData()?.cliente?.primerApellido || '' }} {{
+                billData()?.cliente?.segundoApellido || '' }}
               </span>
             </div>
             <div class="usuario-item">
-              <span class="usuario-label">Cédula:</span>
-              <span class="usuario-value">{{ billData()?.cliente?.numeroCedula || '' }}</span>
+              <span class="usuario-label">CÉDULA:</span>
+              <span class="usuario-value"
+                >{{ billData()?.cliente?.numeroCedula || '' }}</span
+              >
             </div>
             <div class="usuario-item">
-              <span class="usuario-label">Dirección:</span>
+              <span class="usuario-label">DIRECCIÓN:</span>
               <span class="usuario-value">
-                {{ billData()?.cliente?.direccion?.departamentoNombre || '' }},
-                {{ billData()?.cliente?.direccion?.ciudadNombre || '' }},
-                {{ billData()?.cliente?.direccion?.corregimientoNombre || '' }}
-                {{ billData()?.cliente?.direccion?.descripcion || '' }}
+                {{ billData()?.cliente?.direccion?.ciudadNombre || '' }}, {{
+                billData()?.cliente?.direccion?.corregimientoNombre || '' }} {{
+                billData()?.cliente?.direccion?.descripcion || '' }}, {{
+                billData()?.cliente?.direccion?.descripcion || '' }}
               </span>
             </div>
             <div class="usuario-fecha-limite">
-              <span class="fecha-label">Fecha límite de pago:</span>
-              <span class="fecha-value">{{ formatDate(billData()?.factura?.fechaFin) || '' }}</span>
+              <span class="fecha-label">FECHA LÍMITE DE PAGO:</span>
+              <span class="fecha-value"
+                >{{ formatDate(billData()?.factura?.fechaFin) || '' }}</span
+              >
             </div>
           </div>
         </div>
@@ -664,42 +835,50 @@
         <div class="bottom-column factura-column">
           <div class="factura-info">
             <div class="factura-item">
-              <span class="factura-label">Número de Factura:</span>
-              <span class="factura-value">{{ billData()?.factura?.codigo || '' }}</span>
+              <span class="factura-label">NÚMERO DE FACTURA:</span>
+              <span class="factura-value"
+                >{{ billData()?.factura?.codigo || '' }}</span
+              >
             </div>
             <div class="factura-item">
-              <span class="factura-label">Cédula:</span>
-              <span class="factura-value">{{ billData()?.cliente?.numeroCedula || '' }}</span>
+              <span class="factura-label">CÉDULA:</span>
+              <span class="factura-value"
+                >{{ billData()?.cliente?.numeroCedula || '' }}</span
+              >
             </div>
             <div class="factura-item">
-              <span class="factura-label">Periodo Facturado:</span>
+              <span class="factura-label">PERIODO FACTURADO:</span>
               <span class="factura-value">
-                {{ formatDate(billData()?.factura?.fechaEmision) || '' }} -
-                {{ formatDate(billData()?.factura?.fechaFin) || '' }}
+                {{ formatDate(billData()?.factura?.fechaEmision) || '' }} - {{
+                formatDate(billData()?.factura?.fechaFin) || '' }}
               </span>
             </div>
           </div>
 
           <div class="payment-totals-grid">
-            @for (tipo of getPrimeros3Totales(); track tipo.nombre; let i = $index) {
-            <div class="rounded-t-xl mt-[30px] text-center bg-white text-black relative overflow-hidden">
+            @for (tipo of getPrimeros3Totales(); track tipo.nombre; let i =
+            $index) {
+            <div
+              class="rounded-t-xl mt-[30px] text-center bg-white text-black relative overflow-hidden"
+            >
               <div
                 class="h-[25px] rounded-t-xl flex items-center justify-center text-xs font-medium text-white pb-3"
                 [ngClass]="{
-                           'bg-[#74b9ff]': i === 0,
-                           'bg-[#fac6d0]': i === 1,
-                           'bg-[#fdcb6e]': i === 2
+                           'bg-[#0b84ff]': i === 0,
+                           'bg-[#3f51b5]': i === 1,
+                           'bg-[#ff9800]': i === 2
                          }"
               >
-                {{ i === 0 ? 'Acueducto' : i === 1 ? 'Aseo' : 'Alcantarillado' }}
+                {{ i === 0 ? 'ACUEDUCTO' : i === 1 ? 'ASEO' : 'ALCANTARILLADO'
+                }}
               </div>
               <div class="hidden">{{ tipo.nombre }}</div>
               <div
                 class="text-base font-bold text-black py-2 pb-4 m-0 border-l border-r min-h-[40px] flex items-center justify-center"
                 [ngClass]="{
-                           'border-[#74b9ff]': i === 0,
-                           'border-[#fac6d0]': i === 1,
-                           'border-[#fdcb6e]': i === 2
+                           'border-[#0b84ff]': i === 0,
+                           'border-[#3f51b5]': i === 1,
+                           'border-[#ff9800]': i === 2
                          }"
               >
                 {{ tipo.valor | colombianCurrency }}
@@ -707,20 +886,25 @@
               <div
                 class="h-2"
                 [ngClass]="{
-                           'bg-[#74b9ff]': i === 0,
-                           'bg-[#fac6d0]': i === 1,
-                           'bg-[#fdcb6e]': i === 2
+                           'bg-[#0b84ff]': i === 0,
+                           'bg-[#3f51b5]': i === 1,
+                           'bg-[#ff9800]': i === 2
                          }"
               ></div>
             </div>
-            }
-            @if (tieneOtrosTotales()) {
-            <div class="rounded-t-xl mt-[30px] text-center bg-white text-black relative overflow-hidden">
-              <div class="h-[25px] rounded-t-xl flex items-center justify-center text-xs font-medium text-white bg-[#5d6481] pb-3">
+            } @if (tieneOtrosTotales()) {
+            <div
+              class="rounded-t-xl mt-[30px] text-center bg-white text-black relative overflow-hidden"
+            >
+              <div
+                class="h-[25px] rounded-t-xl flex items-center justify-center text-xs font-medium text-white bg-[#5d6481] pb-3"
+              >
                 Otros
               </div>
               <div class="hidden">Otros</div>
-              <div class="text-base font-bold text-black py-2 pb-4 m-0 border-l border-r border-[#5d6481] min-h-[40px] flex items-center justify-center">
+              <div
+                class="text-base font-bold text-black py-2 pb-4 m-0 border-l border-r border-[#5d6481] min-h-[40px] flex items-center justify-center"
+              >
                 {{ getTotalOtrosServicios() | colombianCurrency }}
               </div>
               <div class="h-2 bg-[#5d6481]"></div>
@@ -729,8 +913,10 @@
           </div>
 
           <div class="final-total-card">
-            <span class="total-label">Total a pagar:</span>
-            <span class="total-amount">{{ getTotalAPagar() | colombianCurrency }}</span>
+            <span class="total-label">TOTAL A PAGAR:</span>
+            <span class="total-amount"
+              >{{ getTotalAPagar() | colombianCurrency }}</span
+            >
           </div>
         </div>
       </div>

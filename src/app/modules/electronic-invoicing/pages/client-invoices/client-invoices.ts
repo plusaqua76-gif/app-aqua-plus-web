@@ -230,6 +230,7 @@ export class ClientInvoices {
 
   invoiceColumns = signal([
     // { field: 'estado', header: 'Estado', type: 'text' as const },
+    { field: 'numero', header: 'Factura', type: 'text' as const },
     { field: 'estadoLegal', header: 'Estado Legal', type: 'text' as const },
     { field: 'empresa.nombre', header: 'Empresa', type: 'text' as const },
     { field: 'cliente.nombre', header: 'Cliente', type: 'text' as const },

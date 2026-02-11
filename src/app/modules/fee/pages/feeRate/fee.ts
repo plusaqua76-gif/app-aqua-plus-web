@@ -147,11 +147,25 @@ export class FeeComponent implements AfterViewInit {
   consumoMinimo = signal<number>(0);
   consumoMaximo = signal<number>(0);
   guardandoParametrosConsumo = signal(false);
+  codigosTarifaConsumo = signal<string[]>([]);
+  cargandoParametrosConsumo = signal(false);
+
+  tipoServicio = computed(() => {
+    const codigos = this.codigosTarifaConsumo();
+    if (codigos.length === 0) return '';
+
+    const primerCodigo = codigos[0];
+    const prefijo = primerCodigo.substring(0, 3).toUpperCase();
+
+    if (prefijo === 'ACU') return 'Acueducto';
+    if (prefijo === 'ALC') return 'Alcantarillado';
+    return 'Servicio';
+  });
 
   paramConsumptionIds = {
-    consubas: undefined as number | undefined,
-    consucomp: undefined as number | undefined,
-    consunt: undefined as number | undefined,
+    CONBAS: undefined as number | undefined,
+    CONCON: undefined as number | undefined,
+    CONSUN: undefined as number | undefined,
   };
 
   rangosConsumo = computed(() => {
@@ -159,9 +173,9 @@ export class FeeComponent implements AfterViewInit {
     const maximo = this.consumoMaximo();
 
     return {
-      consubas: `0 - ${minimo}`,
-      consucomp: `${minimo} - ${maximo}`,
-      consunt: `${maximo} en adelante`
+      CONBAS: `0 - ${minimo}`,
+      CONCON: `${minimo + 1} - ${maximo - 1}`,
+      CONSUN: `${maximo} en adelante`
     };
   });
 
@@ -171,12 +185,12 @@ export class FeeComponent implements AfterViewInit {
 
       if (paramsData && paramsData.length > 0) {
         // Extraer valores de los parámetros
-        const consubasParam = paramsData.find(p => p.key === 'CONSUBAS');
-        const consucompParam = paramsData.find(p => p.key === 'CONSUCOMP');
+        const CONBASParam = paramsData.find(p => p.key === 'CONBAS');
+        const CONCOMParam = paramsData.find(p => p.key === 'CONCOM');
 
-        if (consubasParam?.value && consubasParam.value !== '') {
-          // CONSUBAS tiene formato "0-15", extraer el valor máximo
-          const parts = consubasParam.value.split('-');
+        if (CONBASParam?.value && CONBASParam.value !== '') {
+          // CONBAS tiene formato "0-15", extraer el valor máximo
+          const parts = CONBASParam.value.split('-');
           if (parts.length === 2) {
             const minValue = parseInt(parts[1]);
             if (!isNaN(minValue)) {
@@ -185,9 +199,9 @@ export class FeeComponent implements AfterViewInit {
           }
         }
 
-        if (consucompParam?.value && consucompParam.value !== '') {
-          // CONSUCOMP tiene formato "15-50", extraer el valor máximo
-          const parts = consucompParam.value.split('-');
+        if (CONCOMParam?.value && CONCOMParam.value !== '') {
+          // CONCOM tiene formato "15-50", extraer el valor máximo
+          const parts = CONCOMParam.value.split('-');
           if (parts.length === 2) {
             const maxValue = parseInt(parts[1]);
             if (!isNaN(maxValue)) {
@@ -300,14 +314,14 @@ export class FeeComponent implements AfterViewInit {
     stream: ({ params: { enterpriseId } }) =>
       enterpriseId
         ? forkJoin({
-            consubas: this.counterEnterpriceService
-              .getParamsEnterprice(enterpriseId, 'CONSUBAS')
+            CONBAS: this.counterEnterpriceService
+              .getParamsEnterprice(enterpriseId, 'CONBAS')
               .pipe(catchError(() => of({ success: false, response: null }))),
-            consucomp: this.counterEnterpriceService
-              .getParamsEnterprice(enterpriseId, 'CONSUCOMP')
+            CONCON: this.counterEnterpriceService
+              .getParamsEnterprice(enterpriseId, 'CONCON')
               .pipe(catchError(() => of({ success: false, response: null }))),
-            consunt: this.counterEnterpriceService
-              .getParamsEnterprice(enterpriseId, 'CONSUNT')
+            CONSUN: this.counterEnterpriceService
+              .getParamsEnterprice(enterpriseId, 'CONSUN')
               .pipe(catchError(() => of({ success: false, response: null }))),
           })
         : EMPTY,
@@ -318,10 +332,9 @@ export class FeeComponent implements AfterViewInit {
       const data = this.consumptionParams.value();
       if (!data) return [];
 
-      const extractValue = (param: any, key: 'consubas' | 'consucomp' | 'consunt') => {
-        const response = Array.isArray(param?.response)
-          ? param.response[0]
-          : param?.response;
+      const extractValue = (param: any, key: 'CONBAS' | 'CONCON' | 'CONSUN') => {
+        // La respuesta del API es un objeto directo, no un array
+        const response = param?.response;
 
         if (response?.id) {
           this.paramConsumptionIds[key] = response.id;
@@ -335,19 +348,19 @@ export class FeeComponent implements AfterViewInit {
 
       return [
         {
-          key: 'CONSUBAS',
+          key: 'CONBAS',
           description: 'Consumo Básico',
-          ...extractValue(data.consubas, 'consubas'),
+          ...extractValue(data.CONBAS, 'CONBAS'),
         },
         {
-          key: 'CONSUCOMP',
+          key: 'CONCON',
           description: 'Consumo Complementario',
-          ...extractValue(data.consucomp, 'consucomp'),
+          ...extractValue(data.CONCON, 'CONCON'),
         },
         {
-          key: 'CONSUNT',
+          key: 'CONSUN',
           description: 'Consumo Unitario',
-          ...extractValue(data.consunt, 'consunt'),
+          ...extractValue(data.CONSUN, 'CONSUN'),
         }
       ];
     } catch (error) {
@@ -358,9 +371,9 @@ export class FeeComponent implements AfterViewInit {
 
 mostrardata = this.consumptionParamsData().forEach(param => {
     console.log('Parámetro:', param.description, 'Valor:', param.value);
-    this.valorComplementario.set(param.key === 'CONSUCOMP' ? param.value : null);
-    this.valorUnitario.set(param.key === 'CONSUNT' ? param.value : null);
-    this.valorBasico.set(param.key === 'CONSUBAS' ? param.value : null);
+    this.valorComplementario.set(param.key === 'CONCOM' ? param.value : null);
+    this.valorUnitario.set(param.key === 'CONSUN' ? param.value : null);
+    this.valorBasico.set(param.key === 'CONBAS' ? param.value : null);
   });
 
   private resetFormularioItem(): NuevoItem {
@@ -516,12 +529,16 @@ mostrardata = this.consumptionParamsData().forEach(param => {
     if (this.selectedTipoConcepto) {
       this.verificarEstratos();
     }
+    // Cargar parámetros de consumo específicos para esta tarifa
+    this.cargarParametrosConsumoPorTarifa();
   }
 
   onTipoConceptoChange(): void {
     if (this.selectedTipoTarifa) {
       this.verificarEstratos();
     }
+    // Cargar parámetros de consumo específicos para este concepto
+    this.cargarParametrosConsumoPorTarifa();
   }
 
   private verificarEstratos(): void {
@@ -1284,6 +1301,133 @@ mostrardata = this.consumptionParamsData().forEach(param => {
     this.consumoMaximo.set(50);
   }
 
+  // Método para construir códigos de consumo dinámicos
+  private construirCodigosConsumo(): string[] {
+    const tipoTarifaSeleccionado = this.typeRatesData().find(
+      (t) => t.id == this.selectedTipoTarifa
+    );
+
+    if (!tipoTarifaSeleccionado?.codigo) {
+      return [];
+    }
+
+    // Tomar los primeros 3 caracteres del código de tarifa
+    const codigoTarifa = tipoTarifaSeleccionado.codigo.substring(0, 3).toUpperCase();
+
+    // Construir los códigos completos
+    return [
+      `${codigoTarifa}CONBAS`,
+      `${codigoTarifa}CONCON`,
+      `${codigoTarifa}CONSUN`
+    ];
+  }
+
+  // Método para cargar parámetros de consumo por tarifa seleccionada
+  cargarParametrosConsumoPorTarifa(): void {
+    if (!this.selectedTipoTarifa) {
+      this.codigosTarifaConsumo.set([]);
+      // Resetear valores cuando no hay tarifa seleccionada
+      this.consumoMinimo.set(0);
+      this.consumoMaximo.set(0);
+      this.paramConsumptionIds.CONBAS = undefined;
+      this.paramConsumptionIds.CONCON = undefined;
+      this.paramConsumptionIds.CONSUN = undefined;
+      return;
+    }
+
+    const codigos = this.construirCodigosConsumo();
+    this.codigosTarifaConsumo.set(codigos);
+
+    if (codigos.length === 0) {
+      // Resetear valores cuando no se pueden construir códigos
+      this.consumoMinimo.set(0);
+      this.consumoMaximo.set(0);
+      this.paramConsumptionIds.CONBAS = undefined;
+      this.paramConsumptionIds.CONCON = undefined;
+      this.paramConsumptionIds.CONSUN = undefined;
+      return;
+    }
+
+    const empresaId = this.empresaId();
+    if (!empresaId) {
+      return;
+    }
+
+    // Resetear valores antes de cargar nuevos parámetros
+    this.consumoMinimo.set(0);
+    this.consumoMaximo.set(0);
+    this.paramConsumptionIds.CONBAS = undefined;
+    this.paramConsumptionIds.CONCON = undefined;
+    this.paramConsumptionIds.CONSUN = undefined;
+
+    this.cargandoParametrosConsumo.set(true);
+
+    // Hacer las peticiones para cada código
+    forkJoin({
+      CONBAS: this.counterEnterpriceService
+        .getParamsEnterprice(empresaId, codigos[0])
+        .pipe(catchError(() => of({ success: false, response: null }))),
+      CONCON: this.counterEnterpriceService
+        .getParamsEnterprice(empresaId, codigos[1])
+        .pipe(catchError(() => of({ success: false, response: null }))),
+      CONSUN: this.counterEnterpriceService
+        .getParamsEnterprice(empresaId, codigos[2])
+        .pipe(catchError(() => of({ success: false, response: null })))
+    }).subscribe({
+      next: (data) => {
+        // Actualizar consumoMinimo y consumoMaximo basado en los valores obtenidos
+        // La respuesta del API es un objeto directo, no un array
+        if (data.CONBAS?.success && data.CONBAS.response) {
+          const valorParam = data.CONBAS.response.valorParametro;
+          // Guardar el ID para futuras actualizaciones
+          if (data.CONBAS.response.id) {
+            this.paramConsumptionIds.CONBAS = data.CONBAS.response.id;
+          }
+          // Extraer el máximo del rango (ejemplo: "0-15" -> 15)
+          const match = valorParam.match(/-(\d+)/);
+          if (match) {
+            this.consumoMinimo.set(parseInt(match[1]));
+            console.log('CONBAS cargado:', valorParam, '-> mínimo:', match[1], '-> ID:', data.CONBAS.response.id);
+          }
+        }
+
+        if (data.CONCON?.success && data.CONCON.response) {
+          const valorParam = data.CONCON.response.valorParametro;
+          // Guardar el ID para futuras actualizaciones
+          if (data.CONCON.response.id) {
+            this.paramConsumptionIds.CONCON = data.CONCON.response.id;
+          }
+          // Extraer el máximo del rango (ejemplo: "15-50" -> 50)
+          const match = valorParam.match(/-(\d+)/);
+          if (match) {
+            this.consumoMaximo.set(parseInt(match[1]));
+            console.log('CONCON cargado:', valorParam, '-> máximo:', match[1], '-> ID:', data.CONCON.response.id);
+          }
+        }
+
+        if (data.CONSUN?.success && data.CONSUN.response) {
+          // Guardar el ID para futuras actualizaciones
+          if (data.CONSUN.response.id) {
+            this.paramConsumptionIds.CONSUN = data.CONSUN.response.id;
+          }
+          console.log('CONSUN cargado -> ID:', data.CONSUN.response.id);
+        }
+
+        this.cargandoParametrosConsumo.set(false);
+        console.log('Parámetros de consumo cargados - Min:', this.consumoMinimo(), 'Max:', this.consumoMaximo());
+        console.log('IDs guardados:', this.paramConsumptionIds);
+      },
+      error: (error) => {
+        console.error('Error al cargar parámetros de consumo:', error);
+        this.toastService.error(
+          'Error',
+          'Error al cargar parámetros de consumo específicos'
+        );
+        this.cargandoParametrosConsumo.set(false);
+      }
+    });
+  }
+
   // Método para actualizar parámetros de consumo
   actualizarParametrosConsumo(): void {
     const min = this.consumoMinimo();
@@ -1310,7 +1454,19 @@ mostrardata = this.consumptionParamsData().forEach(param => {
 
     this.guardandoParametrosConsumo.set(true);
 
-    const buildParam = (key: 'consubas' | 'consucomp' | 'consunt', llave: string, valorParametro: string) => {
+    // Obtener los códigos dinámicos basados en la tarifa seleccionada
+    const codigos = this.construirCodigosConsumo();
+
+    if (codigos.length === 0) {
+      this.toastService.info(
+        'Info',
+        'Debe seleccionar una tarifa primero'
+      );
+      this.guardandoParametrosConsumo.set(false);
+      return;
+    }
+
+    const buildParam = (key: 'CONBAS' | 'CONCON' | 'CONSUN', llave: string, valorParametro: string) => {
       const param: any = {
         empresa: { id: empresaId },
         llave: llave,
@@ -1327,9 +1483,9 @@ mostrardata = this.consumptionParamsData().forEach(param => {
     };
 
     const params: any[] = [
-      buildParam('consubas', 'CONSUBAS', `0-${min}`),
-      buildParam('consucomp', 'CONSUCOMP', `${min}-${max}`),
-      buildParam('consunt', 'CONSUNT', `${max}+`),
+      buildParam('CONBAS', codigos[0], `0-${min}`),
+      buildParam('CONCON', codigos[1], `${min}-${max}`),
+      buildParam('CONSUN', codigos[2], `${max}+`),
     ];
 
     forkJoin(

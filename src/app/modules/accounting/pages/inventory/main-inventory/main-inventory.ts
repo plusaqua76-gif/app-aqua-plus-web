@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import {
   PeriodoData,
   TrendDirection,
@@ -51,12 +52,77 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
     PopupComponent,
     Checkbox,
   ],
+  styles: [`
+    .metrics-container:has(.metric-card-wrapper:hover) .metric-card-wrapper:not(:hover) {
+      filter: blur(3px);
+      opacity: 0.7;
+      transition: all 0.3s ease;
+    }
+
+    .metric-card-wrapper {
+      z-index: 1;
+    }
+
+    .metric-card-wrapper:hover {
+      z-index: 999;
+    }
+
+    .metric-main-card {
+      position: absolute;
+      width: 100%;
+      height: 130px;
+      z-index: 2;
+      transition: 0.4s ease-in-out;
+    }
+
+    .metric-main-card:hover {
+      background: linear-gradient(135deg, rgba(118, 125, 230, 0.1) 0%, rgba(58, 58, 58, 0.3) 100%);
+      z-index: 3;
+    }
+
+    .metric-expanded-card {
+      position: absolute;
+      z-index: 1;
+      top: 0;
+      left: 0;
+      transition: 0.4s ease-in-out;
+    }
+
+    .metric-main-card:hover + .metric-expanded-card {
+      top: -90px;
+      height: 315px;
+    }
+
+    .metric-main-card:hover + .metric-expanded-card .metric-formula {
+      opacity: 1;
+    }
+
+    .metric-main-card:hover + .metric-expanded-card .metric-lower {
+      opacity: 1;
+    }
+
+    .metric-formula {
+      position: absolute;
+      top: 0.75rem;
+      left: 0;
+      right: 0;
+      opacity: 0;
+      transition: 0.4s ease-in-out;
+    }
+
+    .metric-lower {
+      position: absolute;
+      left: 0;
+      bottom: 1rem;
+      opacity: 0;
+      transition: 0.4s ease-in-out;
+    }
+  `],
   template: `
     @let activos = metricasService.activosData();
     @let pasivos = metricasService.pasivosData();
     @let cartera = metricasService.carteraData();
     @let patrimonio = metricasService.patrimonioData();
-    @let economic = resultadosService.economicData();
     @let categorias = categoryCount.categoryCount();
     @let indicadores = calculosService.enterpriceResolutionSignal();
     <div class="min-h-screen w-full p-6 grid gap-6">
@@ -151,7 +217,6 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
             </div>
           </div>
         </div>
-        <!-- Card Pasivos Totales -->
         <div
           class="rounded-lg sm:rounded-xl border border-[#312f62a3] bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-2.5 sm:p-3 md:p-4"
         >
@@ -205,7 +270,7 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
                       />
                     </svg>
                     <span class="text-red-500 font-medium"
-                      >-{{ pasivosData.variacion | number: '1.0-0' }}%</span
+                      >{{ pasivosData.variacion | number: '1.0-0' }}%</span
                     >
                   } @else {
                     <svg
@@ -374,7 +439,7 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
                       />
                     </svg>
                     <span class="text-red-500 font-medium"
-                      >-{{ patrimonioData.variacion | number: '1.0-0' }}%</span
+                      >{{ patrimonioData.variacion | number: '1.0-0' }}%</span
                     >
                   } @else {
                     <svg
@@ -411,158 +476,186 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
             <div
               class="rounded-xl border border-gray-700/10 bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl"
             >
-              @defer (when economic != null) {
-                @let economicData = economic!;
-                <app-economic-result-chart [data]="economicData" />
+              <app-economic-result-chart />
+            </div>
+            <div class="space-y-6 metrics-container">
+              @defer (when indicadores != null) {
+                @let liquidez = indicadores!.liquidez;
+                @let activosCorrientes = indicadores!.activosCorrientes;
+                @let pasivosCorrientes = indicadores!.pasivosCorrientes;
+                <div class="metric-card-wrapper relative flex items-center justify-center transition-all duration-300" style="height: 130px;">
+                  <div class="metric-main-card rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl cursor-pointer p-2 px-3">
+
+                    <div class="absolute top-3 right-3 opacity-20">
+                      <i class="fas fa-hand-holding-dollar text-4xl text-purple-300"></i>
+                    </div>
+                    <h3 class="text-gray-400 text-sm font-medium mb-2">Liquidez</h3>
+                    <div class="flex items-end gap-3 mb-2">
+                      <span class="text-3xl font-bold text-[#9B9B9B]">
+                        {{ liquidez | number: '1.2-2' }}
+                      </span>
+                    </div>
+                    <p class="text-gray-500 text-xs leading-relaxed">
+                      Capacidad para cubrir obligaciones
+                    </p>
+                  </div>
+                  <div class="metric-expanded-card flex flex-col w-full h-[130px] rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#1a18326b] to-[#2d2d2d80] backdrop-blur-xl overflow-hidden">
+                    <div class="metric-formula flex flex-col items-center justify-center px-6 py-4 text-white">
+                      <div class="text-[0.85rem] font-medium text-[rgba(185,183,238,0.95)] font-mono text-center">
+                        Activos Corrientes ÷ Pasivos Corrientes
+                      </div>
+                    </div>
+                    <div class="metric-lower flex flex-row gap-6 justify-center items-center w-full text-white px-6 py-3">
+                      <div class="flex-1 text-center">
+                        <div class="text-[0.65rem] text-white/60 mb-1.5 uppercase tracking-wide">Activos</div>
+                        <div class="text-[0.8rem] font-semibold leading-tight text-emerald-400">{{ activosCorrientes | colombianCurrency }}</div>
+                      </div>
+                      <div class="flex-1 text-center">
+                        <div class="text-[0.65rem] text-white/60 mb-1.5 uppercase tracking-wide">Pasivos</div>
+                        <div class="text-[0.8rem] font-semibold leading-tight text-red-400">{{ pasivosCorrientes | colombianCurrency }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               } @placeholder {
-                <div class="flex items-center justify-center h-40">
-                  <div
-                    class="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"
-                  ></div>
+                <div class="flex items-center justify-center" style="height: 130px;">
+                  <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
                 </div>
               }
-            </div>
-            <div class="space-y-6">
-              <div
-                class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-2 px-3 relative overflow-hidden"
-              >
-                <div class="absolute top-4 right-4 opacity-20">
-                  <i
-                    class="fas fa-hand-holding-dollar text-5xl text-purple-300"
-                  ></i>
-                </div>
-                <h3 class="text-gray-400 text-sm font-medium mb-2">Liquidez</h3>
-                @defer (when indicadores != null) {
-                  @let liquidez = indicadores!.liquidez;
-                  <div class="flex items-end gap-3 mb-3">
-                    <span class="text-4xl font-bold text-[#9B9B9B]">
-                      {{ liquidez | number: '1.2-2' }}
-                    </span>
-                    <!-- <img
-                      src="images/Combined Shape.svg"
-                      alt="trend"
-                      class="w-6 h-6 mb-2"
-                    /> -->
-                  </div>
-                  <p class="text-gray-500 text-xs leading-relaxed">
-                    Indica si el acueducto puede pagar sus deudas en el corto
-                    plazo. Un valor mayor a 1 es saludable.
-                  </p>
-                } @placeholder {
-                  <div class="flex items-center justify-center h-20">
-                    <div
-                      class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
-                    ></div>
-                  </div>
-                }
-              </div>
 
-              <div
-                class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-2 px-3 relative overflow-hidden"
-              >
-                <div class="absolute top-4 right-4 opacity-20">
-                  <i
-                    class="fas fa-file-invoice-dollar text-5xl text-purple-300"
-                  ></i>
+              <!-- Card Cartera Vencida con expansión -->
+              @defer (when indicadores != null) {
+                @let carteraVencida = indicadores!.carteraVencidaPorcentaje;
+                @let totalCarteraVencida = indicadores!.totalCarteraVencida;
+                @let totalFacturacion = indicadores!.totalFacturacion;
+                <div class="metric-card-wrapper relative flex items-center justify-center transition-all duration-300" style="height: 130px;">
+                  <div class="metric-main-card rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl cursor-pointer p-2 px-3">
+                    <div class="absolute top-3 right-3 opacity-20">
+                      <i class="fas fa-file-invoice-dollar text-4xl text-purple-300"></i>
+                    </div>
+                    <h3 class="text-gray-400 text-sm font-medium mb-2">Cartera Vencida</h3>
+                    <div class="flex items-end gap-3 mb-2">
+                      <span class="text-3xl font-bold text-[#9B9B9B]">
+                        {{ carteraVencida | number: '1.0-0' }}%
+                      </span>
+                    </div>
+                    <p class="text-gray-500 text-xs leading-relaxed">
+                      Facturas +90 días sin cobrar
+                    </p>
+                  </div>
+                  <div class="metric-expanded-card flex flex-col w-full h-[130px] rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#1a18326b] to-[#2d2d2d80] backdrop-blur-xl overflow-hidden">
+                    <div class="metric-formula flex flex-col items-center justify-center px-6 py-4 text-white">
+                      <div class="text-[0.85rem] font-medium text-[rgba(185,183,238,0.95)] font-mono text-center">
+                        (Cartera Vencida ÷ Total Facturación) × 100
+                      </div>
+                    </div>
+                    <div class="metric-lower flex flex-row gap-6 justify-center items-center w-full text-white px-6 py-3">
+                      <div class="flex-1 text-center">
+                        <div class="text-[0.65rem] text-white/60 mb-1.5 uppercase tracking-wide">Cartera Vencida</div>
+                        <div class="text-[0.8rem] font-semibold leading-tight text-red-400">{{ totalCarteraVencida | colombianCurrency }}</div>
+                      </div>
+                      <div class="flex-1 text-center">
+                        <div class="text-[0.65rem] text-white/60 mb-1.5 uppercase tracking-wide">Total Facturación</div>
+                        <div class="text-[0.8rem] font-semibold leading-tight text-blue-400">{{ totalFacturacion | colombianCurrency }}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <h3 class="text-gray-400 text-sm font-medium mb-2">
-                  Cartera Vencida
-                </h3>
-                @defer (when indicadores != null) {
-                  @let carteraVencida = indicadores!.carteraVencidaPorcentaje;
-                  <div class="flex items-end gap-3 mb-3">
-                    <span class="text-4xl font-bold text-[#9B9B9B]">
-                      {{ carteraVencida | number: '1.0-0' }}%
-                    </span>
-                    <!-- <img
-                      src="images/Combined Shape.svg"
-                      alt="trend"
-                      class="w-6 h-6 mb-2"
-                    /> -->
-                  </div>
-                  <p class="text-gray-500 text-xs leading-relaxed">
-                    Indica si el acueducto puede pagar sus deudas en el corto
-                    plazo. Un valor mayor a 1 es saludable.
-                  </p>
-                } @placeholder {
-                  <div class="flex items-center justify-center h-20">
-                    <div
-                      class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
-                    ></div>
-                  </div>
-                }
-              </div>
+              } @placeholder {
+                <div class="flex items-center justify-center" style="height: 130px;">
+                  <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                </div>
+              }
 
-              <!-- Card Recaudo -->
-              <div
-                class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-2 px-3 relative overflow-hidden"
-              >
-                <div class="absolute top-4 right-4 opacity-20">
-                  <i
-                    class="fas fa-money-bill-trend-up text-5xl text-purple-300"
-                  ></i>
+              <!-- Card Recaudo con expansión -->
+              @defer (when indicadores != null) {
+                @let recaudo = indicadores!.recaudoPorcentaje;
+                @let totalRecaudo = indicadores!.totalRecaudo;
+                @let totalFacturaciondef = indicadores!.totalFacturacion;
+                <div class="metric-card-wrapper relative flex items-center justify-center transition-all duration-300" style="height: 130px;">
+                  <div class="metric-main-card rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl cursor-pointer p-2 px-3">
+                    <div class="absolute top-3 right-3 opacity-20">
+                      <i class="fas fa-money-bill-trend-up text-4xl text-purple-300"></i>
+                    </div>
+                    <h3 class="text-gray-400 text-sm font-medium mb-2">Recaudo</h3>
+                    <div class="flex items-end gap-3 mb-2">
+                      <span class="text-3xl font-bold text-[#9B9B9B]">
+                        {{ recaudo | number: '1.0-0' }}%
+                      </span>
+                    </div>
+                    <p class="text-gray-500 text-xs leading-relaxed">
+                      Valor efectivamente cobrado
+                    </p>
+                  </div>
+                  <div class="metric-expanded-card flex flex-col w-full h-[130px] rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#1a18326b] to-[#2d2d2d80] backdrop-blur-xl overflow-hidden">
+                    <div class="metric-formula flex flex-col items-center justify-center px-6 py-4 text-white">
+                      <div class="text-[0.85rem] font-medium text-[rgba(185,183,238,0.95)] font-mono text-center">
+                        (Total Recaudo ÷ Total Facturación) × 100
+                      </div>
+                    </div>
+                    <div class="metric-lower flex flex-row gap-6 justify-center items-center w-full text-white px-6 py-3">
+                      <div class="flex-1 text-center">
+                        <div class="text-[0.65rem] text-white/60 mb-1.5 uppercase tracking-wide">Recaudado</div>
+                        <div class="text-[0.8rem] font-semibold leading-tight text-emerald-400">{{ totalRecaudo | colombianCurrency }}</div>
+                      </div>
+                      <div class="flex-1 text-center">
+                        <div class="text-[0.65rem] text-white/60 mb-1.5 uppercase tracking-wide">Facturado</div>
+                        <div class="text-[0.8rem] font-semibold leading-tight text-blue-400">{{ totalFacturaciondef | colombianCurrency }}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <h3 class="text-gray-400 text-sm font-medium mb-2">Recaudo</h3>
-                @defer (when indicadores != null) {
-                  @let recaudo = indicadores!.recaudoPorcentaje;
-                  <div class="flex items-end gap-3 mb-3">
-                    <span class="text-4xl font-bold text-[#9B9B9B]">
-                      {{ recaudo | number: '1.0-0' }}%
-                    </span>
-                    <!-- <img
-                      src="images/Combined Shape.svg"
-                      alt="trend"
-                      class="w-6 h-6 mb-2"
-                    /> -->
-                  </div>
-                  <p class="text-gray-500 text-xs leading-relaxed">
-                    Muestra qué porcentaje del servicio facturado se logra
-                    cobrar. Mayor a 80% es óptimo.
-                  </p>
-                } @placeholder {
-                  <div class="flex items-center justify-center h-20">
-                    <div
-                      class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
-                    ></div>
-                  </div>
-                }
-              </div>
+              } @placeholder {
+                <div class="flex items-center justify-center" style="height: 130px;">
+                  <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                </div>
+              }
 
-              <!-- Card Cobertura de Gastos Operativos -->
-              <div
-                class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-2 px-3 relative overflow-hidden"
-              >
-                <div class="absolute top-4 right-4 opacity-20">
-                  <i class="fas fa-chart-column text-5xl text-purple-300"></i>
+              <!-- Card Cobertura de Gastos Operativos con expansión -->
+              @defer (when indicadores != null) {
+                @let coberturaGastos = indicadores!.coberturaGastosOperativos;
+                @let totalRecaudodef = indicadores!.totalRecaudo;
+                @let totalGastos = indicadores!.totalGastos;
+                <div class="metric-card-wrapper relative flex items-center justify-center transition-all duration-300" style="height: 130px;">
+                  <div class="metric-main-card rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl cursor-pointer p-2 px-3">
+                    <div class="absolute top-3 right-3 opacity-20">
+                      <i class="fas fa-chart-column text-4xl text-purple-300"></i>
+                    </div>
+                    <h3 class="text-gray-400 text-sm font-medium mb-2">
+                      Cobertura de Gastos
+                    </h3>
+                    <div class="flex items-end gap-3 mb-2">
+                      <span class="text-3xl font-bold text-[#9B9B9B]">
+                        {{ coberturaGastos | number: '1.2-2' }}
+                      </span>
+                    </div>
+                    <p class="text-gray-500 text-xs leading-relaxed">
+                      Ingresos vs gastos operativos
+                    </p>
+                  </div>
+                  <div class="metric-expanded-card flex flex-col w-full h-[130px] rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#1a18326b] to-[#2d2d2d80] backdrop-blur-xl overflow-hidden">
+                    <div class="metric-formula flex flex-col items-center justify-center px-6 py-4 text-white">
+                      <div class="text-[0.85rem] font-medium text-[rgba(185,183,238,0.95)] font-mono text-center">
+                        Total Recaudo ÷ Total Gastos
+                      </div>
+                    </div>
+                    <div class="metric-lower flex flex-row gap-6 justify-center items-center w-full text-white px-6 py-3">
+                      <div class="flex-1 text-center">
+                        <div class="text-[0.65rem] text-white/60 mb-1.5 uppercase tracking-wide">Ingresos</div>
+                        <div class="text-[0.8rem] font-semibold leading-tight text-emerald-400">{{ totalRecaudodef | colombianCurrency }}</div>
+                      </div>
+                      <div class="flex-1 text-center">
+                        <div class="text-[0.65rem] text-white/60 mb-1.5 uppercase tracking-wide">Gastos</div>
+                        <div class="text-[0.8rem] font-semibold leading-tight text-red-400">{{ totalGastos | colombianCurrency }}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <h3 class="text-gray-400 text-sm font-medium mb-2">
-                  Cobertura de Gastos
-                </h3>
-                @defer (when indicadores != null) {
-                  @let coberturaGastos = indicadores!.coberturaGastosOperativos;
-                  <div class="flex items-end gap-3 mb-3">
-                    <span class="text-4xl font-bold text-[#9B9B9B]">
-                      {{ coberturaGastos | number: '1.0-0' }}
-                    </span>
-                    <!-- <img
-                      src="images/Combined Shape.svg"
-                      alt="trend"
-                      class="w-6 h-6 mb-2"
-                    /> -->
-                  </div>
-                  <p class="text-gray-500 text-xs leading-relaxed">
-                    Indica la capacidad del acueducto para cubrir sus gastos
-                    operativos con los ingresos recaudados. Un valor mayor a 1
-                    es saludable.
-                  </p>
-                } @placeholder {
-                  <div class="flex items-center justify-center h-20">
-                    <div
-                      class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
-                    ></div>
-                  </div>
-                }
-              </div>
+              } @placeholder {
+                <div class="flex items-center justify-center" style="height: 130px;">
+                  <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                </div>
+              }
             </div>
           </div>
 
@@ -589,6 +682,7 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
                   ></span>
                 </button>
                 <button
+                  (click)="navigateToMovimientos()"
                   class="relative cursor-pointer py-1.5 px-4 text-center inline-flex justify-center text-xs uppercase text-gray-300 rounded-lg border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
                 >
                   <span class="relative z-20">Ver más</span>
@@ -634,6 +728,7 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
                   ></span>
                 </button> -->
                 <button
+                  (click)="navigateToAccountsList()"
                   class="relative cursor-pointer py-1.5 px-4 text-center inline-flex justify-center text-xs uppercase text-gray-300 rounded-lg border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
                 >
                   <span class="relative z-20">Ver más</span>
@@ -648,16 +743,22 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
               [columns]="accountColumns()"
               [serverMode]="false"
               [datasource]="transformedAccountData()"
-              [loading]="cuentasTotalesService.isLoading()"
-              [pagination]="false"
+              [loading]="cuentasTotalesService.isLoading()"fv
+              [pagination]="false"fCrear Movimiento Contable
             >
             </app-table-dynamic>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Card Ingresos por tarifas -->
-            @defer (
-              when metricasAcueductoService.enterpriceResolutionSignal() != null
-            ) {
+            @if (metricasAcueductoService.isLoading()) {
+              <div
+                class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl"
+              >
+                <div
+                  class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
+                ></div>
+              </div>
+            } @else if (metricasAcueductoService.enterpriceResolutionSignal() != null) {
               @let metricasData =
                 metricasAcueductoService.enterpriceResolutionSignal()!;
               <div
@@ -702,7 +803,17 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
                   }
                 </div>
               </div>
-            } @placeholder {
+            } @else {
+              <div
+                class="flex flex-col items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl gap-2"
+              >
+                <i class="fas fa-exclamation-circle text-gray-400 text-2xl"></i>
+                <p class="text-xs text-gray-400 text-center">No hay datos disponibles</p>
+              </div>
+            }
+
+            <!-- Card Agua Facturada -->
+            @if (metricasAcueductoService.isLoading()) {
               <div
                 class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl"
               >
@@ -710,10 +821,7 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
                   class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
                 ></div>
               </div>
-            }
-
-            <!-- Card Agua Facturada -->
-            @defer (when metricasAcueductoMesActual() != null) {
+            } @else if (metricasAcueductoMesActual() != null) {
               @let aguaFacturada = metricasAcueductoMesActual()!;
               <div
                 class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-1.5 px-2.5 relative overflow-hidden"
@@ -738,7 +846,17 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
                   Volumen de agua que se cobra a los usuarios.
                 </p>
               </div>
-            } @placeholder {
+            } @else {
+              <div
+                class="flex flex-col items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl gap-2"
+              >
+                <i class="fas fa-exclamation-circle text-gray-400 text-2xl"></i>
+                <p class="text-xs text-gray-400 text-center">No hay datos disponibles</p>
+              </div>
+            }
+
+            <!-- Card Agua perdida -->
+            @if (metricasAcueductoService.isLoading()) {
               <div
                 class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl"
               >
@@ -746,10 +864,7 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
                   class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
                 ></div>
               </div>
-            }
-
-            <!-- Card Agua perdida -->
-            @defer (when metricasAcueductoMesActual() != null) {
+            } @else if (metricasAcueductoMesActual() != null) {
               @let aguaPerdida = metricasAcueductoMesActual()!;
               <div
                 class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-1.5 px-2.5 relative overflow-hidden"
@@ -774,7 +889,17 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
                   Agua producida que no genera ingresos.
                 </p>
               </div>
-            } @placeholder {
+            } @else {
+              <div
+                class="flex flex-col items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl gap-2"
+              >
+                <i class="fas fa-exclamation-circle text-gray-400 text-2xl"></i>
+                <p class="text-xs text-gray-400 text-center">No hay datos disponibles</p>
+              </div>
+            }
+
+            <!-- Card Eficiencia de facturación -->
+            @if (metricasAcueductoService.isLoading()) {
               <div
                 class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl"
               >
@@ -782,10 +907,7 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
                   class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
                 ></div>
               </div>
-            }
-
-            <!-- Card Eficiencia de facturación -->
-            @defer (when metricasAcueductoMesActual() != null) {
+            } @else if (metricasAcueductoMesActual() != null) {
               @let eficiencia = metricasAcueductoMesActual()!;
               <div
                 class="rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] backdrop-blur-xl py-1.5 px-2.5 relative overflow-hidden"
@@ -805,13 +927,12 @@ import { CategoryCountEagerInitializationService } from '../../../service/catego
                   Porcentaje del agua producida que se factura.
                 </p>
               </div>
-            } @placeholder {
+            } @else {
               <div
-                class="flex items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl"
+                class="flex flex-col items-center justify-center h-32 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl gap-2"
               >
-                <div
-                  class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"
-                ></div>
+                <i class="fas fa-exclamation-circle text-gray-400 text-2xl"></i>
+                <p class="text-xs text-gray-400 text-center">No hay datos disponibles</p>
               </div>
             }
           </div>
@@ -1126,6 +1247,7 @@ export class MainInventory {
   title = signal('Gestión de Cuentas Contables');
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
+  protected readonly router = inject(Router);
   protected readonly fb = inject(FormBuilder);
   protected readonly accountsService = inject(AccountsService);
   protected readonly accountingService = inject(AccountingService);
@@ -1193,7 +1315,7 @@ export class MainInventory {
 
   readonly movimientosPaginationParams = signal<IPaginationParams>({
     page: 0,
-    size: 10,
+    size: 7,
   });
 
   readonly filters = signal<IAccountFilters>({});
@@ -1277,6 +1399,14 @@ export class MainInventory {
 
   onMovimientosPaginationChange(params: IPaginationParams): void {
     this.movimientosPaginationParams.set(params);
+  }
+
+  navigateToAccountsList(): void {
+    this.router.navigate(['/shell/accounting/accounts-list']);
+  }
+
+  navigateToMovimientos(): void {
+    this.router.navigate(['/shell/accounting/accounts']);
   }
 
   formatDate(dateString: string): string {

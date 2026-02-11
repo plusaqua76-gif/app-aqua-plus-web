@@ -18,7 +18,7 @@
   background-repeat: no-repeat;
   background-position: center;
   padding: 15px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); */
   border-radius: 8px;
   background-color: white;
   position: relative;
@@ -279,7 +279,7 @@
   border: 1px solid #2d4a7c;
   border-radius: 8px;
   overflow: hidden;
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .tarifas-consumo-header {
@@ -292,7 +292,7 @@
 .tarifa-header-cell {
   padding: 6px 4px;
   text-align: center;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 600;
   color: #2d4a7c;
   border-right: 1px solid #ddd;
@@ -323,7 +323,7 @@
   background: #3f51b5;
   color: white;
   font-weight: 600;
-  font-size: 8px;
+  font-size: 10px;
   text-align: left;
   border-right: 1px solid #ddd;
   display: flex;
@@ -333,7 +333,7 @@
 .tarifa-value-cell {
   padding: 8px 4px;
   text-align: center;
-  font-size: 8px;
+  font-size: 10px;
   color: #333;
   background: #f9f9f9;
   border-right: 1px solid #ddd;
@@ -445,7 +445,7 @@
   border: 1px solid #2d5f2e;
   border-radius: 8px;
   overflow: hidden;
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .aseo-table-header {
@@ -454,7 +454,7 @@
   padding: 4px;
   text-align: center;
   font-weight: bold;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .aseo-table-row {
@@ -471,7 +471,7 @@
   padding: 3px 2px;
   text-align: center;
   border-right: 1px solid #ddd;
-  font-size: 7px;
+  font-size: 9px;
   color: #2388ff;
   font-weight: 600;
 }
@@ -486,7 +486,7 @@
   background: #2388ff;
   color: white;
   font-weight: 600;
-  font-size: 7px;
+  font-size: 9px;
   border-right: 1px solid #ddd;
 }
 
@@ -519,7 +519,7 @@
   background: #2388ff;
   color: white;
   font-weight: 600;
-  font-size: 8px;
+  font-size: 10px;
   text-align: center;
   border-right: 1px solid #ddd;
 }
@@ -527,7 +527,7 @@
 .aseo-tarifa-value {
   padding: 4px 4px;
   text-align: center;
-  font-size: 7px;
+  font-size: 9px;
   color: #2388ff;
   font-weight: 600;
   border-right: 1px solid #ddd;
@@ -538,14 +538,14 @@
   border-right: none;
 }
 
-/* Estilos para Últimos Cobros de Aseo */
+/* Estilos para Últimos Cobros de Aseo
 .aseo-cobros-container {
   background: white;
   border: 1px solid #2d5f2e;
   border-radius: 8px;
   overflow: hidden;
   margin-top: 6px;
-}
+} */
 
 .aseo-cobros-row {
   display: grid;
@@ -575,7 +575,7 @@
   padding: 4px;
   text-align: center;
   font-weight: bold;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .consumo-row {
@@ -586,7 +586,7 @@
 .consumo-label {
   padding: 4px 3px;
   text-align: center;
-  font-size: 7px;
+  font-size: 9px;
   color: #2388ff;
   font-weight: 600;
   border-right: 1px solid #ddd;
@@ -629,7 +629,7 @@
   padding: 4px;
   text-align: center;
   font-weight: bold;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 /* Títulos de servicios */
@@ -644,7 +644,7 @@
   background: #2388ff;
   color: white;
   font-weight: 600;
-  font-size: 8px;
+  font-size: 10px;
   text-align: center;
   border-right: 1px solid #ddd;
   display: flex;
@@ -656,7 +656,7 @@
   padding: 4px;
   color: white;
   font-weight: 600;
-  font-size: 9px;
+  font-size: 11px;
   text-align: center;
   border-right: 1px solid #ddd;
   display: flex;
@@ -685,7 +685,7 @@
   background: #2388ff;
   color: white;
   font-weight: 600;
-  font-size: 8px;
+  font-size: 10px;
   text-align: center;
   border-right: 1px solid #ddd;
   display: flex;
@@ -698,7 +698,7 @@
   background: #2388ff;
   color: white;
   font-weight: 600;
-  font-size: 7px;
+  font-size: 9px;
   text-align: center;
   border-right: 1px solid #ddd;
   display: flex;
@@ -711,7 +711,7 @@
   background: #5a8f5a;
   color: white;
   font-weight: 600;
-  font-size: 7px;
+  font-size: 9px;
   text-align: center;
   border-right: 1px solid #ddd;
   display: flex;
@@ -749,7 +749,7 @@
 .liquidar-value {
   padding: 4px 2px;
   text-align: center;
-  font-size: 8px;
+  font-size: 10px;
   color: #333;
   font-weight: 500;
   border-right: 1px solid #ddd;
@@ -762,7 +762,7 @@
 .liquidar-subtotal {
   padding: 4px 2px;
   text-align: center;
-  font-size: 8px;
+  font-size: 10px;
   color: #333;
   font-weight: bold;
   border-right: 1px solid #ddd;
@@ -785,7 +785,7 @@
 }
 
 .liquidar-total-label {
-  font-size: 8px;
+  font-size: 10px;
   font-weight: bold;
   color: #333;
 }
@@ -808,7 +808,7 @@
 .consumption-item .item-label {
   background: #2388ff;
   color: white;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   padding: 0px 6px 5px 6px;
   margin: 0;
@@ -818,7 +818,7 @@
 
 .consumption-item .item-value {
   background: white;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: #333;
   padding: 0px 6px 5px 6px;
@@ -1087,7 +1087,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: bold;
   color: #333;
   margin-bottom: 8px;
@@ -1169,33 +1169,41 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  position: relative;
 }
 
 .service-column-title {
   font-size: 12px;
-  margin: -18px;
+  margin-top: -18px;
   margin-left: 5px;
+  margin-right: 5px;
+  margin-bottom: 8px;
   font-weight: bold;
   color: white;
-  margin-bottom: 5px;
   padding: 2px 12px 12px 12px;
   border-radius: 8px;
   text-align: center;
   background: #0077ff;
   display: inline-block;
   width: fit-content;
+  max-height: 32px;
+  height: fit-content;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 
 .service-card-wrapper:nth-child(1) .service-column-title {
-  background: #77b2ff;
+  background: #0b84ff;
 }
 
 .service-card-wrapper:nth-child(2) .service-column-title {
-  background: #fdcb6e; /* Naranja para Alcantarillado */
+  background: #ff9800; /* Naranja para Alcantarillado */
 }
 
 .service-card-wrapper:nth-child(3) .service-column-title:not(.otros-title) {
-  background: #ff8a9b; /* Rosa para Aseo - solo si NO es otros-title */
+  background: #3f51b5; /* Rosa para Aseo - solo si NO es otros-title */
 }
 
 .service-column-title.otros-title {
@@ -1203,19 +1211,27 @@
   color: white;
   padding: 2px 12px 12px 12px;
   border-radius: 8px;
-  margin-bottom: 5px;
-  display: inline-block;
-  width: fit-content;
+  margin-top: -18px;
+  margin-bottom: 8px;
   margin-left: auto;
   margin-right: auto;
+  display: inline-block;
+  width: fit-content;
+  max-height: 32px;
+  height: fit-content;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 
 .service-items {
-  font-size: 11px;
+  font-size: 12px;
   display: flex;
   flex-direction: column;
   gap: 2px;
   flex: 1;
+  margin-top: 2px;
 }
 
 .service-item {
@@ -1231,13 +1247,13 @@
 .service-item span:first-child {
   flex: 1;
   color: #666;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.3;
 }
 
 .service-item span:last-child {
   color: #333;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 /* Estilos específicos para la categoría "Otros Servicios" */
@@ -1258,7 +1274,7 @@
 }
 
 .service-item.concepto-subitem span:first-child {
-  font-size: 10px;
+  font-size: 11px;
   color: #777;
 }
 
@@ -1342,13 +1358,13 @@
 }
 
 .empresa-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: #666;
 }
 
 .empresa-value {
-  font-size: 11px;
+  font-size: 12px;
   color: #333;
   font-weight: 500;
 }
@@ -1384,13 +1400,13 @@
 }
 
 .usuario-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: #666;
 }
 
 .usuario-value {
-  font-size: 11px;
+  font-size: 12px;
   color: #333;
   font-weight: 500;
 }
@@ -1408,7 +1424,7 @@
 }
 
 .fecha-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: #d32f2f;
 }
@@ -1441,13 +1457,13 @@
 }
 
 .factura-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: #666;
 }
 
 .factura-value {
-  font-size: 11px;
+  font-size: 12px;
   color: #333;
   font-weight: 500;
 }

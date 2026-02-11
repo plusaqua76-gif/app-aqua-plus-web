@@ -1,9 +1,11 @@
 import { Routes } from '@angular/router';
+import { TableStateService } from '@services/table-state.service';
 
 export default [
   {
     path: '',
-    loadComponent: () => import('./pages/bill/bill').then(m => m.Bill)
+    loadComponent: () => import('./pages/bill/bill').then(m => m.Bill),
+    providers: [TableStateService] 
   },
   {
     path: 'update-bill/:id',

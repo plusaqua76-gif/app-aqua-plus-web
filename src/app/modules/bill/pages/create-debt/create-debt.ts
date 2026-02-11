@@ -150,7 +150,7 @@ export class CreateDebt  {
     const deuda: Partial<IDeudaCliente> = {
       empresaClienteContador: { id: (clienteSeleccionado as any).empresaClienteContadorId } as any,
       tipoDeuda: tipoDeudaSeleccionado,
-      plazoPago: plazoPagoSeleccionado.id, // Solo enviar el ID
+      plazoPago: plazoPagoSeleccionado.nombre,
       fechaDeuda: new Date(formValue.fechaDeuda!),
       valor: formValue.valor!,
       descripcion: formValue.descripcion!,

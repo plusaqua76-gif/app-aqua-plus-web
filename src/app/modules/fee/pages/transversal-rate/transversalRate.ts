@@ -14,10 +14,11 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { catchError, of } from 'rxjs';
 import { ToastService } from '@services/toast.service';
 import { ConfirmDeletePopupComponent } from '@shared/components/confirm-delete-popup';
+import { PopupComponent } from '@shared/components/popUp';
 
 @Component({
   selector: 'app-transversal-rate',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, ConfirmDeletePopupComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, ConfirmDeletePopupComponent, PopupComponent],
   template: `
     <div
       class="min-h-screen  shadow-sm rounded-lg bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl  p-4"
@@ -278,26 +279,13 @@ import { ConfirmDeletePopupComponent } from '@shared/components/confirm-delete-p
 
     <!-- Modal de Creación -->
     @if (showCreateModal()) {
-      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div class="bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <!-- Modal Header -->
-        <div class="sticky top-0 bg-gradient-to-r from-[#2563eb00] to-blue-500 px-6 py-4 rounded-t-2xl">
-          <div class="flex items-center justify-between">
-            <h3 class="text-xl font-bold text-white flex items-center gap-2">
-              <i class="fas fa-plus-circle"></i>
-              Nueva Tarifa Transversal
-            </h3>
-            <button
-              (click)="closeCreateModal()"
-              class="text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-lg"
-            >
-              <i class="fas fa-times text-xl"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- Modal Body -->
-        <div class="p-6 space-y-4">
+      <app-pop-up
+        [open]="showCreateModal"
+        [title]="'Nueva Tarifa Transversal'"
+        [isConfirmation]="false"
+        [maxWidth]="'max-w-md'"
+      >
+        <div class="space-y-4">
           <!-- Tipo de Uso -->
           <div>
             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
@@ -371,30 +359,37 @@ import { ConfirmDeletePopupComponent } from '@shared/components/confirm-delete-p
               class="w-full px-4 py-3 bg-gray-100/50 dark:bg-slate-600/50 border border-white/20 dark:border-slate-600 rounded-xl text-gray-500 dark:text-gray-400 cursor-not-allowed backdrop-blur-md"
             />
           </div> -->
-        </div>
 
-        <!-- Modal Footer -->
-        <div class="sticky bottom-0 bg-white/10 dark:bg-slate-700/30 backdrop-blur-md border-t border-white/20 dark:border-slate-600/30 px-6 py-4 rounded-b-2xl flex gap-3">
-          <button
-            (click)="closeCreateModal()"
-            class="flex-1 px-4 py-3 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md text-gray-900 dark:text-white hover:bg-white/20 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 font-semibold"
-          >
-            Cancelar
-          </button>
-          <button
-            (click)="createNewTarifa()"
-            [disabled]="isSubmitting()"
-            class="flex-1 px-4 py-3 bg-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transform hover:scale-105"
-          >
-            @if (isSubmitting()) {
-              <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-            }
-            <span>{{ isSubmitting() ? 'Guardando...' : 'Guardar' }}</span>
-          </button>
+          <!-- Botones de acción -->
+          <div class="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+            <button
+              type="button"
+              (click)="closeCreateModal()"
+              [disabled]="isSubmitting()"
+              class="px-6 py-2 bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:border-gray-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              (click)="createNewTarifa()"
+              [disabled]="isSubmitting()"
+              class="px-6 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-medium rounded-lg hover:border-blue-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              @if (isSubmitting()) {
+                <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Guardando...
+              } @else {
+                <i class="fas fa-save"></i>
+                Guardar
+              }
+            </button>
+          </div>
         </div>
-      </div>
-
-    </div>
+      </app-pop-up>
     }
 
 

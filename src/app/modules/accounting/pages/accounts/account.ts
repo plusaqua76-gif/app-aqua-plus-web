@@ -9,6 +9,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AccountsService } from '../../service/accounts.service';
+import { AccountingService } from '../../service/accounting.service';
 import { ToastService } from '@services/toast.service';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY, catchError, of } from 'rxjs';
@@ -17,6 +18,7 @@ import { PopupComponent } from '@shared/components/popUp';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 import { IAccountFilters } from '@interfaces/Iaccount';
 import { log } from 'console';
+import { CuentasTotalesEagerInitializationService } from '../../service/cuentas-totales-eager-initialization.service';
 
 @Component({
   selector: 'app-account',
@@ -53,8 +55,8 @@ import { log } from 'console';
       [title]="title()"
       [columns]="accountColumns()"
       [serverMode]="true"
-      [serverData]="transformedAccountData() ?? null"
-      [loading]="serverAccountData.isLoading()"
+      [serverData]="transformedAccountData()"
+      [loading]="serverMovimientosData.isLoading()"
       [actionTemplate]="actionsTemplate"
       [showAddButton]="true"
       [addButtonText]="'Nueva Cuenta'"
@@ -81,25 +83,72 @@ import { log } from 'console';
   `,
 })
 export class Account {
-  title = signal('Gestión de Cuentas Contables');
+  title = signal('Movimientos Contables');
   showDeleteConfirm = signal(false);
   itemToDelete: number | null = null;
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
 
   protected readonly accountsService = inject(AccountsService);
+  protected readonly accountingService = inject(AccountingService);
   protected readonly toastService = inject(ToastService);
   protected readonly router = inject(Router);
   protected readonly route = inject(ActivatedRoute);
+  protected readonly cuentasTotalesService = inject(
+    CuentasTotalesEagerInitializationService,
+  );
 
-  accountColumns = signal([
-    { field: 'codigo', header: 'Código', type: 'text' as const },
+
+
+  readonly accountColumns = signal([
     { field: 'nombre', header: 'Nombre', type: 'text' as const },
+    { field: 'categoriaNombre', header: 'Categoría', type: 'text' as const },
     { field: 'valor', header: 'Valor', type: 'number' as const },
-    { field: 'tipoNombre', header: 'Tipo Cuenta', type: 'text' as const },
-    { field: 'tipoNaturaleza', header: 'Naturaleza', type: 'text' as const },
-    { field: 'descripcion', header: 'Descripción', type: 'text' as const },
+    { field: 'fechaCreacion', header: 'Fecha', type: 'date' as const },
   ]);
+
+
+
+  readonly transformedAccountData = computed(() => {
+    const rawData = this.serverMovimientosData.value();
+    if (!rawData?.response) return null;
+
+    return {
+      ...rawData,
+      response: rawData.response.map((movimiento) => ({
+        ...movimiento,
+        categoriaNombre: movimiento.categoriaCuenta?.nombre || '',
+        fechaCreacion: this.formatDate(movimiento.fechaCreacion),
+      }))
+    };
+  });
+
+
+    formatDate(dateString: string): string {
+    if (!dateString) return '';
+
+    try {
+      const datePart = dateString.split('T')[0];
+      const [year, month, day] = datePart.split('-');
+      const date = new Date(
+        Number.parseInt(year),
+        Number.parseInt(month) - 1,
+        Number.parseInt(day),
+      );
+
+      // Formatear como DD/MM/YYYY
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString;
+    }
+  }
+
+
 
   readonly enterpriseId = computed(() => {
     if (!this.isBrowser) return null;
@@ -121,28 +170,12 @@ export class Account {
 
   readonly paginationParams = signal<IPaginationParams>({
     page: 0,
-    size: 5,
+    size: 7,
   });
 
   readonly filters = signal<IAccountFilters>({});
 
-  // Transformar los datos para aplanar las propiedades anidadas
-  readonly transformedAccountData = computed(() => {
-    const rawData = this.serverAccountData.value();
-    if (!rawData?.response) return null;
 
-    const transformedResponse = rawData.response.map(account => ({
-      ...account,
-      tipoNombre: account.tipoCuenta?.nombre || '',
-      tipoNaturaleza: account.tipoCuenta?.naturaleza || '',
-      descripcion: account.tipoCuenta.descripcion || ''
-    }));
-
-    return {
-      ...rawData,
-      response: transformedResponse
-    };
-  });
 
   serverAccountData = rxResource({
     params: () => ({
@@ -182,6 +215,27 @@ export class Account {
           });
         })
       );
+    },
+  });
+
+  serverMovimientosData = rxResource({
+    params: () => ({
+      enterpriseId: this.enterpriseId(),
+      pagination: this.paginationParams(),
+    }),
+    stream: ({ params }) => {
+      const { enterpriseId, pagination } = params;
+      if (!enterpriseId) {
+        return of(null);
+      }
+      return this.accountingService
+        .getServerMovimientosContables(enterpriseId, pagination)
+        .pipe(
+          catchError((error) => {
+            console.error('Error loading movimientos:', error);
+            return of(null);
+          }),
+        );
     },
   });
 
@@ -237,43 +291,6 @@ export class Account {
   }
 
   onPaginationChange(params: IPaginationParams): void {
-    // Extraer los filtros de los parámetros y convertirlos al formato esperado
-    if (params.filters) {
-      const accountFilters: IAccountFilters = {};
-
-      // Mapear los filtros del formato Record<string, string> a IAccountFilters
-      for (const [key, value] of Object.entries(params.filters)) {
-        if (value?.trim()) {
-          switch (key) {
-            case 'codigo':
-              accountFilters.codigo = value;
-              break;
-            case 'nombre':
-              accountFilters.nombre = value;
-              break;
-            case 'valor':
-              accountFilters.valor = Number(value) || undefined;
-              break;
-            case 'tipoNombre':
-              accountFilters.tipoNombre = value; // La API espera tipoNombre
-              break;
-            case 'tipoNaturaleza':
-              accountFilters.tipoNaturaleza = value; // La API espera tipoNaturaleza
-              break;
-          }
-        }
-      }
-
-      this.filters.set(accountFilters);
-    } else {
-      // Si no hay filtros, limpiar
-      this.filters.set({});
-    }
-
-    // Actualizar los parámetros de paginación
-    this.paginationParams.set({
-      page: params.page,
-      size: params.size,
-    });
+    this.paginationParams.set(params);
   }
 }

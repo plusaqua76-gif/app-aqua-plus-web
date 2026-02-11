@@ -190,19 +190,27 @@ export class PdfService {
       // Capturar el reverso
       const backCapture = await this.captureElement(backElement);
 
-      // Crear PDF con la primera página (frente)
+      // Dimensiones de la hoja personalizada: 27 cm de ancho (270 mm)
+      const pageWidthMm = 270; // 27 cm
+      // Calcular alto proporcionalmente según el contenido
+      const pageHeightMm = (frontCapture.height / frontCapture.width) * pageWidthMm;
+
+      // Crear PDF con dimensiones personalizadas
       const pdf = new jsPDF({
-        orientation: frontCapture.height > frontCapture.width ? 'portrait' : 'landscape',
-        unit: 'px',
-        format: [frontCapture.width, frontCapture.height]
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [pageWidthMm, pageHeightMm]
       });
 
-      // Agregar primera página (frente)
-      pdf.addImage(frontCapture.imgData, 'PNG', 0, 0, frontCapture.width, frontCapture.height);
+      // Agregar primera página (frente) - ajustada al tamaño de la página
+      pdf.addImage(frontCapture.imgData, 'PNG', 0, 0, pageWidthMm, pageHeightMm, undefined, 'FAST');
+
+      // Calcular alto de la segunda página
+      const backPageHeightMm = (backCapture.height / backCapture.width) * pageWidthMm;
 
       // Agregar segunda página (reverso)
-      pdf.addPage([backCapture.width, backCapture.height], backCapture.height > backCapture.width ? 'portrait' : 'landscape');
-      pdf.addImage(backCapture.imgData, 'PNG', 0, 0, backCapture.width, backCapture.height);
+      pdf.addPage([pageWidthMm, backPageHeightMm], 'portrait');
+      pdf.addImage(backCapture.imgData, 'PNG', 0, 0, pageWidthMm, backPageHeightMm, undefined, 'FAST');
 
       // Descargar el PDF
       pdf.save(filename);
@@ -231,19 +239,27 @@ export class PdfService {
       // Capturar el reverso
       const backCapture = await this.captureElement(backElement);
 
-      // Crear PDF con la primera página (frente)
+      // Dimensiones de la hoja personalizada: 27 cm de ancho (270 mm)
+      const pageWidthMm = 270; // 27 cm
+      // Calcular alto proporcionalmente según el contenido
+      const pageHeightMm = (frontCapture.height / frontCapture.width) * pageWidthMm;
+
+      // Crear PDF con dimensiones personalizadas
       const pdf = new jsPDF({
-        orientation: frontCapture.height > frontCapture.width ? 'portrait' : 'landscape',
-        unit: 'px',
-        format: [frontCapture.width, frontCapture.height]
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [pageWidthMm, pageHeightMm]
       });
 
-      // Agregar primera página (frente)
-      pdf.addImage(frontCapture.imgData, 'PNG', 0, 0, frontCapture.width, frontCapture.height);
+      // Agregar primera página (frente) - ajustada al tamaño de la página
+      pdf.addImage(frontCapture.imgData, 'PNG', 0, 0, pageWidthMm, pageHeightMm, undefined, 'FAST');
+
+      // Calcular alto de la segunda página
+      const backPageHeightMm = (backCapture.height / backCapture.width) * pageWidthMm;
 
       // Agregar segunda página (reverso)
-      pdf.addPage([backCapture.width, backCapture.height], backCapture.height > backCapture.width ? 'portrait' : 'landscape');
-      pdf.addImage(backCapture.imgData, 'PNG', 0, 0, backCapture.width, backCapture.height);
+      pdf.addPage([pageWidthMm, backPageHeightMm], 'portrait');
+      pdf.addImage(backCapture.imgData, 'PNG', 0, 0, pageWidthMm, backPageHeightMm, undefined, 'FAST');
 
       // Abrir en nueva ventana
       const pdfBlob = pdf.output('blob');
@@ -274,19 +290,27 @@ export class PdfService {
       // Capturar el reverso
       const backCapture = await this.captureElement(backElement);
 
-      // Crear PDF con la primera página (frente)
+      // Dimensiones de la hoja personalizada: 27 cm de ancho (270 mm)
+      const pageWidthMm = 270; // 27 cm
+      // Calcular alto proporcionalmente según el contenido
+      const pageHeightMm = (frontCapture.height / frontCapture.width) * pageWidthMm;
+
+      // Crear PDF con dimensiones personalizadas
       const pdf = new jsPDF({
-        orientation: frontCapture.height > frontCapture.width ? 'portrait' : 'landscape',
-        unit: 'px',
-        format: [frontCapture.width, frontCapture.height]
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [pageWidthMm, pageHeightMm]
       });
 
-      // Agregar primera página (frente)
-      pdf.addImage(frontCapture.imgData, 'PNG', 0, 0, frontCapture.width, frontCapture.height);
+      // Agregar primera página (frente) - ajustada al tamaño de la página
+      pdf.addImage(frontCapture.imgData, 'PNG', 0, 0, pageWidthMm, pageHeightMm, undefined, 'FAST');
+
+      // Calcular alto de la segunda página
+      const backPageHeightMm = (backCapture.height / backCapture.width) * pageWidthMm;
 
       // Agregar segunda página (reverso)
-      pdf.addPage([backCapture.width, backCapture.height], backCapture.height > backCapture.width ? 'portrait' : 'landscape');
-      pdf.addImage(backCapture.imgData, 'PNG', 0, 0, backCapture.width, backCapture.height);
+      pdf.addPage([pageWidthMm, backPageHeightMm], 'portrait');
+      pdf.addImage(backCapture.imgData, 'PNG', 0, 0, pageWidthMm, backPageHeightMm, undefined, 'FAST');
 
       // Abrir diálogo de impresión
       pdf.autoPrint();

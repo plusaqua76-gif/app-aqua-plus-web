@@ -10,9 +10,10 @@ import {
   input,
   OnDestroy,
   PLATFORM_ID,
-  output,
   signal
 } from '@angular/core';
+import { AccountingService } from '../../../modules/accounting/service/accounting.service';
+import { Subscription } from 'rxjs';
 
 declare const ApexCharts: any;
 
@@ -139,7 +140,7 @@ interface HorizontalBarChartOptions {
   imports: [CommonModule, ColombianCurrencyPipe, NgClass],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div class="relative z-10 w-full shadow-sm rounded-lg p-4 pb-3 md:p-6">
+<div class="relative z-10 w-full p-4 pb-3 md:p-6">
   <div class="mb-5">
     <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">
       Resultado Económico del Mes
@@ -166,7 +167,7 @@ interface HorizontalBarChartOptions {
 
     <div [id]="chartId()" class="min-h-[350px]"></div>
 
-    <!-- <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between mt-5">
+    <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between mt-5">
       <div class="flex justify-between items-center pt-5 gap-4">
 
         <div class="year-dropdown-container relative">
@@ -174,7 +175,7 @@ interface HorizontalBarChartOptions {
             (click)="toggleYearDropdown()"
             class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
             type="button">
-            {{ selectedYear }}
+            Año: {{ selectedYear() }}
             <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
               <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
             </svg>
@@ -183,7 +184,11 @@ interface HorizontalBarChartOptions {
             <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
               @for (year of availableYears; track year) {
                 <li>
-                  <button (click)="selectYear(year)" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ year }}</button>
+                  <button
+                    (click)="selectYear(year)"
+                    [class.bg-blue-100]="selectedYear() === year"
+                    [class.dark:bg-blue-900]="selectedYear() === year"
+                    class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ year }}</button>
                 </li>
               }
             </ul>
@@ -196,7 +201,7 @@ interface HorizontalBarChartOptions {
             (click)="toggleMonthDropdown()"
             class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
             type="button">
-            {{ selectedMonth }}
+            {{ selectedMonthName() }}
             <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
               <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
             </svg>
@@ -205,14 +210,18 @@ interface HorizontalBarChartOptions {
             <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
               @for (month of availableMonths; track month) {
                 <li>
-                  <button (click)="selectMonth(month)" class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ month }}</button>
+                  <button
+                    (click)="selectMonth(month)"
+                    [class.bg-blue-100]="selectedMonthName() === month"
+                    [class.dark:bg-blue-900]="selectedMonthName() === month"
+                    class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ month }}</button>
                 </li>
               }
             </ul>
           </div>
         </div>
       </div>
-    </div> -->
+    </div>
   } @else {
     <div class="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
       <div class="text-center">
@@ -230,43 +239,65 @@ interface HorizontalBarChartOptions {
 })
 export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
   private chart: any;
+  private subscription?: Subscription;
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
+  private readonly accountingService = inject(AccountingService);
   private resizeObserver: ResizeObserver | null = null;
   private readonly containerWidth = signal<number>(0);
 
   //  Inputs con signals
-  readonly data = input<EconomicResultData | null>(null);
   readonly chartId = input<string>('economic-result-chart-' + Math.random().toString(36).substring(7));
   readonly height = input<number>(350);
 
-  //  Output para emitir cambios de período
-  readonly periodChange = output<{ year: number; month: number }>();
+  // Signals para manejo reactivo de datos
+  public readonly data = signal<EconomicResultData | null>(null);
+  public isLoading = signal<boolean>(true);
+  public hasError = signal<boolean>(false);
 
   // Propiedades para los dropdowns
   public isYearDropdownOpen = false;
   public isMonthDropdownOpen = false;
-  public selectedYear: number = new Date().getFullYear();
-  public selectedMonth = 'Enero';
+  public selectedYear = signal<number>(new Date().getFullYear());
+  public selectedMonth = signal<number>(new Date().getMonth() + 1);
   public availableYears: number[] = [];
   public availableMonths: string[] = [];
 
+  // Computed para obtener datos del usuario
+  readonly userData = computed(() => {
+    if (!this.isBrowser) return null;
+    try {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      return null;
+    }
+  });
+
+  readonly empresaId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
+  });
+
   //  Computed signals para valores derivados
   readonly formattedPeriod = computed(() => {
-    const period = this.data()?.periodo;
-    if (!period) return '';
-    return this.formatPeriod(period);
+    const currentData = this.data();
+    if (!currentData || !currentData.periodo) return '';
+    return this.formatPeriod(currentData.periodo);
   });
 
   readonly resultadoClass = computed(() => {
-    const resultado = this.data()?.resultado ?? 0;
+    const currentData = this.data();
+    const resultado = currentData?.resultado ?? 0;
     return resultado >= 0
       ? 'text-green-600 dark:text-green-500'
       : 'text-red-600 dark:text-red-500';
   });
 
   readonly chartColor = computed(() => {
-    const resultado = this.data()?.resultado ?? 0;
+    const currentData = this.data();
+    const resultado = currentData?.resultado ?? 0;
     return resultado >= 0 ? '#0e9f6e' : '#f05252';
   });
 
@@ -280,6 +311,12 @@ export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
       currentData.gastos,
       Math.abs(currentData.resultado)
     ];
+  });
+
+  // Computed para mostrar el nombre del mes seleccionado
+  readonly selectedMonthName = computed(() => {
+    const monthIndex = this.selectedMonth() - 1;
+    return this.availableMonths[monthIndex] || 'Enero';
   });
 
   //  Computed para determinar cuántos ticks mostrar basado en el ancho
@@ -312,14 +349,6 @@ export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
   }
 
   constructor() {
-    //  Effect para actualizar el gráfico cuando cambian los datos
-    effect(() => {
-      const currentData = this.data();
-      if (this.isBrowser && this.chart && currentData) {
-        this.updateChart();
-      }
-    });
-
     //  Effect para actualizar el gráfico cuando cambia el ancho
     effect(() => {
       const width = this.containerWidth();
@@ -335,8 +364,8 @@ export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     if (this.isBrowser) {
+      this.loadEconomicData();
       setTimeout(() => {
-        this.initializeChart();
         this.setupResizeObserver();
       }, 0);
       // Agregar listener para cerrar dropdowns al hacer clic fuera
@@ -346,6 +375,7 @@ export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.chart?.destroy();
+    this.subscription?.unsubscribe();
     this.resizeObserver?.disconnect();
     if (this.isBrowser) {
       document.removeEventListener('click', this.closeDropdownOnOutsideClick.bind(this));
@@ -377,10 +407,6 @@ export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
       'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ];
-
-    // Seleccionar el mes actual por defecto
-    const currentMonth = new Date().getMonth();
-    this.selectedMonth = this.availableMonths[currentMonth];
   }
 
   toggleYearDropdown(): void {
@@ -398,20 +424,71 @@ export class EconomicResultChartComponent implements AfterViewInit, OnDestroy {
   }
 
   selectYear(year: number): void {
-    this.selectedYear = year;
+    this.selectedYear.set(year);
     this.isYearDropdownOpen = false;
-    this.emitPeriodChange();
+    this.loadEconomicData();
   }
 
   selectMonth(monthName: string): void {
-    this.selectedMonth = monthName;
+    const monthIndex = this.availableMonths.indexOf(monthName) + 1;
+    this.selectedMonth.set(monthIndex);
     this.isMonthDropdownOpen = false;
-    this.emitPeriodChange();
+    this.loadEconomicData();
   }
 
-  private emitPeriodChange(): void {
-    const monthIndex = this.availableMonths.indexOf(this.selectedMonth) + 1;
-    this.periodChange.emit({ year: this.selectedYear, month: monthIndex });
+  private loadEconomicData(): void {
+    const empresaId = this.empresaId();
+    const anio = this.selectedYear();
+    const mes = this.selectedMonth();
+
+    if (!empresaId || !anio) {
+      console.warn('Datos incompletos para cargar resultados:', { empresaId, anio });
+      this.isLoading.set(false);
+      this.hasError.set(true);
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.subscription?.unsubscribe();
+    this.subscription = this.accountingService.getResultadosContables({
+      empresa: empresaId,
+      año: anio,
+      mes: mes,
+      cantidadPeriodos: 1
+    }).subscribe({
+      next: (response) => {
+        if (response && response.response) {
+          const apiData = response.response;
+          const transformed: EconomicResultData = {
+            ingresos: apiData.ingresos,
+            costos: apiData.costos,
+            gastos: apiData.gastos,
+            resultado: apiData.resultado,
+            periodo: `${apiData.periodo.anio}-${String(apiData.periodo.mes).padStart(2, '0')}`,
+            fechaInicio: apiData.periodo.desde,
+            fechaFin: apiData.periodo.hasta,
+          };
+          this.data.set(transformed);
+          this.isLoading.set(false);
+          this.hasError.set(false);
+          setTimeout(() => {
+            if (!this.chart) {
+              this.initializeChart();
+            } else {
+              this.updateChart();
+            }
+          }, 0);
+        }
+      },
+      error: (error: any) => {
+        console.error('Error loading economic data:', error);
+        this.isLoading.set(false);
+        this.hasError.set(true);
+        if (!this.chart) {
+          this.initializeChart();
+        }
+      }
+    });
   }
 
   private formatPeriod(periodo: string): string {
