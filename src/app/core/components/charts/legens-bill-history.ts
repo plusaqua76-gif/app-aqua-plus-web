@@ -128,7 +128,7 @@ export class LegendsHistoryBill implements AfterViewInit, OnDestroy {
   //esto aqui es importante mi pez, si se llega a modificar tener my en cuenta la estructura de la data que toma
   // Método para calcular el máximo valor del eje Y basándose en los datos
   private calculateMaxYValue(historyData: any[]): number {
-    if (historyData.length === 0) return 35; // Valor por defecto si no hay datos
+    if (historyData.length === 0) return 0; // Valor por defecto si no hay datos
 
     const maxConsumo = Math.max(...historyData.map(item => item.consumo || 0));
     // Agregar un margen del 20% al valor máximo y redondear hacia arriba

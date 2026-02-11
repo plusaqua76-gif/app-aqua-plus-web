@@ -5,7 +5,7 @@ export interface IDeudaCliente {
     id: number;
     empresaClienteContador: IEnterpriseClientCounter;
     tipoDeuda: ITipoDeuda;
-    plazoPago: number;
+    plazoPago: string;
     factura: IFactura;
     fechaDeuda: Date;
     valor: string;

@@ -1367,7 +1367,6 @@ export class CreateInvoiceComponent {
     const select = event.target as HTMLSelectElement;
     const unitCode = select.value;
 
-    // Solo limpiar el formulario del item, NO volver a consumir el endpoint
     const itemForm = this.items.at(index) as FormGroup;
     itemForm.patchValue({
       codigoProducto: '',
@@ -1400,6 +1399,19 @@ export class CreateInvoiceComponent {
     }
 
     const formValue = this.newProductForm.value;
+    const productosActuales = this.ProductCodesDian.value()?.response || [];
+    const productoExistente = productosActuales.find(
+      (p) => p.codigoUnidad?.toLowerCase().trim() === formValue.codigoUnidad?.toLowerCase().trim()
+    );
+
+    if (productoExistente) {
+      this.toast.error(
+        'Error',
+        `Ya existe un producto con el código de unidad "${formValue.codigoUnidad}"`
+      );
+      return;
+    }
+
     const newProduct: ProductDian = {
       iva: formValue.iva,
       codigoUnidad: formValue.codigoUnidad,

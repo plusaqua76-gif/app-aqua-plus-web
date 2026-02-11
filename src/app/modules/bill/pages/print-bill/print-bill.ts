@@ -36,6 +36,7 @@ import { EMPTY, of, catchError } from 'rxjs';
 import { ColombianCurrencyPipe } from '@shared/pipes/colombian-currency.pipe';
 import { IBillBackResponse } from '@interfaces/bill/Ibill-back';
 import { DocumentAzureBlobService } from '../../../fee/services/document-azure-blob.service';
+import { AnimatedPaymentButton } from '@shared/components/animated-payment-button';
 
 @Component({
   selector: 'app-print-bill',
@@ -47,6 +48,7 @@ import { DocumentAzureBlobService } from '../../../fee/services/document-azure-b
     CommonModule,
     PopupComponent,
     ColombianCurrencyPipe,
+    AnimatedPaymentButton,
   ],
   templateUrl: './print-bill.html',
   styleUrl: './print-bill.css',
@@ -363,6 +365,10 @@ export class PrintBill {
   showAbonoPopup = signal(false);
   showConfirmPagoPopup = signal(false);
   showDeudasPopup = signal(false);
+  showPaymentAlert = signal(false);
+  showPaymentSuccess = signal(false);
+  showDeudaParcialSuccess = signal(false);
+  showDeudaTotalSuccess = signal(false);
   abonoForm = this.fb.group({
     valor: ['', [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
   });
@@ -461,18 +467,37 @@ export class PrintBill {
           'No se pudo obtener el estado de la factura'
         );
       } else if (!this.tipoPago) {
-        this.toast.warning('Advertencia', 'Debe seleccionar un tipo de pago');
+        // No mostrar toast, solo la animación si es necesario
       } else {
-        this.toast.warning(
-          'Advertencia',
-          `No se puede confirmar el pago para facturas en estado: ${estadoActual}`
-        );
+        // Estado no permitido - Activar animación de alerta
+        this.triggerPaymentAlert();
       }
       return;
     }
 
-    // Mostrar popup de confirmación
-    this.showConfirmPagoPopup.set(true);
+    // Si puede pagar - Activar animación de éxito y luego confirmar
+    this.triggerPaymentSuccess();
+  }
+
+  // Método para activar la animación de alerta
+  triggerPaymentAlert(): void {
+    this.showPaymentAlert.set(true);
+
+    // Desactivar la animación después de 2 segundos
+    setTimeout(() => {
+      this.showPaymentAlert.set(false);
+    }, 2000);
+  }
+
+  // Método para activar la animación de éxito
+  triggerPaymentSuccess(): void {
+    this.showPaymentSuccess.set(true);
+
+    // Esperar 1.5 segundos y luego mostrar el popup de confirmación
+    setTimeout(() => {
+      this.showPaymentSuccess.set(false);
+      this.showConfirmPagoPopup.set(true);
+    }, 1500);
   }
 
   // Método para ejecutar el pago después de la confirmación
@@ -934,8 +959,14 @@ export class PrintBill {
     this.llenarValoresTotales();
     this.tipoConfirmacion.set('total');
 
-    // Mostrar popup de confirmación
-    this.showConfirmPagoTotalPopup.set(true);
+    // Activar animación de éxito
+    this.showDeudaTotalSuccess.set(true);
+
+    // Esperar 1.5 segundos y luego mostrar popup de confirmación
+    setTimeout(() => {
+      this.showDeudaTotalSuccess.set(false);
+      this.showConfirmPagoTotalPopup.set(true);
+    }, 1500);
   }
 
   // Método para confirmar pago parcial (solo deudas con valores)
@@ -952,8 +983,14 @@ export class PrintBill {
 
     this.tipoConfirmacion.set('parcial');
 
-    // Mostrar popup de confirmación
-    this.showConfirmPagoTotalPopup.set(true);
+    // Activar animación de éxito
+    this.showDeudaParcialSuccess.set(true);
+
+    // Esperar 1.5 segundos y luego mostrar popup de confirmación
+    setTimeout(() => {
+      this.showDeudaParcialSuccess.set(false);
+      this.showConfirmPagoTotalPopup.set(true);
+    }, 1500);
   }
 
   // Método para confirmar pago total de todas las deudas

@@ -38,7 +38,17 @@ import { Router, RouterModule } from '@angular/router';
               [class]="getTabClasses('/shell/accounting/accounts')"
               class="nav-tab"
             >
-              <i class="fas fa-file-invoice-dollar"></i>
+              <i class="fas fa-right-left"></i>
+              <span>Movimientos</span>
+            </button>
+
+            <button
+              type="button"
+              (click)="navigateTo('/shell/accounting/accounts-list')"
+              [class]="getTabClasses('/shell/accounting/accounts-list')"
+              class="nav-tab"
+            >
+              <i class="fas fa-book"></i>
               <span>Cuentas</span>
             </button>
           </div>
@@ -135,9 +145,10 @@ export class AccountingShell {
   getTabClasses(route: string): string {
     const currentUrl = this.router.url;
 
-    // Verificar si la ruta actual comienza con la ruta del tab
-    // Esto hace que el tab se mantenga activo incluso en subrutas
-    const isActive = currentUrl.startsWith(route) ||
+    // Comparación exacta de ruta o verificar si es una subruta válida
+    // Evita que /accounts-list active el tab de /accounts
+    const isActive = currentUrl === route ||
+                     (currentUrl.startsWith(route + '/')) ||
                      currentUrl.includes(route.replace('/shell/accounting/', '/shell/Inventory/'));
 
     return isActive ? 'active' : '';

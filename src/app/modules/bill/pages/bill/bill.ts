@@ -22,6 +22,7 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 import { PlazoPagoService } from '../../service/print-bill-details.service';
 import { PdfService } from '@services/pdf.service';
 import { PdfBill } from '@components/pdf-bill/pdf-bill';
+import { TableStateService } from '../../../../core/services/table-state.service';
 
 @Component({
   selector: 'app-bill',
@@ -79,9 +80,13 @@ import { PdfBill } from '@components/pdf-bill/pdf-bill';
       [showExportButton]="true"
       [exportFileName]="exportFileName()"
       [showColumnFilters]="true"
+      [externalFilters]="tableState.columnFilters()"
+      [externalFiltersVisible]="tableState.filtersVisible()"
       (action)="handleTableAction($event)"
       (secondaryButtonAction)="goToCreateDebt()"
       (serverPaginationChange)="onPaginationChange($event)"
+      (filtersChange)="onFiltersChange($event)"
+      (filtersVisibilityChange)="onFiltersVisibilityChange($event)"
     >
     </app-table-dynamic>
 
@@ -126,6 +131,7 @@ export class Bill  {
   protected readonly billDetailsService = inject(PlazoPagoService);
   protected readonly pdfService = inject(PdfService);
   protected readonly injector = inject(EnvironmentInjector);
+  protected readonly tableState = inject(TableStateService);
 
   billColumns = signal([
     { field: 'codigo', header: 'Código', type: 'text' as const },
@@ -157,10 +163,8 @@ export class Bill  {
     () => `facturas_${new Date().toISOString().split('T')[0]}`
   );
 
-  readonly paginationParams = signal<IPaginationParams>({
-    page: 0,
-    size: 5,
-  });
+  // Usar paginationParams del servicio de estado genérico
+  readonly paginationParams = this.tableState.paginationParams;
 
 
 
@@ -257,7 +261,15 @@ export class Bill  {
   }
 
   onPaginationChange(params: IPaginationParams): void {
-    this.paginationParams.set(params);
+    this.tableState.updatePagination(params);
+  }
+
+  onFiltersChange(filters: Record<string, string>): void {
+    this.tableState.updateFilters(filters);
+  }
+
+  onFiltersVisibilityChange(visible: boolean): void {
+    this.tableState.updateFiltersVisibility(visible);
   }
 
   async downloadBillPDF(billId: number, billCode: string | number): Promise<void> {

@@ -22,14 +22,28 @@ export class CalculosContablesService  {
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   private idEnterprice = signal<number | null>(null);
+  private idYear = signal<number | null>(null);
+  private idMonth = signal<number | null>(null);
 
   private enterpriceDianResource = rxResource({
-    params: () => this.idEnterprice(),
-    stream: ({ params: idCompany }) => {
-      if (!idCompany) return of(null);
+    params: () => ({
+      empresaId: this.idEnterprice(),
+      anio: this.idYear(),
+      mes: this.idMonth(),
+    }),
+    stream: ({ params }) => {
+      const { empresaId, anio, mes } = params;
+
+      if (!empresaId || !anio || !mes) return of(null);
 
       return this.http.get<ApiResponse<IndicadoresFinancieros>>(
-        `${this.apiUrl}/factura/metricas-financieras/${idCompany}`
+        `${this.apiUrl}/factura/metricas-financieras/${empresaId}`,
+        {
+          params: {
+            anio: anio.toString(),
+            mes: mes.toString(),
+          }
+        }
       ).pipe(
         map(response => response.response),
         catchError(() => of(null))
@@ -41,7 +55,7 @@ export class CalculosContablesService  {
   readonly isLoading = this.enterpriceDianResource.isLoading;
   readonly error = this.enterpriceDianResource.error;
 
-    constructor() {
+  constructor() {
     if (this.isBrowser) {
       try {
         const userDataString = sessionStorage.getItem('userData');
@@ -51,6 +65,10 @@ export class CalculosContablesService  {
             this.idEnterprice.set(userData.empresaId);
           }
         }
+
+        const currentDate = new Date();
+        this.idYear.set(currentDate.getFullYear());
+        this.idMonth.set(currentDate.getMonth() + 1);
       } catch (e) {
         console.error('Error loading empresa DIAN:', e);
       }

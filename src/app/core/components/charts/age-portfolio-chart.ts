@@ -274,7 +274,7 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
               const ranges = ['0-30', '31-60', '61-90', '90+'] as const;
               const range = ranges[dataPointIndex];
               const count = debts[range];
-              return `$${value.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} (${count} facturas)`;
+              return `$${value.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} (${count} deudas)`;
             }
             return `$${value.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
           }

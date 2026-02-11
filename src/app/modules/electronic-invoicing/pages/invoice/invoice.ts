@@ -67,13 +67,10 @@ export class Invoice {
     this.initializeForm();
     this.initializeResolutionForm();
     this.initializeTestSetForm();
-    // Verificar si el proceso ya fue iniciado en esta sesión
     this.checkDianProcessStatus();
   }
 
-  /**
-   * Verifica si el proceso de habilitación ya fue iniciado en esta sesión
-   */
+
   private checkDianProcessStatus(): void {
     if (this.isBrowser) {
       const processStarted = sessionStorage.getItem(this.DIAN_PROCESS_KEY);
@@ -83,9 +80,7 @@ export class Invoice {
     }
   }
 
-  /**
-   * Marca el proceso de habilitación como iniciado
-   */
+
   private markDianProcessAsStarted(): void {
     if (this.isBrowser) {
       sessionStorage.setItem(this.DIAN_PROCESS_KEY, 'true');
@@ -93,10 +88,7 @@ export class Invoice {
     }
   }
 
-  /**
-   * Limpia el flag del proceso de habilitación
-   * Se llama después de completar exitosamente el registro de la resolución
-   */
+
   private clearDianProcessFlag(): void {
     if (this.isBrowser) {
       sessionStorage.removeItem(this.DIAN_PROCESS_KEY);
@@ -123,18 +115,15 @@ export class Invoice {
       address: ['', Validators.required],
     });
 
-    // Auto-prellenar DV cuando se ingrese un NIT
     this.dianForm.get('identification')?.valueChanges.subscribe(value => {
       const identificationType = this.dianForm.get('identificationType')?.value;
       // Solo auto-prellenar si el tipo es NIT (código 31)
       if (identificationType === '31' && value && value.length > 0) {
         const lastDigit = value.toString().slice(-1);
-        // Prellenar el DV con el último dígito del NIT
         this.dianForm.get('dv')?.setValue(lastDigit, { emitEvent: false });
       }
     });
 
-    // Limpiar DV si cambia el tipo de documento
     this.dianForm.get('identificationType')?.valueChanges.subscribe(value => {
       if (value !== '31') {
         this.dianForm.get('dv')?.setValue('', { emitEvent: false });

@@ -148,7 +148,7 @@ import { Auth } from '@interfaces/IAuth';
           formControlName="nombre"
           required
         />
-        <label>Correo</label>
+        <label>Usuario</label>
       </div>
 
       <div class="textbox">

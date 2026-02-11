@@ -423,10 +423,16 @@ export class TableComponent {
   serverMode = input<boolean>(false);
   serverData = input<IPaginatedResponse<any> | null>(null);
   loading = input<boolean>(false);
+  // Inputs para sincronización de estado externo
+  externalFilters = input<Record<string, string> | null>(null);
+  externalFiltersVisible = input<boolean | null>(null);
 
   action = output<Action>();
   secondaryButtonAction = output<void>();
   serverPaginationChange = output<IPaginationParams>();
+  // Outputs para notificar cambios de estado
+  filtersChange = output<Record<string, string>>();
+  filtersVisibilityChange = output<boolean>();
   readonly showExportDropdown = signal<boolean>(false);
 
   private readonly search = signal<string>('');
@@ -449,6 +455,22 @@ export class TableComponent {
       .subscribe(({ field, value }) => {
         this.applyColumnFilter(field, value);
       });
+
+    // Sincronizar filtros externos con el estado interno
+    effect(() => {
+      const extFilters = this.externalFilters();
+      if (extFilters !== null) {
+        this.columnFilters.set(extFilters);
+      }
+    });
+
+    // Sincronizar visibilidad de filtros externos
+    effect(() => {
+      const extVisible = this.externalFiltersVisible();
+      if (extVisible !== null) {
+        this.buttonFilter.set(extVisible);
+      }
+    });
   }
 
   readonly currentPageSize = computed(() => {
@@ -470,10 +492,15 @@ export class TableComponent {
     const value = (event.target as HTMLInputElement | null)?.value ?? '';
 
     // Actualizar inmediatamente el signal para la UI
-    this.columnFilters.update(filters => ({
-      ...filters,
-      [column]: value
-    }));
+    this.columnFilters.update(filters => {
+      const newFilters = {
+        ...filters,
+        [column]: value
+      };
+      // Emitir cambios de filtros
+      this.filtersChange.emit(newFilters);
+      return newFilters;
+    });
 
     // Enviar al subject para aplicar debounce
     this.filterSubject.next({ field: column, value });
@@ -499,10 +526,15 @@ export class TableComponent {
 
   onColumnFilterChange(column: string, value: string) {
     // Actualizar inmediatamente el signal para la UI
-    this.columnFilters.update(filters => ({
-      ...filters,
-      [column]: value
-    }));
+    this.columnFilters.update(filters => {
+      const newFilters = {
+        ...filters,
+        [column]: value
+      };
+      // Emitir cambios de filtros
+      this.filtersChange.emit(newFilters);
+      return newFilters;
+    });
 
     // Enviar al subject para aplicar debounce
     this.filterSubject.next({ field: column, value });
@@ -711,6 +743,8 @@ export class TableComponent {
 
   clearAllFilters() {
     this.columnFilters.set({});
+    // Emitir filtros vacíos
+    this.filtersChange.emit({});
 
     if (this.serverMode()) {
       const serverData = this.serverData();
@@ -744,7 +778,12 @@ export class TableComponent {
   }
 
   toggleFilters() {
-    this.buttonFilter.update(show => !show);
+    this.buttonFilter.update(show => {
+      const newValue = !show;
+      // Emitir cambio de visibilidad
+      this.filtersVisibilityChange.emit(newValue);
+      return newValue;
+    });
   }
 
   private downloadFile(content: string, fileName: string, mimeType: string) {

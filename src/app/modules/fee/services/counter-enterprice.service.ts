@@ -30,10 +30,10 @@ export class CounterEnterpriceService {
     );
   }
 
-  getParamsEnterprice(idEmpresa: number, key: string): Observable<ApiResponse<ParamsEnterprice[]>> {
+  getParamsEnterprice(idEmpresa: number, key: string): Observable<ApiResponse<ParamsEnterprice>> {
     const url = `${this.apiUrl}/parametros-empresa/empresa/${idEmpresa}/parametro`;
     const params = new HttpParams().set('llave', key);
-    return this.http.get<ApiResponse<ParamsEnterprice[]>>(url, { params });
+    return this.http.get<ApiResponse<ParamsEnterprice>>(url, { params });
   }
 
   getCounterEnterprice(idEmpresa: number): Observable<ApiResponse<any>> {
