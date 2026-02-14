@@ -174,7 +174,7 @@ export class PdfBill {
     const billData = this.billData();
     if (!billData?.empresa?.direccion) return '';
     const dir = billData.empresa.direccion;
-    return `${dir.departamentoNombre || ''}, ${dir.ciudadNombre || ''}, ${
+    return `${dir.ciudadNombre || ''}, ${
       dir.corregimientoNombre || ''
     } ${dir.descripcion || ''}`;
   }

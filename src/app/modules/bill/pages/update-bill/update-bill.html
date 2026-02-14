@@ -40,7 +40,7 @@
             <p class="text-gray-800 dark:text-gray-200 font-semibold">{{ factura.estado.nombre || '' }}</p>
           </div>
           <div>
-            <span class="text-gray-600 dark:text-gray-400 font-medium">Consumo Actual:</span>
+            <span class="text-gray-600 dark:text-gray-400 font-medium">Lectura Actual:</span>
             <p class="text-gray-800 dark:text-gray-200 font-semibold">{{ factura.lectura?.lectura || 0 }} m³</p>
           </div>
         </div>
@@ -53,7 +53,7 @@
             for="consumo"
             class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
           >
-            Nuevo Consumo (m³) <span class="text-red-500">*</span>
+            Lectura actual <span class="text-red-500">*</span>
           </label>
           <div class="relative">
             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
