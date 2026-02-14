@@ -23,11 +23,14 @@ import { PlazoPagoService } from '../../service/print-bill-details.service';
 import { PdfService } from '@services/pdf.service';
 import { PdfBill } from '@components/pdf-bill/pdf-bill';
 import { TableStateService } from '../../../../core/services/table-state.service';
+import { DeudaService } from '../../service/deuda.service';
+import { DocumentAzureBlobService } from '../../../fee/services/document-azure-blob.service';
+import { BillBack } from '../../../../core/components/billBack/bill-back';
 
 @Component({
   selector: 'app-bill',
   standalone: true,
-  imports: [CommonModule, TableComponent, RouterModule, PopupComponent, PdfBill],
+  imports: [CommonModule, TableComponent, RouterModule, PopupComponent, PdfBill, BillBack],
   template: `
     <ng-template #actionsTemplate let-row>
       <div class="flex items-center space-x-2">
@@ -104,12 +107,22 @@ import { TableStateService } from '../../../../core/services/table-state.service
     </app-pop-up>
 
     <!-- Contenedor oculto para la factura -->
-    <div #hiddenBillContainer style="position: absolute; left: -9999px; top: -9999px; width: 900px; height: 1200px; overflow: hidden;">
+    <div #hiddenBillContainer style="position: absolute; left: -9999px; top: -9999px; width: 900px; overflow: hidden;">
       @if (billDataForPdf()) {
-        <app-pdf-bill
-          [selectedStatus]="null"
-          [billData]="billDataForPdf()">
-        </app-pdf-bill>
+        <!-- Frente de la factura -->
+        <div class="front">
+          <app-pdf-bill
+            [selectedStatus]="billDataForPdf().factura?.estadoNombre || null"
+            [billData]="billDataForPdf()"
+            [dataDeudaConsolidada]="deudaConsolidadaForPdf()">
+          </app-pdf-bill>
+        </div>
+        <!-- Reverso de la factura -->
+        <div class="back">
+          <app-bill-back
+            [templateData]="backTemplateDataForPdf()">
+          </app-bill-back>
+        </div>
       }
     </div>
   `,
@@ -121,6 +134,8 @@ export class Bill  {
   itemToDelete: number | null = null;
   isDownloading = signal(false);
   billDataForPdf = signal<any>(null);
+  deudaConsolidadaForPdf = signal<any>(null);
+  backTemplateDataForPdf = signal<any>(null);
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
 
@@ -132,12 +147,14 @@ export class Bill  {
   protected readonly pdfService = inject(PdfService);
   protected readonly injector = inject(EnvironmentInjector);
   protected readonly tableState = inject(TableStateService);
+  protected readonly deudaService = inject(DeudaService);
+  protected readonly documentService = inject(DocumentAzureBlobService);
 
   billColumns = signal([
     { field: 'codigo', header: 'Código', type: 'text' as const },
     { field: 'nombre', header: 'Nombre', type: 'text' as const },
     { field: 'apellido', header: 'Apellido', type: 'text' as const },
-    { field: 'consumo', header: 'Consumo (m³)', type: 'number' as const },
+    { field: 'consumo', header: 'Lectura', type: 'number' as const },
     { field: 'fechaEmision', header: 'Fecha emisión', type: 'date' as const },
     { field: 'fechaFin', header: 'Fecha Vencimiento', type: 'date' as const },
     { field: 'estadoNombre', header: 'Estado', type: 'text' as const },
@@ -282,43 +299,107 @@ export class Bill  {
     this.toastService.info('Preparando descarga', 'Generando PDF de la factura...');
 
     try {
+      // 1. Cargar detalles de la factura
       const billDetailsResponse = await firstValueFrom(this.billDetailsService.getAllBillDetails(billId));
 
       if (!billDetailsResponse?.response) {
         throw new Error('No se pudieron obtener los detalles de la factura');
       }
 
-      this.billDataForPdf.set(billDetailsResponse.response);
+      const billData = billDetailsResponse.response;
+      this.billDataForPdf.set(billData);
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-
-      const billElement = this.hiddenBillContainer.nativeElement.querySelector('.bill-content') as HTMLElement;
-      if (!billElement) {
-        throw new Error('No se encontró el contenido de la factura renderizada');
+      // 2. Cargar deuda consolidada (opcional, no crítico)
+      const empresaClienteContadorId = billData?.factura?.idEmpresaClienteContador;
+      if (empresaClienteContadorId) {
+        try {
+          const deudaResponse = await firstValueFrom(
+            this.deudaService.getConsolidationByClienteId(Number(empresaClienteContadorId)).pipe(
+              catchError(() => of({ response: null }))
+            )
+          );
+          this.deudaConsolidadaForPdf.set(deudaResponse?.response || null);
+        } catch {
+          this.deudaConsolidadaForPdf.set(null);
+        }
       }
 
-      const filename = `factura-aquaplus-${billCode}-${Date.now()}.pdf`;
-      await this.pdfService.convertElementToPdf(billElement, filename);
+      // 3. Cargar plantilla del reverso (opcional, no crítico)
+      const empresaId = this.enterpriseId();
+      if (empresaId) {
+        try {
+          const templateResponse = await firstValueFrom(
+            this.documentService.getInvoiceTemplateByEnterprise(empresaId).pipe(
+              catchError(() => of({ success: false, response: [] }))
+            )
+          );
 
-      await new Promise(resolve => setTimeout(resolve, 500));
+          if (templateResponse?.success && templateResponse.response?.length > 0) {
+            const template = templateResponse.response[0];
+            this.backTemplateDataForPdf.set({
+              htmlContent: template.contenido,
+              empresa: {
+                nombre: billData?.empresa?.nombre || 'Empresa de Servicios Públicos',
+                nit: billData?.empresa?.nit || '',
+                direccion: billData?.empresa?.direccion?.descripcion || '',
+              },
+            });
+          } else {
+            this.backTemplateDataForPdf.set(null);
+          }
+        } catch {
+          this.backTemplateDataForPdf.set(null);
+        }
+      }
 
+      // 4. Esperar a que se renderice el contenido
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // 5. Capturar elementos del DOM
+      const frontElement = this.hiddenBillContainer.nativeElement.querySelector('.front .bill-content') as HTMLElement;
+      const backElement = this.hiddenBillContainer.nativeElement.querySelector('.back .bill-back-container') as HTMLElement;
+
+      if (!frontElement) {
+        throw new Error('No se encontró el contenido del frente de la factura');
+      }
+
+      if (!backElement) {
+        throw new Error('No se encontró el contenido del reverso de la factura');
+      }
+
+      // 6. Generar PDF con frente y reverso
+      const isMobile = window.innerWidth <= 768;
+      const empresaCodigo = billData?.empresa?.codigo || '';
+      const clienteNombre = billData?.cliente?.primerNombre || 'cliente';
+      const timestamp = new Date().getTime();
+      const filename = `factura-${empresaCodigo}-${billId}-${clienteNombre}-${timestamp}.pdf`;
+
+      if (isMobile) {
+        await this.pdfService.convertTwoPagesToPdfAndOpen(frontElement, backElement);
+      } else {
+        await this.pdfService.convertTwoPagesToPdf(frontElement, backElement, filename);
+      }
 
       this.toastService.success(
         '¡Descarga Exitosa!',
-        `La factura ${billCode} se ha descargado correctamente. Revisa tu carpeta de descargas.`
+        `La factura ${billCode} se ha descargado correctamente con frente y reverso.`
       );
 
-      // 8. Limpiar los datos después del toast
+      // 7. Limpiar los datos después de la descarga
       setTimeout(() => {
         this.billDataForPdf.set(null);
+        this.deudaConsolidadaForPdf.set(null);
+        this.backTemplateDataForPdf.set(null);
         this.isDownloading.set(false);
       }, 1500);
 
     } catch (error) {
+      console.error('Error en downloadBillPDF:', error);
       this.toastService.error('Error en la descarga', 'No se pudo generar el PDF de la factura');
       // Limpiar los datos en caso de error
       this.billDataForPdf.set(null);
+      this.deudaConsolidadaForPdf.set(null);
+      this.backTemplateDataForPdf.set(null);
       this.isDownloading.set(false);
     }
   }

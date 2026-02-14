@@ -12,9 +12,10 @@
       <div class="logo-container">
         @if (enterpriseInfo.value()?.imagen?.[0]?.imagen) {
         <img
-          class="logo-image object-contain w-32 h-32 rounded-[20px]"
+          class="logo-image"
           [src]="'data:' + (enterpriseInfo.value()?.imagen?.[0]?.contentType || 'image/png') + ';base64,' + enterpriseInfo.value()?.imagen?.[0]?.imagen"
           [alt]="enterpriseInfo.value()?.nombre || 'Logo empresa'"
+          style="max-width: 128px; max-height: 128px; width: auto; height: auto; object-fit: contain; border-radius: 20px; display: block;"
         />
         } @else {
         <h1>cargando imagen</h1>
@@ -299,7 +300,6 @@
       </div>
     </div>
 
-    <!-- ================= ROW ALCANTARILLADO ================= -->
 
     <div class="tarifas-consumo-row">
       <div class="tarifa-service-label">
@@ -424,85 +424,72 @@
             </div> -->
 
             <div class="liquidar-container">
-              <div class="liquidar-header">TABLA PARA LIQUIDAR CONSUMOS</div>
-
-              <!-- Fila de títulos de servicios -->
-              <div class="liquidar-service-headers">
-                <div class="liquidar-rango-title">RANGO</div>
-                <div class="liquidar-service-title acueducto-title">
-                  ACUEDUCTO
-                </div>
-                <div class="liquidar-service-title alcantarillado-title">
-                  ALCANTARILLADO
-                </div>
-              </div>
-
-              <!-- Fila 1: Labels de columnas -->
-              <div class="liquidar-labels-row">
-                <div class="liquidar-rango-cell rango-first">
-                  CONSUMO BÁSICO
-                </div>
-                <div class="liquidar-acueducto-label">RANGO M³</div>
-                <div class="liquidar-acueducto-label">$ /M³</div>
-                <div class="liquidar-acueducto-label">SUBTOTAL</div>
-                <div class="liquidar-alcantarillado-label">$ /M³</div>
-                <div class="liquidar-alcantarillado-label">SUBTOTAL</div>
-              </div>
-
-              <!-- Fila 2: Valores primera fila -->
-              <div class="liquidar-values-row">
-                <div class="liquidar-empty"></div>
-                <div class="liquidar-value">0</div>
-                <div class="liquidar-value"></div>
-                <div class="liquidar-subtotal"></div>
-                <div class="liquidar-value"></div>
-                <div class="liquidar-subtotal"></div>
-              </div>
-
-              <!-- Fila 3: Segundo rango -->
-              <div class="liquidar-labels-row">
-                <div class="liquidar-rango-cell">CONSUMO COMPLEMENTARIO</div>
-                <div class="liquidar-acueducto-label">RANGO M³</div>
-                <div class="liquidar-value">$ /M³</div>
-                <div class="liquidar-acueducto-empty"></div>
-                <div class="liquidar-alcantarillado-label">$ /M³</div>
-                <div class="liquidar-alcantarillado-empty"></div>
-              </div>
-
-              <!-- Fila 4: Valores segunda fila -->
-              <div class="liquidar-values-row">
-                <div class="liquidar-empty"></div>
-                <div class="liquidar-value">0</div>
-                <div class="liquidar-value"></div>
-                <div class="liquidar-empty"></div>
-                <div class="liquidar-value"></div>
-                <div class="liquidar-empty"></div>
-              </div>
-
-              <!-- Fila 5: Tercer rango -->
-              <div class="liquidar-labels-row">
-                <div class="liquidar-rango-cell">CONSUMO SUNTUARIO</div>
-                <div class="liquidar-acueducto-label">RANGO M³</div>
-                <div class="liquidar-value">$ /M³</div>
-                <div class="liquidar-acueducto-empty"></div>
-                <div class="liquidar-alcantarillado-label">$ /M³</div>
-                <div class="liquidar-alcantarillado-empty"></div>
-              </div>
-
-              <!-- Fila 6: Valores tercera fila -->
-              <div class="liquidar-values-row">
-                <div class="liquidar-empty"></div>
-                <div class="liquidar-value">0</div>
-                <div class="liquidar-value"></div>
-                <div class="liquidar-empty"></div>
-                <div class="liquidar-value"></div>
-                <div class="liquidar-empty"></div>
-              </div>
-
-              <div class="liquidar-total">
-                <span class="liquidar-total-label">COSTO TOTAL CONSUMO</span>
-                <span class="liquidar-total-arrow">→</span>
-              </div>
+              <table class="liquidar-table py-0.5">
+                <thead>
+                  <tr class="liquidar-header">
+                    <th colspan="6">TABLA PARA LIQUIDAR CONSUMOS</th>
+                  </tr>
+                  <tr class="liquidar-service-headers">
+                    <th class="liquidar-rango-title">RANGO</th>
+                    <th class="liquidar-service-title acueducto-title" colspan="2">ACUEDUCTO</th>
+                    <th class="liquidar-service-title alcantarillado-title" colspan="2">ALCANTARILLADO</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="liquidar-labels-row">
+                    <td class="liquidar-rango-cell rango-first">CONSUMO BÁSICO</td>
+                    <td class="liquidar-acueducto-label">RANGO M³</td>
+                    <td class="liquidar-acueducto-label">$ /M³</td>
+                    <td class="liquidar-acueducto-label">SUBTOTAL</td>
+                    <td class="liquidar-alcantarillado-label">$ /M³</td>
+                    <td class="liquidar-alcantarillado-label">SUBTOTAL</td>
+                  </tr>
+                  <tr class="liquidar-values-row">
+                    <td class="liquidar-empty"></td>
+                    <td class="liquidar-value">0</td>
+                    <td class="liquidar-value"></td>
+                    <td class="liquidar-subtotal"></td>
+                    <td class="liquidar-value"></td>
+                    <td class="liquidar-subtotal"></td>
+                  </tr>
+                  <tr class="liquidar-labels-row">
+                    <td class="liquidar-rango-cell">CONSUMO COMPLEMENTARIO</td>
+                    <td class="liquidar-acueducto-label">RANGO M³</td>
+                    <td class="liquidar-value">$ /M³</td>
+                    <td class="liquidar-acueducto-empty"></td>
+                    <td class="liquidar-alcantarillado-label">$ /M³</td>
+                    <td class="liquidar-alcantarillado-empty"></td>
+                  </tr>
+                  <tr class="liquidar-values-row">
+                    <td class="liquidar-empty"></td>
+                    <td class="liquidar-value">0</td>
+                    <td class="liquidar-value"></td>
+                    <td class="liquidar-empty"></td>
+                    <td class="liquidar-value"></td>
+                    <td class="liquidar-empty"></td>
+                  </tr>
+                  <tr class="liquidar-labels-row">
+                    <td class="liquidar-rango-cell">CONSUMO SUNTUARIO</td>
+                    <td class="liquidar-acueducto-label">RANGO M³</td>
+                    <td class="liquidar-value">$ /M³</td>
+                    <td class="liquidar-acueducto-empty"></td>
+                    <td class="liquidar-alcantarillado-label">$ /M³</td>
+                    <td class="liquidar-alcantarillado-empty"></td>
+                  </tr>
+                  <tr class="liquidar-values-row">
+                    <td class="liquidar-empty"></td>
+                    <td class="liquidar-value">0</td>
+                    <td class="liquidar-value"></td>
+                    <td class="liquidar-empty"></td>
+                    <td class="liquidar-value"></td>
+                    <td class="liquidar-empty"></td>
+                  </tr>
+                  <tr class="liquidar-total">
+                    <td colspan="5" class="liquidar-total-label">COSTO TOTAL CONSUMO</td>
+                    <td class="liquidar-total-arrow">→</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
             <div class="consumo-data-container">
               <div class="consumo-header">DATOS DEL CONSUMO</div>
@@ -771,6 +758,7 @@
               class="logo-image-bottom"
               [src]="'data:' + (enterpriseInfo.value()?.imagen?.[0]?.contentType || 'image/png') + ';base64,' + enterpriseInfo.value()?.imagen?.[0]?.imagen"
               [alt]="enterpriseInfo.value()?.nombre || 'Logo empresa'"
+              style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; display: block;"
             />
             }
           </div>
