@@ -350,4 +350,61 @@ export class PdfBill {
     }
     return 'puntos-grid-double';
   }
+
+  // Método para obtener la clase correcta según el nombre de la tarifa
+  getTarifaDualClass(tarifaNombre: string): string {
+    const nombre = tarifaNombre?.toLowerCase() || '';
+    if (nombre.includes('acueducto')) return 'acueducto-dual';
+    if (nombre.includes('aseo')) return 'aseo-dual';
+    if (nombre.includes('alcantarillado')) return 'alcantarillado-dual';
+    return 'service-dual';
+  }
+
+  // Método para obtener la clase de color del título según el nombre de la tarifa
+  getTitleClass(tarifaNombre: string): string {
+    const nombre = tarifaNombre?.toLowerCase() || '';
+    if (nombre.includes('acueducto')) return 'acueducto-title';
+    if (nombre.includes('aseo')) return 'aseo-title';
+    if (nombre.includes('alcantarillado')) return 'alcantarillado-title';
+    return 'otros-title';
+  }
+
+  // Métodos para calcular subtotales de la tabla de liquidación desde tarifas
+  private getConceptoValorPorNombre(codigoTarifa: string, nombreConcepto: string): number {
+    const billData = this.billData();
+    if (!billData?.tarifas) return 0;
+
+    const tarifa = billData.tarifas.find((t: any) => t.codigo === codigoTarifa);
+    if (!tarifa?.conceptos) return 0;
+
+    const concepto = tarifa.conceptos.find((c: any) =>
+      c.tipoConceptoNombre?.toLowerCase() === nombreConcepto.toLowerCase()
+    );
+
+    return concepto?.valor || 0;
+  }
+
+  getSubtotalAcuBasico(): number {
+    return this.getConceptoValorPorNombre('ACU', 'Consumo básico');
+  }
+
+  getSubtotalAlcBasico(): number {
+    return this.getConceptoValorPorNombre('ALC', 'Consumo básico');
+  }
+
+  getSubtotalAcuComplementario(): number {
+    return this.getConceptoValorPorNombre('ACU', 'Consumo complementario');
+  }
+
+  getSubtotalAlcComplementario(): number {
+    return this.getConceptoValorPorNombre('ALC', 'Consumo complementario');
+  }
+
+  getSubtotalAcuSuntuario(): number {
+    return this.getConceptoValorPorNombre('ACU', 'Consumo suntuario');
+  }
+
+  getSubtotalAlcSuntuario(): number {
+    return this.getConceptoValorPorNombre('ALC', 'Consumo suntuario');
+  }
 }

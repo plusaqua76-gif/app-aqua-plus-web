@@ -8,5 +8,9 @@ export default [
   {
     path: 'bills-users',
     loadComponent: () => import('./pages/billsUsers').then(m => m.BillUsers)
+  },
+  {
+    path: 'pyments',
+    loadComponent: () => import('./pages/pyments').then(m => m.Pyments)
   }
 ] as Routes;

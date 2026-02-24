@@ -842,12 +842,10 @@
         </div>
         }
 
-        <!-- Tab Content: Crear Contador -->
         @if (activeTab() === 'create') {
         <div class="space-y-6">
           <form [formGroup]="counterForm" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Campo: Tipo de Contador -->
               <div>
                 <label
                   for="tipoContador"
@@ -861,7 +859,7 @@
                     formControlName="tipoContador"
                     class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
                     required
-                  >
+                   >
                     <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
                       @if (loadTypeCounter.isLoading()) {
                         Cargando tipos de contador...
@@ -1122,6 +1120,76 @@
                       />
                     </svg>
                   </div>
+                </div>
+              </div>
+
+              <!-- Información para el tipo de uso y tipo de aforo -->
+              <div>
+                <label
+                  for="idTipoUso"
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+                >
+                  Tipo de Uso
+                </label>
+                <div class="relative">
+                  <select
+                    id="idTipoUso"
+                    formControlName="idTipoUso"
+                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+                   >
+                    <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
+                      @if (typeUse.isLoading()) {
+                        Cargando tipos de uso...
+                      } @else if (typeUse.error()) {
+                        Error al cargar tipos de uso
+                      } @else {
+                        Seleccione tipo de uso
+                      }
+                    </option>
+                    @for (tipo of typeUse.value()?.response ?? [] ; track tipo.id) {
+                    <option
+                      [value]="tipo.id"
+                      class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
+                    >
+                      {{ tipo.nombre }}
+                    </option>
+                    }
+                  </select>
+                </div>
+              </div>
+
+              <!-- Campo: Tipo Aforo -->
+              <div>
+                <label
+                  for="idTipoAforo"
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+                >
+                  Tipo Aforo
+                </label>
+                <div class="relative">
+                  <select
+                    id="idTipoAforo"
+                    formControlName="idTipoAforo"
+                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+                   >
+                    <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
+                      @if (typesAforos.isLoading()) {
+                        Cargando tipos de aforo...
+                      } @else if (typesAforos.error()) {
+                        Error al cargar tipos de aforo
+                      } @else {
+                        Seleccione tipo de aforo
+                      }
+                    </option>
+                    @for (tipo of typesAforos.value()?.response ?? [] ; track tipo.id) {
+                    <option
+                      [value]="tipo.id"
+                      class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
+                    >
+                      {{ tipo.descripcion ?? tipo.nombre }}
+                    </option>
+                    }
+                  </select>
                 </div>
               </div>
             </div>
