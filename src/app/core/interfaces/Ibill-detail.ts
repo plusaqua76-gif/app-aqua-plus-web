@@ -143,7 +143,8 @@ export interface ITipoConcepto {
 }
 
 export interface IValoresMetrosCubicos {
-  total: number;
+  totalAcueducto: number;
+  totalAlcantarillado: number;
   tipoConcepto: ITipoConcepto[];
 }
 

@@ -99,7 +99,7 @@ export class CustomerDebt {
     { field: 'tipoDeudaNombre', header: 'Tipo deuda', type: 'text' as const },
     { field: 'valorTexto', header: 'Valor', type: 'text' as const },
     { field: 'activo', header: 'Estado', type: 'text' as const },
-    { field: 'plazoPagoNombre', header: 'N° de cuotas', type: 'text' as const }
+    { field: 'plazoPago', header: 'N° de cuotas', type: 'text' as const }
   ]);
 
   protected readonly deudaService = inject(DeudaService);
@@ -169,7 +169,7 @@ export class CustomerDebt {
             tipoDeudaNombre: deuda.tipoDeuda?.nombre ?? '',
             valorTexto: `$${deuda.valor.toLocaleString('es-CO')}`,
             activo: deuda.activo ? 'PENDIENTE' : 'PAGO',
-            plazoPagoNombre: deuda.plazoPago?.nombre || '0'
+            plazoPago: deuda.plazoPago ||  '0'
           }))
         })),
         catchError(error => {

@@ -37,6 +37,7 @@ import { CounterEnterpriceService } from '../../services/counter-enterprice.serv
 import { TransversalRate } from '../transversal-rate/transversalRate';
 import { BillValidityParameters } from '../bill-validity-parameters/bill-validity-parameters';
 import { Checkbox } from '../../../../shared/components/checkbox';
+import { AforoComponent } from '../aforo-configuration/aforo';
 
 // esto es mala practica, nosotros ya tenemos creado una interface IrateTypes en core/interfaces/IrateTypes.ts
 
@@ -56,7 +57,8 @@ import { Checkbox } from '../../../../shared/components/checkbox';
     TransversalRate,
     BillValidityParameters,
     Checkbox,
-  ],
+    AforoComponent
+],
   styleUrls: ['./fee.css'],
   templateUrl: './fee.html',
 })
@@ -714,7 +716,7 @@ mostrardata = this.consumptionParamsData().forEach(param => {
             .trim()
             .substring(0, 3)
             .toUpperCase()
-            .padEnd(3, 'X'); // Si tiene menos de 3 letras, completa con 'X'
+            .padEnd(3, 'X');
 
     const tipoTarifaData: IrateTypes = {
       empresa: { id: this.empresaId() },

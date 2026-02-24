@@ -286,7 +286,7 @@
   display: grid;
   grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
   background: white;
-  border-bottom: 2px solid #2d4a7c;
+  border-bottom: 1px solid #ddd;
 }
 
 .tarifa-header-cell {
@@ -580,7 +580,7 @@
 
 .consumo-row {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .consumo-label {
@@ -617,98 +617,64 @@
 /* Estilos para Tabla para Liquidar Consumos */
 .liquidar-container {
   background: white;
-  border: 1px solid #2d4a7c;
   border-radius: 8px;
-  overflow: hidden;
+  border: 1px solid #2d4a7c;
+  overflow: visible;
   margin-top: 6px;
+  min-height: 297px;
 }
 
-/* Unificar el ancho y alineación de las celdas de la tabla de liquidación */
-.liquidar-service-headers,
-.liquidar-labels-row,
-.liquidar-values-row {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
+.liquidar-table {
+  border-radius: 8px;
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.liquidar-rango-cell,
-.liquidar-acueducto-label,
-.liquidar-alcantarillado-label,
-.liquidar-value,
-.liquidar-subtotal,
-.liquidar-empty,
-.liquidar-acueducto-empty,
-.liquidar-alcantarillado-empty {
-  min-width: 0;
-  padding: 4px 2px;
-  font-size: 10px;
+.liquidar-header-consumo th {
+  background: #2d4a7c;
+  border-radius: 8px;
+  padding-top: 2px;
+  padding-bottom: 6px;
   text-align: center;
-  border-right: 1px solid #ddd;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-}
-
-.liquidar-rango-cell,
-.liquidar-acueducto-label {
-  background: #2388ff;
+  font-weight: bold;
+  font-size: 11px;
   color: white;
-  font-weight: 600;
-}
-
-.liquidar-alcantarillado-label {
-  background: #5a8f5a;
-  color: white;
-  font-weight: 600;
-}
-
-.liquidar-alcantarillado-label:last-child,
-.liquidar-subtotal:last-child,
-.liquidar-value:last-child,
-.liquidar-empty:last-child {
-  border-right: none;
 }
 
 .liquidar-header {
   background: #2d4a7c;
+  border-radius: 8px;
   color: white;
-  padding: 4px;
+  padding: 9px;
   text-align: center;
   font-weight: bold;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 /* Títulos de servicios */
-.liquidar-service-headers {
-  display: grid;
-  grid-template-columns: 0.6fr 2fr 1.4fr;
-  border-bottom: 1px solid #ddd;
+.liquidar-service-headers th {
+  padding: 8px;
+  border-right: 1px solid #ddd;
+  text-align: center;
+}
+
+.liquidar-service-headers th:last-child {
+  border-right: none;
 }
 
 .liquidar-rango-title {
-  padding: 4px;
   background: #2388ff;
   color: white;
   font-weight: 600;
-  font-size: 10px;
-  text-align: center;
-  border-right: 1px solid #ddd;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 11px;
+  padding: 8px;
 }
 
 .liquidar-service-title {
-  padding: 4px;
   color: white;
   font-weight: 600;
-  font-size: 11px;
-  text-align: center;
-  border-right: 1px solid #ddd;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 12px;
+  padding: 8px;
 }
 
 .acueducto-title {
@@ -717,130 +683,129 @@
 
 .alcantarillado-title {
   background: #5a8f5a;
+}
+
+/* Subheaders (tarifa, rango, subtotal) */
+.liquidar-subheaders th {
+  padding: 7px 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  border-right: 1px solid #ddd;
+  border-top: 1px solid #ddd;
+  background: #f8f9fa;
+}
+
+.liquidar-subheaders th:first-child {
+  background: transparent;
+  border: none;
+}
+
+.liquidar-subheaders th:nth-child(2),
+.liquidar-subheaders th:nth-child(3),
+.liquidar-subheaders th:nth-child(4) {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.liquidar-subheaders th:nth-child(5),
+.liquidar-subheaders th:nth-child(6),
+.liquidar-subheaders th:nth-child(7) {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.liquidar-subheaders th:last-child {
   border-right: none;
 }
 
-/* Filas de labels */
-.liquidar-labels-row {
-  display: grid;
-  grid-template-columns: 0.6fr 0.7fr 0.7fr 0.6fr 0.7fr 0.7fr;
+.liquidar-subheader {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* Filas de datos */
+.liquidar-labels-row td,
+.liquidar-values-row-extra td {
+  padding: 7px 3px;
+  text-align: center;
+  font-size: 11px;
+  border-right: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
+}
+
+.liquidar-labels-row td:last-child,
+.liquidar-values-row-extra td:last-child {
+  border-right: none;
 }
 
 .liquidar-rango-cell {
-  padding: 4px 2px;
   background: #2388ff;
   color: white;
   font-weight: 600;
   font-size: 10px;
-  text-align: center;
-  border-right: 1px solid #ddd;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.liquidar-acueducto-label {
-  padding: 4px 2px;
-  background: #2388ff;
-  color: white;
-  font-weight: 600;
-  font-size: 9px;
-  text-align: center;
-  border-right: 1px solid #ddd;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.liquidar-alcantarillado-label {
-  padding: 4px 2px;
-  background: #5a8f5a;
-  color: white;
-  font-weight: 600;
-  font-size: 9px;
-  text-align: center;
-  border-right: 1px solid #ddd;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.liquidar-alcantarillado-label:last-child {
-  border-right: none;
-}
-
-/* Filas de valores */
-.liquidar-values-row {
-  display: grid;
-  grid-template-columns: 0.6fr 0.7fr 0.7fr 0.6fr 0.7fr 0.7fr;
-  border-bottom: 1px solid #ddd;
-}
-
-.liquidar-values-row:last-child {
-  border-bottom: none;
-}
-
-.liquidar-empty,
-.liquidar-acueducto-empty,
-.liquidar-alcantarillado-empty {
-  background: white;
-  border-right: 1px solid #ddd;
-}
-
-.liquidar-alcantarillado-empty:last-child,
-.liquidar-empty:last-child {
-  border-right: none;
+  vertical-align: middle;
 }
 
 .liquidar-value {
-  padding: 4px 2px;
-  text-align: center;
-  font-size: 10px;
-  color: #333;
-  font-weight: 500;
-  border-right: 1px solid #ddd;
   background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #333;
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .liquidar-subtotal {
-  padding: 4px 2px;
-  text-align: center;
-  font-size: 10px;
+  background: #f0f0f0;
   color: #333;
   font-weight: bold;
-  border-right: 1px solid #ddd;
-  background: #f0f0f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 11px;
+  vertical-align: middle;
 }
 
-.liquidar-subtotal:last-child {
+.liquidar-empty {
+  background: white;
+  height: 26px;
+}
+
+/* Filas de totales */
+.liquidar-total td,
+.liquidar-total-final td {
+  padding: 8px 10px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: bold;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+
+.liquidar-total td:last-child,
+.liquidar-total-final td:last-child {
   border-right: none;
 }
 
 .liquidar-total {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 8px;
   background: #f9f9f9;
 }
 
+.liquidar-total-final {
+  background: #e3f2fd;
+}
+
 .liquidar-total-label {
-  font-size: 10px;
   font-weight: bold;
   color: #333;
 }
 
-.liquidar-total-arrow {
-  font-size: 16px;
+.liquidar-total-value {
   font-weight: bold;
-  color: #333;
+  color: #1976d2;
+  font-size: 12px;
+}
+
+.liquidar-total-arrow {
+  font-size: 14px;
+  font-weight: bold;
+  color: #1976d2;
 }
 
 .consumption-item {
@@ -1081,6 +1046,9 @@
 }
 
 .service-card.aseo-dual,
+.service-card.acueducto-dual,
+.service-card.alcantarillado-dual,
+.service-card.service-dual,
 .service-card.dual-column {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1095,6 +1063,9 @@
 }
 
 .service-card.aseo-dual .service-column:first-child,
+.service-card.acueducto-dual .service-column:first-child,
+.service-card.alcantarillado-dual .service-column:first-child,
+.service-card.service-dual .service-column:first-child,
 .service-card.dual-column .service-items:first-child {
   border-right: 1px solid #e0e0e0;
   padding-right: 20px;
@@ -1102,6 +1073,9 @@
 }
 
 .service-card.aseo-dual .service-column:last-child,
+.service-card.acueducto-dual .service-column:last-child,
+.service-card.alcantarillado-dual .service-column:last-child,
+.service-card.service-dual .service-column:last-child,
 .service-card.dual-column .service-items:last-child {
   padding-left: 20px;
   margin-left: 0px;
@@ -1241,35 +1215,21 @@
   flex-shrink: 0;
 }
 
-.service-card-wrapper:nth-child(1) .service-column-title {
-  background: #0b84ff;
+/* Colores dinámicos basados en el tipo de servicio */
+.service-column-title.acueducto-title {
+  background: #0b84ff !important; /* Azul para Acueducto */
 }
 
-.service-card-wrapper:nth-child(2) .service-column-title {
-  background: #ff9800; /* Naranja para Alcantarillado */
+.service-column-title.aseo-title {
+  background: #3f51b5 !important; /* Morado para Aseo */
 }
 
-.service-card-wrapper:nth-child(3) .service-column-title:not(.otros-title) {
-  background: #3f51b5; /* Rosa para Aseo - solo si NO es otros-title */
+.service-column-title.alcantarillado-title {
+  background: #ff9800 !important; /* Naranja para Alcantarillado */
 }
 
 .service-column-title.otros-title {
-  background: #6c7293 !important; /* Gris para Otros - con !important para asegurar precedencia */
-  color: white;
-  padding: 2px 12px 12px 12px;
-  border-radius: 8px;
-  margin-top: -18px;
-  margin-bottom: 8px;
-  margin-left: auto;
-  margin-right: auto;
-  display: inline-block;
-  width: fit-content;
-  max-height: 32px;
-  height: fit-content;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex-shrink: 0;
+  background: #6c7293 !important; /* Gris para Otros */
 }
 
 .service-items {
@@ -1330,7 +1290,7 @@
   right: 15px;
   width: 1144px;
   height: 2px;
-  border-top: 5px dashed #adb1b8;
+  /* border-top: 5px dashed #adb1b8; */
   margin: 20px 0;
   min-width: 964px; /* Ancho aumentado: 814 + 150 = 964px */
 }
@@ -1443,7 +1403,8 @@
 
 .usuario-item {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-direction: center;
   gap: 0.25rem;
 }
 
@@ -1463,10 +1424,9 @@
   margin-top: auto;
   padding: 0.75rem;
   background: rgba(211, 47, 47, 0.1);
-
   border-radius: 6px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 0.25rem;
   text-align: center;
 }

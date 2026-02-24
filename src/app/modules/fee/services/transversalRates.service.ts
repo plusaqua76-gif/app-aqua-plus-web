@@ -7,7 +7,8 @@ import { ApiResponse } from "@interfaces/Iresponse";
 export interface TransversalRateRequest {
   empresa: { id: number };
   tipoUso: { id: number };
-  nombre: string;
+  tipoTarifa: { id: number };
+  nombre?: string;
   estrato: number;
   valor: number;
   codigo: string;
@@ -72,12 +73,22 @@ export interface TransversalRate {
     usuarioModificacion: string;
     fechaModificacion: string;
   };
-  nombre: string;
+  tipoTarifa: {
+    id: number;
+    empresa: {
+      id: number;
+    };
+    nombre: string;
+    codigo: string;
+    activo: boolean;
+    usuarioCreacion: string;
+    fechaCreacion: string;
+  };
+  nombre?: string;
   estrato: number;
   codigo: string;
   valor: number;
 }
-
 
 @Injectable({
   providedIn: 'root'

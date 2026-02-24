@@ -173,7 +173,8 @@
   <div class="tarifas-consumo-table">
 
     @let itemsMTC = billData()?.valoresMetrosCubicos?.tipoConcepto ?? [];
-    @let total = billData()?.valoresMetrosCubicos?.total ?? 0;
+    @let totalAcueducto = billData()?.valoresMetrosCubicos?.totalAcueducto ?? 0;
+    @let totalAlcantarillado = billData()?.valoresMetrosCubicos?.totalAlcantarillado ?? 0;
 
     <!-- ================= HEADER ACUEDUCTO ================= -->
 
@@ -253,7 +254,7 @@
       </div>
 
       <div class="tarifa-value-cell">
-        {{ total | colombianCurrency }}
+        {{ totalAcueducto | colombianCurrency }}
       </div>
     </div>
 
@@ -331,7 +332,7 @@
       </div>
 
       <div class="tarifa-value-cell">
-        {{ total | colombianCurrency }}
+        {{ totalAlcantarillado | colombianCurrency }}
       </div>
     </div>
 
@@ -426,67 +427,158 @@
             <div class="liquidar-container">
               <table class="liquidar-table py-0.5">
                 <thead>
-                  <tr class="liquidar-header">
-                    <th colspan="6">TABLA PARA LIQUIDAR CONSUMOS</th>
+                  <tr class="liquidar-header-consumo">
+                    <th colspan="7">TABLA PARA LIQUIDAR CONSUMOS</th>
                   </tr>
                   <tr class="liquidar-service-headers">
                     <th class="liquidar-rango-title">RANGO</th>
-                    <th class="liquidar-service-title acueducto-title" colspan="2">ACUEDUCTO</th>
-                    <th class="liquidar-service-title alcantarillado-title" colspan="2">ALCANTARILLADO</th>
+                    <th class="liquidar-service-title acueducto-title" colspan="3">ACUEDUCTO</th>
+                    <th class="liquidar-service-title alcantarillado-title" colspan="3">ALCANTARILLADO</th>
+                  </tr>
+                  <tr class="liquidar-subheaders">
+                    <th></th>
+                    <th class="liquidar-subheader">TARIFA</th>
+                    <th class="liquidar-subheader">RANGO M³</th>
+                    <th class="liquidar-subheader">SUBTOTAL</th>
+                    <th class="liquidar-subheader">TARIFA</th>
+                    <th class="liquidar-subheader">RANGO M³</th>
+                    <th class="liquidar-subheader">SUBTOTAL</th>
                   </tr>
                 </thead>
                 <tbody>
+                  <!-- CONSUMO BÁSICO -->
                   <tr class="liquidar-labels-row">
-                    <td class="liquidar-rango-cell rango-first">CONSUMO BÁSICO</td>
-                    <td class="liquidar-acueducto-label">RANGO M³</td>
-                    <td class="liquidar-acueducto-label">$ /M³</td>
-                    <td class="liquidar-acueducto-label">SUBTOTAL</td>
-                    <td class="liquidar-alcantarillado-label">$ /M³</td>
-                    <td class="liquidar-alcantarillado-label">SUBTOTAL</td>
+                    <td class="liquidar-rango-cell rango-first" rowspan="2">CONSUMO BÁSICO</td>
+                    <td class="liquidar-value text-gray-700">
+                      @for (item of itemsMTC; track item.codigo) {
+                        @if (item.codigo === 'ACUCONBAS') {
+                          {{ item.valor | colombianCurrency }}
+                        }
+                      }
+                    </td>
+                    <td class="liquidar-value text-gray-700">
+                      @for (item of itemsMTC; track item.codigo) {
+                        @if (item.codigo === 'ACUCONBAS') {
+                          {{ item.rango }} M³
+                        }
+                      }
+                    </td>
+                    <td class="liquidar-subtotal" rowspan="2">{{ getSubtotalAcuBasico() | colombianCurrency }}</td>
+                    <td class="liquidar-value text-gray-700">
+                      @for (item of itemsMTC; track item.codigo) {
+                        @if (item.codigo === 'ALCCONBAS') {
+                          {{ item.valor | colombianCurrency }}
+                        }
+                      }
+                    </td>
+                    <td class="liquidar-value text-gray-700">
+                      @for (item of itemsMTC; track item.codigo) {
+                        @if (item.codigo === 'ALCCONBAS') {
+                          {{ item.rango }} M³
+                        }
+                      }
+                    </td>
+                    <td class="liquidar-subtotal" rowspan="2">{{ getSubtotalAlcBasico() | colombianCurrency }}</td>
                   </tr>
-                  <tr class="liquidar-values-row">
+                  <tr class="liquidar-values-row-extra">
                     <td class="liquidar-empty"></td>
-                    <td class="liquidar-value">0</td>
-                    <td class="liquidar-value"></td>
-                    <td class="liquidar-subtotal"></td>
-                    <td class="liquidar-value"></td>
-                    <td class="liquidar-subtotal"></td>
+                    <td class="liquidar-empty"></td>
+                    <td class="liquidar-empty"></td>
+                    <td class="liquidar-empty"></td>
                   </tr>
+
+                  <!-- CONSUMO COMPLEMENTARIO -->
                   <tr class="liquidar-labels-row">
-                    <td class="liquidar-rango-cell">CONSUMO COMPLEMENTARIO</td>
-                    <td class="liquidar-acueducto-label">RANGO M³</td>
-                    <td class="liquidar-value">$ /M³</td>
-                    <td class="liquidar-acueducto-empty"></td>
-                    <td class="liquidar-alcantarillado-label">$ /M³</td>
-                    <td class="liquidar-alcantarillado-empty"></td>
+                    <td class="liquidar-rango-cell" rowspan="2">CONSUMO COMPLEMENTARIO</td>
+                    <td class="liquidar-value text-gray-700">
+                      @for (item of itemsMTC; track item.codigo) {
+                        @if (item.codigo === 'ACUCONCOM') {
+                          {{ item.valor | colombianCurrency }}
+                        }
+                      }
+                    </td>
+                    <td class="liquidar-value text-gray-700">
+                      @for (item of itemsMTC; track item.codigo) {
+                        @if (item.codigo === 'ACUCONCOM') {
+                          {{ item.rango }} M³
+                        }
+                      }
+                    </td>
+                    <td class="liquidar-subtotal" rowspan="2">{{ getSubtotalAcuComplementario() | colombianCurrency }}</td>
+                    <td class="liquidar-value text-gray-700">
+                      @for (item of itemsMTC; track item.codigo) {
+                        @if (item.codigo === 'ALCCONCOM') {
+                          {{ item.valor | colombianCurrency }}
+                        }
+                      }
+                    </td>
+                    <td class="liquidar-value text-gray-700">
+                      @for (item of itemsMTC; track item.codigo) {
+                        @if (item.codigo === 'ALCCONCOM') {
+                          {{ item.rango }} M³
+                        }
+                      }
+                    </td>
+                    <td class="liquidar-subtotal" rowspan="2">{{ getSubtotalAlcComplementario() | colombianCurrency }}</td>
                   </tr>
-                  <tr class="liquidar-values-row">
+                  <tr class="liquidar-values-row-extra">
                     <td class="liquidar-empty"></td>
-                    <td class="liquidar-value">0</td>
-                    <td class="liquidar-value"></td>
                     <td class="liquidar-empty"></td>
-                    <td class="liquidar-value"></td>
+                    <td class="liquidar-empty"></td>
                     <td class="liquidar-empty"></td>
                   </tr>
+
+                  <!-- CONSUMO SUNTUARIO -->
                   <tr class="liquidar-labels-row">
-                    <td class="liquidar-rango-cell">CONSUMO SUNTUARIO</td>
-                    <td class="liquidar-acueducto-label">RANGO M³</td>
-                    <td class="liquidar-value">$ /M³</td>
-                    <td class="liquidar-acueducto-empty"></td>
-                    <td class="liquidar-alcantarillado-label">$ /M³</td>
-                    <td class="liquidar-alcantarillado-empty"></td>
+                    <td class="liquidar-rango-cell" rowspan="2">CONSUMO SUNTUARIO</td>
+                    <td class="liquidar-value text-gray-700">
+                      @for (item of itemsMTC; track item.codigo) {
+                        @if (item.codigo === 'ACUCONSUN') {
+                          {{ item.valor | colombianCurrency }}
+                        }
+                      }
+                    </td>
+                    <td class="liquidar-value text-gray-700">
+                      @for (item of itemsMTC; track item.codigo) {
+                        @if (item.codigo === 'ACUCONSUN') {
+                          {{ item.rango }} M³
+                        }
+                      }
+                    </td>
+                    <td class="liquidar-subtotal" rowspan="2">{{ getSubtotalAcuSuntuario() | colombianCurrency }}</td>
+                    <td class="liquidar-value text-gray-700">
+                      @for (item of itemsMTC; track item.codigo) {
+                        @if (item.codigo === 'ALCCONSUN') {
+                          {{ item.valor | colombianCurrency }}
+                        }
+                      }
+                    </td>
+                    <td class="liquidar-value text-gray-700">
+                      @for (item of itemsMTC; track item.codigo) {
+                        @if (item.codigo === 'ALCCONSUN') {
+                          {{ item.rango }} M³
+                        }
+                      }
+                    </td>
+                    <td class="liquidar-subtotal" rowspan="2">{{ getSubtotalAlcSuntuario() | colombianCurrency }}</td>
                   </tr>
-                  <tr class="liquidar-values-row">
+                  <tr class="liquidar-values-row-extra">
                     <td class="liquidar-empty"></td>
-                    <td class="liquidar-value">0</td>
-                    <td class="liquidar-value"></td>
                     <td class="liquidar-empty"></td>
-                    <td class="liquidar-value"></td>
+                    <td class="liquidar-empty"></td>
                     <td class="liquidar-empty"></td>
                   </tr>
-                  <tr class="liquidar-total">
-                    <td colspan="5" class="liquidar-total-label">COSTO TOTAL CONSUMO</td>
-                    <td class="liquidar-total-arrow">→</td>
+
+                  <!-- TOTAL -->
+                  <!-- <tr class="liquidar-total">
+                    <td colspan="3" class="liquidar-total-label">TOTAL ACUEDUCTO</td>
+                    <td class="liquidar-total-value">{{ totalAcueducto | colombianCurrency }}</td>
+                    <td colspan="2" class="liquidar-total-label">TOTAL ALCANTARILLADO</td>
+                    <td class="liquidar-total-value">{{ totalAlcantarillado | colombianCurrency }}</td>
+                  </tr> -->
+                  <tr class="liquidar-total-final">
+                    <td colspan="6" class="liquidar-total-label">COSTO TOTAL CONSUMO</td>
+                    <td class="liquidar-total-arrow">{{ totalAcueducto + totalAlcantarillado | colombianCurrency }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -499,7 +591,7 @@
                 <div class="consumo-label">LECTURA ACTUAL</div>
                 <div class="consumo-label">FACTURADO CON</div>
                 <div class="consumo-label">CONSUMO (M³)</div>
-                <div class="consumo-label">PROMEDIO ÚLTIMOS 6 MESES</div>
+                <!-- <div class="consumo-label">PROMEDIO ÚLTIMOS 6 MESES</div> -->
               </div>
 
               <div class="consumo-row consumo-values">
@@ -507,7 +599,7 @@
                 <div class="consumo-value">{{ billData()?.factura?.lecturaActual }}</div>
                 <div class="consumo-value">lectura</div>
                 <div class="consumo-value">{{ billData()?.factura?.consumoReal }}</div>
-                <div class="consumo-value">0</div>
+                <!-- <div class="consumo-value">0</div> -->
               </div>
             </div>
           </div>
@@ -524,7 +616,7 @@
           @if (shouldUseDualColumn(getPrimeras3Tarifas()[0].conceptos)) {
           <!-- Card con dos columnas para más de 6 items -->
           <div class="service-card dual-column">
-            <div class="service-column-title">
+            <div class="service-column-title" [ngClass]="getTitleClass(getPrimeras3Tarifas()[0].nombre)">
               {{ getPrimeras3Tarifas()[0].nombre }}
             </div>
             <div class="service-items">
@@ -551,7 +643,7 @@
           } @else {
           <!-- Card normal para 6 items o menos -->
           <div class="service-card">
-            <div class="service-column-title">
+            <div class="service-column-title" [ngClass]="getTitleClass(getPrimeras3Tarifas()[0].nombre)">
               {{ getPrimeras3Tarifas()[0].nombre }}
             </div>
             <div class="service-items">
@@ -574,7 +666,7 @@
           @if (shouldUseDualColumn(getPrimeras3Tarifas()[2].conceptos)) {
           <!-- Card con dos columnas para más de 6 items -->
           <div class="service-card dual-column">
-            <div class="service-column-title">
+            <div class="service-column-title" [ngClass]="getTitleClass(getPrimeras3Tarifas()[2].nombre)">
               {{ getPrimeras3Tarifas()[2].nombre }}
             </div>
             <div class="service-items">
@@ -601,7 +693,7 @@
           } @else {
           <!-- Card normal para 6 items o menos -->
           <div class="service-card">
-            <div class="service-column-title">
+            <div class="service-column-title" [ngClass]="getTitleClass(getPrimeras3Tarifas()[2].nombre)">
               {{ getPrimeras3Tarifas()[2].nombre }}
             </div>
             <div class="service-items">
@@ -621,9 +713,9 @@
         <!-- Segunda fila, primera columna: Segunda tarifa con dos columnas -->
         @if (getPrimeras3Tarifas()[1]) {
         <div class="service-card-wrapper">
-          <div class="service-card aseo-dual">
+          <div class="service-card" [ngClass]="getTarifaDualClass(getPrimeras3Tarifas()[1].nombre)">
             <div class="service-column">
-              <div class="service-column-title">
+              <div class="service-column-title" [ngClass]="getTitleClass(getPrimeras3Tarifas()[1].nombre)">
                 {{ getPrimeras3Tarifas()[1].nombre }}
               </div>
               <div class="service-items">
@@ -788,26 +880,39 @@
           <div class="usuario-info">
             <div class="usuario-item">
               <span class="usuario-label">NOMBRE:</span>
-              <span class="usuario-value">
+              <span class="usuario-value ml-3">
                 {{ billData()?.cliente?.primerNombre || '' }} {{
                 billData()?.cliente?.segundoNombre || '' }} {{
                 billData()?.cliente?.primerApellido || '' }} {{
                 billData()?.cliente?.segundoApellido || '' }}
               </span>
             </div>
-            <div class="usuario-item">
+            <!-- <div class="usuario-item gap-1.5">
               <span class="usuario-label">CÉDULA:</span>
-              <span class="usuario-value"
+              <span class="usuario-value ml-4"
                 >{{ billData()?.cliente?.numeroCedula || '' }}</span
               >
-            </div>
-            <div class="usuario-item">
+            </div> -->
+            <div class="usuario-item ">
               <span class="usuario-label">DIRECCIÓN:</span>
               <span class="usuario-value">
                 {{ billData()?.cliente?.direccion?.ciudadNombre || '' }}, {{
                 billData()?.cliente?.direccion?.corregimientoNombre || '' }} {{
                 billData()?.cliente?.direccion?.descripcion || '' }}, {{
                 billData()?.cliente?.direccion?.descripcion || '' }}
+              </span>
+            </div>
+            <div class="factura-item">
+              <span class="factura-label">NÚMERO DE FACTURA:</span>
+              <span class="factura-value"
+                >{{ billData()?.factura?.codigo || '' }}</span
+              >
+            </div>
+            <div class="factura-item">
+              <span class="factura-label">PERIODO FACTURADO:</span>
+              <span class="factura-value">
+                {{ formatDate(billData()?.factura?.fechaEmision) || '' }} - {{
+                formatDate(billData()?.factura?.fechaFin) || '' }}
               </span>
             </div>
             <div class="usuario-fecha-limite">
@@ -822,25 +927,25 @@
         <!-- Tercera columna: Factura y totales -->
         <div class="bottom-column factura-column">
           <div class="factura-info">
-            <div class="factura-item">
+            <!-- <div class="factura-item">
               <span class="factura-label">NÚMERO DE FACTURA:</span>
               <span class="factura-value"
                 >{{ billData()?.factura?.codigo || '' }}</span
               >
-            </div>
-            <div class="factura-item">
+            </div> -->
+            <!-- <div class="factura-item">
               <span class="factura-label">CÉDULA:</span>
               <span class="factura-value"
                 >{{ billData()?.cliente?.numeroCedula || '' }}</span
               >
-            </div>
-            <div class="factura-item">
+            </div> -->
+            <!-- <div class="factura-item">
               <span class="factura-label">PERIODO FACTURADO:</span>
               <span class="factura-value">
                 {{ formatDate(billData()?.factura?.fechaEmision) || '' }} - {{
                 formatDate(billData()?.factura?.fechaFin) || '' }}
               </span>
-            </div>
+            </div> -->
           </div>
 
           <div class="payment-totals-grid">
@@ -852,21 +957,21 @@
               <div
                 class="h-[25px] rounded-t-xl flex items-center justify-center text-xs font-medium text-white pb-3"
                 [ngClass]="{
-                           'bg-[#0b84ff]': i === 0,
-                           'bg-[#3f51b5]': i === 1,
-                           'bg-[#ff9800]': i === 2
+                           'bg-[#0b84ff]': tipo.nombre.toLowerCase().includes('acueducto'),
+                           'bg-[#3f51b5]': tipo.nombre.toLowerCase().includes('aseo'),
+                           'bg-[#ff9800]': tipo.nombre.toLowerCase().includes('alcantarillado'),
+                           'bg-[#5d6481]': !tipo.nombre.toLowerCase().includes('acueducto') && !tipo.nombre.toLowerCase().includes('aseo') && !tipo.nombre.toLowerCase().includes('alcantarillado')
                          }"
               >
-                {{ i === 0 ? 'ACUEDUCTO' : i === 1 ? 'ASEO' : 'ALCANTARILLADO'
-                }}
+                {{ tipo.nombre.toUpperCase() }}
               </div>
-              <div class="hidden">{{ tipo.nombre }}</div>
               <div
                 class="text-base font-bold text-black py-2 pb-4 m-0 border-l border-r min-h-[40px] flex items-center justify-center"
                 [ngClass]="{
-                           'border-[#0b84ff]': i === 0,
-                           'border-[#3f51b5]': i === 1,
-                           'border-[#ff9800]': i === 2
+                           'border-[#0b84ff]': tipo.nombre.toLowerCase().includes('acueducto'),
+                           'border-[#3f51b5]': tipo.nombre.toLowerCase().includes('aseo'),
+                           'border-[#ff9800]': tipo.nombre.toLowerCase().includes('alcantarillado'),
+                           'border-[#5d6481]': !tipo.nombre.toLowerCase().includes('acueducto') && !tipo.nombre.toLowerCase().includes('aseo') && !tipo.nombre.toLowerCase().includes('alcantarillado')
                          }"
               >
                 {{ tipo.valor | colombianCurrency }}
@@ -874,9 +979,10 @@
               <div
                 class="h-2"
                 [ngClass]="{
-                           'bg-[#0b84ff]': i === 0,
-                           'bg-[#3f51b5]': i === 1,
-                           'bg-[#ff9800]': i === 2
+                           'bg-[#0b84ff]': tipo.nombre.toLowerCase().includes('acueducto'),
+                           'bg-[#3f51b5]': tipo.nombre.toLowerCase().includes('aseo'),
+                           'bg-[#ff9800]': tipo.nombre.toLowerCase().includes('alcantarillado'),
+                           'bg-[#5d6481]': !tipo.nombre.toLowerCase().includes('acueducto') && !tipo.nombre.toLowerCase().includes('aseo') && !tipo.nombre.toLowerCase().includes('alcantarillado')
                          }"
               ></div>
             </div>

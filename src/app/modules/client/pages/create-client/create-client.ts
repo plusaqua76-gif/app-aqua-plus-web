@@ -36,6 +36,7 @@ import { EmpleadoService } from '../../../employee/service/empleado.service';
 import { RateTypeService } from '../../../fee/services/rate-type.service';
 import { Checkbox } from '../../../../shared/components/checkbox';
 import { SaveClientPayload } from '@interfaces/ISaveClient';
+import { UseService } from '../../../fee/services/use.service';
 
 @Component({
   selector: 'app-create-client',
@@ -59,9 +60,9 @@ export class CreateClient implements OnInit {
   isSearching = signal<boolean>(false);
   activeTab = signal<'search' | 'create'>('search');
   isTarifasModalOpen = signal<boolean>(false);
-  selectedTarifas = signal<any[]>([]); // Estructura: { contadorId, tarifas: [{idTipoTarifa, nombre, aplica}] }
-  tempSelectedTarifas = signal<any[]>([]); // Temporal para el modal
-  currentCounterForTarifas = signal<any | null>(null); // Contador activo para configurar tarifas
+  selectedTarifas = signal<any[]>([]);
+  tempSelectedTarifas = signal<any[]>([]);
+  currentCounterForTarifas = signal<any | null>(null);
   personaDiscapacidad = signal<boolean>(false);
   idEmpresaClienteContador = signal<number | null>(null);
   counterForm!: FormGroup;
@@ -93,6 +94,7 @@ export class CreateClient implements OnInit {
   protected readonly empleadoService = inject(EmpleadoService);
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
+  readonly useService = inject(UseService);
 
 
 
@@ -130,7 +132,6 @@ export class CreateClient implements OnInit {
     return id || null;
   });
 
-  // Signals para empleados
   employees = signal<any[]>([]);
   employeesLoading = signal<boolean>(false);
 
@@ -285,6 +286,8 @@ export class CreateClient implements OnInit {
       direccion: ['', Validators.required],
       estrato: ['', [Validators.required, Validators.min(1), Validators.max(6)]],
       digitosContador: ['', [Validators.required, Validators.min(1)]],
+      idTipoUso: [''],
+      idTipoAforo: [''],
     });
   }
 
@@ -373,6 +376,33 @@ export class CreateClient implements OnInit {
           )
         : EMPTY,
   });
+
+    typesAforos = rxResource({
+    params: () => ({ enterpriseId: this.enterpriceId() }),
+    stream: ({ params }) => {
+      const { enterpriseId } = params;
+      if (!enterpriseId) return of(null);
+
+      return this.counterService.aforosEnterprice(enterpriseId).pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
+    }
+  });
+
+  typeUse = rxResource({
+    params: () => ({ enterpriseId: this.enterpriceId() }),
+    stream: ({ params }) => {
+      if (!params.enterpriseId) return of(null);
+      return this.useService.getTypeUse(params.enterpriseId).pipe(
+        catchError(() => {
+          return of(null);
+        }),
+      );
+    },
+  });
+
 
   availableTarifas = computed(() => {
     const data = this.typeRates.value();

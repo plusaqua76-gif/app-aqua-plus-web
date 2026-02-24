@@ -15,6 +15,7 @@ import { catchError, of } from 'rxjs';
 import { ToastService } from '@services/toast.service';
 import { ConfirmDeletePopupComponent } from '@shared/components/confirm-delete-popup';
 import { PopupComponent } from '@shared/components/popUp';
+import { RateTypeService } from '../../services/rate-type.service';
 
 @Component({
   selector: 'app-transversal-rate',
@@ -46,45 +47,54 @@ import { PopupComponent } from '@shared/components/popUp';
           <div class="flex flex-wrap justify-center gap-6 py-8">
             <!-- Cards de Tarifas Dinámicas -->
             @for (tarifa of transversalRates(); track tarifa.id; let idx = $index) {
-              @let editData = getEditData(tarifa.id);
+              @let editData = getEditData(tarifa);
+              @let cardColor = getCardColor(tarifa);
               <div class="flex-shrink-0 transition-all duration-300 relative">
 
                     <!-- Card Principal -->
                     <div [ngClass]="{
-                      'bg-sky-700': getCardColor(idx) === 'sky',
-                      'bg-emerald-700': getCardColor(idx) === 'emerald',
-                      'bg-purple-700': getCardColor(idx) === 'purple',
-                      'bg-amber-700': getCardColor(idx) === 'amber',
-                      'shadow-sky-500': getCardColor(idx) === 'sky',
-                      'shadow-emerald-500': getCardColor(idx) === 'emerald',
-                      'shadow-purple-500': getCardColor(idx) === 'purple',
-                      'shadow-amber-500': getCardColor(idx) === 'amber'
+                      'bg-sky-600': cardColor === 'sky',
+                      'bg-purple-600': cardColor === 'purple',
+                      'bg-amber-500': cardColor === 'amber',
+                      'bg-slate-600': cardColor === 'slate',
+                      'shadow-sky-400': cardColor === 'sky',
+                      'shadow-purple-400': cardColor === 'purple',
+                      'shadow-amber-400': cardColor === 'amber',
+                      'shadow-slate-400': cardColor === 'slate'
                     }"
                     class="rounded-2xl shadow-sm outline outline-slate-400 -outline-offset-8">
                       <div [ngClass]="{
-                        'after:bg-sky-700': getCardColor(idx) === 'sky',
-                        'after:bg-emerald-700': getCardColor(idx) === 'emerald',
-                        'after:bg-purple-700': getCardColor(idx) === 'purple',
-                        'after:bg-amber-700': getCardColor(idx) === 'amber',
-                        'before:bg-sky-400': getCardColor(idx) === 'sky',
-                        'before:bg-emerald-400': getCardColor(idx) === 'emerald',
-                        'before:bg-purple-400': getCardColor(idx) === 'purple',
-                        'before:bg-amber-400': getCardColor(idx) === 'amber'
+                        'after:bg-sky-600': cardColor === 'sky',
+                        'after:bg-purple-600': cardColor === 'purple',
+                        'after:bg-amber-500': cardColor === 'amber',
+                        'after:bg-slate-600': cardColor === 'slate',
+                        'before:bg-sky-300': cardColor === 'sky',
+                        'before:bg-purple-300': cardColor === 'purple',
+                        'before:bg-amber-300': cardColor === 'amber',
+                        'before:bg-slate-300': cardColor === 'slate'
                       }"
                       class="group overflow-hidden relative after:duration-500 before:duration-500 duration-500 hover:after:duration-500 hover:after:translate-x-24 hover:before:translate-y-12 hover:before:-translate-x-32 hover:duration-500 after:absolute after:w-24 after:h-24 after:rounded-full after:blur-xl after:bottom-32 after:right-16 before:absolute before:w-20 before:h-20 before:rounded-full before:blur-xl before:top-20 before:right-16 flex justify-center items-center h-56 w-80 bg-neutral-900 rounded-2xl outline outline-slate-400 -outline-offset-8">
                         <div class="z-10 flex flex-col items-center gap-2 w-full px-4">
-                          <i [class]="tarifa.nombre.toLowerCase().includes('alcantarillado') ? 'fas fa-toilet text-slate-400 text-5xl' : 'fas fa-tint text-slate-400 text-5xl'"></i>
+                          <!-- Ícono con efecto blur -->
+                         <i
+                        [class]="getTarifaIcon(tarifa) + ' text-white/50 text-5xl drop-shadow-[0_0_25px_rgba(255,255,255,0.4)] filter brightness-125'">
+                      </i>
                           <p class="text-gray-50 text-center font-semibold text-lg">{{ tarifa.nombre }}</p>
 
-                          <!-- Tipo de Uso y Estrato -->
-                          <div class="flex items-center gap-3 text-xs text-gray-400">
+                          <!-- Tipo de Uso, Nombre Tarifa y Estrato -->
+                          <div class="flex items-center gap-3 text-xs text-white">
                             <div class="flex items-center gap-1">
-                              <i class="fas fa-tag text-gray-500"></i>
+                              <i class="fas fa-tag"></i>
                               <span>{{ tarifa.tipoUso.nombre }}</span>
                             </div>
-                            <span class="text-gray-600">|</span>
+                            <span class="text-gray-300">|</span>
                             <div class="flex items-center gap-1">
-                              <i class="fas fa-layer-group text-gray-500"></i>
+                              <i class="fas fa-file-invoice"></i>
+                              <span>{{ tarifa.tipoTarifa.nombre }}</span>
+                            </div>
+                            <span class="text-gray-300">|</span>
+                            <div class="flex items-center gap-1">
+                              <i class="fas fa-layer-group"></i>
                               <span>Estrato {{ tarifa.estrato }}</span>
                             </div>
                           </div>
@@ -101,10 +111,10 @@ import { PopupComponent } from '@shared/components/popUp';
                         <button
                           (click)="toggleCard(idx)"
                           [ngClass]="{
-                            'bg-sky-600 hover:bg-sky-500': getCardColor(idx) === 'sky',
-                            'bg-emerald-600 hover:bg-emerald-500': getCardColor(idx) === 'emerald',
-                            'bg-purple-600 hover:bg-purple-500': getCardColor(idx) === 'purple',
-                            'bg-amber-600 hover:bg-amber-500': getCardColor(idx) === 'amber'
+                            'bg-sky-500 hover:bg-sky-400': cardColor === 'sky',
+                            'bg-purple-500 hover:bg-purple-400': cardColor === 'purple',
+                            'bg-amber-300 hover:bg-amber-300': cardColor === 'amber',
+                            'bg-slate-500 hover:bg-slate-400': cardColor === 'slate'
                           }"
                           class="absolute bottom-4 right-4 z-20 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all duration-300 shadow-lg">
                           <i [class]="expandedCard() === idx ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
@@ -116,10 +126,10 @@ import { PopupComponent } from '@shared/components/popUp';
                     <div [class]="expandedCard() === idx ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0'"
                          class="transition-all duration-300 ease-in-out overflow-hidden">
                       <div [ngClass]="{
-                        'border-sky-500/30': getCardColor(idx) === 'sky',
-                        'border-emerald-500/30': getCardColor(idx) === 'emerald',
-                        'border-purple-500/30': getCardColor(idx) === 'purple',
-                        'border-amber-500/30': getCardColor(idx) === 'amber'
+                        'border-sky-400/30': cardColor === 'sky',
+                        'border-purple-400/30': cardColor === 'purple',
+                        'border-amber-400/30': cardColor === 'amber',
+                        'border-slate-400/30': cardColor === 'slate'
                       }"
                       class="bg-neutral-800/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border w-80">
                         <div class="space-y-3">
@@ -136,12 +146,12 @@ import { PopupComponent } from '@shared/components/popUp';
                               type="text"
                               [disabled]="!isEditingTarifa(tarifa.id)"
                               [(ngModel)]="editData.nombre"
-                              [placeholder]="tarifa.nombre"
+                              [placeholder]="tarifa.tipoTarifa.nombre"
                               [ngClass]="{
-                                'focus:ring-sky-500': getCardColor(idx) === 'sky',
-                                'focus:ring-emerald-500': getCardColor(idx) === 'emerald',
-                                'focus:ring-purple-500': getCardColor(idx) === 'purple',
-                                'focus:ring-amber-500': getCardColor(idx) === 'amber'
+                                'focus:ring-sky-400': cardColor === 'sky',
+                                'focus:ring-purple-400': cardColor === 'purple',
+                                'focus:ring-amber-400': cardColor === 'amber',
+                                'focus:ring-slate-400': cardColor === 'slate'
                               }"
                               class="w-full px-3 py-2 bg-neutral-700 border border-gray-600 rounded-lg text-white text-sm focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                             />
@@ -154,12 +164,12 @@ import { PopupComponent } from '@shared/components/popUp';
                               type="number"
                               [disabled]="!isEditingTarifa(tarifa.id)"
                               [(ngModel)]="editData.estrato"
-                              [placeholder]="tarifa.estrato.toString()"
+                              [placeholder]="tarifa.estrato"
                               [ngClass]="{
-                                'focus:ring-sky-500': getCardColor(idx) === 'sky',
-                                'focus:ring-emerald-500': getCardColor(idx) === 'emerald',
-                                'focus:ring-purple-500': getCardColor(idx) === 'purple',
-                                'focus:ring-amber-500': getCardColor(idx) === 'amber'
+                                'focus:ring-sky-400': cardColor === 'sky',
+                                'focus:ring-purple-400': cardColor === 'purple',
+                                'focus:ring-amber-400': cardColor === 'amber',
+                                'focus:ring-slate-400': cardColor === 'slate'
                               }"
                               class="w-full px-3 py-2 bg-neutral-700 border border-gray-600 rounded-lg text-white text-sm focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                             />
@@ -172,12 +182,12 @@ import { PopupComponent } from '@shared/components/popUp';
                               type="number"
                               [disabled]="!isEditingTarifa(tarifa.id)"
                               [(ngModel)]="editData.valor"
-                              [placeholder]="tarifa.valor.toString()"
+                              [placeholder]="tarifa.valor ?? 0"
                               [ngClass]="{
-                                'focus:ring-sky-500': getCardColor(idx) === 'sky',
-                                'focus:ring-emerald-500': getCardColor(idx) === 'emerald',
-                                'focus:ring-purple-500': getCardColor(idx) === 'purple',
-                                'focus:ring-amber-500': getCardColor(idx) === 'amber'
+                                'focus:ring-sky-400': cardColor === 'sky',
+                                'focus:ring-purple-400': cardColor === 'purple',
+                                'focus:ring-amber-400': cardColor === 'amber',
+                                'focus:ring-slate-400': cardColor === 'slate'
                               }"
                               class="w-full px-3 py-2 bg-neutral-700 border border-gray-600 rounded-lg text-white text-sm focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                             />
@@ -192,10 +202,10 @@ import { PopupComponent } from '@shared/components/popUp';
                               [disabled]="isSubmitting()"
                               [ngClass]="{
                                 'border-green-600/50 text-green-400 hover:bg-green-600/10': isEditingTarifa(tarifa.id),
-                                'border-sky-600/50 text-sky-400 hover:bg-sky-600/10': !isEditingTarifa(tarifa.id) && getCardColor(idx) === 'sky',
-                                'border-emerald-600/50 text-emerald-400 hover:bg-emerald-600/10': !isEditingTarifa(tarifa.id) && getCardColor(idx) === 'emerald',
-                                'border-purple-600/50 text-purple-400 hover:bg-purple-600/10': !isEditingTarifa(tarifa.id) && getCardColor(idx) === 'purple',
-                                'border-amber-600/50 text-amber-400 hover:bg-amber-600/10': !isEditingTarifa(tarifa.id) && getCardColor(idx) === 'amber'
+                                'border-sky-500/50 text-sky-400 hover:bg-sky-500/10': !isEditingTarifa(tarifa.id) && cardColor === 'sky',
+                                'border-purple-500/50 text-purple-400 hover:bg-purple-500/10': !isEditingTarifa(tarifa.id) && cardColor === 'purple',
+                                'border-amber-500/50 text-amber-200/20 hover:bg-amber-500/10': !isEditingTarifa(tarifa.id) && cardColor === 'amber',
+                                'border-slate-500/50 text-slate-400 hover:bg-slate-500/10': !isEditingTarifa(tarifa.id) && cardColor === 'slate'
                               }"
                               class="flex-1 inline-flex items-center justify-center h-9 rounded-lg border transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed gap-2"
                               [title]="isEditingTarifa(tarifa.id) ? 'Guardar' : 'Editar'">
@@ -295,9 +305,9 @@ import { PopupComponent } from '@shared/components/popUp';
               [(ngModel)]="newTarifa().tipoUsoId"
               class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
             >
-              <option [value]="null" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">Seleccione un tipo de uso</option>
+              <option [ngValue]="null" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">Seleccione un tipo de uso</option>
               @for (uso of typeUseData(); track uso.id) {
-                <option [value]="uso.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">{{ uso.nombre }}</option>
+                <option [ngValue]="uso.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">{{ uso.nombre }}</option>
               }
             </select>
           </div>
@@ -308,13 +318,15 @@ import { PopupComponent } from '@shared/components/popUp';
               Nombre <span class="text-red-500">*</span>
             </label>
             <select
-              [(ngModel)]="newTarifa().nombre"
-              (ngModelChange)="onNombreChange($event)"
+              [(ngModel)]="newTarifa().tipoTarifaId"
+              (ngModelChange)="onTipoTarifaChange($event)"
               class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
             >
-              <option value="" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">Seleccione un nombre</option>
-              <option value="Alcantarillado" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">Alcantarillado</option>
-              <option value="Acueducto" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">Acueducto</option>
+              <option [ngValue]="null" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">Seleccione un nombre</option>
+              @for (item of typeRatesData(); track item.id) {
+                <option [ngValue]="item.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">{{ item.nombre }}</option>
+              }
+
             </select>
           </div>
 
@@ -412,6 +424,7 @@ import { PopupComponent } from '@shared/components/popUp';
 })
 export class TransversalRate {
   protected readonly transversalRatesService = inject(TransversalRatesService);
+  protected readonly rateTypeService = inject(RateTypeService);
   protected readonly useService = inject(UseService);
   protected toast = inject(ToastService);
   readonly platformId = inject(PLATFORM_ID);
@@ -423,13 +436,13 @@ export class TransversalRate {
   tarifaToDelete = signal<{ id: number; nombre: string } | null>(null);
   newTarifa = signal<{
     tipoUsoId: number | null;
-    nombre: string;
+    tipoTarifaId: number | null;
     estrato: number;
     valor: number;
     codigo: string;
   }>({
     tipoUsoId: null,
-    nombre: '',
+    tipoTarifaId: null,
     estrato: 0,
     valor: 0,
     codigo: ''
@@ -441,9 +454,6 @@ export class TransversalRate {
   // Estados de edición para cada tarifa
   editingTarifas = signal<Set<number>>(new Set());
   editValues = signal<{ [id: number]: { nombre: string; estrato: number; valor: number } }>({});
-
-  // Colores para las cards (rotan entre estos)
-  readonly cardColors = ['sky', 'emerald', 'purple', 'amber'];
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -486,6 +496,20 @@ export class TransversalRate {
     }
   });
 
+  typeRates = rxResource({
+    params: () => ({ enterpriseId: this.enterpriceId() }),
+    stream: ({ params: { enterpriseId } }) => {
+      if (!enterpriseId) {
+        return of(null);
+      }
+      return this.rateTypeService.getRateTypes(enterpriseId).pipe(
+        catchError((error) => {
+          return of(null);
+        })
+      );
+    }
+  });
+
   typeUseData = computed(() => {
     try {
       const value = this.typeUse.value();
@@ -495,7 +519,16 @@ export class TransversalRate {
     }
   });
 
-  // Cargar todas las tarifas transversales
+  typeRatesData = computed(() => {
+    try {
+      const value = this.typeRates.value();
+      return value?.response ?? [];
+    } catch (error) {
+      return [];
+    }
+  });
+
+
   getAllRates = rxResource({
     params: () => ({
       idEnterprise: this.enterpriceId(),
@@ -508,7 +541,6 @@ export class TransversalRate {
         .getAllTransversalRates(params.idEnterprise)
         .pipe(
           catchError((error) => {
-            console.error('Error al cargar tarifas:', error);
             return of([]);
           })
         );
@@ -527,19 +559,64 @@ export class TransversalRate {
     return [];
   });
 
-  getCardColor(index: number): string {
-    return this.cardColors[index % this.cardColors.length];
+
+  getCardColor(tarifa: TarifaTransversal): string {
+    const nombre = (tarifa?.tipoTarifa?.nombre || '').toLowerCase();
+    if (nombre.includes('acueducto')) {
+      return 'sky';
+    } else if (nombre.includes('aseo')) {
+      return 'purple';
+    } else if (nombre.includes('alcantarillado')) {
+      return 'amber';
+    }
+    return 'slate';
   }
 
+
+  getTarifaIcon(tarifa: TarifaTransversal): string {
+    const nombre = (tarifa?.tipoTarifa?.nombre || '').toLowerCase();
+    const baseClasses = 'text-5xl';
+
+    if (nombre.includes('acueducto')) {
+      return `fas fa-tint ${baseClasses}`;
+    } else if (nombre.includes('aseo')) {
+      return `fas fa-broom ${baseClasses}`;
+    } else if (nombre.includes('alcantarillado')) {
+      return `fas fa-toilet ${baseClasses}`;
+    } else {
+      return `fas fa-tasks ${baseClasses}`;
+    }
+  }
+
+
+  getIconColorClasses(tarifa: TarifaTransversal): string {
+    const nombre = (tarifa?.tipoTarifa?.nombre || '').toLowerCase();
+
+    if (nombre.includes('acueducto')) {
+      return 'text-sky-400';
+    } else if (nombre.includes('aseo')) {
+      return 'text-purple-400';
+    } else if (nombre.includes('alcantarillado')) {
+      return 'text-amber-400';
+    } else {
+      return 'text-gray-400';
+    }
+  }
 
   isEditingTarifa(id: number): boolean {
     return this.editingTarifas().has(id);
   }
 
-  // Obtener datos de edición para una tarifa
-  getEditData(id: number): { nombre: string; estrato: number; valor: number } {
+  getEditData(tarifa: TarifaTransversal): { nombre: string; estrato: number; valor: number } {
     const values = this.editValues();
-    return values[id] || { nombre: '', estrato: 0, valor: 0 };
+    if (values[tarifa.id]) {
+      return values[tarifa.id];
+    }
+    return {
+      nombre: tarifa.tipoTarifa?.nombre || '',
+      estrato: tarifa.estrato,
+      valor: tarifa.valor
+    };
   }
 
   // Iniciar edición de una tarifa
@@ -547,7 +624,7 @@ export class TransversalRate {
     this.editValues.update(values => ({
       ...values,
       [tarifa.id]: {
-        nombre: tarifa.nombre,
+        nombre: tarifa.tipoTarifa?.nombre || '',
         estrato: tarifa.estrato,
         valor: tarifa.valor
       }
@@ -591,15 +668,21 @@ export class TransversalRate {
     };
 
     this.transversalRatesService.createTransversalRates(tarifaData).subscribe({
-      next: () => {
-        this.toast.success('Éxito', 'Tarifa actualizada correctamente.');
-        this.cancelEditTarifa(tarifa.id);
-        this.isSubmitting.set(false);
-        this.getAllRates.reload();
+      next: (response) => {
+        if (response?.success !== false) {
+          this.toast.success('Éxito', 'Tarifa actualizada correctamente.');
+          this.cancelEditTarifa(tarifa.id);
+          this.isSubmitting.set(false);
+          this.getAllRates.reload();
+        } else {
+          this.toast.error('Error', response?.message || 'No se pudo actualizar la tarifa.');
+          this.isSubmitting.set(false);
+        }
       },
       error: (err: any) => {
         console.error('Error al actualizar la tarifa:', err);
-        this.toast.error('Error', 'No se pudo actualizar la tarifa.');
+        const errorMessage = err?.error?.message || err?.message || 'No se pudo actualizar la tarifa. Por favor intente nuevamente.';
+        this.toast.error('Error', errorMessage);
         this.isSubmitting.set(false);
       }
     });
@@ -607,7 +690,7 @@ export class TransversalRate {
 
   // Abrir modal de confirmación de eliminación
   deleteTarifa(tarifa: TarifaTransversal): void {
-    this.tarifaToDelete.set({ id: tarifa.id, nombre: tarifa.nombre });
+    this.tarifaToDelete.set({ id: tarifa.id, nombre: tarifa.tipoTarifa?.nombre || '' });
     this.showDeleteModal.set(true);
   }
 
@@ -625,14 +708,22 @@ export class TransversalRate {
     this.isSubmitting.set(true);
 
     this.transversalRatesService.deleteTransversalRates(tarifa.id).subscribe({
-      next: () => {
-        this.toast.success('Éxito', 'Tarifa eliminada correctamente.');
-        this.isSubmitting.set(false);
-        this.closeDeleteModal();
-        this.getAllRates.reload();
-        this.expandedCard.set(null);
+      next: (response) => {
+        if (response?.success) {
+          this.toast.success('Éxito', 'Tarifa eliminada correctamente.');
+          this.isSubmitting.set(false);
+          this.closeDeleteModal();
+          this.getAllRates.reload();
+          this.expandedCard.set(null);
+        } else {
+          this.toast.error('Error', response?.message || 'No se pudo eliminar la tarifa.');
+          this.isSubmitting.set(false);
+        }
       },
       error: (err: any) => {
+        console.error('Error al eliminar tarifa:', err);
+        const errorMessage = err?.error?.message || err?.message || 'Error al eliminar la tarifa. Por favor intente nuevamente.';
+        this.toast.error('Error', errorMessage);
         this.isSubmitting.set(false);
       }
     });
@@ -650,7 +741,7 @@ export class TransversalRate {
   openCreateModal(): void {
     this.newTarifa.set({
       tipoUsoId: null,
-      nombre: '',
+      tipoTarifaId: null,
       estrato: 0,
       valor: 0,
       codigo: ''
@@ -658,38 +749,45 @@ export class TransversalRate {
     this.showCreateModal.set(true);
   }
 
-  // Actualizar código según el nombre seleccionado
-  onNombreChange(nombre: string): void {
+  // Actualizar código según el tipo de tarifa seleccionado
+  onTipoTarifaChange(tipoTarifaId: number): void {
+    const tipoTarifa = this.typeRatesData().find(t => t.id === tipoTarifaId);
     let nuevoCodigo = '';
-    if (nombre === 'Alcantarillado') {
-      nuevoCodigo = 'VLRALC';
-    } else if (nombre === 'Acueducto') {
-      nuevoCodigo = 'VLRACU';
+
+    if (tipoTarifa) {
+      const nombre = tipoTarifa.nombre.toLowerCase();
+      if (nombre.includes('alcantarillado')) {
+        nuevoCodigo = 'VLRALC';
+      } else if (nombre.includes('acueducto')) {
+        nuevoCodigo = 'VLRACU';
+      } else if (nombre.includes('aseo')) {
+        nuevoCodigo = 'VLRASE';
+      } else {
+        // Generar código basado en las primeras letras del nombre, ya sabemos que esta chamboncito pero con esto ya lo generamos dinmicamente
+        nuevoCodigo = 'VLR' + tipoTarifa.nombre.substring(0, 3).toUpperCase();
+      }
     }
 
     this.newTarifa.update(tarifa => ({
       ...tarifa,
-      nombre,
+      tipoTarifaId,
       codigo: nuevoCodigo
     }));
   }
 
-  // Cerrar modal de creación
   closeCreateModal(): void {
     this.showCreateModal.set(false);
   }
 
-  // Crear nueva tarifa
   createNewTarifa(): void {
     const tarifa = this.newTarifa();
 
-    // Validaciones
     if (!tarifa.tipoUsoId) {
       this.toast.error('Error', 'Por favor seleccione un tipo de uso.');
       return;
     }
-    if (!tarifa.nombre.trim()) {
-      this.toast.error('Error', 'Por favor ingrese un nombre.');
+    if (!tarifa.tipoTarifaId) {
+      this.toast.error('Error', 'Por favor seleccione un tipo de tarifa.');
       return;
     }
     if (tarifa.estrato < 0 || tarifa.estrato > 6) {
@@ -703,10 +801,17 @@ export class TransversalRate {
 
     this.isSubmitting.set(true);
 
+    const tipoUsoIdNumber = typeof tarifa.tipoUsoId === 'string' ? parseInt(tarifa.tipoUsoId) : tarifa.tipoUsoId;
+    const tipoTarifaIdNumber = typeof tarifa.tipoTarifaId === 'string' ? parseInt(tarifa.tipoTarifaId) : tarifa.tipoTarifaId;
+
+    const tipoTarifaSeleccionado = this.typeRatesData().find(t => t.id === tipoTarifaIdNumber);
+    const nombreTarifa = tipoTarifaSeleccionado?.nombre || '';
+
     const tarifaData: TransversalRateRequest = {
       empresa: { id: this.enterpriceId() },
-      tipoUso: { id: tarifa.tipoUsoId },
-      nombre: tarifa.nombre,
+      tipoUso: { id: tipoUsoIdNumber! },
+      tipoTarifa: { id: tipoTarifaIdNumber! },
+      nombre: nombreTarifa,
       estrato: tarifa.estrato,
       valor: tarifa.valor,
       codigo: tarifa.codigo,
@@ -714,15 +819,21 @@ export class TransversalRate {
     };
 
     this.transversalRatesService.createTransversalRates(tarifaData).subscribe({
-      next: () => {
-        this.toast.success('Éxito', 'Tarifa creada correctamente.');
-        this.isSubmitting.set(false);
-        this.closeCreateModal();
-        this.getAllRates.reload();
+      next: (response) => {
+        if (response?.success !== false) {
+          this.toast.success('Éxito', 'Tarifa creada correctamente.');
+          this.isSubmitting.set(false);
+          this.closeCreateModal();
+          this.getAllRates.reload();
+        } else {
+          this.toast.error('Error', response?.message || 'No se pudo crear la tarifa.');
+          this.isSubmitting.set(false);
+        }
       },
       error: (err: any) => {
         console.error('Error al crear la tarifa:', err);
-        this.toast.error('Error', 'No se pudo crear la tarifa.');
+        const errorMessage = err?.error?.message || err?.message || 'No se pudo crear la tarifa. Por favor intente nuevamente.';
+        this.toast.error('Error', errorMessage);
         this.isSubmitting.set(false);
       }
     });

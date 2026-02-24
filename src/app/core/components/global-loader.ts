@@ -8,8 +8,9 @@ import { Loader } from '../../shared/components/loader';
   imports: [Loader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (isVisible()) {
+    @defer (prefetch on idle) {
       <app-loader
+        [visible]="isVisible()"
         [overlay]="true"
         [message]="message()"
         [darkMode]="true"
