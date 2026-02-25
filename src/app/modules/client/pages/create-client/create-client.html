@@ -640,7 +640,7 @@
   <!-- Modal container -->
   <div class="flex min-h-full items-center justify-center p-4">
     <div
-      class="relative w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border border-white/20 dark:border-slate-700/30 shadow-2xl transition-all mt-16"
+      class="relative w-full max-w-2xl transform overflow-visible rounded-2xl bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border border-white/20 dark:border-slate-700/30 shadow-2xl transition-all mt-16"
     >
       <!-- Modal Header -->
       <div class="border-b border-white/10 dark:border-slate-700/30 px-6 py-4">
@@ -1161,36 +1161,142 @@
               <!-- Campo: Tipo Aforo -->
               <div>
                 <label
-                  for="idTipoAforo"
+                  for="tipoAforo"
                   class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
                 >
-                  Tipo Aforo
+                  Tipos de Aforo
                 </label>
+
+                <!-- Botón del Dropdown -->
                 <div class="relative">
-                  <select
-                    id="idTipoAforo"
-                    formControlName="idTipoAforo"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
-                   >
-                    <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
-                      @if (typesAforos.isLoading()) {
-                        Cargando tipos de aforo...
-                      } @else if (typesAforos.error()) {
-                        Error al cargar tipos de aforo
+                  <button
+                    id="dropdownAforosButton"
+                    type="button"
+                    (click)="toggleAforosDropdown()"
+                    class="w-full inline-flex items-center justify-between px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+                  >
+                    <span class="flex items-center gap-2">
+                      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                      </svg>
+                      @if (getAforosSeleccionadosInFormCount() > 0) {
+                        <span>{{ getAforosSeleccionadosInFormCount() }} aforo(s) seleccionado(s)</span>
                       } @else {
-                        Seleccione tipo de aforo
+                        <span class="text-gray-400 dark:text-gray-300">Seleccionar aforos...</span>
                       }
-                    </option>
-                    @for (tipo of typesAforos.value()?.response ?? [] ; track tipo.id) {
-                    <option
-                      [value]="tipo.id"
-                      class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
-                    >
-                      {{ tipo.descripcion ?? tipo.nombre }}
-                    </option>
-                    }
-                  </select>
+                    </span>
+                    <svg class="w-4 h-4 transition-transform" [class.rotate-180]="isAforosDropdownOpen()" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
+                    </svg>
+                  </button>
+
+                  <!-- Dropdown Menu -->
+                  @if (isAforosDropdownOpen()) {
+                  <div class="absolute z-[9999] mt-2 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-xl backdrop-blur-lg">
+                    <!-- Barra de búsqueda -->
+                    <div class="bg-white/50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-slate-700 p-2 rounded-t-xl">
+                      <label for="search-aforo" class="sr-only">Buscar aforo</label>
+                      <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                          <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                          </svg>
+                        </div>
+                        <input 
+                          type="text" 
+                          id="search-aforo" 
+                          [value]="aforosSearchTerm()"
+                          (input)="onAforosSearchChange($event)"
+                          class="bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full pl-10 px-2.5 py-2 placeholder:text-gray-400 dark:placeholder:text-gray-500" 
+                          placeholder="Buscar aforos..." 
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Lista de Checkboxes -->
+                    <ul class="max-h-60 select-none overflow-y-auto p-2 text-sm">
+                      @if (typesAforos.isLoading()) {
+                        <li class="p-4 text-center text-gray-500 dark:text-gray-400">
+                          <div class="flex justify-center">
+                            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-green-400"></div>
+                          </div>
+                        </li>
+                      } @else if (typesAforos.error()) {
+                        <li class="p-4 text-center text-red-500 dark:text-red-400">
+                          Error al cargar aforos
+                        </li>
+                      } @else {
+                        @for (aforo of availableAforos(); track aforo.id) {
+                        <li>
+                          <div class="inline-flex items-center w-full p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors">
+                            <app-checkbox
+                              [id]="'checkbox-aforo-' + aforo.id"
+                              [checked]="isAforoSelectedInForm(aforo.id!)"
+                              (checkedChange)="onAforoSelectInForm(aforo.id!)"
+                              [widthHeight]="'20px'"
+                            ></app-checkbox>
+                            <label
+                              [for]="'checkbox-aforo-' + aforo.id"
+                              class="w-full ms-2 text-sm font-medium text-gray-900 dark:text-gray-200 cursor-pointer"
+                            >
+                              {{ getAforoFullInfo(aforo) }}
+                            </label>
+                          </div>
+                        </li>
+                        } @empty {
+                        <li class="p-4 text-center text-gray-500 dark:text-gray-400">
+                          No se encontraron aforos
+                        </li>
+                        }
+                      }
+                    </ul>
+
+                    <!-- Footer con acciones -->
+                    <div class="p-2 border-t border-gray-200 dark:border-slate-700 flex gap-2">
+                      <button
+                        type="button"
+                        (click)="clearSelectedAforosInForm()"
+                        class="flex-1 inline-flex items-center justify-center text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-xs px-3 py-2 transition-colors"
+                      >
+                        <svg class="w-4 h-4 me-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        Limpiar
+                      </button>
+                      <button
+                        type="button"
+                        (click)="closeAforosDropdown()"
+                        class="flex-1 inline-flex items-center justify-center text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-slate-600 hover:bg-gray-300 dark:hover:bg-slate-500 focus:ring-4 focus:ring-gray-300 dark:focus:ring-slate-700 font-medium rounded-lg text-xs px-3 py-2 transition-colors"
+                      >
+                        <svg class="w-4 h-4 me-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Cerrar
+                      </button>
+                    </div>
+                  </div>
+                  }
                 </div>
+
+                <!-- Chips de aforos seleccionados -->
+                @if (getAforosSeleccionadosInFormCount() > 0) {
+                <div class="mt-3 flex flex-wrap gap-2">
+                  @for (aforoId of selectedAforosForNewCounter(); track aforoId) {
+                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800">
+                    {{ getAforoNameById(aforoId) }}
+                    <button
+                      type="button"
+                      (click)="onAforoSelectInForm(aforoId)"
+                      class="ml-1 hover:bg-green-200 dark:hover:bg-green-800 rounded-full p-0.5 transition-colors"
+                    >
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                    </button>
+                  </span>
+                  }
+                </div>
+                }
               </div>
             </div>
           </form>
@@ -1222,6 +1328,14 @@
                   </p>
                   <p class="text-sm text-gray-600 dark:text-gray-400">
                     Estado: {{ serial.activo !== undefined ? (serial.activo ? 'Activo' : 'Inactivo') : '' }}
+                  </p>
+
+                  <!-- Mostrar aforos asignados -->
+                  <p class="text-xs text-green-600 dark:text-green-400 mt-1 font-medium">
+                    <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Aforos: {{ getAforosForCounter(serial.contador?.id || serial.id) }}
                   </p>
                 </div>
                 <button

@@ -103,21 +103,21 @@ export class PrintBill {
   billDetails = rxResource({
     params: () => {
       const billId = this.route.snapshot.paramMap.get('id');
-      const empresaClienteContadorId = this.route.snapshot.queryParamMap.get(
-        'empresaClienteContadorId'
-      );
+      const empresaClienteContadorId = this.route.snapshot.queryParamMap.get('empresaClienteContadorId');
+      const idEmpresa = this.enterpriceId();
       return {
         billId: billId ? Number(billId) : null,
         empresaClienteContadorId: empresaClienteContadorId
           ? Number(empresaClienteContadorId)
           : null,
+        idEmpresa: idEmpresa ? Number(idEmpresa) : null,
       };
     },
     stream: ({ params }) => {
-      if (!params.billId) {
+      if (!params.billId || !params.idEmpresa) {
         return EMPTY;
       }
-      return this.billDetailsService.getAllBillDetails(params.billId);
+      return this.billDetailsService.getAllBillDetails(params.idEmpresa, params.billId);
     },
   });
 

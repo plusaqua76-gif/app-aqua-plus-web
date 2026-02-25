@@ -6,6 +6,11 @@ export interface TarifaContador {
   aplica: boolean;
 }
 
+export interface AforoContador {
+  idContador: number;
+  idAforos: number[];
+}
+
 export interface SaveClientPayload {
   idEmpresa: number;
   idTipoDocumento: number;
@@ -22,12 +27,13 @@ export interface SaveClientPayload {
   descripcionDireccion: string;
   idEmpleadoEmpresa: number;
   usuarioCreacion: string;
-  
+
   // Propiedades para crear cliente con múltiples contadores (create-client)
   discapacidad?: boolean;
   contadoresIds?: number[];
   tarifasContador?: TarifaContador[];
-  
+  aforosContador?: AforoContador[];
+
   // Propiedades para crear cliente con un solo contador (create-counter)
   usuario?: string;
   idTipoContador?: number;
