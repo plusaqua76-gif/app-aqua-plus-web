@@ -63,6 +63,7 @@ export class CreateClient implements OnInit {
   selectedTarifas = signal<any[]>([]);
   tempSelectedTarifas = signal<any[]>([]);
   currentCounterForTarifas = signal<any | null>(null);
+  selectedAforos = signal<any[]>([]);
   personaDiscapacidad = signal<boolean>(false);
   idEmpresaClienteContador = signal<number | null>(null);
   counterForm!: FormGroup;
@@ -74,6 +75,10 @@ export class CreateClient implements OnInit {
   counterDepartmentsLoading = signal<boolean>(false);
   counterCitiesLoading = signal<boolean>(false);
   counterCorregimientosLoading = signal<boolean>(false);
+  isAforosDropdownOpen = signal<boolean>(false);
+  selectedAforosForNewCounter = signal<number[]>([]);
+  tempCreatedCounterAforos = signal<{ serial: string; aforos: number[] } | null>(null);
+  aforosSearchTerm = signal<string>('');
   typeDocument: ITipoDocumento[] = [];
   typeDocumentName: string[] = [];
 
@@ -287,7 +292,6 @@ export class CreateClient implements OnInit {
       estrato: ['', [Validators.required, Validators.min(1), Validators.max(6)]],
       digitosContador: ['', [Validators.required, Validators.min(1)]],
       idTipoUso: [''],
-      idTipoAforo: [''],
     });
   }
 
@@ -408,6 +412,20 @@ export class CreateClient implements OnInit {
     const data = this.typeRates.value();
     if (!data?.response || data?.success === false) return [];
     return data.response;
+  });
+
+  availableAforos = computed(() => {
+    const data = this.typesAforos.value();
+    if (!data?.response) return [];
+    const aforos = Array.isArray(data.response) ? data.response : [];
+
+    const searchTerm = this.aforosSearchTerm().toLowerCase().trim();
+    if (!searchTerm) return aforos;
+
+    return aforos.filter((aforo: any) => {
+      const aforoInfo = this.getAforoFullInfo(aforo).toLowerCase();
+      return aforoInfo.includes(searchTerm);
+    });
   });
 
   loadDepartments(): void {
@@ -542,6 +560,27 @@ export class CreateClient implements OnInit {
 
     if (!isAlreadySelected) {
       this.selectedSerials.set([...currentSelected, serial]);
+
+      // Si este es el contador recién creado, agregar sus aforos automáticamente
+      const tempCounter = this.tempCreatedCounterAforos();
+      if (tempCounter && serial.serial === tempCounter.serial && tempCounter.aforos.length > 0) {
+        const contadorId = serial.contador?.id || serial.id;
+        const currentAforos = [...this.selectedAforos()];
+
+        currentAforos.push({
+          contadorId: contadorId,
+          aforos: tempCounter.aforos.map(aforoId => {
+            const aforoData = this.availableAforos().find((a: any) => a.id === aforoId);
+            return {
+              idAforo: aforoId,
+              nombre: this.getAforoNameById(aforoId)
+            };
+          })
+        });
+
+        this.selectedAforos.set(currentAforos);
+        this.tempCreatedCounterAforos.set(null);
+      }
     }
   }
 
@@ -596,7 +635,8 @@ export class CreateClient implements OnInit {
       discapacidad: this.personaDiscapacidad(),
       contadoresIds: contadoresIds,
       usuarioCreacion: usuarioCreacion.substring(0, 15),
-      tarifasContador: this.buildTarifasCliente()
+      tarifasContador: this.buildTarifasCliente(),
+      aforosContador: this.buildAforosContador()
     };
 
     this.enterpriseClientCounterService.saveClient(clientPayload).subscribe({
@@ -624,6 +664,7 @@ export class CreateClient implements OnInit {
 
     const formData = this.counterForm.value;
     const usuarioCreacion = this.usuarioCreacion();
+    const aforosSeleccionados = this.selectedAforosForNewCounter();
 
     const addressPayload = {
       departamento: { id: this.IdDepartamento() },
@@ -660,8 +701,17 @@ export class CreateClient implements OnInit {
             // Obtener el serial del contador creado
             const createdSerial = formData.serial;
 
-            // Resetear el formulario
+            // Guardar los aforos seleccionados temporalmente para asociarlos cuando se agregue a la lista
+            if (aforosSeleccionados.length > 0) {
+              this.tempCreatedCounterAforos.set({
+                serial: createdSerial,
+                aforos: aforosSeleccionados
+              });
+            }
+
+            // Resetear el formulario y aforos seleccionados
             this.counterForm.reset();
+            this.selectedAforosForNewCounter.set([]);
 
             // Prellenar ubicación nuevamente después de resetear
             const userDeptId = this.IdDepartamento();
@@ -798,5 +848,79 @@ export class CreateClient implements OnInit {
     });
 
     return tarifasArray;
+  }
+
+  // Método para obtener aforos de un contador específico
+  getAforosForCounter(contadorId: number): string {
+    const aforosContador = this.selectedAforos().find(a => a.contadorId === contadorId);
+    if (!aforosContador || aforosContador.aforos.length === 0) {
+      return 'Sin aforos asignados';
+    }
+    return aforosContador.aforos.map((a: any) => a.nombre).join(', ');
+  }
+
+  private buildAforosContador(): any[] {
+    return this.selectedAforos().map(contadorConfig => ({
+      idContador: contadorConfig.contadorId,
+      idAforos: contadorConfig.aforos.map((aforo: any) => aforo.idAforo)
+    }));
+  }
+
+  // Métodos para manejar el dropdown de aforos en el formulario de creación de contador
+  toggleAforosDropdown(): void {
+    this.isAforosDropdownOpen.set(!this.isAforosDropdownOpen());
+    if (!this.isAforosDropdownOpen()) {
+      this.aforosSearchTerm.set('');
+    }
+  }
+
+  closeAforosDropdown(): void {
+    this.isAforosDropdownOpen.set(false);
+    this.aforosSearchTerm.set('');
+  }
+
+  onAforosSearchChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.aforosSearchTerm.set(target.value);
+  }
+
+  onAforoSelectInForm(aforoId: number): void {
+    const currentSelected = this.selectedAforosForNewCounter();
+    const isSelected = currentSelected.includes(aforoId);
+
+    if (isSelected) {
+      this.selectedAforosForNewCounter.set(currentSelected.filter(id => id !== aforoId));
+    } else {
+      this.selectedAforosForNewCounter.set([...currentSelected, aforoId]);
+    }
+  }
+
+  isAforoSelectedInForm(aforoId: number): boolean {
+    return this.selectedAforosForNewCounter().includes(aforoId);
+  }
+
+  getAforosSeleccionadosInFormCount(): number {
+    return this.selectedAforosForNewCounter().length;
+  }
+
+  clearSelectedAforosInForm(): void {
+    this.selectedAforosForNewCounter.set([]);
+  }
+
+  getAforoNameById(aforoId: number): string {
+    const aforo = this.availableAforos().find((a: any) => a.id === aforoId);
+    if (!aforo) return '';
+
+    const nombre = aforo.tipoAforo?.descripcion || aforo.descripcion || aforo.nombre || '';
+    const precio = aforo.tarifaBase ? ` - $${aforo.tarifaBase.toLocaleString('es-CO')}` : '';
+
+    return `${nombre}${precio}`;
+  }
+
+  // Método para formatear aforo completo en el dropdown
+  getAforoFullInfo(aforo: any): string {
+    const nombre = aforo.nombre || '';
+    const precio = aforo.tarifaBase ? ` - $${aforo.tarifaBase.toLocaleString('es-CO')}` : '';
+    return `${nombre}${precio}`;
   }
 }

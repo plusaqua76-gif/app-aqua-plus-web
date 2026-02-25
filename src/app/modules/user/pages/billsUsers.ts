@@ -12,6 +12,7 @@ import { PlazoPagoService } from '../../bill/service/print-bill-details.service'
 import { PdfBill } from '@components/pdf-bill/pdf-bill';
 import { IBillDetailResponse } from '@interfaces/Ibill-detail';
 import { PdfService } from '@services/pdf.service';
+import { IdEnterprice } from '../../../core/interfaces/IiEnterprice';
 
 @Component({
   selector: 'app-bills-users',
@@ -338,13 +339,14 @@ export class BillUsers {
   billDetailsResource = rxResource({
     params: () => ({
       billId: this.selectedBillId(),
+      IdEnterprice: this.empresaId(),
     }),
     stream: ({ params }) => {
-      const { billId } = params;
+      const { billId, IdEnterprice } = params;
       if (!billId) {
         return of(null);
       }
-      return this.billDetailsService.getAllBillDetails(billId);
+      return this.billDetailsService.getAllBillDetails(billId, IdEnterprice);
     },
   });
 

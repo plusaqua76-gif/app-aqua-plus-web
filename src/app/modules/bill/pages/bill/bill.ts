@@ -162,18 +162,21 @@ export class Bill  {
     { field: 'precio', header: 'Precio', type: 'currency' as const },
   ]);
 
-  readonly enterpriseId = computed(() => {
+  readonly userData = computed(() => {
     if (!this.isBrowser) return null;
-
     try {
-      const userData = sessionStorage.getItem('userData');
-      if (!userData) return null;
-
-      const parsedUserData = JSON.parse(userData);
-      return parsedUserData.empresaId ? Number(parsedUserData.empresaId) : null;
-    } catch {
+      const userDataString = sessionStorage.getItem('userData');
+      if (!userDataString) return null;
+      return JSON.parse(userDataString);
+    } catch (e) {
+      console.error('Error parsing userData from sessionStorage:', e);
       return null;
     }
+  });
+
+  readonly enterpriseId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
   });
 
     readonly exportFileName = computed(
@@ -243,7 +246,7 @@ export class Bill  {
     } else if (event.action === 'print' && event.row) {
       this.router.navigate(['print-bill', event.row.id], {
         relativeTo: this.route,
-        queryParams: { empresaClienteContadorId: event.row.empresaClienteContadorId }
+        queryParams: { empresaClienteContadorId: event.row.empresaClienteContadorId, facturaId: event.row.id}
       });
     } else if (event.action === 'download' && event.row) {
       this.downloadBillPDF(event.row.id, event.row.codigo || event.row.id);
@@ -299,8 +302,8 @@ export class Bill  {
     this.toastService.info('Preparando descarga', 'Generando PDF de la factura...');
 
     try {
-      // 1. Cargar detalles de la factura
-      const billDetailsResponse = await firstValueFrom(this.billDetailsService.getAllBillDetails(billId));
+
+      const billDetailsResponse = await firstValueFrom(this.billDetailsService.getAllBillDetails(this.enterpriseId(), billId));
 
       if (!billDetailsResponse?.response) {
         throw new Error('No se pudieron obtener los detalles de la factura');
@@ -309,7 +312,7 @@ export class Bill  {
       const billData = billDetailsResponse.response;
       this.billDataForPdf.set(billData);
 
-      // 2. Cargar deuda consolidada (opcional, no crítico)
+      // 2. Cargar deuda
       const empresaClienteContadorId = billData?.factura?.idEmpresaClienteContador;
       if (empresaClienteContadorId) {
         try {

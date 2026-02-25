@@ -17,7 +17,7 @@ export class PlazoPagoService {
 
   private readonly http = inject(HttpClient);
 
-  getAllBillDetails(id: number): Observable<ApiResponse<IBillDetailResponse>> {
-    return this.http.get<ApiResponse<IBillDetailResponse>>(`${this.apiUrl}/factura/consultar/${id}`);
+  getAllBillDetails(empresaId: number, facturaId: number): Observable<ApiResponse<IBillDetailResponse>> {
+    return this.http.get<ApiResponse<IBillDetailResponse>>(`${this.apiUrl}/empresas/${empresaId}/facturas/${facturaId}`);
   }
 }
