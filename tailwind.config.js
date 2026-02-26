@@ -6,7 +6,6 @@ module.exports = {
     "./node_modules/flowbite/**/*.js"
   ],
   safelist: [
-    // Colores para las cards de parámetros
     'bg-sky-700',
     'bg-sky-600',
     'bg-sky-500',

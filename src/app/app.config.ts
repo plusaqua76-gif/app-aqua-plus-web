@@ -1,7 +1,6 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection, isDevMode } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideServiceWorker } from '@angular/service-worker';
 
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay, withIncrementalHydration } from '@angular/platform-browser';
@@ -16,18 +15,13 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideHttpClient(
       withFetch(),
-      withInterceptors([ authorizationInterceptor, loaderInterceptor, errorInterceptor])
+      withInterceptors([authorizationInterceptor, loaderInterceptor, errorInterceptor])
     ),
-    provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withComponentInputBinding()),
     provideClientHydration(
-      withEventReplay(),
-      withIncrementalHydration()
+      withIncrementalHydration(),
+      withEventReplay()
     ),
-    provideServiceWorker('ngsw-worker.js', {
-      enabled: !isDevMode(), // Solo habilitado en producción => para poder probar en desarrollo cambiar a 'true'
-      registrationStrategy: 'registerWhenStable:30000'
-    }),
   ]
 };

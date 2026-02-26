@@ -51,7 +51,7 @@ export function authorizationInterceptor(req: HttpRequest<unknown>, next: HttpHa
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
       // Si es error 401 o 403, limpiar sesión y redirigir al login
-      if (error.status === 401 || error.status === 403) {
+      if (isBrowser && (error.status === 401 || error.status === 403)) {
         authService.clearTokens();
         router.navigate(['/auth/login']);
       }
