@@ -3,14 +3,12 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "node dist/aqua-plus/server/server.mjs",
     "build": "ng build",
     "build:ssr": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:aqua-plus": "node dist/aqua-plus/server/server.mjs",
-    "build:prod": "ng build --configuration=production",
-    "start-pwa-ssl": "npm run build:prod && copy dist\\aqua-plus\\browser\\index.csr.html dist\\aqua-plus\\browser\\index.html && http-server dist/aqua-plus/browser -p 8080 -c-1 -S -C localhost+2.pem -K localhost+2-key.pem --spa"
+    "serve:ssr:aqua-plus": "node dist/aqua-plus/server/server.mjs"
   },
   "private": true,
   "engines": {
