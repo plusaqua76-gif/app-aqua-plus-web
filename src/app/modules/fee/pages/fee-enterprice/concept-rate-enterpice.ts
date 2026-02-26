@@ -6,19 +6,33 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { PopupComponent } from '../../../../shared/components/popUp';
-import { ConfirmDeletePopupComponent } from '@shared/components/confirm-delete-popup';
 import { ToastService } from '@services/toast.service';
 
 
 @Component({
   selector: 'app-concept-rate-enterpice',
-  imports: [CommonModule, PopupComponent, ConfirmDeletePopupComponent, FormsModule],
+  imports: [CommonModule, PopupComponent, FormsModule],
   styles: [`
     :host ::ng-deep app-pop-up #overlay {
       background: rgba(0, 0, 0, 0.8) !important;
       --tw-backdrop-blur: blur(var(--blur-sm));
       -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);
       backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-animate {
+      animation: modalSlideIn 0.3s ease-out;
     }
   `],
   template: `
@@ -238,22 +252,67 @@ import { ToastService } from '@services/toast.service';
       </div>
     </section>
 
-    <!-- Popup de confirmación de eliminación -->
+    <!-- Modal de confirmación para eliminar concepto de tarifa -->
     @if (showDeleteConfirm()) {
-      <app-confirm-delete-popup
-        [isOpen]="showDeleteConfirm()"
-        [isSubmitting]="deletingConceptRate()"
-        [headerTitle]="'Eliminar Concepto de Tarifa'"
-        [confirmMessage]="'¿Está seguro de eliminar este concepto de tarifa?'"
-        [warningMessage]="'Esta acción no se puede deshacer.'"
-        [itemLabel]="'Concepto'"
-        [itemName]="getConceptRateName()"
-        [confirmText]="'Eliminar'"
-        [cancelText]="'Cancelar'"
-        [loadingText]="'Eliminando...'"
-        (confirm)="confirmDeleteConceptRate()"
-        (cancel)="cancelDeleteConceptRate()"
-      />
+      <div class="fixed inset-0 z-[1200] overflow-y-auto">
+        <div class="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"></div>
+
+        <div class="flex min-h-full items-center justify-center p-4">
+          <div class="modal-animate relative w-full max-w-md bg-gradient-to-br from-red-950/95 via-gray-950/90 to-black/95 backdrop-blur-xl border border-red-500/30 rounded-2xl shadow-2xl shadow-red-500/20 transition-all">
+            
+            <!-- Icono de advertencia -->
+            <div class="flex justify-center pt-8 pb-4">
+              <div class="rounded-full bg-red-500/10 p-4 border-2 border-red-500/30">
+                <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Contenido -->
+            <div class="px-6 pb-6 text-center">
+              <h3 class="text-2xl font-bold text-white mb-3">
+                ¿Eliminar concepto de tarifa?
+              </h3>
+              <p class="text-gray-300 text-sm mb-2">
+                @if (conceptRateToDelete) {
+                  ¿Está seguro que desea eliminar el concepto "<span class="font-semibold text-red-400">{{ getConceptRateName() }}</span>"?
+                } @else {
+                  ¿Está seguro que desea eliminar este concepto de tarifa?
+                }
+              </p>
+              <p class="text-gray-400 text-xs mb-6">
+                Esta acción no se puede deshacer.
+              </p>
+
+              <!-- Botones -->
+              <div class="flex gap-3 justify-center">
+                <button
+                  type="button"
+                  (click)="cancelDeleteConceptRate()"
+                  [disabled]="deletingConceptRate()"
+                  class="px-6 py-2.5 bg-gray-700/50 hover:bg-gray-700 border border-gray-600/50 hover:border-gray-500 rounded-xl text-gray-300 hover:text-white font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px]">
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  (click)="confirmDeleteConceptRate()"
+                  [disabled]="deletingConceptRate()"
+                  class="px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 border border-red-500/50 rounded-xl text-white font-medium transition-all duration-200 shadow-lg shadow-red-500/30 hover:shadow-red-500/50 disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px] relative">
+                  @if (deletingConceptRate()) {
+                    <svg class="animate-spin h-5 w-5 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  } @else {
+                    Eliminar
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     }
 
     <!-- Popup de edición de concepto de tarifa -->
@@ -677,8 +736,10 @@ conceptRatesData = computed(() => {
   }
 
   cancelDeleteConceptRate(): void {
-    this.showDeleteConfirm.set(false);
-    this.conceptRateToDelete = null;
+    if (!this.deletingConceptRate()) {
+      this.showDeleteConfirm.set(false);
+      this.conceptRateToDelete = null;
+    }
   }
 
   // Métodos para el popup de edición

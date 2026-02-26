@@ -1,6 +1,7 @@
 import { Register } from './../pages/register/register';
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../../environments/environment.local';
 import { END_POINT_SERVICE } from '../../../environments/environment.variables';
 import { Auth, AuthLoginResponse } from '@interfaces/IAuth';
@@ -12,6 +13,8 @@ export class AuthUserService {
   private readonly loginUrl = `${environment.apiUrl}/${END_POINT_SERVICE.POST_AUTH_USER}`;
   readonly baseUrl = environment.apiUrl
   private readonly http = inject(HttpClient);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   login(user: Auth): Observable<AuthLoginResponse> {
     return this.http.post<AuthLoginResponse>(this.loginUrl, user).pipe(
@@ -32,15 +35,18 @@ export class AuthUserService {
       })
     );
   }  getAuthToken() {
+    if (!this.isBrowser) return '';
     return sessionStorage.getItem('authToken') || '';
   }
 
   setTokens(authToken: string, refreshToken: string) {
+    if (!this.isBrowser) return;
     sessionStorage.setItem('authToken', authToken);
     // Ya no necesitamos refreshToken separado
   }
 
   clearTokens() {
+    if (!this.isBrowser) return;
     sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('refreshToken'); // Limpiar cualquier resto
   }

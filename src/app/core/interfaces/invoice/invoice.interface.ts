@@ -161,3 +161,100 @@ export interface ResponseResolutionDian {
   };
 }
 
+export interface DocumentInvoiceDian {
+  file: {content:string}
+}
+
+
+
+
+export interface InvoiceDianData {
+  documentType: string;
+  company: InvoiceCompany;
+  customer: InvoiceCustomer;
+  items: InvoiceItem[];
+  payments: InvoicePayment[];
+  totalAmounts: InvoiceTotalAmounts;
+  discountsAndCharges: InvoiceDiscountOrCharge[];
+  invoicePeriod: InvoicePeriod;
+  number: number;
+  uuid?: string; // CUDE/UUID de la factura DIAN
+  idEmpresa: number;
+  idCliente: number;
+}
+
+export interface InvoiceCompany {
+  id: string;
+  organizationType: number;
+  identificationType: number;
+  identificationNumber: string;
+  name: string;
+}
+
+export interface InvoiceCustomer {
+  name: string;
+  id: string;
+  organizationType: number;
+  identificationType: string;
+  identificationNumber: string;
+  email: string;
+}
+
+export interface InvoiceItem {
+  standardCode: InvoiceStandardCode;
+  taxes: InvoiceItemTax[];
+  description: string;
+  price: number;
+  discount: number;
+  discountAmount: number;
+  charge: number;
+  chargeAmount: number;
+  quantity: number;
+  unitCode: string;
+  subtotal: number;
+  taxAmount: number;
+  total: number;
+}
+
+export interface InvoiceStandardCode {
+  id: string;
+  identificationId: string;
+}
+
+export interface InvoiceItemTax {
+  taxCode: string;
+  taxAmount: number;
+  taxPercentage: string;
+  taxableAmount: number;
+}
+
+export interface InvoicePayment {
+  paymentForm: string;
+  paymentMethod: string;
+  paymentDueDate: string; // formato YYYY-MM-DD
+}
+
+export interface InvoiceTotalAmounts {
+  grossTotal: number;
+  taxableTotal: number;
+  taxTotal: number;
+  discountTotal: number;
+  chargeTotal: number;
+  advanceTotal: number;
+  payableTotal: number;
+  currencyCode: string;
+}
+
+export interface InvoiceDiscountOrCharge {
+  isCharge: boolean;
+  reasonCode: string;
+  percentageAmount: number;
+  amount: number;
+  baseAmount: number;
+  reason: string;
+}
+
+export interface InvoicePeriod {
+  startDate: string;
+  endDate: string;
+}

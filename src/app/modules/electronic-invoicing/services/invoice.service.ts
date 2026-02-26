@@ -6,12 +6,9 @@ import { DianInvoice, ProductDian, UnitCodes } from '@interfaces/invoice/dian-in
 import { ApiResponse } from '@interfaces/Iresponse';
 import { IFacturaElectronica } from '@interfaces/invoice/Iinvoice-client';
 import { IPaginatedResponse, IPaginationParams } from '@interfaces/IpaginatedResponse';
-import { EnterpriceInvoice, EnterpriceInvoiceResponse, ResolutionDian, ResponseResolutionDian, SetTestResponse } from '@interfaces/invoice/invoice.interface';
+import { DocumentInvoiceDian, EnterpriceInvoice, EnterpriceInvoiceResponse, InvoiceDianData, ResolutionDian, ResponseResolutionDian, SetTestResponse } from '@interfaces/invoice/invoice.interface';
 import { CreateAccount } from '../../accounting/pages/accounts/create-account';
-
-export interface DocumentInvoiceDian {
-  file: {content:string}
-}
+import { CreditNoteRequest } from '@interfaces/invoice/credit-note';
 
 
 @Injectable({
@@ -32,6 +29,10 @@ export class InvoiceService {
 
   sendTestDian(idCompany: string): Observable<ApiResponse<SetTestResponse>> {
     return this.http.post<ApiResponse<SetTestResponse>>(`${this.apiUrl}/empresa-dian/enviar-test/${idCompany}`, {});
+  }
+
+  getDataInvoiceDian(idInvoiceDian: number): Observable<ApiResponse<InvoiceDianData>> {
+    return this.http.get<ApiResponse<InvoiceDianData>>(`${this.apiUrl}/factura-dian/data/${idInvoiceDian}`);
   }
 
 
@@ -56,6 +57,11 @@ export class InvoiceService {
   }
 
 
+  creationCreditNoteDian(creditNoteRequest: CreditNoteRequest): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/factura-dian/nota-credito`, creditNoteRequest);
+  }
+
+
   createProductDian(product: ProductDian): Observable<ApiResponse<ProductDian>> {
     return this.http.post<ApiResponse<ProductDian>>(`${this.apiUrl}/producto-dian`, product);
   }
@@ -64,6 +70,14 @@ export class InvoiceService {
     return this.http.get<ApiResponse<UnitCodes[]>>(`${this.apiUrl}/lista-dian`, {
       params: {
         endPoint: '/dian/payment-methods',
+      },
+    });
+  }
+
+  getCorrectionConceptCodesNC(): Observable<ApiResponse<UnitCodes[]>> {
+    return this.http.get<ApiResponse<UnitCodes[]>>(`${this.apiUrl}/lista-dian`, {
+      params: {
+        endPoint: '/dian/correction-concept-codes-nc',
       },
     });
   }
@@ -105,6 +119,5 @@ export class InvoiceService {
 
     return this.http.get<IPaginatedResponse<IFacturaElectronica>>(url, { params: httpParams });
   }
-
 
 }

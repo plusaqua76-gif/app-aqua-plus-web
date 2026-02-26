@@ -9,4 +9,7 @@ export interface IEnterpriseSp {
     idCorregimiento?: number | null;
     descripcionDireccion?: string | null;
     codigoVerificacion?: string | null;
+    facElectronica?: boolean;
+    facturacionAutomatica?: boolean;
+    diaCorteFacturacion?: number | null;
 }

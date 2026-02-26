@@ -14,11 +14,12 @@ import { LocationService } from '@shared/services/location.service';
 import { IDepartament } from '@interfaces/Idepartament';
 import { ICity } from '@interfaces/Icity';
 import { ICorregimiento } from '@interfaces/icorregimiento';
+import { Checkbox } from "@shared/components/checkbox";
 
 
 @Component({
   selector: 'app-register',
-  imports: [CommonModule, RouterLink, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, ReactiveFormsModule, Checkbox],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
@@ -99,6 +100,20 @@ export class Register implements OnInit, OnDestroy {
         this.corregimientos.set([]);
       }
     });
+
+    // Control de habilitación del campo de día de corte
+    this.registerForm.get('facturacionAutomatica')?.valueChanges.subscribe((isChecked) => {
+      const diaCorteControl = this.registerForm.get('diaCorteFacturacion');
+      if (isChecked) {
+        diaCorteControl?.setValidators([Validators.required]);
+        diaCorteControl?.enable();
+      } else {
+        diaCorteControl?.clearValidators();
+        diaCorteControl?.setValue('');
+        diaCorteControl?.disable();
+      }
+      diaCorteControl?.updateValueAndValidity();
+    });
   }
 
   private initializeForm(): void {
@@ -114,6 +129,9 @@ export class Register implements OnInit, OnDestroy {
       correo: ['', [Validators.required]],
       telefono: ['', [Validators.required]],
       codigoVerificacion: [''],
+      facturacionElectronicaAutomatica: [false],
+      facturacionAutomatica: [false],
+      diaCorteFacturacion: [{ value: '', disabled: true }],
     });
   }
 
@@ -255,7 +273,10 @@ export class Register implements OnInit, OnDestroy {
         idCiudad: Number(formData.idCiudad),
         idCorregimiento: formData.idCorregimiento ? Number(formData.idCorregimiento) : null,
         descripcionDireccion: formData.descripcionDireccion || null,
-        codigoVerificacion: formData.codigoVerificacion && formData.codigoVerificacion.trim() !== '' ? formData.codigoVerificacion : '0'
+        codigoVerificacion: formData.codigoVerificacion && formData.codigoVerificacion.trim() !== '' ? formData.codigoVerificacion : '0',
+        facElectronica: formData.facturacionElectronicaAutomatica || false,
+        facturacionAutomatica: formData.facturacionAutomatica || false,
+        diaCorteFacturacion: formData.facturacionAutomatica && formData.diaCorteFacturacion ? Number(formData.diaCorteFacturacion) : null
       };
 
       if (this.selectedFile) {

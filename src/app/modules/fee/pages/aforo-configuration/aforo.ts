@@ -53,10 +53,6 @@ interface ParamUpdateData {
       -moz-appearance: textfield;
     }
 
-    input[type="radio"]:checked + label {
-      @apply bg-blue-500/20 border-blue-500/50;
-    }
-
     /* Scrollbar personalizado para el modal glassmorphism */
     .scrollbar-thin::-webkit-scrollbar {
       width: 8px;
@@ -1206,6 +1202,62 @@ interface ParamUpdateData {
         </div>
       </div>
     }
+
+    <!-- Modal de confirmación de eliminación -->
+    @if (isDeleteConfirmModalOpen()) {
+      <div class="fixed inset-0 z-[1200] overflow-y-auto">
+        <div class="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"></div>
+
+        <div class="flex min-h-full items-center justify-center p-4">
+          <div class="modal-animate relative w-full max-w-md bg-gradient-to-br from-red-950/95 via-gray-950/90 to-black/95 backdrop-blur-xl border border-red-500/30 rounded-2xl shadow-2xl shadow-red-500/20 transition-all">
+
+            <!-- Icono de advertencia -->
+            <div class="flex justify-center pt-8 pb-4">
+              <div class="rounded-full bg-red-500/10 p-4 border-2 border-red-500/30">
+                <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Contenido -->
+            <div class="px-6 pb-6 text-center">
+              <h3 class="text-2xl font-bold text-white mb-3">
+                ¿Eliminar aforo?
+              </h3>
+              <p class="text-gray-300 text-sm mb-6">
+                Esta acción no se puede deshacer. El aforo será eliminado permanentemente de la base de datos.
+              </p>
+
+              <!-- Botones -->
+              <div class="flex gap-3 justify-center">
+                <button
+                  type="button"
+                  (click)="closeDeleteConfirmModal()"
+                  [disabled]="isDeleting()"
+                  class="px-6 py-2.5 bg-gray-700/50 hover:bg-gray-700 border border-gray-600/50 hover:border-gray-500 rounded-xl text-gray-300 hover:text-white font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px]">
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  (click)="confirmDelete()"
+                  [disabled]="isDeleting()"
+                  class="px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 border border-red-500/50 rounded-xl text-white font-medium transition-all duration-200 shadow-lg shadow-red-500/30 hover:shadow-red-500/50 disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px] relative">
+                  @if (isDeleting()) {
+                    <svg class="animate-spin h-5 w-5 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  } @else {
+                    Eliminar
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
   `,
 })
 export class AforoComponent {
@@ -1229,9 +1281,11 @@ export class AforoComponent {
   // Signals de estado UI
   mostrarDesglose = signal<boolean>(false);
   isAforosModalOpen = signal<boolean>(false);
+  isDeleteConfirmModalOpen = signal<boolean>(false);
   editingAforoId = signal<number | null>(null);
   editForm = signal<Partial<AforoInterface> | null>(null);
   deletingAforoId = signal<number | null>(null);
+  isDeleting = signal<boolean>(false);
   updatingAforo = signal<boolean>(false);
   searchTerm = signal<string>('');
   viewMode = signal<'grid' | 'list'>('grid');
@@ -1514,7 +1568,7 @@ export class AforoComponent {
   }
 
   private validarValorPositivo(valor: number): boolean {
-    if (!valor || valor <= 0) {
+    if (!valor || valor >= 0) {
       this.toastService.warning('Advertencia', 'Ingrese un valor válido mayor a 0');
       return false;
     }
@@ -1713,18 +1767,30 @@ export class AforoComponent {
 
   confirmDeleteAforo(aforoId: number): void {
     this.deletingAforoId.set(aforoId);
+    this.isDeleteConfirmModalOpen.set(true);
+  }
 
-    if (confirm('¿Está seguro que desea eliminar este aforo? Esta acción no se puede deshacer.')) {
-      this.deleteAforo(aforoId);
-    } else {
+  closeDeleteConfirmModal(): void {
+    if (!this.isDeleting()) {
+      this.isDeleteConfirmModalOpen.set(false);
       this.deletingAforoId.set(null);
+    }
+  }
+
+  confirmDelete(): void {
+    const aforoId = this.deletingAforoId();
+    if (aforoId !== null) {
+      this.isDeleting.set(true);
+      this.deleteAforo(aforoId);
     }
   }
 
   deleteAforo(aforoId: number): void {
     this.counterService.deleteAforo(aforoId).subscribe({
       next: (response) => {
+        this.isDeleting.set(false);
         this.deletingAforoId.set(null);
+        this.isDeleteConfirmModalOpen.set(false);
         if (response.success || response.success !== false) {
           this.toastService.success('Éxito', 'Aforo eliminado correctamente');
           this.aforosEnterprice.reload();
@@ -1733,7 +1799,9 @@ export class AforoComponent {
         }
       },
       error: (error) => {
+        this.isDeleting.set(false);
         this.deletingAforoId.set(null);
+        this.isDeleteConfirmModalOpen.set(false);
         this.toastService.error('Error', `No se pudo eliminar el aforo: ${error.message || 'Error desconocido'}`);
       }
     });
