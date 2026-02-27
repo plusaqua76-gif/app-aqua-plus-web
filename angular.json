@@ -22,8 +22,7 @@
               {
                 "glob": "**/*",
                 "input": "public"
-              },
-              "src/staticwebapp.config.json"
+              }
             ],
             "styles": [
               "src/styles.css"
@@ -64,25 +63,6 @@
                 }
               ],
               "outputHashing": "all"
-            },
-            "azure": {
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "1MB",
-                  "maximumError": "1.5MB"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "20kB",
-                  "maximumError": "30kB"
-                }
-              ],
-              "outputHashing": "all",
-              "outputPath": "dist/aqua-plus",
-              "ssr": false,
-              "prerender": false,
-              "server": false
             },
             "development": {
               "optimization": false,

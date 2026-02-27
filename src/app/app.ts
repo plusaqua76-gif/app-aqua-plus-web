@@ -123,7 +123,6 @@ constructor() {
 
       this.router.events.subscribe((event) => {
         if (event instanceof NavigationEnd) {
-          // Actualizar la ruta actual
           this.currentRoute.set(event.url);
           setTimeout(() => initFlowbite(), 100);
         }

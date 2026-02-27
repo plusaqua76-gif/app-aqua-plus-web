@@ -619,7 +619,7 @@
   background: white;
   border-radius: 8px;
   border: 1px solid #2d4a7c;
-  overflow: visible;
+  overflow: hidden;
   margin-top: 6px;
   min-height: 297px;
 }
@@ -632,7 +632,7 @@
 
 .liquidar-header-consumo th {
   background: #2d4a7c;
-  border-radius: 8px;
+  border-radius: 6px 6px 0 0;
   padding-top: 2px;
   padding-bottom: 6px;
   text-align: center;
@@ -789,6 +789,14 @@
 
 .liquidar-total-final {
   background: #e3f2fd;
+}
+
+.liquidar-total-final td:first-child {
+  border-radius: 0 0 0 8px;
+}
+
+.liquidar-total-final td:last-child {
+  border-radius: 0 0 8px 0;
 }
 
 .liquidar-total-label {
@@ -1290,7 +1298,7 @@
   right: 15px;
   width: 1144px;
   height: 2px;
-  /* border-top: 5px dashed #adb1b8; */
+  border-top: 5px dashed #adb1b8;
   margin: 20px 0;
   min-width: 964px; /* Ancho aumentado: 814 + 150 = 964px */
 }
@@ -1298,16 +1306,17 @@
 /* Sección inferior */
 .bottom-section {
   display: grid;
-  grid-template-columns: 1fr 1fr 2fr;
+  grid-template-columns: 0.8fr 1.2fr 2fr;
   gap: 0px;
   margin-top: 20px;
   min-width: 964px;
   align-items: start;
-  background: #f3f8ff;
-  border-radius: 15px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border: 1px solid #378eff;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 2px solid #2388ff;
   position: relative;
+  overflow: hidden;
 }
 
 .bottom-section::before {
@@ -1316,14 +1325,12 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
-  border-radius: 15px 15px 0 0;
 }
 
 .bottom-column {
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 15px;
   box-shadow: none;
   border: none;
   border-radius: 0;
@@ -1334,145 +1341,187 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: #f3f8ff;
-  border-radius: 15px 0 0 15px;
+  justify-content: flex-start;
+  background: #f8fafb;
+  border-radius: 12px 0 0 12px;
+  border-right: 1px solid #e0e0e0;
+  padding: 12px;
+  gap: 10px;
 }
 
 .empresa-logo {
   display: flex;
   justify-content: center;
+  align-items: center;
+  padding: 10px;
+
+  border-radius: 8px;
+
 }
 
 .logo-image-bottom {
-  width: 80px;
-  height: 80px;
+  width: 20px;
+  height: 20px;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .empresa-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px;
   width: 100%;
+  background: white;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #e8e8e8;
 }
 
 .empresa-item {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: auto 1fr;
   align-items: center;
-  gap: 0.5rem;
-  gap: 0.25rem;
+  gap: 6px;
+  padding: 4px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.empresa-item:last-child {
+  border-bottom: none;
 }
 
 .empresa-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: #666;
+  font-size: 9px;
+  font-weight: 700;
+  color: #2388ff;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .empresa-value {
-  font-size: 12px;
+  font-size: 10px;
   color: #333;
   font-weight: 500;
+  word-break: break-word;
 }
 
 /* Segunda columna - Usuario */
 .usuario-column {
   display: flex;
   flex-direction: column;
-  background: #f3f8ff;
+  background: white;
+  padding: 12px;
 }
 
 .usuario-title {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
-  color: #2388ff;
-  margin-bottom: 0.75rem;
+  color: #0b84ff;
+  background: white;
+  margin: -12px -12px 10px -12px;
+  padding: 8px 12px;
   text-align: center;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #2388ff;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .usuario-info {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 2px;
   flex: 1;
 }
 
 .usuario-item {
-  display: flex;
-  flex-direction: row;
-  flex-direction: center;
-  gap: 0.25rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #f8fafb;
+  border-radius: 4px;
 }
 
 .usuario-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: #666;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2388ff;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
 .usuario-value {
   font-size: 12px;
   color: #333;
   font-weight: 500;
+  word-break: break-word;
 }
 
 .usuario-fecha-limite {
-  margin-top: auto;
-  padding: 0.75rem;
-  background: rgba(211, 47, 47, 0.1);
+  margin-top: 15px;
+  padding: 10px;
+  background: #dc2626;
   border-radius: 6px;
-  display: flex;
-  flex-direction: row;
-  gap: 0.25rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 4px;
   text-align: center;
+  box-shadow: 0 2px 6px rgba(211, 47, 47, 0.3);
 }
 
 .fecha-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: #d32f2f;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .fecha-value {
   font-size: 12px;
   font-weight: 700;
-  color: #d32f2f;
+  color: white;
 }
 
 /* Tercera columna - Factura */
 .factura-column {
   display: flex;
   flex-direction: column;
-  background: #f3f8ff;
-  border-radius: 0 15px 15px 0;
+  background: white;
+  border-radius: 0 12px 12px 0;
+  padding: 12px;
 }
 
 .factura-info {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 17px;
+  gap: 8px;
+  padding: 10px;
+  background: #f8fafb;
+  border-radius: 6px;
+  border: 1px solid #e8e8e8;
 }
 
 .factura-item {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: auto 1fr;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
+  padding: 4px 0;
 }
 
 .factura-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: #666;
+  font-size: 9px;
+  font-weight: 700;
+  color: #2388ff;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .factura-value {
-  font-size: 12px;
+  font-size: 10px;
   color: #333;
   font-weight: 500;
 }
@@ -1486,26 +1535,30 @@
 }
 
 .final-total-card {
-  background: #adecbb;
-  color: #2e7d32;
-  padding: 15px 20px;
-  border-radius: 0 0 15px 15px;
+  background: #66bb6a;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 0 0 12px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-weight: bold;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .total-label {
-  font-size: 16px;
-  color: #19213d;
+  font-size: 14px;
+  color: white;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .total-amount {
-  font-size: 20px;
-  color: #1976d2;
+  font-size: 18px;
+  color: white;
   font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* Estilos para el letrero de suspensión */
@@ -1655,6 +1708,57 @@
     transform: scale(0.30);
     transform-origin: center center;
   }
+}
+
+/* Barcode simulation styles */
+.barcode-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: white;
+  border-radius: 6px;
+}
+
+.barcode-wrapper > div:first-child {
+  font-size: 10px;
+  font-weight: 700;
+  color: #2388ff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.barcode {
+  width: 100%;
+  max-width: 100%;
+  height: 45px;
+  background: repeating-linear-gradient(
+    90deg,
+    #000 0px,
+    #000 2px,
+    #fff 2px,
+    #fff 4px,
+    #000 4px,
+    #000 6px,
+    #fff 6px,
+    #fff 10px
+  );
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.barcode-text {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2px;
+  font-size: 10px;
+  color: #333;
+  font-weight: 600;
+  background: #f8fafb;
+  padding: 0px 8px;
+  border-radius: 3px;
+
 }
 
 @media print {

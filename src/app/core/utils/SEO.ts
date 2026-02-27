@@ -105,7 +105,7 @@ export class Seo {
    */
   private setDefaultSEO() {
     this.setSEO({
-      title: 'AquaPlus',
+      title: '',
       description: 'AquaPlus - Sistema integral para la gestión de servicios de agua. Facturación, lecturas, reportes y gestión de clientes de forma eficiente y moderna.',
       keywords: 'agua, facturación, gestión, servicios públicos, lecturas, reportes, clientes, AquaPlus, sistema integral'
     })

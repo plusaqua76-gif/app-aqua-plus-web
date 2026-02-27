@@ -84,11 +84,19 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
           (click)="handleTableAction({ action: 'download', row })"
           class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-green-600/50 text-green-500 hover:bg-green-600/10 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors duration-200 cursor-pointer"
           title="Descargar factura"
-        >
+         >
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
+        </button>
+        <button
+          type="button"
+          (click)="handleTableAction({ action: 'create-credit-note', row })"
+          class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-purple-600/50 text-purple-500 hover:bg-purple-600/10 focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-colors duration-200 cursor-pointer"
+          title="Crear nota crédito"
+         >
+         <i class="fas fa-file-invoice"></i>
         </button>
       </div>
     </ng-template>
@@ -300,17 +308,49 @@ export class ClientInvoices {
     },
   });
 
-  handleTableAction(event: { action: string; row?: any }): void {
-    if (event.action === 'add') {
+handleTableAction(event: { action: string; row?: any }): void {
+  switch (event.action) {
+    case 'add':
       this.goToCreateInvoice();
-    } else if (event.action === 'view' && event.row) {
-      this.viewInvoiceDetail(event.row);
-    } else if (event.action === 'download' && event.row) {
-      this.downloadInvoice(event.row);
-    } else if (event.action === 'view-enterprise-dian') {
+      break;
+
+    case 'view':
+      if (event.row) {
+        this.viewInvoiceDetail(event.row);
+      }
+      break;
+
+    case 'download':
+      if (event.row) {
+        this.downloadInvoice(event.row);
+      }
+      break;
+
+    case 'create-credit-note':
+      if (event.row) {
+        this.createCreditNote(event.row);
+      }
+      break;
+
+    case 'view-enterprise-dian':
       this.router.navigate(['/shell/electronic-invoicing/enterprice-dian']);
-    }
+      break;
+
+    default:
+      console.warn('Acción no reconocida:', event.action);
+      break;
   }
+}
+
+createCreditNote(invoice: any) {
+  this.router.navigate(['/shell/electronic-invoicing/create'], {
+    state: {
+      mode: 'credit-note',
+      invoiceId: invoice.id,
+      originalInvoice: invoice
+    }
+  });
+}
 
   onPaginationChange(params: IPaginationParams): void {
     this.paginationParams.set(params);

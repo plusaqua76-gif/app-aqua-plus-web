@@ -799,8 +799,8 @@ mostrardata = this.consumptionParamsData().forEach(param => {
               'Tipo de tarifa eliminado exitosamente',
             );
           } else {
-            this.toastService.success(
-              'error',
+            this.toastService.error(
+              'Error',
               'El tipo de tarifa no se pudo eliminar',
             );
           }

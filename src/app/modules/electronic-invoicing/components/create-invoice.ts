@@ -34,6 +34,8 @@ import { InvoiceService } from '../services/invoice.service';
 import { ToastService } from '@services/toast.service';
 import { InvoiceDianInitializationService } from '../services/invoice-dian-inicialization.service';
 import { ResolutionDianEagerInitializationService } from '../services/resolution-dian-eager-initialization.service';
+import { Router } from '@angular/router';
+import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
 
 @Component({
   selector: 'app-create-invoice',
@@ -45,36 +47,7 @@ import { ResolutionDianEagerInitializationService } from '../services/resolution
     ColombianCurrencyPipe,
   ],
   template: `
-    <!-- Información de Empresa DIAN - Eager Initialization -->
     @let empresaDian = enterpriceDian(); @let resolutionDianData = resolutionDian();
-
-    <!-- @if (invoiceDianInitializationService.isLoading()) {
-    <div class="p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg mb-4">
-      <p class="text-blue-400 text-sm">Cargando información de empresa DIAN...</p>
-    </div>
-  } @else if (invoiceDianInitializationService.error()) {
-    <div class="p-4 bg-red-900/20 border border-red-500/30 rounded-lg mb-4">
-      <p class="text-red-400 text-sm">{{ invoiceDianInitializationService.error() }}</p>
-    </div>
-  }
-
-  @defer (when empresaDian != null) {
-    <div class="p-4 bg-green-900/20 border border-green-500/30 rounded-lg mb-4">
-      <h3 class="text-green-400 font-semibold mb-2">Empresa DIAN Configurada:</h3>
-      <ul class="text-white text-sm space-y-1">
-        <li><strong>ID:</strong> {{ empresaDian?.company?.id }}</li>
-        <li><strong>Razón Social:</strong> {{ empresaDian?.company?.name }}</li>
-        <li><strong>Nombre Comercial:</strong> {{ empresaDian?.company?.tradeName }}</li>
-        <li><strong>NIT:</strong> {{ empresaDian?.company?.identification }}-{{ empresaDian?.company?.dv }}</li>
-        <li><strong>Email:</strong> {{ empresaDian?.company?.email }}</li>
-        <li><strong>Régimen:</strong> {{ empresaDian?.company?.regimeCode }}</li>
-        <li><strong>Tipo:</strong> {{ empresaDian?.company?.type }}</li>
-        <li><strong>Certificado Alegra:</strong> {{ empresaDian?.company?.useAlegraCertificate ? '✓ Activo' : '✗ Inactivo' }}</li>
-        <li><strong>Notificación Email:</strong> {{ empresaDian?.company?.notificationByEmail?.enabled ? '✓ Habilitada' : '✗ Deshabilitada' }}</li>
-      </ul>
-    </div>
-  } -->
-
     <div class="min-h-screen text-white p-3 sm:p-4 md:p-6">
       <div class="max-w-5xl mx-auto">
         <div
@@ -85,11 +58,25 @@ import { ResolutionDianEagerInitializationService } from '../services/resolution
           >
             <div>
               <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">
-                FACTURA DE VENTA
+                @if (isCreditNoteMode()) {
+                  NOTA DE CRÉDITO
+                } @else {
+                  FACTURA DE VENTA
+                }
               </h1>
               <p class="text-xs sm:text-sm text-gray-400">
-                Factura Electrónica de Venta
+                @if (isCreditNoteMode()) {
+                  Nota de Crédito Electrónica DIAN
+                } @else {
+                  Factura Electrónica de Venta
+                }
               </p>
+              @if (loadingInvoiceData()) {
+                <div class="flex items-center gap-2 mt-2 text-yellow-400 text-xs">
+                  <div class="animate-spin rounded-full h-3 w-3 border-2 border-yellow-400 border-t-transparent"></div>
+                  <span>Cargando datos de factura original...</span>
+                </div>
+              }
             </div>
             <div class="text-left sm:text-right">
               <div class="text-xs sm:text-sm text-gray-400 mb-1">Prefijo</div>
@@ -659,6 +646,63 @@ import { ResolutionDianEagerInitializationService } from '../services/resolution
                     />
                   </div>
 
+                  <!-- Credit Note Fields - Only visible in credit note mode -->
+                  @if (isCreditNoteMode()) {
+                  <div class="col-span-full bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 space-y-3">
+                    <div class="flex items-center gap-2 mb-2">
+                      <svg class="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <h4 class="text-sm font-semibold text-yellow-400 uppercase tracking-wide">
+                        Información de Nota de Crédito
+                      </h4>
+                    </div>
+
+                    <!-- Concepto de Corrección -->
+                    <div>
+                      <label class="block text-xs text-yellow-200 mb-1.5">
+                        Concepto de Corrección
+                        <span class="text-red-400">*</span>
+                      </label>
+                      <select
+                        formControlName="conceptCode"
+                        class="w-full px-3 py-2 bg-gray-800/50 border border-yellow-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500/40"
+                        required
+                      >
+                        <option value="" disabled selected hidden>
+                          @if (CorrectionConceptCodes.isLoading()) {
+                            Cargando conceptos...
+                          } @else if (CorrectionConceptCodes.error()) {
+                            Error al cargar conceptos
+                          } @else {
+                            Seleccione concepto de corrección
+                          }
+                        </option>
+                        @for (concept of CorrectionConceptCodes.value()?.response ?? []; track concept.code) {
+                          <option [value]="concept.code" class="text-white bg-gray-700">
+                            {{ concept.code }} - {{ concept.value }}
+                          </option>
+                        }
+                      </select>
+                    </div>
+
+                    <!-- Nota de la Nota de Crédito -->
+                    <div>
+                      <label class="block text-xs text-yellow-200 mb-1.5">
+                        Motivo / Observaciones
+                        <span class="text-red-400">*</span>
+                      </label>
+                      <textarea
+                        formControlName="note"
+                        rows="3"
+                        placeholder="Describa el motivo de la nota de crédito..."
+                        class="w-full px-3 py-2 bg-gray-800/50 border border-yellow-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500/40 resize-none"
+                        required
+                      ></textarea>
+                    </div>
+                  </div>
+                  }
+
                   <!-- Opciones de Crédito - Solo visible cuando medio de pago es Crédito -->
                   @if (invoiceForm.get('medioPago')?.value === '2') {
                   <div>
@@ -944,20 +988,17 @@ import { ResolutionDianEagerInitializationService } from '../services/resolution
               class="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all duration-200 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 text-sm sm:text-base"
             >
               <span class="flex items-center justify-center gap-2">
-                <svg
-                  class="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                Generar Factura
+                @if (isCreditNoteMode()) {
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Generar Nota de Crédito
+                } @else {
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Generar Factura
+                }
               </span>
             </button>
 
@@ -1177,7 +1218,15 @@ export class CreateInvoiceComponent {
   private readonly toast = inject(ToastService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
+  private readonly router = inject(Router);
+
   invoiceForm!: FormGroup;
+
+  // Credit Note Mode
+  isCreditNoteMode = signal(false);
+  originalInvoiceId = signal<number | null>(null);
+  originalInvoiceData = signal<InvoiceDianData | null>(null);
+  loadingInvoiceData = signal(false);
 
   searchTerm = '';
   private searchSubject = new Subject<string>();
@@ -1226,10 +1275,133 @@ export class CreateInvoiceComponent {
     stream: () => this.invoiceService.getProductCodesDian('MTQ'),
   });
 
+  CorrectionConceptCodes = rxResource({
+    stream: () => this.invoiceService.getCorrectionConceptCodesNC(),
+  });
+
   constructor() {
+    this.checkCreditNoteMode();
     this.initForm();
     this.initNewProductForm();
     this.initClientSearch();
+  }
+
+  private checkCreditNoteMode(): void {
+    if (!this.isBrowser) return;
+
+    const navigation = this.router.getCurrentNavigation();
+    const state = navigation?.extras?.state || history.state;
+
+    if (state?.mode === 'credit-note' && state?.invoiceId) {
+      this.isCreditNoteMode.set(true);
+      this.originalInvoiceId.set(state.invoiceId);
+
+      // Load original invoice data after form initialization
+      setTimeout(() => {
+        this.loadOriginalInvoiceData(state.invoiceId);
+      }, 100);
+    }
+  }
+
+  private loadOriginalInvoiceData(invoiceId: number): void {
+    this.loadingInvoiceData.set(true);
+
+    this.invoiceService.getDataInvoiceDian(invoiceId).subscribe({
+      next: (response) => {
+        if (response?.response) {
+          this.originalInvoiceData.set(response.response);
+          this.populateFormWithInvoiceData(response.response);
+          this.toast.success('Datos Cargados', 'Información de la factura original cargada correctamente');
+        }
+        this.loadingInvoiceData.set(false);
+      },
+      error: (error) => {
+        console.error('Error loading invoice data:', error);
+        this.toast.error('Error', 'No se pudo cargar la información de la factura');
+        this.loadingInvoiceData.set(false);
+      }
+    });
+  }
+
+  private populateFormWithInvoiceData(data: InvoiceDianData): void {
+    // Set payment data
+    if (data.payments && data.payments.length > 0) {
+      const payment = data.payments[0];
+      this.invoiceForm.patchValue({
+        medioPago: payment.paymentForm,
+        tipoDocumento: payment.paymentMethod,
+        fechaVencimiento: payment.paymentDueDate
+      });
+    }
+
+    // Set total anticípado
+    if (data.totalAmounts) {
+      this.invoiceForm.patchValue({
+        totalAnticipado: data.totalAmounts.advanceTotal || 0
+      });
+    }
+
+    // Set client (search and select)
+    if (data.customer) {
+      // Try to find the client
+      const customerIdentification = data.customer.identificationNumber;
+      if (customerIdentification) {
+        this.searchTerm = customerIdentification;
+        this.onSearchChange({ target: { value: customerIdentification } } as any);
+
+        // Wait a bit for search results and auto-select if found
+        setTimeout(() => {
+          const results = this.searchResults();
+          if (results.length > 0) {
+            this.selectClient(results[0]);
+          }
+        }, 1000);
+      }
+    }
+
+    // Populate items
+    if (data.items && data.items.length > 0) {
+      this.items.clear();
+
+      data.items.forEach(item => {
+        const itemForm = this.createItem();
+
+        itemForm.patchValue({
+          tipoUnidad: item.unitCode,
+          codigoProducto: item.standardCode?.id || '',
+          productoId: item.standardCode?.identificationId || '',
+          descripcion: item.description,
+          cantidad: item.quantity,
+          precioUnitario: item.price,
+          iva: item.taxes && item.taxes.length > 0 ? parseFloat(item.taxes[0].taxPercentage) : 19,
+          nota: ''
+        });
+
+        itemForm.valueChanges.subscribe(() => {
+          this.calculateItemTotal(itemForm);
+        });
+
+        this.items.push(itemForm);
+        this.calculateItemTotal(itemForm);
+      });
+    }
+
+    // Populate discounts/charges if any
+    if (data.discountsAndCharges && data.discountsAndCharges.length > 0) {
+      this.invoiceForm.patchValue({ aplicarDescuentoGlobal: true });
+      this.descuentos.clear();
+
+      data.discountsAndCharges.forEach(disc => {
+        const descForm = this.createDescuento();
+        descForm.patchValue({
+          indCargo: disc.isCharge,
+          codigoRazon: disc.reasonCode,
+          razon: disc.reason,
+          valor: disc.percentageAmount
+        });
+        this.descuentos.push(descForm);
+      });
+    }
   }
 
   private initClientSearch(): void {
@@ -1315,6 +1487,9 @@ export class CreateInvoiceComponent {
       aplicarDescuentoGlobal: [false],
       descuentos: this.fb.array([]),
       items: this.fb.array([]),
+      // Credit Note fields
+      conceptCode: [''],
+      note: [''],
     });
 
     // Escuchar cambios en medioPago para validar días/fecha
@@ -1728,16 +1903,186 @@ export class CreateInvoiceComponent {
         fechaParaEnviar = formValue.fechaVencimiento;
       }
     }
-
     request.medioPago = {
       forma: formValue.medioPago,
       medio: formValue.tipoDocumento,
-      fechaFin: fechaParaEnviar
+      ...(fechaParaEnviar && { fechaFin: fechaParaEnviar })
     };
+    request.fechaEmision = new Date().toISOString();
     request.totalAnticipado = formValue.totalAnticipado || 0;
     request.usuario = usuario || 'sistema';
 
     return request;
+  }
+
+  private buildCreditNoteRequest(): any {
+    const formValue = this.invoiceForm.getRawValue();
+    const cliente = this.selectedClient();
+    const empresaId = this.empresaId();
+    const usuario = this.usuario();
+    const originalInvoice = this.originalInvoiceData();
+    const empresaDian = this.enterpriceDian();
+    const codigoEstandar = this.getCodigoEstandar();
+
+    if (!cliente || !empresaId || !originalInvoice) {
+      console.error('Falta información necesaria para nota de crédito');
+      return null;
+    }
+
+    // Build items from form
+    const items = formValue.items.map((item: any) => {
+      const taxes = [{
+        taxCode: '01', // IVA code
+        taxAmount: (item.cantidad * item.precioUnitario * item.iva) / 100,
+        taxPercentage: item.iva.toString(),
+        taxableAmount: item.cantidad * item.precioUnitario
+      }];
+
+      return {
+        standardCode: {
+          id: codigoEstandar?.id || '001',
+          identificationId: item.productoId || ''
+        },
+        taxes: taxes,
+        description: item.descripcion,
+        price: item.precioUnitario,
+        discount: 0,
+        discountAmount: 0,
+        charge: 0,
+        chargeAmount: 0,
+        quantity: item.cantidad,
+        unitCode: item.tipoUnidad,
+        subtotal: item.cantidad * item.precioUnitario,
+        taxAmount: taxes[0].taxAmount,
+        total: item.cantidad * item.precioUnitario + taxes[0].taxAmount
+      };
+    });
+
+    // Calculate totals BEFORE discounts/charges
+    let subtotalSum = 0; // Suma de subtotales de items (sin impuestos)
+    let taxTotalSum = 0; // Suma de impuestos
+
+    items.forEach((item: any) => {
+      subtotalSum += item.subtotal;
+      taxTotalSum += item.taxAmount;
+    });
+
+    // Build discounts/charges FIRST to calculate their totals
+    const discountsAndCharges: any[] = [];
+    let discountTotal = 0;
+    let chargeTotal = 0;
+
+    if (formValue.aplicarDescuentoGlobal && formValue.descuentos.length > 0) {
+      formValue.descuentos.forEach((desc: any) => {
+        const isCharge = desc.indCargo || false;
+        const amount = (subtotalSum * (desc.valor || 0)) / 100;
+
+        discountsAndCharges.push({
+          isCharge: isCharge,
+          reasonCode: (desc.codigoRazon || '00').trim(),
+          percentageAmount: desc.valor || 0,
+          amount: amount,
+          baseAmount: subtotalSum,
+          reason: (desc.razon || '').trim()
+        });
+
+        if (isCharge) {
+          chargeTotal += amount;
+        } else {
+          discountTotal += amount;
+        }
+      });
+    }
+
+    // Calculate totals according to DIAN rules:
+    // grossTotal = subtotal bruto (antes de descuentos/cargos)
+    // taxableTotal = base imponible = grossTotal - discountTotal + chargeTotal
+    // taxTotal = suma de impuestos aplicados sobre taxableTotal
+    // payableTotal = taxableTotal + taxTotal - advanceTotal
+
+    const grossTotal = subtotalSum; // Suma bruta antes de descuentos
+    const taxableTotal = subtotalSum - discountTotal + chargeTotal; // Base imponible después de desc/cargos
+    const taxTotal = taxTotalSum; // Impuestos (se mantienen)
+    const advanceTotal = formValue.totalAnticipado || 0;
+    const payableTotal = taxableTotal + taxTotal - advanceTotal;
+
+    // Build payments
+    let fechaParaEnviar = "";
+    if (formValue.medioPago === '2') {
+      if (formValue.diasPredefinidos) {
+        fechaParaEnviar = this.calcularFechaISO(formValue.diasPredefinidos);
+      } else if (formValue.fechaVencimiento) {
+        fechaParaEnviar = formValue.fechaVencimiento;
+      }
+    }
+
+    // Solo incluir paymentDueDate si es crédito (medio de pago = 2)
+    const payments = [{
+      paymentForm: formValue.medioPago,
+      paymentMethod: formValue.tipoDocumento,
+      ...(fechaParaEnviar && { paymentDueDate: fechaParaEnviar })
+    }];
+
+    // Invoice period (using current date as both start and end for simplicity)
+    const today = new Date().toISOString().split('T')[0];
+    const invoicePeriod = {
+      startDate: today,
+      endDate: today
+    };
+
+    // Associated documents - reference to original invoice
+    const associatedDocuments = [{
+      date: originalInvoice.invoicePeriod?.startDate || today,
+      documentType: '01', // Factura de venta
+      number: originalInvoice.number || 0,
+      uuid: originalInvoice.uuid || '' // CUDE/UUID de la factura DIAN
+    }];
+
+    // Build the complete credit note request
+    const creditNoteRequest = {
+      id: this.originalInvoiceId() || 0,
+      company: {
+        id: empresaDian?.company?.id || '',
+        organizationType: 1, // Juridica
+        identificationType: 31, // NIT
+        identificationNumber: empresaDian?.company?.identification || '',
+        name: empresaDian?.company?.name || '',
+        taxCode: {
+          id: '01' // IVA
+        }
+      },
+      customer: {
+        name: cliente.nombreCompleto || '',
+        id: cliente.id.toString(),
+        organizationType: 2, // Natural
+        identificationType: '13', // Cédula
+        identificationNumber: cliente.numeroCedula || '',
+        email: cliente.correo || ''
+      },
+      items: items,
+      payments: payments,
+      totalAmounts: {
+        grossTotal: grossTotal,
+        taxableTotal: taxableTotal,
+        taxTotal: taxTotal,
+        discountTotal: discountTotal,
+        chargeTotal: chargeTotal,
+        advanceTotal: advanceTotal,
+        payableTotal: payableTotal,
+        currencyCode: 'COP'
+      },
+      discountsAndCharges: discountsAndCharges,
+      invoicePeriod: invoicePeriod,
+      associatedDocuments: associatedDocuments,
+      conceptCode: formValue.conceptCode || '',
+      note: formValue.note || '',
+      fechaEmision: new Date().toISOString(),
+      idEmpresa: empresaId,
+      idCliente: cliente.id,
+      usuario: usuario || 'sistema'
+    };
+
+    return creditNoteRequest;
   }
 
   validateInvoice(): { isValid: boolean; errors: string[] } {
@@ -1824,6 +2169,26 @@ export class CreateInvoiceComponent {
       }
     }
 
+    // Validaciones específicas para nota de crédito
+    if (this.isCreditNoteMode()) {
+      if (!this.invoiceForm.get('conceptCode')?.value) {
+        errors.push(' Debe seleccionar un concepto de corrección para la nota de crédito');
+      }
+
+      if (!this.invoiceForm.get('note')?.value?.trim()) {
+        errors.push(' Debe agregar un motivo/observación para la nota de crédito');
+      }
+
+      if (!this.originalInvoiceId()) {
+        errors.push(' No se encontró la factura original para crear la nota de crédito');
+      }
+
+      // const originalInvoice = this.originalInvoiceData();
+      // if (originalInvoice && !originalInvoice.uuid) {
+      //   errors.push(' La factura original no tiene UUID/CUDE de la DIAN. No se puede crear la nota de crédito.');
+      // }
+    }
+
     return {
       isValid: errors.length === 0,
       errors
@@ -1844,41 +2209,82 @@ export class CreateInvoiceComponent {
     }
 
     try {
-      const request = this.buildInvoiceRequest();
-
-      if (!request) {
-        this.toast.error('Error', 'No se pudo construir la factura. Verifique los datos.');
-        return;
+      // Determinar si es nota de crédito o factura normal
+      if (this.isCreditNoteMode()) {
+        this.submitCreditNote();
+      } else {
+        this.submitRegularInvoice();
       }
-
-      this.invoiceService.SendInvoiceDianClient(request).subscribe({
-        next: (response) => {
-          this.toast.success(
-            'Éxito',
-            'Factura creada y enviada a DIAN exitosamente.'
-          );
-
-          this.invoiceForm.reset({
-            tipoDocumento: '',
-            medioPago: '',
-            observaciones: '',
-            totalAnticipado: 0,
-            aplicarDescuentoGlobal: false,
-          });
-          this.items.clear();
-          this.descuentos.clear();
-          this.clearClient();
-        },
-        error: (error) => {
-          console.error(' Error al crear factura:', error);
-          const errorMessage = error?.error?.message || error?.message || 'Error al crear la factura. Intente nuevamente.';
-          this.toast.error('Error', errorMessage);
-        },
-      });
     } catch (error) {
-      console.error(' Error construyendo request:', error);
-      this.toast.error('Error', 'Error al procesar la factura');
+      console.error(' Error procesando documento:', error);
+      this.toast.error('Error', 'Error al procesar el documento');
     }
+  }
+
+  private submitRegularInvoice(): void {
+    const request = this.buildInvoiceRequest();
+
+    if (!request) {
+      this.toast.error('Error', 'No se pudo construir la factura. Verifique los datos.');
+      return;
+    }
+
+    this.invoiceService.SendInvoiceDianClient(request).subscribe({
+      next: (response) => {
+        this.toast.success(
+          'Éxito',
+          'Factura creada y enviada a DIAN exitosamente.'
+        );
+
+        this.resetForm();
+      },
+      error: (error) => {
+        console.error(' Error al crear factura:', error);
+        const errorMessage = error?.error?.message || error?.message || 'Error al crear la factura. Intente nuevamente.';
+        this.toast.error('Error', errorMessage);
+      },
+    });
+  }
+
+  private submitCreditNote(): void {
+    const request = this.buildCreditNoteRequest();
+
+    if (!request) {
+      this.toast.error('Error', 'No se pudo construir la nota de crédito. Verifique los datos.');
+      return;
+    }
+
+    this.invoiceService.creationCreditNoteDian(request).subscribe({
+      next: (response) => {
+        this.toast.success(
+          'Éxito',
+          'Nota de crédito creada y enviada a DIAN exitosamente.'
+        );
+
+        // Navigate back to invoices list
+        this.router.navigate(['/shell/electronic-invoicing/client-invoices']);
+      },
+      error: (error) => {
+        console.error(' Error al crear nota de crédito:', error);
+        const errorMessage = error?.error?.message || error?.message || 'Error al crear la nota de crédito. Intente nuevamente.';
+        this.toast.error('Error', errorMessage);
+      },
+    });
+  }
+
+  private resetForm(): void {
+    this.invoiceForm.reset({
+      tipoDocumento: '',
+      medioPago: '',
+      observaciones: '',
+      totalAnticipado: 0,
+      aplicarDescuentoGlobal: false,
+      conceptCode: '',
+      note: ''
+    });
+    this.items.clear();
+    this.descuentos.clear();
+    this.clearClient();
   }
 
 

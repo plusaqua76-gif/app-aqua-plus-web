@@ -856,7 +856,7 @@
           </div>
           <div class="empresa-info">
             <div class="empresa-item">
-              <span class="empresa-label">NOMBRE:</span>
+              <span class="empresa-label">Nombre:</span>
               <span class="empresa-value"
                 >{{ enterpriseInfo.value()?.nombre || '' }}</span
               >
@@ -868,7 +868,7 @@
               >
             </div>
             <div class="empresa-item">
-              <span class="empresa-label">DIRECCIÓN:</span>
+              <span class="empresa-label">Dirección:</span>
               <span class="empresa-value">{{ GetDirectiomComplete() }}</span>
             </div>
           </div>
@@ -876,48 +876,47 @@
 
         <!-- Segunda columna: Información del usuario -->
         <div class="bottom-column usuario-column">
-          <div class="usuario-title">INFORMACIÓN DEL USUARIO</div>
+          <div class="usuario-title">Información del Usuario</div>
           <div class="usuario-info">
             <div class="usuario-item">
-              <span class="usuario-label">NOMBRE:</span>
-              <span class="usuario-value ml-3">
+              <span class="usuario-label">Nombre:</span>
+              <span class="usuario-value">
                 {{ billData()?.cliente?.primerNombre || '' }} {{
                 billData()?.cliente?.segundoNombre || '' }} {{
                 billData()?.cliente?.primerApellido || '' }} {{
                 billData()?.cliente?.segundoApellido || '' }}
               </span>
             </div>
-            <!-- <div class="usuario-item gap-1.5">
-              <span class="usuario-label">CÉDULA:</span>
-              <span class="usuario-value ml-4"
-                >{{ billData()?.cliente?.numeroCedula || '' }}</span
-              >
-            </div> -->
-            <div class="usuario-item ">
-              <span class="usuario-label">DIRECCIÓN:</span>
+            <div class="usuario-item">
+              <span class="usuario-label">ESTRATO:</span>
+              <span class="usuario-value">{{ billData()?.contador?.estrato || '' }}</span>
+            </div>
+            <div class="usuario-item">
+              <span class="usuario-label">Dirección:</span>
               <span class="usuario-value">
-                {{ billData()?.cliente?.direccion?.ciudadNombre || '' }}, {{
-                billData()?.cliente?.direccion?.corregimientoNombre || '' }} {{
-                billData()?.cliente?.direccion?.descripcion || '' }}, {{
-                billData()?.cliente?.direccion?.descripcion || '' }}
+                {{ billData()?.cliente?.direccion?.descripcion || '' }}
               </span>
             </div>
-            <div class="factura-item">
-              <span class="factura-label">NÚMERO DE FACTURA:</span>
-              <span class="factura-value"
-                >{{ billData()?.factura?.codigo || '' }}</span
-              >
+            <div class="usuario-item">
+              <span class="usuario-label">N° Factura:</span>
+              <span class="usuario-value">{{ billData()?.factura?.codigo || '' }}</span>
             </div>
-            <div class="factura-item">
-              <span class="factura-label">PERIODO FACTURADO:</span>
-              <span class="factura-value">
+            <div class="usuario-item">
+              <span class="usuario-label">PERIODO FACTURADO:</span>
+              <span class="usuario-value">
                 {{ formatDate(billData()?.factura?.fechaEmision) || '' }} - {{
                 formatDate(billData()?.factura?.fechaFin) || '' }}
               </span>
             </div>
+                        <div class="usuario-item">
+              <span class="usuario-label">FECHA DE EMISIÓN:</span>
+              <span class="usuario-value">
+                {{ formatDate(billData()?.factura?.fechaEmision) || '' }}
+              </span>
+            </div>
             <div class="usuario-fecha-limite">
-              <span class="fecha-label">FECHA LÍMITE DE PAGO:</span>
-              <span class="fecha-value"
+              <span class="fecha-label">Fecha Límite de Pago</span>
+              <span class="fecha-value "
                 >{{ formatDate(billData()?.factura?.fechaFin) || '' }}</span
               >
             </div>
@@ -927,25 +926,11 @@
         <!-- Tercera columna: Factura y totales -->
         <div class="bottom-column factura-column">
           <div class="factura-info">
-            <!-- <div class="factura-item">
-              <span class="factura-label">NÚMERO DE FACTURA:</span>
-              <span class="factura-value"
-                >{{ billData()?.factura?.codigo || '' }}</span
-              >
-            </div> -->
-            <!-- <div class="factura-item">
-              <span class="factura-label">CÉDULA:</span>
-              <span class="factura-value"
-                >{{ billData()?.cliente?.numeroCedula || '' }}</span
-              >
-            </div> -->
-            <!-- <div class="factura-item">
-              <span class="factura-label">PERIODO FACTURADO:</span>
-              <span class="factura-value">
-                {{ formatDate(billData()?.factura?.fechaEmision) || '' }} - {{
-                formatDate(billData()?.factura?.fechaFin) || '' }}
-              </span>
-            </div> -->
+            <div class="barcode-wrapper">
+              <div>Información de Pago</div>
+              <div class="barcode"></div>
+              <div class="barcode-text">{{ billData()?.factura?.codigo || '000000000' }}</div>
+            </div>
           </div>
 
           <div class="payment-totals-grid">

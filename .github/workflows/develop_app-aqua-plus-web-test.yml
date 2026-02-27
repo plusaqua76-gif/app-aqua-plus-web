@@ -1,12 +1,12 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - app-aqua-plus-web-prod
+name: Build and deploy Node.js app to Azure Web App - app-aqua-plus-web-test
 
 on:
   push:
     branches:
-      - main
+      - develop
   workflow_dispatch:
 
 jobs:
@@ -26,8 +26,7 @@ jobs:
       - name: npm install, build, and test
         run: |
           npm install
-          npm run build --if-present
-          npm run test --if-present
+          npm run build:ssr --if-present
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -47,19 +46,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_97472181EF734D209D2470595C95057D }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_884E7165D41C4275A8064C3A7A837285 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_BABF8674C8F54F0F972B68C575C7139C }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F9165DC4FB8D4F43AB3753AA0F7C6702 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_4B1F0229C203422B8403C0A1AD04047F }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_57AC732726CD4061837ADEEADB4A17E7 }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'app-aqua-plus-web-prod'
+          app-name: 'app-aqua-plus-web-test'
           slot-name: 'Production'
           package: .
-          
