@@ -36,14 +36,6 @@ import { InvoiceDianInitializationService } from '../services/invoice-dian-inici
 import { ResolutionDianEagerInitializationService } from '../services/resolution-dian-eager-initialization.service';
 import { Router } from '@angular/router';
 import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
-import { IFacturaElectronica } from '@interfaces/invoice/Iinvoice-client';
-import {
-  calcularItemPreciso,
-  calcularTotalesPrecisos,
-  ItemCalculationInput,
-  ItemCalculationResult,
-  roundHalfUp
-} from '../utils/precise-calculations.util';
 
 @Component({
   selector: 'app-create-invoice',
@@ -654,6 +646,30 @@ import {
                     />
                   </div>
 
+                  <!-- Fecha de Emisión -->
+                  <div>
+                    <label class="block text-xs text-gray-400 mb-1.5">
+                      Fecha de Emisión (Opcional)
+                    </label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg class="w-4 h-4 text-emerald-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 10h16m-8-3V4M7 7V4m10 3V4M5 20h14a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Zm3-7h.01v.01H8V13Zm4 0h.01v.01H12V13Zm4 0h.01v.01H16V13Zm-8 4h.01v.01H8V17Zm4 0h.01v.01H12V17Zm4 0h.01v.01H16V17Z"/>
+                        </svg>
+                      </div>
+                      <input
+                        type="date"
+                        formControlName="fechaEmision"
+                        class="block w-full pl-10 pr-3 py-2.5 bg-gray-800/50 border border-gray-600/70 text-white text-sm rounded-lg focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/70 hover:border-gray-500/80 transition-all shadow-sm placeholder:text-gray-500 cursor-pointer"
+                        style="color-scheme: dark;"
+                        placeholder="Fecha actual por defecto"
+                      />
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1.5 italic">
+                      Si no selecciona, se usará la fecha actual
+                    </p>
+                  </div>
+
                   <!-- Credit Note Fields - Only visible in credit note mode -->
                   @if (isCreditNoteMode()) {
                   <div class="col-span-full bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 space-y-3">
@@ -1234,7 +1250,6 @@ export class CreateInvoiceComponent {
   isCreditNoteMode = signal(false);
   originalInvoiceId = signal<number | null>(null);
   originalInvoiceData = signal<InvoiceDianData | null>(null);
-  originalInvoiceFromTable = signal<IFacturaElectronica | null>(null); // Factura con CUFE
   loadingInvoiceData = signal(false);
 
   searchTerm = '';
@@ -1305,11 +1320,6 @@ export class CreateInvoiceComponent {
       this.isCreditNoteMode.set(true);
       this.originalInvoiceId.set(state.invoiceId);
 
-      // Guardar la factura original completa (tiene el CUFE)
-      if (state?.originalInvoice) {
-        this.originalInvoiceFromTable.set(state.originalInvoice);
-      }
-
       // Load original invoice data after form initialization
       setTimeout(() => {
         this.loadOriginalInvoiceData(state.invoiceId);
@@ -1373,6 +1383,7 @@ export class CreateInvoiceComponent {
       }
     }
 
+    // Populate items
     if (data.items && data.items.length > 0) {
       this.items.clear();
 
@@ -1399,6 +1410,7 @@ export class CreateInvoiceComponent {
       });
     }
 
+    // Populate discounts/charges if any
     if (data.discountsAndCharges && data.discountsAndCharges.length > 0) {
       this.invoiceForm.patchValue({ aplicarDescuentoGlobal: true });
       this.descuentos.clear();
@@ -1437,6 +1449,7 @@ export class CreateInvoiceComponent {
             return of(null);
           }
 
+          // Detectar si es número (cédula) o texto (nombre)
           const isNumeric = /^\d+$/.test(term.trim());
 
           const params: IPaginationParams = {
@@ -1495,18 +1508,21 @@ export class CreateInvoiceComponent {
       totalAnticipado: [0, [Validators.min(0)]],
       diasPredefinidos: [null],
       fechaVencimiento: [null],
+      fechaEmision: [null],
       aplicarDescuentoGlobal: [false],
       descuentos: this.fb.array([]),
       items: this.fb.array([]),
+      // Credit Note fields
       conceptCode: [''],
       note: [''],
     });
 
+    // Escuchar cambios en medioPago para validar días/fecha
     this.invoiceForm.get('medioPago')?.valueChanges.subscribe(medioPago => {
       const diasControl = this.invoiceForm.get('diasPredefinidos');
       const fechaControl = this.invoiceForm.get('fechaVencimiento');
 
-      if (medioPago !== '2') {
+      if (medioPago !== '2') { // Si no es crédito, limpiar ambos
         diasControl?.setValue(null);
         fechaControl?.setValue(null);
         diasControl?.clearValidators();
@@ -1517,12 +1533,14 @@ export class CreateInvoiceComponent {
       fechaControl?.updateValueAndValidity();
     });
 
+    // Cuando se selecciona días predefinidos, limpiar fecha
     this.invoiceForm.get('diasPredefinidos')?.valueChanges.subscribe(dias => {
       if (dias) {
         this.invoiceForm.get('fechaVencimiento')?.setValue(null, { emitEvent: false });
       }
     });
 
+    // Cuando se selecciona fecha, limpiar días predefinidos
     this.invoiceForm.get('fechaVencimiento')?.valueChanges.subscribe(fecha => {
       if (fecha) {
         this.invoiceForm.get('diasPredefinidos')?.setValue(null, { emitEvent: false });
@@ -1579,15 +1597,12 @@ export class CreateInvoiceComponent {
     const precioUnitario = itemForm.get('precioUnitario')?.value || 0;
     const iva = itemForm.get('iva')?.value || 0;
 
-    const resultado = calcularItemPreciso({
-      precioUnitario: precioUnitario,
-      cantidad: cantidad,
-      descuentoPorcentaje: 0,
-      cargoPorcentaje: 0,
-      ivaPorcentaje: iva
-    });
+    // Cálculo: (cantidad * precio) + IVA
+    const subtotal = cantidad * precioUnitario;
+    const totalIva = subtotal * (iva / 100);
+    const total = subtotal + totalIva;
 
-    itemForm.get('total')?.setValue(resultado.total, { emitEvent: false });
+    itemForm.get('total')?.setValue(total, { emitEvent: false });
     this.calculateTotals();
   }
 
@@ -1598,51 +1613,57 @@ export class CreateInvoiceComponent {
     totalIva: number;
     total: number;
   } {
-    const itemsCalculados: ItemCalculationResult[] = [];
+    let subtotal = 0;
 
-    let subtotalBruto = 0;
+    // Calcular subtotal sin IVA
     this.items.controls.forEach((item) => {
       const cantidad = item.get('cantidad')?.value || 0;
       const precioUnitario = item.get('precioUnitario')?.value || 0;
-      subtotalBruto += cantidad * precioUnitario;
+      const itemSubtotal = cantidad * precioUnitario;
+      subtotal += itemSubtotal;
     });
 
+    // Calcular descuentos y cargos globales
     const descuentosGlobales = this.invoiceForm.get('descuentos')?.value || [];
-    let descuentoPorcentajeTotal = 0;
-    let cargoPorcentajeTotal = 0;
+    let totalDescuentos = 0;
+    let totalCargos = 0;
 
     descuentosGlobales.forEach((desc: any) => {
       const porcentaje = desc.valor || 0;
+      const valorMonetario = subtotal * (porcentaje / 100);
       if (desc.indCargo) {
-        cargoPorcentajeTotal += porcentaje;
+        totalCargos += valorMonetario;
       } else {
-        descuentoPorcentajeTotal += porcentaje;
+        totalDescuentos += valorMonetario;
       }
     });
 
+    // Aplicar descuentos y cargos al subtotal
+    const subtotalConDescuentos = subtotal - totalDescuentos + totalCargos;
+
+    // Calcular IVA sobre el subtotal con descuentos/cargos aplicados
+    let totalIva = 0;
     this.items.controls.forEach((item) => {
       const cantidad = item.get('cantidad')?.value || 0;
       const precioUnitario = item.get('precioUnitario')?.value || 0;
       const iva = item.get('iva')?.value || 0;
-      const resultado = calcularItemPreciso({
-        precioUnitario: precioUnitario,
-        cantidad: cantidad,
-        descuentoPorcentaje: descuentoPorcentajeTotal,
-        cargoPorcentaje: cargoPorcentajeTotal,
-        ivaPorcentaje: iva
-      });
+      const itemSubtotal = cantidad * precioUnitario;
 
-      itemsCalculados.push(resultado);
+      // Aplicar proporción de descuento/cargo a cada item para calcular IVA
+      const proporcion = subtotal > 0 ? itemSubtotal / subtotal : 0;
+      const descuentoItem = totalDescuentos * proporcion;
+      const cargoItem = totalCargos * proporcion;
+      const baseImponible = itemSubtotal - descuentoItem + cargoItem;
+
+      totalIva += baseImponible * (iva / 100);
     });
 
-    const totales = calcularTotalesPrecisos(itemsCalculados);
-
     return {
-      subtotal: totales.subtotal,
-      totalDescuentos: totales.totalDescuentos,
-      totalCargos: totales.totalCargos,
-      totalIva: totales.totalImpuesto,
-      total: totales.totalPagar,
+      subtotal,
+      totalDescuentos,
+      totalCargos,
+      totalIva,
+      total: subtotalConDescuentos + totalIva,
     };
   }
 
@@ -1831,6 +1852,9 @@ export class CreateInvoiceComponent {
       idIdentificacion: codigoValue,
       id: codigoValue,
     };
+
+    //     "idIdentificacion":"1",
+    // "id":"001"
   }
 
   private buildInvoiceRequest(): any {
@@ -1909,7 +1933,7 @@ export class CreateInvoiceComponent {
       medio: formValue.tipoDocumento,
       ...(fechaParaEnviar && { fechaFin: fechaParaEnviar })
     };
-    request.fechaEmision = new Date().toISOString();
+    request.fechaEmision = formValue.fechaEmision || new Date().toISOString().split('T')[0];
     request.totalAnticipado = formValue.totalAnticipado || 0;
     request.usuario = usuario || 'sistema';
 
@@ -1930,37 +1954,13 @@ export class CreateInvoiceComponent {
       return null;
     }
 
-    let descuentoPorcentajeTotal = 0;
-    let cargoPorcentajeTotal = 0;
-
-    if (formValue.aplicarDescuentoGlobal && formValue.descuentos.length > 0) {
-      formValue.descuentos.forEach((desc: any) => {
-        const porcentaje = desc.valor || 0;
-        if (desc.indCargo) {
-          cargoPorcentajeTotal += porcentaje;
-        } else {
-          descuentoPorcentajeTotal += porcentaje;
-        }
-      });
-    }
-
-    const itemsCalculados: ItemCalculationResult[] = [];
+    // Build items from form
     const items = formValue.items.map((item: any) => {
-      const calculoPreciso = calcularItemPreciso({
-        precioUnitario: item.precioUnitario,
-        cantidad: item.cantidad,
-        descuentoPorcentaje: descuentoPorcentajeTotal,
-        cargoPorcentaje: cargoPorcentajeTotal,
-        ivaPorcentaje: item.iva
-      });
-
-      itemsCalculados.push(calculoPreciso);
-
       const taxes = [{
-        taxCode: '01',
-        taxAmount: calculoPreciso.iva,
+        taxCode: '01', // IVA code
+        taxAmount: (item.cantidad * item.precioUnitario * item.iva) / 100,
         taxPercentage: item.iva.toString(),
-        taxableAmount: calculoPreciso.baseGravable
+        taxableAmount: item.cantidad * item.precioUnitario
       }];
 
       return {
@@ -1971,44 +1971,67 @@ export class CreateInvoiceComponent {
         taxes: taxes,
         description: item.descripcion,
         price: item.precioUnitario,
-        discount: descuentoPorcentajeTotal,
-        discountAmount: calculoPreciso.descuento,
-        charge: cargoPorcentajeTotal,
-        chargeAmount: calculoPreciso.cargo,
+        discount: 0,
+        discountAmount: 0,
+        charge: 0,
+        chargeAmount: 0,
         quantity: item.cantidad,
         unitCode: item.tipoUnidad,
-        subtotal: calculoPreciso.valorBruto,
-        taxAmount: calculoPreciso.iva,
-        total: calculoPreciso.total
+        subtotal: item.cantidad * item.precioUnitario,
+        taxAmount: taxes[0].taxAmount,
+        total: item.cantidad * item.precioUnitario + taxes[0].taxAmount
       };
     });
 
-    const totalesPrecisos = calcularTotalesPrecisos(itemsCalculados);
+    // Calculate totals BEFORE discounts/charges
+    let subtotalSum = 0; // Suma de subtotales de items (sin impuestos)
+    let taxTotalSum = 0; // Suma de impuestos
+
+    items.forEach((item: any) => {
+      subtotalSum += item.subtotal;
+      taxTotalSum += item.taxAmount;
+    });
+
+    // Build discounts/charges FIRST to calculate their totals
     const discountsAndCharges: any[] = [];
+    let discountTotal = 0;
+    let chargeTotal = 0;
 
     if (formValue.aplicarDescuentoGlobal && formValue.descuentos.length > 0) {
       formValue.descuentos.forEach((desc: any) => {
         const isCharge = desc.indCargo || false;
-        const porcentaje = desc.valor || 0;
-        const amount = roundHalfUp((totalesPrecisos.subtotal * porcentaje) / 100, 2);
+        const amount = (subtotalSum * (desc.valor || 0)) / 100;
 
         discountsAndCharges.push({
           isCharge: isCharge,
           reasonCode: (desc.codigoRazon || '00').trim(),
-          percentageAmount: porcentaje,
+          percentageAmount: desc.valor || 0,
           amount: amount,
-          baseAmount: totalesPrecisos.subtotal,
+          baseAmount: subtotalSum,
           reason: (desc.razon || '').trim()
         });
+
+        if (isCharge) {
+          chargeTotal += amount;
+        } else {
+          discountTotal += amount;
+        }
       });
     }
 
-    const advanceTotal = formValue.totalAnticipado || 0;
-    const grossTotal = totalesPrecisos.subtotal;
-    const taxableTotal = totalesPrecisos.totalImponible;
-    const taxTotal = totalesPrecisos.totalImpuesto;
-    const payableTotal = roundHalfUp(totalesPrecisos.totalPagar - advanceTotal, 2);
+    // Calculate totals according to DIAN rules:
+    // grossTotal = subtotal bruto (antes de descuentos/cargos)
+    // taxableTotal = base imponible = grossTotal - discountTotal + chargeTotal
+    // taxTotal = suma de impuestos aplicados sobre taxableTotal
+    // payableTotal = taxableTotal + taxTotal - advanceTotal
 
+    const grossTotal = subtotalSum; // Suma bruta antes de descuentos
+    const taxableTotal = subtotalSum - discountTotal + chargeTotal; // Base imponible después de desc/cargos
+    const taxTotal = taxTotalSum; // Impuestos (se mantienen)
+    const advanceTotal = formValue.totalAnticipado || 0;
+    const payableTotal = taxableTotal + taxTotal - advanceTotal;
+
+    // Build payments
     let fechaParaEnviar = "";
     if (formValue.medioPago === '2') {
       if (formValue.diasPredefinidos) {
@@ -2018,45 +2041,46 @@ export class CreateInvoiceComponent {
       }
     }
 
+    // Solo incluir paymentDueDate si es crédito (medio de pago = 2)
     const payments = [{
       paymentForm: formValue.medioPago,
       paymentMethod: formValue.tipoDocumento,
       ...(fechaParaEnviar && { paymentDueDate: fechaParaEnviar })
     }];
 
+    // Invoice period (using current date as both start and end for simplicity)
     const today = new Date().toISOString().split('T')[0];
     const invoicePeriod = {
       startDate: today,
       endDate: today
     };
 
-    const facturaOriginal = this.originalInvoiceFromTable();
-    const cufeOriginal = facturaOriginal?.cufe || originalInvoice.uuid || '';
-
+    // Associated documents - reference to original invoice
     const associatedDocuments = [{
       date: originalInvoice.invoicePeriod?.startDate || today,
-      documentType: '01',
+      documentType: '01', // Factura de venta
       number: originalInvoice.number || 0,
-      uuid: cufeOriginal
+      uuid: originalInvoice.uuid || '' // CUDE/UUID de la factura DIAN
     }];
 
+    // Build the complete credit note request
     const creditNoteRequest = {
       id: this.originalInvoiceId() || 0,
       company: {
         id: empresaDian?.company?.id || '',
-        organizationType: 1,
-        identificationType: 31,
+        organizationType: 1, // Juridica
+        identificationType: 31, // NIT
         identificationNumber: empresaDian?.company?.identification || '',
         name: empresaDian?.company?.name || '',
         taxCode: {
-          id: '01'
+          id: '01' // IVA
         }
       },
       customer: {
         name: cliente.nombreCompleto || '',
         id: cliente.id.toString(),
-        organizationType: 2,
-        identificationType: '13',
+        organizationType: 2, // Natural
+        identificationType: '13', // Cédula
         identificationNumber: cliente.numeroCedula || '',
         email: cliente.correo || ''
       },
@@ -2066,8 +2090,8 @@ export class CreateInvoiceComponent {
         grossTotal: grossTotal,
         taxableTotal: taxableTotal,
         taxTotal: taxTotal,
-        discountTotal: totalesPrecisos.totalDescuentos,
-        chargeTotal: totalesPrecisos.totalCargos,
+        discountTotal: discountTotal,
+        chargeTotal: chargeTotal,
         advanceTotal: advanceTotal,
         payableTotal: payableTotal,
         currencyCode: 'COP'
@@ -2077,7 +2101,7 @@ export class CreateInvoiceComponent {
       associatedDocuments: associatedDocuments,
       conceptCode: formValue.conceptCode || '',
       note: formValue.note || '',
-      fechaEmision: new Date().toISOString(),
+      fechaEmision: formValue.fechaEmision || new Date().toISOString().split('T')[0],
       idEmpresa: empresaId,
       idCliente: cliente.id,
       usuario: usuario || 'sistema'
@@ -2089,12 +2113,16 @@ export class CreateInvoiceComponent {
   validateInvoice(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
+    // Validar cliente seleccionado
     if (!this.selectedClient()) {
       errors.push(' Debe seleccionar un cliente');
     }
+
+    // Validar items
     if (this.items.length === 0) {
       errors.push(' Debe agregar al menos un producto');
     } else {
+      // Validar cada item
       this.items.controls.forEach((item, index) => {
         const itemForm = item as FormGroup;
 
@@ -2126,6 +2154,7 @@ export class CreateInvoiceComponent {
       errors.push(' Debe seleccionar un Medio de Pago');
     }
 
+    // Validar que al menos una opción de plazo esté seleccionada si es crédito
     if (this.invoiceForm.get('medioPago')?.value === '2') {
       const diasPredefinidos = this.invoiceForm.get('diasPredefinidos')?.value;
       const fechaVencimiento = this.invoiceForm.get('fechaVencimiento')?.value;
@@ -2134,6 +2163,7 @@ export class CreateInvoiceComponent {
         errors.push(' Debe seleccionar días predefinidos o fecha de vencimiento');
       }
 
+      // Validar que la fecha sea posterior a hoy
       if (fechaVencimiento) {
         const dias = this.calcularDiasDesdeHoy(fechaVencimiento);
         if (dias <= 0) {
@@ -2164,6 +2194,7 @@ export class CreateInvoiceComponent {
       }
     }
 
+    // Validaciones específicas para nota de crédito
     if (this.isCreditNoteMode()) {
       if (!this.invoiceForm.get('conceptCode')?.value) {
         errors.push(' Debe seleccionar un concepto de corrección para la nota de crédito');
@@ -2176,6 +2207,11 @@ export class CreateInvoiceComponent {
       if (!this.originalInvoiceId()) {
         errors.push(' No se encontró la factura original para crear la nota de crédito');
       }
+
+      // const originalInvoice = this.originalInvoiceData();
+      // if (originalInvoice && !originalInvoice.uuid) {
+      //   errors.push(' La factura original no tiene UUID/CUDE de la DIAN. No se puede crear la nota de crédito.');
+      // }
     }
 
     return {
@@ -2198,6 +2234,7 @@ export class CreateInvoiceComponent {
     }
 
     try {
+      // Determinar si es nota de crédito o factura normal
       if (this.isCreditNoteMode()) {
         this.submitCreditNote();
       } else {
@@ -2249,8 +2286,8 @@ export class CreateInvoiceComponent {
           'Nota de crédito creada y enviada a DIAN exitosamente.'
         );
 
-
-        this.router.navigate(['/shell/electronic-invoicing']);
+        // Navigate back to invoices list
+        this.router.navigate(['/shell/electronic-invoicing/client-invoices']);
       },
       error: (error) => {
         console.error(' Error al crear nota de crédito:', error);
