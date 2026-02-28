@@ -25,7 +25,8 @@ jobs:
 
       - name: npm install, build, and test
         run: |
-          npm run build:ssr --if-present
+          npm install
+          npm run build:ssr --configuration=production
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -62,3 +63,4 @@ jobs:
           package: .
 
           
+
