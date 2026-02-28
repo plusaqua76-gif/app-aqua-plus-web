@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { environment } from '../../../environments/environment.local';
+import { environment } from '../../../environments/environment.prod';
 import { END_POINT_SERVICE } from '../../../environments/environment.variables';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';

@@ -3,7 +3,7 @@ import { Observable, map } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { IFacturasData } from '@interfaces/IFacturasData';
 import { IFacturasMesResponse, IFacturasAnualResponse } from '@interfaces/IFacturasMesResponse';
-import { environment } from '../../environments/environment.local';
+import { environment } from '../../environments/environment.prod';
 
 @Injectable({
   providedIn: 'root'

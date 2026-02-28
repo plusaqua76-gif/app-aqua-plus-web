@@ -2,7 +2,7 @@ import { Register } from './../pages/register/register';
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { environment } from '../../../environments/environment.local';
+import { environment } from '../../../environments/environment.prod';
 import { END_POINT_SERVICE } from '../../../environments/environment.variables';
 import { Auth, AuthLoginResponse } from '@interfaces/IAuth';
 import { Observable, tap } from 'rxjs';
