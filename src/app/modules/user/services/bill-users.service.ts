@@ -1,7 +1,7 @@
 
 import { HttpClient, HttpParams } from '@angular/common/http';
 import {  inject, Injectable  } from '@angular/core';
-import { environment } from '../../../environments/environment.local';
+import { environment } from '../../../environments/environment.prod';
 import { Observable, catchError, throwError } from 'rxjs';
 import { IUserBill } from '@interfaces/IuserBill';
 import { IPaginatedResponse, IPaginationParams } from '@interfaces/IpaginatedResponse';

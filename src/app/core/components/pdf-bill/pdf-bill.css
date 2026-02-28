@@ -1497,11 +1497,12 @@
 .factura-info {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-  background: #f8fafb;
-  border-radius: 6px;
-  border: 1px solid #e8e8e8;
+  margin-bottom: 25px;
+  /* gap: 8px; */
+  /* padding: 10px;
+  background: #f8fafb; */
+  /* border-radius: 6px;
+  border: 1px solid #e8e8e8; */
 }
 
 .factura-item {
@@ -1715,10 +1716,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  height: 115px;
+  /* gap: 6px;
   width: 100%;
   background: white;
-  border-radius: 6px;
+  border-radius: 6px; */
 }
 
 .barcode-wrapper > div:first-child {
@@ -1728,6 +1730,10 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 4px;
+}
+
+.barcode-wrapper > div:first-child {
+  font-size: 12px;
 }
 
 .barcode {

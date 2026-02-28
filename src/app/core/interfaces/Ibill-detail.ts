@@ -106,6 +106,9 @@ export interface IContador {
   direccion: IDireccion;
   idPersona: number;
   tipoContadorNombre: string;
+  codConvenio?: string;
+  convenioEmpresa?: string | null;
+  matriculaContador?: string;
 }
 
 export interface IDeudaCliente {

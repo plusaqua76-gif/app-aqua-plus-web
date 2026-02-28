@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment.local';
+import { environment } from '../../../environments/environment.prod';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '@interfaces/Iresponse';
 import { IEnterpriseResponse } from '@interfaces/Ienterprise';

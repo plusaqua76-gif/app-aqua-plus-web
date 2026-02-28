@@ -1,5 +1,3 @@
-import { ProductoService } from "../modules/accounting/service/producto.service";
-
 export const END_POINT_SERVICE = {
   POST_AUTH_USER: 'usuario/validar',
   POST_REC_PASS: 'recover-password',

@@ -1,6 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { environment } from "../../../environments/environment.local";
+import { environment } from "../../../environments/environment.prod";
 import { rxResource } from "@angular/core/rxjs-interop";
 import { ApiResponse } from "@interfaces/Iresponse";
 import { catchError, map, Observable, of } from "rxjs";

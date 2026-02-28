@@ -2,7 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import { computed, effect, inject, Injectable, PLATFORM_ID, signal } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { rxResource } from "@angular/core/rxjs-interop";
-import { environment } from "../../../environments/environment.local";
+import { environment } from "../../../environments/environment.prod";
 import { ApiResponse } from "@interfaces/Iresponse";
 import { EnterpriceInvoiceResponse } from "@interfaces/invoice/invoice.interface";
 import { map, catchError } from "rxjs/operators";
