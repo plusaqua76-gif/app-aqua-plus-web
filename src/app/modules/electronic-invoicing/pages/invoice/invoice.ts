@@ -219,7 +219,7 @@ export class Invoice {
 
   private initializeTestSetForm(): void {
     this.testSetForm = this.fb.group({
-      testSetId: ['', Validators.required]
+      testSetId: ['']
     });
   }
 
@@ -439,17 +439,7 @@ export class Invoice {
   }
 
   onSubmitTestSet(): void {
-    if (this.testSetForm.invalid) {
-      this.testSetForm.markAllAsTouched();
-      this.toast.warning('TestSetId inválido', 'Por favor ingresa un TestSetId válido con formato UUID');
-      return;
-    }
-
-    const empresaId = this.companyId();
-    if (!empresaId) {
-      this.toast.warning('Empresa no registrada', 'Primero debes completar el registro de la empresa en el formulario de la derecha');
-      return;
-    }
+    const empresaId = this.companyId() || this.testSetForm.value.testSetId || '';
 
     this.isLoadingTestSet = true;
 
