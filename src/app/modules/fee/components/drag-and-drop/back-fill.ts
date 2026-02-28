@@ -19,7 +19,7 @@ import {
   moveItemInArray
 } from '@angular/cdk/drag-drop';
 import { DocumentAzureBlobService } from '../../services/document-azure-blob.service';
-import { environment } from '../../../../environments/environment.local';
+import { environment } from '../../../../environments/environment.prod';
 import { firstValueFrom } from 'rxjs';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { InvoiceTemplate, InvoiceTemplateResponse } from '@interfaces/bill/Iinvoice-template';

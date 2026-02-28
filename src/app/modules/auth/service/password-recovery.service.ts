@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
-import { environment } from "../../../environments/environment.local";
+import { environment } from "../../../environments/environment.prod";
 import { Observable } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";
 

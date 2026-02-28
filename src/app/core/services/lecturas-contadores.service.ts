@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
-import { environment } from '../../environments/environment.local';
+import { environment } from '../../environments/environment.prod';
 import { ILecturasResponse } from '@interfaces/ILecturasResponse';
 
 export interface VeredaLectura {

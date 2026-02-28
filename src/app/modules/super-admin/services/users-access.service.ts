@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
-import { environment } from '../../../environments/environment.local';
+import { environment } from '../../../environments/environment.prod';
 import { catchError, Observable, throwError } from 'rxjs';
 import { ApiResponse } from '@interfaces/Iresponse';
 import { Iuser } from '@interfaces/Iuser';

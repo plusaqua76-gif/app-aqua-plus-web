@@ -85,6 +85,12 @@
                     >
                   </div>
                   <div class="client-info-item">
+                    <span class="label">MATRÍCULA CONTADOR:</span>
+                    <span class="value">
+                      {{ billData()?.contador?.matriculaContador }}</span
+                    >
+                  </div>
+                  <div class="client-info-item">
                     <span class="label">NÚMERO DE DOCUMENTO:</span>
                     <span class="value"
                       >{{ billData()?.cliente?.numeroCedula || '' }}</span
@@ -152,7 +158,7 @@
                     </div>
                   </div>
                   <div class="consumption-item">
-                    <div class="item-label bg-amber-500">VALOR FACTURADO:</div>
+                    <div class="item-label bg-amber-500">FACTURADO:</div>
                     <div class="item-value">
                       {{ billData()?.factura?.lectura?.precio |
                       colombianCurrency }}
@@ -888,6 +894,10 @@
               </span>
             </div>
             <div class="usuario-item">
+              <span class="usuario-label">MATRÍCULA CONTADOR:</span>
+              <span class="usuario-value">{{ billData()?.contador?.matriculaContador || '' }}</span>
+            </div>
+            <div class="usuario-item">
               <span class="usuario-label">ESTRATO:</span>
               <span class="usuario-value">{{ billData()?.contador?.estrato || '' }}</span>
             </div>
@@ -928,8 +938,13 @@
           <div class="factura-info">
             <div class="barcode-wrapper">
               <div>Información de Pago</div>
-              <div class="barcode"></div>
-              <div class="barcode-text">{{ billData()?.factura?.codigo || '000000000' }}</div>
+              <ngx-barcode6
+                [bc-format]="'CODE128'"
+                [bc-value]="billData()?.contador?.codConvenio || billData()?.contador?.matriculaContador || '000000000000'"
+                [bc-height]="80"
+                [bc-width]="3"
+                [bc-display-value]="true">
+              </ngx-barcode6>
             </div>
           </div>
 

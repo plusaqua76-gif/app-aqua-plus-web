@@ -8,11 +8,13 @@ import { IBillDetailResponse, IPuntoPago } from '@interfaces/Ibill-detail';
 import { ColombianCurrencyPipe } from '@shared/pipes/colombian-currency.pipe';
 import { DeudaService } from '../../../modules/bill/service/deuda.service';
 import { IDeudaClienteResponse } from '@interfaces/IdeudaFactura';
+import { NgxBarcode6 } from 'ngx-barcode6';
 
 @Component({
   selector: 'app-pdf-bill',
   standalone: true,
   imports: [
+    NgxBarcode6,
     CommonModule,
     RouterModule,
     LegendsHistoryBill,

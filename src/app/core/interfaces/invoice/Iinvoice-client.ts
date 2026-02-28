@@ -82,16 +82,19 @@ export interface IClienteFactura {
   usuarioCreacion: string;
 }
 
-// Interface principal de la factura electrónica
 export interface IFacturaElectronica {
   id: number;
   numero: number;
-  estado: string;
-  estadoLegal: string;
+  estado: EstadoFactura;
+  estadoLegal: EstadoLegalFactura;
   idDian: string;
   empresa: IEmpresaFactura;
   cliente: IClienteFactura;
   descripcion: string;
+  cufe: string;
+  data: string;
+  usuarioCreacion: string;
+  fechaCreacion: string;
 }
 
 // Tipos para estados

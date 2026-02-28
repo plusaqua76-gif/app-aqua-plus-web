@@ -646,6 +646,30 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                     />
                   </div>
 
+                  <!-- Fecha de Emisión -->
+                  <div>
+                    <label class="block text-xs text-gray-400 mb-1.5">
+                      Fecha de Emisión (Opcional)
+                    </label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg class="w-4 h-4 text-emerald-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 10h16m-8-3V4M7 7V4m10 3V4M5 20h14a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Zm3-7h.01v.01H8V13Zm4 0h.01v.01H12V13Zm4 0h.01v.01H16V13Zm-8 4h.01v.01H8V17Zm4 0h.01v.01H12V17Zm4 0h.01v.01H16V17Z"/>
+                        </svg>
+                      </div>
+                      <input
+                        type="date"
+                        formControlName="fechaEmision"
+                        class="block w-full pl-10 pr-3 py-2.5 bg-gray-800/50 border border-gray-600/70 text-white text-sm rounded-lg focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/70 hover:border-gray-500/80 transition-all shadow-sm placeholder:text-gray-500 cursor-pointer"
+                        style="color-scheme: dark;"
+                        placeholder="Fecha actual por defecto"
+                      />
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1.5 italic">
+                      Si no selecciona, se usará la fecha actual
+                    </p>
+                  </div>
+
                   <!-- Credit Note Fields - Only visible in credit note mode -->
                   @if (isCreditNoteMode()) {
                   <div class="col-span-full bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 space-y-3">
@@ -1484,6 +1508,7 @@ export class CreateInvoiceComponent {
       totalAnticipado: [0, [Validators.min(0)]],
       diasPredefinidos: [null],
       fechaVencimiento: [null],
+      fechaEmision: [null],
       aplicarDescuentoGlobal: [false],
       descuentos: this.fb.array([]),
       items: this.fb.array([]),
@@ -1908,7 +1933,7 @@ export class CreateInvoiceComponent {
       medio: formValue.tipoDocumento,
       ...(fechaParaEnviar && { fechaFin: fechaParaEnviar })
     };
-    request.fechaEmision = new Date().toISOString();
+    request.fechaEmision = formValue.fechaEmision || new Date().toISOString().split('T')[0];
     request.totalAnticipado = formValue.totalAnticipado || 0;
     request.usuario = usuario || 'sistema';
 
@@ -2076,7 +2101,7 @@ export class CreateInvoiceComponent {
       associatedDocuments: associatedDocuments,
       conceptCode: formValue.conceptCode || '',
       note: formValue.note || '',
-      fechaEmision: new Date().toISOString(),
+      fechaEmision: formValue.fechaEmision || new Date().toISOString().split('T')[0],
       idEmpresa: empresaId,
       idCliente: cliente.id,
       usuario: usuario || 'sistema'

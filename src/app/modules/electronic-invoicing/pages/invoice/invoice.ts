@@ -27,6 +27,9 @@ export class Invoice {
   protected isBrowser = isPlatformBrowser(this.platformId);
   testId = signal<string>('');
   companyId = signal<string | null>(null);
+  logoBase64 = signal<string | null>(null);
+  logoFileName = signal<string>('');
+  logoSizeKB = signal<number>(0);
 
   dianForm!: FormGroup;
   resolutionForm!: FormGroup;
@@ -36,8 +39,6 @@ export class Invoice {
   isLoadingTestSet = false;
   selectedDepartment = signal<string>('');
   showRegimeCodeHelp = signal<boolean>(false);
-
-  // Control de habilitación DIAN - solo una vez por sesión
   isDianProcessStarted = signal<boolean>(false);
   private readonly DIAN_PROCESS_KEY = 'aquaplus_dian_process_started';
 
@@ -218,7 +219,7 @@ export class Invoice {
 
   private initializeTestSetForm(): void {
     this.testSetForm = this.fb.group({
-      testSetId: ['', Validators.required]
+      testSetId: ['']
     });
   }
 
@@ -278,6 +279,59 @@ export class Invoice {
   this.testId.set(value);
 }
 
+  onLogoFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    // Validar que sea una imagen
+    if (!file.type.startsWith('image/')) {
+      this.toast.warning('Archivo inválido', 'Por favor selecciona un archivo de imagen (PNG, JPG, etc.)');
+      input.value = '';
+      return;
+    }
+
+    // Validar tamaño (150KB = 150,000 bytes)
+    const maxSizeBytes = 150000;
+    if (file.size > maxSizeBytes) {
+      const sizeKB = (file.size / 1024).toFixed(2);
+      this.toast.warning('Archivo muy grande', `La imagen debe ser menor a 150KB. Tu archivo tiene ${sizeKB}KB`);
+      input.value = '';
+      return;
+    }
+
+    // Convertir a base64
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64String = reader.result as string;
+      // Remover el prefijo "data:image/...;base64," para obtener solo el base64
+      const base64Data = base64String.split(',')[1];
+
+      this.logoBase64.set(base64Data);
+      this.logoFileName.set(file.name);
+      this.logoSizeKB.set(Number((file.size / 1024).toFixed(2)));
+
+      this.toast.success('Logo cargado', `${file.name} (${this.logoSizeKB()}KB)`);
+    };
+
+    reader.onerror = () => {
+      this.toast.error('Error', 'No se pudo leer el archivo');
+      input.value = '';
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  removeLogo(): void {
+    this.logoBase64.set(null);
+    this.logoFileName.set('');
+    this.logoSizeKB.set(0);
+    this.toast.info('Logo eliminado', 'El logo ha sido removido');
+  }
+
 
   onSubmit(): void {
     if (this.dianForm.invalid) {
@@ -300,7 +354,7 @@ export class Invoice {
     this.markDianProcessAsStarted();
     this.isLoading = true;
     const formValue = this.dianForm.value;
-    const payload = {
+    const payload: any = {
       useAlegraCertificate: formValue.useAlegraCertificate,
       notificationByEmail: {
         enabled: formValue.notificationEnabled
@@ -321,6 +375,10 @@ export class Invoice {
       email: formValue.email,
       phone: formValue.phone
     };
+    const logo = this.logoBase64();
+    if (logo) {
+      payload.logo = logo;
+    }
 
     this.invoiceService.creteCompany(payload).subscribe({
       next: (response) => {
@@ -381,17 +439,7 @@ export class Invoice {
   }
 
   onSubmitTestSet(): void {
-    if (this.testSetForm.invalid) {
-      this.testSetForm.markAllAsTouched();
-      this.toast.warning('TestSetId inválido', 'Por favor ingresa un TestSetId válido con formato UUID');
-      return;
-    }
-
-    const empresaId = this.companyId();
-    if (!empresaId) {
-      this.toast.warning('Empresa no registrada', 'Primero debes completar el registro de la empresa en el formulario de la derecha');
-      return;
-    }
+    const empresaId = this.companyId() || this.testSetForm.value.testSetId || '';
 
     this.isLoadingTestSet = true;
 

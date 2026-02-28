@@ -166,7 +166,7 @@ export class FeeComponent implements AfterViewInit {
 
   paramConsumptionIds = {
     CONBAS: undefined as number | undefined,
-    CONCON: undefined as number | undefined,
+    CONCOM: undefined as number | undefined,
     CONSUN: undefined as number | undefined,
   };
 
@@ -176,7 +176,7 @@ export class FeeComponent implements AfterViewInit {
 
     return {
       CONBAS: `0 - ${minimo}`,
-      CONCON: `${minimo + 1} - ${maximo - 1}`,
+      CONCOM: `${minimo + 1} - ${maximo - 1}`,
       CONSUN: `${maximo} en adelante`
     };
   });
@@ -319,8 +319,8 @@ export class FeeComponent implements AfterViewInit {
             CONBAS: this.counterEnterpriceService
               .getParamsEnterprice(enterpriseId, 'CONBAS')
               .pipe(catchError(() => of({ success: false, response: null }))),
-            CONCON: this.counterEnterpriceService
-              .getParamsEnterprice(enterpriseId, 'CONCON')
+            CONCOM: this.counterEnterpriceService
+              .getParamsEnterprice(enterpriseId, 'CONCOM')
               .pipe(catchError(() => of({ success: false, response: null }))),
             CONSUN: this.counterEnterpriceService
               .getParamsEnterprice(enterpriseId, 'CONSUN')
@@ -334,7 +334,7 @@ export class FeeComponent implements AfterViewInit {
       const data = this.consumptionParams.value();
       if (!data) return [];
 
-      const extractValue = (param: any, key: 'CONBAS' | 'CONCON' | 'CONSUN') => {
+      const extractValue = (param: any, key: 'CONBAS' | 'CONCOM' | 'CONSUN') => {
         // La respuesta del API es un objeto directo, no un array
         const response = param?.response;
 
@@ -355,9 +355,9 @@ export class FeeComponent implements AfterViewInit {
           ...extractValue(data.CONBAS, 'CONBAS'),
         },
         {
-          key: 'CONCON',
+          key: 'CONCOM',
           description: 'Consumo Complementario',
-          ...extractValue(data.CONCON, 'CONCON'),
+          ...extractValue(data.CONCOM, 'CONCOM'),
         },
         {
           key: 'CONSUN',
@@ -1319,7 +1319,7 @@ mostrardata = this.consumptionParamsData().forEach(param => {
     // Construir los códigos completos
     return [
       `${codigoTarifa}CONBAS`,
-      `${codigoTarifa}CONCON`,
+      `${codigoTarifa}CONCOM`,
       `${codigoTarifa}CONSUN`
     ];
   }
@@ -1332,7 +1332,7 @@ mostrardata = this.consumptionParamsData().forEach(param => {
       this.consumoMinimo.set(0);
       this.consumoMaximo.set(0);
       this.paramConsumptionIds.CONBAS = undefined;
-      this.paramConsumptionIds.CONCON = undefined;
+      this.paramConsumptionIds.CONCOM = undefined;
       this.paramConsumptionIds.CONSUN = undefined;
       return;
     }
@@ -1345,7 +1345,7 @@ mostrardata = this.consumptionParamsData().forEach(param => {
       this.consumoMinimo.set(0);
       this.consumoMaximo.set(0);
       this.paramConsumptionIds.CONBAS = undefined;
-      this.paramConsumptionIds.CONCON = undefined;
+      this.paramConsumptionIds.CONCOM = undefined;
       this.paramConsumptionIds.CONSUN = undefined;
       return;
     }
@@ -1359,7 +1359,7 @@ mostrardata = this.consumptionParamsData().forEach(param => {
     this.consumoMinimo.set(0);
     this.consumoMaximo.set(0);
     this.paramConsumptionIds.CONBAS = undefined;
-    this.paramConsumptionIds.CONCON = undefined;
+    this.paramConsumptionIds.CONCOM = undefined;
     this.paramConsumptionIds.CONSUN = undefined;
 
     this.cargandoParametrosConsumo.set(true);
@@ -1369,7 +1369,7 @@ mostrardata = this.consumptionParamsData().forEach(param => {
       CONBAS: this.counterEnterpriceService
         .getParamsEnterprice(empresaId, codigos[0])
         .pipe(catchError(() => of({ success: false, response: null }))),
-      CONCON: this.counterEnterpriceService
+      CONCOM: this.counterEnterpriceService
         .getParamsEnterprice(empresaId, codigos[1])
         .pipe(catchError(() => of({ success: false, response: null }))),
       CONSUN: this.counterEnterpriceService
@@ -1393,17 +1393,17 @@ mostrardata = this.consumptionParamsData().forEach(param => {
           }
         }
 
-        if (data.CONCON?.success && data.CONCON.response) {
-          const valorParam = data.CONCON.response.valorParametro;
+        if (data.CONCOM?.success && data.CONCOM.response) {
+          const valorParam = data.CONCOM.response.valorParametro;
           // Guardar el ID para futuras actualizaciones
-          if (data.CONCON.response.id) {
-            this.paramConsumptionIds.CONCON = data.CONCON.response.id;
+          if (data.CONCOM.response.id) {
+            this.paramConsumptionIds.CONCOM = data.CONCOM.response.id;
           }
           // Extraer el máximo del rango (ejemplo: "15-50" -> 50)
           const match = valorParam.match(/-(\d+)/);
           if (match) {
             this.consumoMaximo.set(parseInt(match[1]));
-            console.log('CONCON cargado:', valorParam, '-> máximo:', match[1], '-> ID:', data.CONCON.response.id);
+            console.log('CONCOM cargado:', valorParam, '-> máximo:', match[1], '-> ID:', data.CONCOM.response.id);
           }
         }
 
@@ -1468,7 +1468,7 @@ mostrardata = this.consumptionParamsData().forEach(param => {
       return;
     }
 
-    const buildParam = (key: 'CONBAS' | 'CONCON' | 'CONSUN', llave: string, valorParametro: string) => {
+    const buildParam = (key: 'CONBAS' | 'CONCOM' | 'CONSUN', llave: string, valorParametro: string) => {
       const param: any = {
         empresa: { id: empresaId },
         llave: llave,
@@ -1486,7 +1486,7 @@ mostrardata = this.consumptionParamsData().forEach(param => {
 
     const params: any[] = [
       buildParam('CONBAS', codigos[0], `0-${min}`),
-      buildParam('CONCON', codigos[1], `${min}-${max}`),
+      buildParam('CONCOM', codigos[1], `${min}-${max}`),
       buildParam('CONSUN', codigos[2], `${max}+`),
     ];
 

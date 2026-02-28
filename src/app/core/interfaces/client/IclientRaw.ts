@@ -1,4 +1,3 @@
-// Interfaz para la respuesta real del servidor (datos aplanados)
 export interface ClientRaw {
   id: number;
   numeroCedula: string;
@@ -16,7 +15,7 @@ export interface ClientRaw {
   corregimientoNombre: string;
   correo: string;
   telefono: string;
-  empresaClienteContadorId: number; // ID necesario para editar cliente
+  empresaClienteContadorId: number;
 }
 
 export interface ClientsRawApiResponse {
@@ -26,7 +25,6 @@ export interface ClientsRawApiResponse {
   response: ClientRaw[];
 }
 
-// Respuesta paginada para clientes raw
 export interface ClientsRawPaginatedApiResponse {
   success: boolean;
   message: string;

@@ -207,20 +207,12 @@
                           type="text"
                           formControlName="testSetId"
                           placeholder="Ej: a70562e0-631e-4ceb-aa65-36887b57dc17"
-                          class="w-full px-4 py-3 bg-gray-900/50 border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-mono text-sm"
-                          [class.border-red-500]="testSetForm.get('testSetId')?.invalid && testSetForm.get('testSetId')?.touched"
-                          [class.border-blue-500]="!testSetForm.get('testSetId')?.invalid || !testSetForm.get('testSetId')?.touched"
+                          class="w-full px-4 py-3 bg-gray-900/50 border border-blue-500 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-mono text-sm"
                         />
                         <p class="text-xs text-blue-300 flex items-center gap-2">
                           <i class="fas fa-info-circle"></i>
                           Copia este código desde el detalle del set de pruebas en la DIAN (ver imagen arriba)
                         </p>
-                        @if (testSetForm.get('testSetId')?.hasError('required') && testSetForm.get('testSetId')?.touched) {
-                          <p class="text-xs text-red-400 flex items-center gap-1">
-                            <i class="fas fa-times-circle"></i>
-                            El TestSetId es obligatorio
-                          </p>
-                        }
                       </div>
                     </div>
 
@@ -245,7 +237,7 @@
                     <div class="pt-2">
                       <button
                         type="submit"
-                        [disabled]="isLoadingTestSet || testSetForm.invalid || !companyId()"
+                        [disabled]=""
                         class="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all duration-200 shadow-lg"
                       >
                         @if (isLoadingTestSet) {
@@ -1041,6 +1033,65 @@
               <div>
                 <label class="block text-xs font-medium text-gray-300 mb-1">Teléfono</label>
                 <input type="tel" formControlName="phone" class="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="3001234567">
+              </div>
+
+              <!-- Logo -->
+              <div class="col-span-2">
+                <label class="block text-xs font-medium text-gray-300 mb-1">
+                  Logo de la Empresa (Opcional)
+                  <span class="text-gray-500 text-xs ml-1">(Máx. 150KB)</span>
+                </label>
+
+                @if (!logoBase64()) {
+                  <div class="relative">
+                    <input
+                      type="file"
+                      #logoInput
+                      (change)="onLogoFileSelected($event)"
+                      accept="image/*"
+                      class="hidden"
+                    />
+                    <button
+                      type="button"
+                      (click)="logoInput.click()"
+                      class="w-full px-4 py-3 bg-gray-800/50 border-2 border-dashed border-gray-700/50 rounded-lg text-gray-400 hover:border-blue-500 hover:text-blue-400 transition-all duration-200 flex items-center justify-center gap-2 group"
+                    >
+                      <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span class="text-sm">Seleccionar imagen del logo</span>
+                    </button>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1.5">
+                    Formatos: PNG, JPG, JPEG. El logo aparecerá en todos los documentos PDF.
+                  </p>
+                } @else {
+                  <div class="bg-gray-800/50 border border-gray-700/50 rounded-lg p-3">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-3">
+                        <div class="bg-green-500/10 p-2 rounded-lg">
+                          <svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p class="text-sm text-white font-medium">{{ logoFileName() }}</p>
+                          <p class="text-xs text-gray-400">{{ logoSizeKB() }} KB</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        (click)="removeLogo()"
+                        class="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-2 rounded-lg transition-colors"
+                        title="Eliminar logo"
+                      >
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                }
               </div>
             </div>
 

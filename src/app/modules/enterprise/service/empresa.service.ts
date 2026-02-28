@@ -1,5 +1,5 @@
 import { inject, Injectable } from "@angular/core";
-import { environment } from "../../../environments/environment.local";
+import { environment } from "../../../environments/environment.prod";
 import { END_POINT_SERVICE, ENTERPRISE_CLIENT_COUNT } from "../../../environments/environment.variables";
 import { catchError, Observable, throwError } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";
@@ -28,7 +28,7 @@ export class EmpresaService {
     );
   }
 
-  
+
 
   getEmpresaById(id: number): Observable<ApiResponse<IEnterpriseResponse>> {
       const url = `${this.apiUrl}/${id}`;
