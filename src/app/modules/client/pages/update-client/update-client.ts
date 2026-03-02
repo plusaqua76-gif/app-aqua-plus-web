@@ -191,12 +191,31 @@ export class UpdateClient implements OnInit {
         : of(null),
   });
 
+  typesAforos = rxResource({
+    params: () => ({ enterpriseId: this.empresaId() }),
+    stream: ({ params }) => {
+      const { enterpriseId } = params;
+      if (!enterpriseId) return of(null);
+
+      return this.counterService.aforosEnterprice(enterpriseId).pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
+    }
+  });
+
   readonly employeeData = computed(
     () => this.dataEmployee.value()?.response || [],
   );
   readonly clientData = computed(
     () => this.dataClient.value()?.response || null,
   );
+  readonly availableAforos = computed(() => {
+    const data = this.typesAforos.value();
+    if (!data?.response || data?.success === false) return [];
+    return Array.isArray(data.response) ? data.response : [data.response];
+  });
 
   constructor() {
     effect(() => {
@@ -342,6 +361,9 @@ export class UpdateClient implements OnInit {
         contador.digitos || '',
         isNew ? [] : [Validators.required, Validators.min(1)],
       ],
+      // Campo de aforo
+      aforoContadorId: [contador.aforoContador?.[0]?.id || ''],
+      aforoContadorNombre: [contador.aforoContador?.[0]?.nombre || ''],
 
       // Campos editables de ubicación
       idDepartamento: [
@@ -969,6 +991,11 @@ export class UpdateClient implements OnInit {
       }
       if (contador.digitos) {
         payload.digitos = Number(contador.digitos);
+      }
+
+      // Agregar aforo si fue modificado
+      if (contador.aforoContadorId) {
+        payload.aforoContador = { id: Number(contador.aforoContadorId) };
       }
 
       if (contador.descripcion) {

@@ -24,7 +24,7 @@ import {
   switchMap,
   catchError,
 } from 'rxjs';
-import { ColombianCurrencyPipe } from '@shared/pipes/colombian-currency.pipe';
+import { ColombianCurrencyIntegerPipe } from '@shared/pipes/colombian-currency-integer.pipe';
 import { EnterpriseClientCounterService } from '../../client/service/enterpriseClientCounter.service';
 import { ClientRaw } from '@interfaces/client/IclientRaw';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
@@ -44,7 +44,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
-    ColombianCurrencyPipe,
+    ColombianCurrencyIntegerPipe,
   ],
   template: `
     @let empresaDian = enterpriceDian(); @let resolutionDianData = resolutionDian();
@@ -96,20 +96,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
           <div
             class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 pb-4 sm:pb-6 border-b border-gray-700/50"
           >
-            <!-- <div>
-              <h3
-                class="text-sm font-semibold text-blue-400 mb-3 uppercase tracking-wide"
-              >
-                Emisor
-              </h3>
-              <div class="space-y-1.5">
-                <p class="text-white font-semibold">
-                  CODE MAKERS DEVELOPERS S.A.S
-                </p>
-                <p class="text-sm text-gray-400">NIT: 901859695-1</p>
-                <p class="text-sm text-gray-400">Persona Jurídica</p>
-              </div>
-            </div> -->
+
 
             @defer (when empresaDian != null) {
             <div>
@@ -406,7 +393,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                           type="text"
                           [value]="
                             item.get('precioUnitario')?.value
-                              | colombianCurrency
+                              | colombianCurrencyInteger
                           "
                           (input)="
                             onNumberInput($event, $any(item), 'precioUnitario')
@@ -444,7 +431,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                       <td
                         class="py-3 px-3 text-right text-white font-semibold text-sm"
                       >
-                        {{ item.get('total')?.value | colombianCurrency }}
+                        {{ item.get('total')?.value | colombianCurrencyInteger }}
                       </td>
 
                       <!-- Eliminar -->
@@ -636,7 +623,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                       type="text"
                       [value]="
                         invoiceForm.get('totalAnticipado')?.value
-                          | colombianCurrency
+                          | colombianCurrencyInteger
                       "
                       (input)="onTotalAnticipadoInput($event)"
                       min="0"
@@ -848,7 +835,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                           <input
                             type="text"
                             [value]="
-                              descuento.get('valor')?.value | colombianCurrency
+                              descuento.get('valor')?.value | colombianCurrencyInteger
                             "
                             (input)="onDescuentoInput($event, $any(descuento))"
                             min="0"
@@ -956,7 +943,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                   <div class="flex justify-between text-sm">
                     <span class="text-gray-400">Subtotal:</span>
                     <span class="text-white font-medium">{{
-                      calculateTotals().subtotal | colombianCurrency
+                      calculateTotals().subtotal | colombianCurrencyInteger
                     }}</span>
                   </div>
 
@@ -965,7 +952,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                     <span class="text-green-400">Descuentos:</span>
                     <span class="text-green-400 font-medium"
                       >-{{
-                        calculateTotals().totalDescuentos | colombianCurrency
+                        calculateTotals().totalDescuentos | colombianCurrencyInteger
                       }}</span
                     >
                   </div>
@@ -974,7 +961,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                     <span class="text-orange-400">Cargos:</span>
                     <span class="text-orange-400 font-medium"
                       >+{{
-                        calculateTotals().totalCargos | colombianCurrency
+                        calculateTotals().totalCargos | colombianCurrencyInteger
                       }}</span
                     >
                   </div>
@@ -983,7 +970,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                   <div class="flex justify-between text-sm">
                     <span class="text-gray-400">Total IVA:</span>
                     <span class="text-purple-400 font-medium">{{
-                      calculateTotals().totalIva | colombianCurrency
+                      calculateTotals().totalIva | colombianCurrencyInteger
                     }}</span>
                   </div>
 
@@ -994,7 +981,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                       >Total a Pagar:</span
                     >
                     <span class="text-emerald-400 font-bold text-2xl">{{
-                      calculateTotals().total | colombianCurrency
+                      calculateTotals().total | colombianCurrencyInteger
                     }}</span>
                   </div>
 
@@ -2250,7 +2237,7 @@ export class CreateInvoiceComponent {
     const request = this.buildInvoiceRequest();
 
     if (!request) {
-      this.toast.error('Error', 'No se pudo construir la factura. Verifique los datos.');
+      console.error('No se pudo construir la solicitud de factura');
       return;
     }
 
@@ -2265,8 +2252,6 @@ export class CreateInvoiceComponent {
       },
       error: (error) => {
         console.error(' Error al crear factura:', error);
-        const errorMessage = error?.error?.message || error?.message || 'Error al crear la factura. Intente nuevamente.';
-        this.toast.error('Error', errorMessage);
       },
     });
   }
@@ -2275,7 +2260,7 @@ export class CreateInvoiceComponent {
     const request = this.buildCreditNoteRequest();
 
     if (!request) {
-      this.toast.error('Error', 'No se pudo construir la nota de crédito. Verifique los datos.');
+      console.error('No se pudo construir la nota de crédito. Verifique los datos.');
       return;
     }
 

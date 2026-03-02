@@ -795,39 +795,72 @@ interface ParamUpdateData {
                       <div class="flex-1">
                         <!-- Encabezado -->
                         <div class="mb-4">
-                          <h3 class="text-xl font-bold text-white mb-2">
-                            {{ aforo.nombre }}
-                          </h3>
-                          <!-- <p class="text-sm text-gray-400">
-                            Código: {{ aforo.tipoUso.codigo }}
-                          </p> -->
+                          <label class="block text-xs font-semibold text-gray-400 mb-2">
+                            Nombre del Aforo
+                          </label>
+                          @if (editingAforoId() === aforo.id) {
+                            <input
+                              type="text"
+                              [value]="editForm()?.nombre"
+                              (input)="updateEditFieldString('nombre', $any($event.target).value)"
+                              class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white font-bold text-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50"
+                            />
+                          } @else {
+                            <h3 class="text-xl font-bold text-white mb-2">
+                              {{ aforo.nombre }}
+                            </h3>
+                          }
                         </div>
 
                         <!-- Divider -->
                         <div class="h-px bg-gradient-to-r from-transparent via-gray-600/50 to-transparent mb-3"></div>
 
-                        <!-- Tipo de Aforo -->
-                     <div class="mb-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Tipo de Aforo y Tipo de Uso -->
+                        <div class="mb-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-2">
+                              Tipo de Aforo
+                            </label>
+                            @if (editingAforoId() === aforo.id) {
+                              <select
+                                [value]="editForm()?.tipoAforo?.id"
+                                (change)="updateEditField('tipoAforo', +$any($event.target).value)"
+                                class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50"
+                              >
+                                <option value="" disabled>Seleccione tipo de aforo</option>
+                                @for (tipoAforo of typesAforos.value()?.response; track tipoAforo.id) {
+                                  <option [value]="tipoAforo.id">{{ tipoAforo.descripcion }}</option>
+                                }
+                              </select>
+                            } @else {
+                              <p class="text-white font-medium">
+                                {{ aforo.tipoAforo.descripcion }}
+                              </p>
+                            }
+                          </div>
 
-  <div>
-    <label class="block text-xs font-semibold text-gray-400 mb-2">
-      Tipo de Aforo
-    </label>
-    <p class="text-white font-medium">
-      {{ aforo.tipoAforo.descripcion }}
-    </p>
-  </div>
-
-  <div>
-    <label class="block text-xs font-semibold text-gray-400 mb-2">
-      Tipo de Uso
-    </label>
-    <p class="text-white font-medium">
-      {{ aforo.tipoUso.nombre }}
-    </p>
-  </div>
-
-</div>
+                          <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-2">
+                              Tipo de Uso
+                            </label>
+                            @if (editingAforoId() === aforo.id) {
+                              <select
+                                [value]="editForm()?.tipoUso?.id"
+                                (change)="updateEditField('tipoUso', +$any($event.target).value)"
+                                class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50"
+                              >
+                                <option value="" disabled>Seleccione tipo de uso</option>
+                                @for (tipoUso of typeUse.value()?.response; track tipoUso.id) {
+                                  <option [value]="tipoUso.id">{{ tipoUso.nombre }}</option>
+                                }
+                              </select>
+                            } @else {
+                              <p class="text-white font-medium">
+                                {{ aforo.tipoUso.nombre }}
+                              </p>
+                            }
+                          </div>
+                        </div>
 
                         <!-- Campos editables -->
                         <div class="space-y-3 text-sm">
@@ -1705,6 +1738,9 @@ export class AforoComponent {
   startEditAforo(aforo: any): void {
     this.editingAforoId.set(aforo.id);
     this.editForm.set({
+      nombre: aforo.nombre,
+      tipoAforo: { id: aforo.tipoAforo.id },
+      tipoUso: { id: aforo.tipoUso.id },
       numeroSuscriptores: aforo.numeroSuscriptores,
       produMensual: aforo.produMensual,
       frecBarrido: aforo.frecBarrido,
@@ -1715,6 +1751,17 @@ export class AforoComponent {
   }
 
   updateEditField(field: string, value: number): void {
+    const currentForm = this.editForm();
+    if (currentForm) {
+      if (field === 'tipoAforo' || field === 'tipoUso') {
+        this.editForm.set({ ...currentForm, [field]: { id: value } });
+      } else {
+        this.editForm.set({ ...currentForm, [field]: value });
+      }
+    }
+  }
+
+  updateEditFieldString(field: string, value: string): void {
     const currentForm = this.editForm();
     if (currentForm) {
       this.editForm.set({ ...currentForm, [field]: value });
@@ -1735,28 +1782,34 @@ export class AforoComponent {
       return;
     }
 
+    if (!formData.nombre || formData.nombre.trim() === '') {
+      this.toastService.error('Error', 'El nombre del aforo es requerido');
+      return;
+    }
+
     this.updatingAforo.set(true);
 
-    const updatePayload = {
+    const aforo: any = {
+      id: aforoId,
+      empresa: { id: this.enterpriseId() },
+      tipoAforo: formData.tipoAforo,
+      tipoUso: formData.tipoUso,
+      nombre: formData.nombre,
       numeroSuscriptores: formData.numeroSuscriptores,
       produMensual: formData.produMensual,
       frecBarrido: formData.frecBarrido,
       frecRecoleccion: formData.frecRecoleccion,
       tarifaBase: formData.tarifaBase,
       promedioCRA: formData.promedioCRA,
-      usuarioModificacion: userData.nombre
+      usuarioCreacion: userData.usuario || 'sistema'
     };
 
-    this.counterService.updateAforo(aforoId, updatePayload).subscribe({
+    this.counterService.saveAforo(aforo).subscribe({
       next: (response) => {
         this.updatingAforo.set(false);
-        if (response.success || response.success !== false) {
-          this.toastService.success('Éxito', 'Aforo actualizado correctamente');
-          this.cancelEdit();
-          this.aforosEnterprice.reload(); // Recargar la lista
-        } else {
-          this.toastService.error('Error', response.message || 'Error al actualizar el aforo');
-        }
+        this.toastService.success('Éxito', 'Aforo actualizado correctamente');
+        this.cancelEdit();
+        this.aforosEnterprice.reload();
       },
       error: (error) => {
         this.updatingAforo.set(false);
