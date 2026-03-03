@@ -106,9 +106,7 @@
                     <span class="label">DIRECCIÓN:</span>
                     <span class="value">
                       {{ billData()?.cliente?.direccion?.ciudadNombre || '' }},
-                      {{ billData()?.cliente?.direccion?.corregimientoNombre ||
-                      '' }} {{ billData()?.cliente?.direccion?.descripcion || ''
-                      }}
+                      {{ billData()?.cliente?.direccion?.corregimientoNombre ||'' }}
                     </span>
                   </div>
                 </div>
@@ -152,9 +150,9 @@
                     </div>
                   </div>
                   <div class="consumption-item">
-                    <div class="item-label">DIRECCIÓN</div>
+                    <div class="item-label">DESCRIPCIÓN</div>
                     <div class="item-value">
-                      {{ getDirectionCompleteCounter() }}
+                      {{ billData()?.contador?.direccion?.descripcion || '' }}
                     </div>
                   </div>
                   <div class="consumption-item">

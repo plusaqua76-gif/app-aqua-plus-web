@@ -15,7 +15,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FacturaService } from '../../service/factura.service';
 import { ToastService } from '@services/toast.service';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { EMPTY, firstValueFrom, of, catchError } from 'rxjs';
+import { EMPTY, firstValueFrom, of, catchError, map } from 'rxjs';
 import { TableComponent } from '@components/table';
 import { PopupComponent } from '@shared/components/popUp';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
@@ -152,8 +152,7 @@ export class Bill  {
 
   billColumns = signal([
     { field: 'codigo', header: 'Código', type: 'text' as const },
-    { field: 'nombre', header: 'Nombre', type: 'text' as const },
-    { field: 'apellido', header: 'Apellido', type: 'text' as const },
+    { field: 'clienteNombreCompleto', header: 'Nombre', type: 'text' as const },
     { field: 'consumo', header: 'Lectura', type: 'number' as const },
     { field: 'fechaEmision', header: 'Fecha emisión', type: 'date' as const },
     { field: 'fechaFin', header: 'Fecha Vencimiento', type: 'date' as const },
@@ -202,6 +201,24 @@ export class Bill  {
         enterpriseId,
         pagination
       ).pipe(
+        map(response => {
+          // Transformar los datos para concatenar los nombres
+          if (response?.response && Array.isArray(response.response)) {
+            response.response = response.response.map((factura: any) => ({
+              ...factura,
+              clienteNombreCompleto: [
+                factura.nombre,
+                factura.segundoNombre,
+                factura.apellido,
+                factura.segundoApellido
+              ]
+                .filter(Boolean)
+                .join(' ') 
+                .trim()
+            }));
+          }
+          return response;
+        }),
         catchError(error => {
           console.error('Error loading bills:', error);
           // Retornar un observable con estructura compatible con IPaginatedResponse

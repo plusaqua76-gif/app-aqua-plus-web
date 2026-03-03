@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { environment } from '../../environments/environment.prod';
+import { environment } from '../../environments/environment';
 import { END_POINT_SERVICE } from '../../environments/environment.variables';
 import { ApiResponse } from '../interfaces/Iresponse';
 import { IdEnterprice } from '@interfaces/IiEnterprice';

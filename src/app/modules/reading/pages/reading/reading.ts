@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ReadingService } from '../../service/reading.service';
 import { TableComponent } from '@components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { catchError, EMPTY, of } from 'rxjs';
+import { catchError, EMPTY, of, map } from 'rxjs';
 import { ToastService } from '@services/toast.service';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
@@ -99,7 +99,7 @@ export class Reading {
 
   readingColumns = signal([
     { field: 'contador.serial', header: 'Contador', type: 'text' as const, template: 'contadorTpl' },
-    { field: 'contador.cliente.nombreCompleto', header: 'Nombre Completo', type: 'text' as const, template: 'nombreCompletoTpl' },
+    { field: 'nombreCompleto', header: 'Nombre', type: 'text' as const, template: 'nombreCompletoTpl' },
     { field: 'lectura', header: 'Lectura(m³)', type: 'number' as const },
     { field: 'fechaLectura', header: 'Fecha Lectura', type: 'date' as const, template: 'fechaTpl' },
     { field: 'consumoAnormal', header: 'Consumo Anormal', type: 'text' as const, template: 'consumoAnormalTpl' },
@@ -126,6 +126,25 @@ export class Reading {
         enterpriseId,
         pagination
       ).pipe(
+              map(response => {
+                if (response?.response && Array.isArray(response.response)) {
+                  response.response = response.response.map((lectura: any) => {
+                    const cliente = lectura.contador?.cliente;
+                    const nombreCompleto = cliente ? [
+                      cliente.nombre,
+                      cliente.segundoNombre,
+                      cliente.apellido,
+                      cliente.segundoApellido
+                    ].filter(Boolean).join(' ').trim() : '';
+
+                    return {
+                      ...lectura,
+                      nombreCompleto
+                    };
+                  });
+                }
+                return response;
+              }),
               catchError((error) => {
                 return of(null);
               })

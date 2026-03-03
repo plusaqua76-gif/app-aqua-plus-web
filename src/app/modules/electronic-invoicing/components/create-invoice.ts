@@ -24,7 +24,7 @@ import {
   switchMap,
   catchError,
 } from 'rxjs';
-import { ColombianCurrencyPipe } from '@shared/pipes/colombian-currency.pipe';
+import { ColombianCurrencyIntegerPipe } from '@shared/pipes/colombian-currency-integer.pipe';
 import { EnterpriseClientCounterService } from '../../client/service/enterpriseClientCounter.service';
 import { ClientRaw } from '@interfaces/client/IclientRaw';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
@@ -36,6 +36,14 @@ import { InvoiceDianInitializationService } from '../services/invoice-dian-inici
 import { ResolutionDianEagerInitializationService } from '../services/resolution-dian-eager-initialization.service';
 import { Router } from '@angular/router';
 import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
+import { IFacturaElectronica } from '@interfaces/invoice/Iinvoice-client';
+import {
+  calcularItemPreciso,
+  calcularTotalesPrecisos,
+  ItemCalculationInput,
+  ItemCalculationResult,
+  roundHalfUp
+} from '../utils/precise-calculations.util';
 
 @Component({
   selector: 'app-create-invoice',
@@ -44,7 +52,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
-    ColombianCurrencyPipe,
+    ColombianCurrencyIntegerPipe,
   ],
   template: `
     @let empresaDian = enterpriceDian(); @let resolutionDianData = resolutionDian();
@@ -406,7 +414,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                           type="text"
                           [value]="
                             item.get('precioUnitario')?.value
-                              | colombianCurrency
+                              | colombianCurrencyInteger
                           "
                           (input)="
                             onNumberInput($event, $any(item), 'precioUnitario')
@@ -444,7 +452,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                       <td
                         class="py-3 px-3 text-right text-white font-semibold text-sm"
                       >
-                        {{ item.get('total')?.value | colombianCurrency }}
+                        {{ item.get('total')?.value | colombianCurrencyInteger }}
                       </td>
 
                       <!-- Eliminar -->
@@ -636,7 +644,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                       type="text"
                       [value]="
                         invoiceForm.get('totalAnticipado')?.value
-                          | colombianCurrency
+                          | colombianCurrencyInteger
                       "
                       (input)="onTotalAnticipadoInput($event)"
                       min="0"
@@ -644,30 +652,6 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                       placeholder="$0"
                       class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
                     />
-                  </div>
-
-                  <!-- Fecha de Emisión -->
-                  <div>
-                    <label class="block text-xs text-gray-400 mb-1.5">
-                      Fecha de Emisión (Opcional)
-                    </label>
-                    <div class="relative">
-                      <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <svg class="w-4 h-4 text-emerald-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 10h16m-8-3V4M7 7V4m10 3V4M5 20h14a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Zm3-7h.01v.01H8V13Zm4 0h.01v.01H12V13Zm4 0h.01v.01H16V13Zm-8 4h.01v.01H8V17Zm4 0h.01v.01H12V17Zm4 0h.01v.01H16V17Z"/>
-                        </svg>
-                      </div>
-                      <input
-                        type="date"
-                        formControlName="fechaEmision"
-                        class="block w-full pl-10 pr-3 py-2.5 bg-gray-800/50 border border-gray-600/70 text-white text-sm rounded-lg focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/70 hover:border-gray-500/80 transition-all shadow-sm placeholder:text-gray-500 cursor-pointer"
-                        style="color-scheme: dark;"
-                        placeholder="Fecha actual por defecto"
-                      />
-                    </div>
-                    <p class="text-xs text-gray-500 mt-1.5 italic">
-                      Si no selecciona, se usará la fecha actual
-                    </p>
                   </div>
 
                   <!-- Credit Note Fields - Only visible in credit note mode -->
@@ -848,7 +832,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                           <input
                             type="text"
                             [value]="
-                              descuento.get('valor')?.value | colombianCurrency
+                              descuento.get('valor')?.value | colombianCurrencyInteger
                             "
                             (input)="onDescuentoInput($event, $any(descuento))"
                             min="0"
@@ -956,7 +940,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                   <div class="flex justify-between text-sm">
                     <span class="text-gray-400">Subtotal:</span>
                     <span class="text-white font-medium">{{
-                      calculateTotals().subtotal | colombianCurrency
+                      calculateTotals().subtotal | colombianCurrencyInteger
                     }}</span>
                   </div>
 
@@ -965,7 +949,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                     <span class="text-green-400">Descuentos:</span>
                     <span class="text-green-400 font-medium"
                       >-{{
-                        calculateTotals().totalDescuentos | colombianCurrency
+                        calculateTotals().totalDescuentos | colombianCurrencyInteger
                       }}</span
                     >
                   </div>
@@ -974,7 +958,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                     <span class="text-orange-400">Cargos:</span>
                     <span class="text-orange-400 font-medium"
                       >+{{
-                        calculateTotals().totalCargos | colombianCurrency
+                        calculateTotals().totalCargos | colombianCurrencyInteger
                       }}</span
                     >
                   </div>
@@ -983,7 +967,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                   <div class="flex justify-between text-sm">
                     <span class="text-gray-400">Total IVA:</span>
                     <span class="text-purple-400 font-medium">{{
-                      calculateTotals().totalIva | colombianCurrency
+                      calculateTotals().totalIva | colombianCurrencyInteger
                     }}</span>
                   </div>
 
@@ -994,7 +978,7 @@ import { InvoiceDianData } from '@interfaces/invoice/invoice.interface';
                       >Total a Pagar:</span
                     >
                     <span class="text-emerald-400 font-bold text-2xl">{{
-                      calculateTotals().total | colombianCurrency
+                      calculateTotals().total | colombianCurrencyInteger
                     }}</span>
                   </div>
 
@@ -1250,6 +1234,7 @@ export class CreateInvoiceComponent {
   isCreditNoteMode = signal(false);
   originalInvoiceId = signal<number | null>(null);
   originalInvoiceData = signal<InvoiceDianData | null>(null);
+  originalInvoiceFromTable = signal<IFacturaElectronica | null>(null); // Factura con CUFE
   loadingInvoiceData = signal(false);
 
   searchTerm = '';
@@ -1320,6 +1305,11 @@ export class CreateInvoiceComponent {
       this.isCreditNoteMode.set(true);
       this.originalInvoiceId.set(state.invoiceId);
 
+      // Guardar la factura original completa (tiene el CUFE)
+      if (state?.originalInvoice) {
+        this.originalInvoiceFromTable.set(state.originalInvoice);
+      }
+
       // Load original invoice data after form initialization
       setTimeout(() => {
         this.loadOriginalInvoiceData(state.invoiceId);
@@ -1383,7 +1373,6 @@ export class CreateInvoiceComponent {
       }
     }
 
-    // Populate items
     if (data.items && data.items.length > 0) {
       this.items.clear();
 
@@ -1410,7 +1399,6 @@ export class CreateInvoiceComponent {
       });
     }
 
-    // Populate discounts/charges if any
     if (data.discountsAndCharges && data.discountsAndCharges.length > 0) {
       this.invoiceForm.patchValue({ aplicarDescuentoGlobal: true });
       this.descuentos.clear();
@@ -1449,7 +1437,6 @@ export class CreateInvoiceComponent {
             return of(null);
           }
 
-          // Detectar si es número (cédula) o texto (nombre)
           const isNumeric = /^\d+$/.test(term.trim());
 
           const params: IPaginationParams = {
@@ -1508,21 +1495,18 @@ export class CreateInvoiceComponent {
       totalAnticipado: [0, [Validators.min(0)]],
       diasPredefinidos: [null],
       fechaVencimiento: [null],
-      fechaEmision: [null],
       aplicarDescuentoGlobal: [false],
       descuentos: this.fb.array([]),
       items: this.fb.array([]),
-      // Credit Note fields
       conceptCode: [''],
       note: [''],
     });
 
-    // Escuchar cambios en medioPago para validar días/fecha
     this.invoiceForm.get('medioPago')?.valueChanges.subscribe(medioPago => {
       const diasControl = this.invoiceForm.get('diasPredefinidos');
       const fechaControl = this.invoiceForm.get('fechaVencimiento');
 
-      if (medioPago !== '2') { // Si no es crédito, limpiar ambos
+      if (medioPago !== '2') {
         diasControl?.setValue(null);
         fechaControl?.setValue(null);
         diasControl?.clearValidators();
@@ -1533,14 +1517,12 @@ export class CreateInvoiceComponent {
       fechaControl?.updateValueAndValidity();
     });
 
-    // Cuando se selecciona días predefinidos, limpiar fecha
     this.invoiceForm.get('diasPredefinidos')?.valueChanges.subscribe(dias => {
       if (dias) {
         this.invoiceForm.get('fechaVencimiento')?.setValue(null, { emitEvent: false });
       }
     });
 
-    // Cuando se selecciona fecha, limpiar días predefinidos
     this.invoiceForm.get('fechaVencimiento')?.valueChanges.subscribe(fecha => {
       if (fecha) {
         this.invoiceForm.get('diasPredefinidos')?.setValue(null, { emitEvent: false });
@@ -1597,12 +1579,15 @@ export class CreateInvoiceComponent {
     const precioUnitario = itemForm.get('precioUnitario')?.value || 0;
     const iva = itemForm.get('iva')?.value || 0;
 
-    // Cálculo: (cantidad * precio) + IVA
-    const subtotal = cantidad * precioUnitario;
-    const totalIva = subtotal * (iva / 100);
-    const total = subtotal + totalIva;
+    const resultado = calcularItemPreciso({
+      precioUnitario: precioUnitario,
+      cantidad: cantidad,
+      descuentoPorcentaje: 0,
+      cargoPorcentaje: 0,
+      ivaPorcentaje: iva
+    });
 
-    itemForm.get('total')?.setValue(total, { emitEvent: false });
+    itemForm.get('total')?.setValue(resultado.total, { emitEvent: false });
     this.calculateTotals();
   }
 
@@ -1613,57 +1598,51 @@ export class CreateInvoiceComponent {
     totalIva: number;
     total: number;
   } {
-    let subtotal = 0;
+    const itemsCalculados: ItemCalculationResult[] = [];
 
-    // Calcular subtotal sin IVA
+    let subtotalBruto = 0;
     this.items.controls.forEach((item) => {
       const cantidad = item.get('cantidad')?.value || 0;
       const precioUnitario = item.get('precioUnitario')?.value || 0;
-      const itemSubtotal = cantidad * precioUnitario;
-      subtotal += itemSubtotal;
+      subtotalBruto += cantidad * precioUnitario;
     });
 
-    // Calcular descuentos y cargos globales
     const descuentosGlobales = this.invoiceForm.get('descuentos')?.value || [];
-    let totalDescuentos = 0;
-    let totalCargos = 0;
+    let descuentoPorcentajeTotal = 0;
+    let cargoPorcentajeTotal = 0;
 
     descuentosGlobales.forEach((desc: any) => {
       const porcentaje = desc.valor || 0;
-      const valorMonetario = subtotal * (porcentaje / 100);
       if (desc.indCargo) {
-        totalCargos += valorMonetario;
+        cargoPorcentajeTotal += porcentaje;
       } else {
-        totalDescuentos += valorMonetario;
+        descuentoPorcentajeTotal += porcentaje;
       }
     });
 
-    // Aplicar descuentos y cargos al subtotal
-    const subtotalConDescuentos = subtotal - totalDescuentos + totalCargos;
-
-    // Calcular IVA sobre el subtotal con descuentos/cargos aplicados
-    let totalIva = 0;
     this.items.controls.forEach((item) => {
       const cantidad = item.get('cantidad')?.value || 0;
       const precioUnitario = item.get('precioUnitario')?.value || 0;
       const iva = item.get('iva')?.value || 0;
-      const itemSubtotal = cantidad * precioUnitario;
+      const resultado = calcularItemPreciso({
+        precioUnitario: precioUnitario,
+        cantidad: cantidad,
+        descuentoPorcentaje: descuentoPorcentajeTotal,
+        cargoPorcentaje: cargoPorcentajeTotal,
+        ivaPorcentaje: iva
+      });
 
-      // Aplicar proporción de descuento/cargo a cada item para calcular IVA
-      const proporcion = subtotal > 0 ? itemSubtotal / subtotal : 0;
-      const descuentoItem = totalDescuentos * proporcion;
-      const cargoItem = totalCargos * proporcion;
-      const baseImponible = itemSubtotal - descuentoItem + cargoItem;
-
-      totalIva += baseImponible * (iva / 100);
+      itemsCalculados.push(resultado);
     });
 
+    const totales = calcularTotalesPrecisos(itemsCalculados);
+
     return {
-      subtotal,
-      totalDescuentos,
-      totalCargos,
-      totalIva,
-      total: subtotalConDescuentos + totalIva,
+      subtotal: totales.subtotal,
+      totalDescuentos: totales.totalDescuentos,
+      totalCargos: totales.totalCargos,
+      totalIva: totales.totalImpuesto,
+      total: totales.totalPagar,
     };
   }
 
@@ -1852,9 +1831,6 @@ export class CreateInvoiceComponent {
       idIdentificacion: codigoValue,
       id: codigoValue,
     };
-
-    //     "idIdentificacion":"1",
-    // "id":"001"
   }
 
   private buildInvoiceRequest(): any {
@@ -1933,7 +1909,7 @@ export class CreateInvoiceComponent {
       medio: formValue.tipoDocumento,
       ...(fechaParaEnviar && { fechaFin: fechaParaEnviar })
     };
-    request.fechaEmision = formValue.fechaEmision || new Date().toISOString().split('T')[0];
+    request.fechaEmision = new Date().toISOString();
     request.totalAnticipado = formValue.totalAnticipado || 0;
     request.usuario = usuario || 'sistema';
 
@@ -1954,13 +1930,37 @@ export class CreateInvoiceComponent {
       return null;
     }
 
-    // Build items from form
+    let descuentoPorcentajeTotal = 0;
+    let cargoPorcentajeTotal = 0;
+
+    if (formValue.aplicarDescuentoGlobal && formValue.descuentos.length > 0) {
+      formValue.descuentos.forEach((desc: any) => {
+        const porcentaje = desc.valor || 0;
+        if (desc.indCargo) {
+          cargoPorcentajeTotal += porcentaje;
+        } else {
+          descuentoPorcentajeTotal += porcentaje;
+        }
+      });
+    }
+
+    const itemsCalculados: ItemCalculationResult[] = [];
     const items = formValue.items.map((item: any) => {
+      const calculoPreciso = calcularItemPreciso({
+        precioUnitario: item.precioUnitario,
+        cantidad: item.cantidad,
+        descuentoPorcentaje: descuentoPorcentajeTotal,
+        cargoPorcentaje: cargoPorcentajeTotal,
+        ivaPorcentaje: item.iva
+      });
+
+      itemsCalculados.push(calculoPreciso);
+
       const taxes = [{
-        taxCode: '01', // IVA code
-        taxAmount: (item.cantidad * item.precioUnitario * item.iva) / 100,
+        taxCode: '01',
+        taxAmount: calculoPreciso.iva,
         taxPercentage: item.iva.toString(),
-        taxableAmount: item.cantidad * item.precioUnitario
+        taxableAmount: calculoPreciso.baseGravable
       }];
 
       return {
@@ -1971,67 +1971,44 @@ export class CreateInvoiceComponent {
         taxes: taxes,
         description: item.descripcion,
         price: item.precioUnitario,
-        discount: 0,
-        discountAmount: 0,
-        charge: 0,
-        chargeAmount: 0,
+        discount: descuentoPorcentajeTotal,
+        discountAmount: calculoPreciso.descuento,
+        charge: cargoPorcentajeTotal,
+        chargeAmount: calculoPreciso.cargo,
         quantity: item.cantidad,
         unitCode: item.tipoUnidad,
-        subtotal: item.cantidad * item.precioUnitario,
-        taxAmount: taxes[0].taxAmount,
-        total: item.cantidad * item.precioUnitario + taxes[0].taxAmount
+        subtotal: calculoPreciso.valorBruto,
+        taxAmount: calculoPreciso.iva,
+        total: calculoPreciso.total
       };
     });
 
-    // Calculate totals BEFORE discounts/charges
-    let subtotalSum = 0; // Suma de subtotales de items (sin impuestos)
-    let taxTotalSum = 0; // Suma de impuestos
-
-    items.forEach((item: any) => {
-      subtotalSum += item.subtotal;
-      taxTotalSum += item.taxAmount;
-    });
-
-    // Build discounts/charges FIRST to calculate their totals
+    const totalesPrecisos = calcularTotalesPrecisos(itemsCalculados);
     const discountsAndCharges: any[] = [];
-    let discountTotal = 0;
-    let chargeTotal = 0;
 
     if (formValue.aplicarDescuentoGlobal && formValue.descuentos.length > 0) {
       formValue.descuentos.forEach((desc: any) => {
         const isCharge = desc.indCargo || false;
-        const amount = (subtotalSum * (desc.valor || 0)) / 100;
+        const porcentaje = desc.valor || 0;
+        const amount = roundHalfUp((totalesPrecisos.subtotal * porcentaje) / 100, 2);
 
         discountsAndCharges.push({
           isCharge: isCharge,
           reasonCode: (desc.codigoRazon || '00').trim(),
-          percentageAmount: desc.valor || 0,
+          percentageAmount: porcentaje,
           amount: amount,
-          baseAmount: subtotalSum,
+          baseAmount: totalesPrecisos.subtotal,
           reason: (desc.razon || '').trim()
         });
-
-        if (isCharge) {
-          chargeTotal += amount;
-        } else {
-          discountTotal += amount;
-        }
       });
     }
 
-    // Calculate totals according to DIAN rules:
-    // grossTotal = subtotal bruto (antes de descuentos/cargos)
-    // taxableTotal = base imponible = grossTotal - discountTotal + chargeTotal
-    // taxTotal = suma de impuestos aplicados sobre taxableTotal
-    // payableTotal = taxableTotal + taxTotal - advanceTotal
-
-    const grossTotal = subtotalSum; // Suma bruta antes de descuentos
-    const taxableTotal = subtotalSum - discountTotal + chargeTotal; // Base imponible después de desc/cargos
-    const taxTotal = taxTotalSum; // Impuestos (se mantienen)
     const advanceTotal = formValue.totalAnticipado || 0;
-    const payableTotal = taxableTotal + taxTotal - advanceTotal;
+    const grossTotal = totalesPrecisos.subtotal;
+    const taxableTotal = totalesPrecisos.totalImponible;
+    const taxTotal = totalesPrecisos.totalImpuesto;
+    const payableTotal = roundHalfUp(totalesPrecisos.totalPagar - advanceTotal, 2);
 
-    // Build payments
     let fechaParaEnviar = "";
     if (formValue.medioPago === '2') {
       if (formValue.diasPredefinidos) {
@@ -2041,46 +2018,50 @@ export class CreateInvoiceComponent {
       }
     }
 
-    // Solo incluir paymentDueDate si es crédito (medio de pago = 2)
     const payments = [{
       paymentForm: formValue.medioPago,
       paymentMethod: formValue.tipoDocumento,
       ...(fechaParaEnviar && { paymentDueDate: fechaParaEnviar })
     }];
 
-    // Invoice period (using current date as both start and end for simplicity)
     const today = new Date().toISOString().split('T')[0];
     const invoicePeriod = {
       startDate: today,
       endDate: today
     };
 
-    // Associated documents - reference to original invoice
+    const facturaOriginal = this.originalInvoiceFromTable();
+    const cufeOriginal = facturaOriginal?.cufe || originalInvoice.uuid || '';
+
+    if (!cufeOriginal) {
+      console.error('Error: No se pudo obtener el CUFE/UUID de la factura original');
+      return null;
+    }
+
     const associatedDocuments = [{
       date: originalInvoice.invoicePeriod?.startDate || today,
-      documentType: '01', // Factura de venta
+      documentType: '01',
       number: originalInvoice.number || 0,
-      uuid: originalInvoice.uuid || '' // CUDE/UUID de la factura DIAN
+      uuid: cufeOriginal
     }];
 
-    // Build the complete credit note request
     const creditNoteRequest = {
       id: this.originalInvoiceId() || 0,
       company: {
         id: empresaDian?.company?.id || '',
-        organizationType: 1, // Juridica
-        identificationType: 31, // NIT
+        organizationType: 1,
+        identificationType: 31,
         identificationNumber: empresaDian?.company?.identification || '',
         name: empresaDian?.company?.name || '',
         taxCode: {
-          id: '01' // IVA
+          id: '01'
         }
       },
       customer: {
         name: cliente.nombreCompleto || '',
         id: cliente.id.toString(),
-        organizationType: 2, // Natural
-        identificationType: '13', // Cédula
+        organizationType: 2,
+        identificationType: '13',
         identificationNumber: cliente.numeroCedula || '',
         email: cliente.correo || ''
       },
@@ -2090,8 +2071,8 @@ export class CreateInvoiceComponent {
         grossTotal: grossTotal,
         taxableTotal: taxableTotal,
         taxTotal: taxTotal,
-        discountTotal: discountTotal,
-        chargeTotal: chargeTotal,
+        discountTotal: totalesPrecisos.totalDescuentos,
+        chargeTotal: totalesPrecisos.totalCargos,
         advanceTotal: advanceTotal,
         payableTotal: payableTotal,
         currencyCode: 'COP'
@@ -2101,7 +2082,7 @@ export class CreateInvoiceComponent {
       associatedDocuments: associatedDocuments,
       conceptCode: formValue.conceptCode || '',
       note: formValue.note || '',
-      fechaEmision: formValue.fechaEmision || new Date().toISOString().split('T')[0],
+      fechaEmision: new Date().toISOString(),
       idEmpresa: empresaId,
       idCliente: cliente.id,
       usuario: usuario || 'sistema'
@@ -2113,16 +2094,12 @@ export class CreateInvoiceComponent {
   validateInvoice(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    // Validar cliente seleccionado
     if (!this.selectedClient()) {
       errors.push(' Debe seleccionar un cliente');
     }
-
-    // Validar items
     if (this.items.length === 0) {
       errors.push(' Debe agregar al menos un producto');
     } else {
-      // Validar cada item
       this.items.controls.forEach((item, index) => {
         const itemForm = item as FormGroup;
 
@@ -2154,7 +2131,6 @@ export class CreateInvoiceComponent {
       errors.push(' Debe seleccionar un Medio de Pago');
     }
 
-    // Validar que al menos una opción de plazo esté seleccionada si es crédito
     if (this.invoiceForm.get('medioPago')?.value === '2') {
       const diasPredefinidos = this.invoiceForm.get('diasPredefinidos')?.value;
       const fechaVencimiento = this.invoiceForm.get('fechaVencimiento')?.value;
@@ -2163,7 +2139,6 @@ export class CreateInvoiceComponent {
         errors.push(' Debe seleccionar días predefinidos o fecha de vencimiento');
       }
 
-      // Validar que la fecha sea posterior a hoy
       if (fechaVencimiento) {
         const dias = this.calcularDiasDesdeHoy(fechaVencimiento);
         if (dias <= 0) {
@@ -2194,7 +2169,6 @@ export class CreateInvoiceComponent {
       }
     }
 
-    // Validaciones específicas para nota de crédito
     if (this.isCreditNoteMode()) {
       if (!this.invoiceForm.get('conceptCode')?.value) {
         errors.push(' Debe seleccionar un concepto de corrección para la nota de crédito');
@@ -2207,11 +2181,6 @@ export class CreateInvoiceComponent {
       if (!this.originalInvoiceId()) {
         errors.push(' No se encontró la factura original para crear la nota de crédito');
       }
-
-      // const originalInvoice = this.originalInvoiceData();
-      // if (originalInvoice && !originalInvoice.uuid) {
-      //   errors.push(' La factura original no tiene UUID/CUDE de la DIAN. No se puede crear la nota de crédito.');
-      // }
     }
 
     return {
@@ -2234,7 +2203,6 @@ export class CreateInvoiceComponent {
     }
 
     try {
-      // Determinar si es nota de crédito o factura normal
       if (this.isCreditNoteMode()) {
         this.submitCreditNote();
       } else {
@@ -2250,7 +2218,7 @@ export class CreateInvoiceComponent {
     const request = this.buildInvoiceRequest();
 
     if (!request) {
-      this.toast.error('Error', 'No se pudo construir la factura. Verifique los datos.');
+     console.error('Error al construir la solicitud de factura');
       return;
     }
 
@@ -2285,12 +2253,10 @@ export class CreateInvoiceComponent {
           'Éxito',
           'Nota de crédito creada y enviada a DIAN exitosamente.'
         );
-
-        // Navigate back to invoices list
-        this.router.navigate(['/shell/electronic-invoicing/client-invoices']);
+        this.router.navigate(['/shell/electronic-invoicing']);
       },
       error: (error) => {
-        console.error(' Error al crear nota de crédito:', error);
+        console.error('Error al crear nota de crédito:', error);
         const errorMessage = error?.error?.message || error?.message || 'Error al crear la nota de crédito. Intente nuevamente.';
         this.toast.error('Error', errorMessage);
       },
