@@ -3,12 +3,17 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "node dist/aqua-plus/server/server.mjs",
-    "build": "ng build",
-    "build:ssr": "ng build --configuration=production",
+    "start": "ng serve --configuration development",
+    "start:ssr": "npm run build:dev && npm run serve:ssr:dev",
+    "build": "ng build --configuration production",
+    "build:dev": "ng build --configuration development",
+    "build:test": "ng build --configuration test",
+    "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:aqua-plus": "node dist/aqua-plus/server/server.mjs"
+    "serve:ssr:dev": "node dist/aqua-plus/server/server.mjs",
+    "serve:ssr:test": "node dist/aqua-plus/server/server.mjs",
+    "serve:ssr:prod": "node dist/aqua-plus/server/server.mjs"
   },
   "private": true,
   "engines": {

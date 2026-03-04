@@ -7,7 +7,7 @@ import {
 } from '../../../../../app/core/components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EmpleadoService } from '../../service/empleado.service';
-import { catchError, EMPTY, of } from 'rxjs';
+import { catchError, EMPTY, of, map } from 'rxjs';
 import { ToastService } from '@services/toast.service';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
@@ -90,8 +90,8 @@ export class Employee {
   protected readonly toastService = inject(ToastService);
 
   employeeColumns = signal([
-    { field: 'personaNombreCompleto', header: 'Nombre Completo', type: 'text' as const },
-    { field: 'numeroCedula', header: 'Cédula', type: 'text' as const },
+    { field: 'nombreCompleto', header: 'Nombre', type: 'text' as const },
+    { field: 'cedula', header: 'Cédula', type: 'text' as const },
     { field: 'codigo', header: 'Código', type: 'text' as const },
     { field: 'telefono', header: 'Teléfono', type: 'text' as const },
     { field: 'correo', header: 'Correo Electrónico', type: 'text' as const },
@@ -132,6 +132,16 @@ export class Employee {
         enterpriseId,
         pagination
       ).pipe(
+              map(response => {
+                if (response?.response && Array.isArray(response.response)) {
+                  response.response = response.response.map((empleado: any) => ({
+                    ...empleado,
+                    nombreCompleto: empleado.personaNombreCompleto || '',
+                    cedula: empleado.numeroCedula || ''
+                  }));
+                }
+                return response;
+              }),
               catchError((error) => {
                 return of(null);
               })

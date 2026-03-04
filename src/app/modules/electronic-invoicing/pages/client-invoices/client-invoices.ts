@@ -343,6 +343,10 @@ handleTableAction(event: { action: string; row?: any }): void {
 }
 
 createCreditNote(invoice: any) {
+  if (!invoice.cufe) {
+    this.toastService.warning('Advertencia', 'Esta factura no tiene CUFE. La nota de crédito podría tener problemas.');
+  }
+
   this.router.navigate(['/shell/electronic-invoicing/create'], {
     state: {
       mode: 'credit-note',

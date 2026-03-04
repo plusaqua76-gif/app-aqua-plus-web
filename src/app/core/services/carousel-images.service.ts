@@ -2,7 +2,7 @@ import { inject, Injectable, PLATFORM_ID, signal, computed } from '@angular/core
 import { HttpClient } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { environment } from '../../environments/environment.prod';
+import { environment } from '../../environments/environment';
 import { CarouselApiResponse, CarouselEmpresa } from '../interfaces/Icarousel';
 import { catchError, of } from 'rxjs';
 import { map } from 'rxjs/operators';
