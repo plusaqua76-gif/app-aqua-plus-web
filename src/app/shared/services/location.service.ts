@@ -4,7 +4,7 @@ import { map, Observable } from 'rxjs';
 import { IDepartament } from '@interfaces/Idepartament';
 import { ICity } from '@interfaces/Icity';
 import { ICorregimiento } from '@interfaces/icorregimiento';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 import { ApiResponse } from '@interfaces/Iresponse';
 
 

@@ -6,7 +6,7 @@ import {
 } from '@interfaces/IClienteKPIResponse';
 import { IBilledConsumptionApiResponse, IBilledConsumptionResponse, IColumnChartData } from '@interfaces/IBilledConsumption';
 import { IEmpresaContadorApiResponse, IEmpresaContadorResponse, IEmpresaContadorChartData } from '@interfaces/IEmpresaContadorConsumption';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { IClienteKPIParams } from '@interfaces/charts/kpi-params';
 

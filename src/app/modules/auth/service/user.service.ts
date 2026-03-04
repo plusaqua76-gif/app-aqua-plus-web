@@ -1,6 +1,6 @@
 import { inject, Injectable } from "@angular/core";
-import { environment } from "../../../environments/environment";
-import { END_POINT_SERVICE } from "../../../environments/environment.variables";
+import { environment } from "../../../../environments/environment";
+import { END_POINT_SERVICE } from "../../../../environments/environment.variables";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";

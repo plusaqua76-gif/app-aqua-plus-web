@@ -1,6 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable, PLATFORM_ID } from "@angular/core";
-import { environment } from "../../../environments/environment";
+import { environment } from "../../../../environments/environment";
 import { Observable } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";
 import { IConceptRate } from "@interfaces/IConceptRate";

@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 import { catchError, Observable, throwError } from 'rxjs';
 import { IDepartament } from '@interfaces/Idepartament';
 import { ApiResponse } from '@interfaces/Iresponse';

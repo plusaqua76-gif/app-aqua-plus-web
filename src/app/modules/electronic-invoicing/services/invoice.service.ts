@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 import { Observable } from 'rxjs';
 import { DianInvoice, ProductDian, UnitCodes } from '@interfaces/invoice/dian-invoice';
 import { ApiResponse } from '@interfaces/Iresponse';

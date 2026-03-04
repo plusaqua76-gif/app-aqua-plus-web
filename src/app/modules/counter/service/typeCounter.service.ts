@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { TYPE_COUNTER } from '../../../environments/environment.variables';
+import { TYPE_COUNTER } from '../../../../environments/environment.variables';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '@interfaces/Iresponse';
 import { ITypeCounter } from '@interfaces/ItypeCounter';

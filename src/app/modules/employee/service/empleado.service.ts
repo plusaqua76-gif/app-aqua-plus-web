@@ -1,6 +1,6 @@
 import { inject, Injectable } from "@angular/core";
-import { environment } from "../../../environments/environment";
-import { END_POINT_SERVICE } from "../../../environments/environment.variables";
+import { environment } from "../../../../environments/environment";
+import { END_POINT_SERVICE } from "../../../../environments/environment.variables";
 import { Router } from "@angular/router";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { map, Observable } from "rxjs";

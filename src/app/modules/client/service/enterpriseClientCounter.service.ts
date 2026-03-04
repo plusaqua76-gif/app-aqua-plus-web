@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '@interfaces/Iresponse';
@@ -7,7 +7,7 @@ import { SaveClientPayload, SaveClientResponse } from '@interfaces/ISaveClient';
 import {
   END_POINT_SERVICE,
   ENTERPRISE_CLIENT_COUNT,
-} from '../../../environments/environment.variables';
+} from '../../../../environments/environment.variables';
 import { IEnterpriseClientCounter } from '@interfaces/IenterpriseClientCounter';
 import { Router } from '@angular/router';
 import {
