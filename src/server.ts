@@ -8,6 +8,14 @@ import express from 'express';
 import { join } from 'node:path';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
+const APP_CONFIG = {
+  apiUrl: process.env['API_URL'] || 'http://localhost:8080/api/v1',
+  azureBlobStorageUrl: process.env['AZURE_BLOB_STORAGE_URL'] || '',
+  environment: process.env['APP_ENV'] || 'development',
+  production: process.env['APP_ENV'] === 'production'
+};
+
+(globalThis as any).APP_CONFIG = APP_CONFIG;
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
@@ -34,6 +42,40 @@ app.use(
     redirect: false,
   }),
 );
+
+app.use((req, res, next) => {
+  const originalWrite = res.write.bind(res);
+  const originalEnd = res.end.bind(res);
+  let responseBody = '';
+
+  res.write = function(chunk: any, ...args: any[]): boolean {
+    if (chunk) {
+      responseBody += chunk.toString();
+    }
+    return true;
+  };
+
+  res.end = function(chunk?: any, ...args: any[]): any {
+    if (chunk) {
+      responseBody += chunk.toString();
+    }
+
+    if (res.getHeader('content-type')?.toString().includes('text/html')) {
+      const configScript = `
+        <script>
+          window.APP_CONFIG = ${JSON.stringify(APP_CONFIG)};
+        </script>
+      `;
+      responseBody = responseBody.replace('</head>', `${configScript}</head>`);
+    }
+
+    res.write = originalWrite;
+    res.end = originalEnd;
+    return res.end(responseBody, ...args);
+  };
+
+  next();
+});
 
 /**
  * Handle all other requests by rendering the Angular application.
