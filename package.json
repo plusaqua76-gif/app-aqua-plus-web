@@ -3,9 +3,9 @@
   "version": "0.0.0",
 "scripts": {
   "start": "node dist/aqua-plus/server/server.mjs",
-  "build:ssr:qa": "ng build --configuration test",
-  "build:ssr:prod": "ng build --configuration production",
+  "build": "ng build",
   "build:dev": "ng build --configuration development",
+  "serve": "ng serve",
   "test": "ng test"
 },
   "private": true,
