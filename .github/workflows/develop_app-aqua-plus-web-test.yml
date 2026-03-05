@@ -46,16 +46,6 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E64924ECF3504939A52FF7004FE59CAA }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_04E4B3D9D34842DEB8A0B3BEC2453A34 }}
 
-      - name: Configure Azure App Settings (TEST)
-        run: |
-          az webapp config appsettings set \
-            --name app-aqua-plus-web-test \
-            --resource-group $(az webapp show --name app-aqua-plus-web-test --query resourceGroup -o tsv) \
-            --settings \
-              API_URL="https://app-aqua-plus-api-test.azurewebsites.net/api/v1" \
-              AZURE_BLOB_STORAGE_URL="https://staquaplustest.blob.core.windows.net" \
-              APP_ENV="test"
-
       - name: Deploy to Azure Web App (TEST)
         uses: azure/webapps-deploy@v3
         with:
@@ -65,7 +55,7 @@ jobs:
 
       - name: Deployment Summary
         run: |
-          echo "✅ Deployment to TEST completed successfully"
-          echo "🌐 URL: https://app-aqua-plus-web-test.azurewebsites.net"
-          echo "📦 Environment: TEST"
-          echo "🔗 API: https://app-aqua-plus-api-test.azurewebsites.net/api/v1"
+          echo "Deployment to TEST completed successfully"
+          echo "URL: https://app-aqua-plus-web-test.azurewebsites.net"
+          echo "Environment: TEST"
+          echo "🔗API: https://app-aqua-plus-api-test.azurewebsites.net/api/v1"
