@@ -65,9 +65,7 @@ jobs:
 
       - name: Deployment Summary
         run: |
-          echo "Deployment to TEST completed successfully"
-          echo "URL: https://app-aqua-plus-web-test.azurewebsites.net"
-          echo "Environment: TEST"
-          echo "API: https://app-aqua-plus-api-test.azurewebsites.net/api/v1"
-
-
+          echo "✅ Deployment to TEST completed successfully"
+          echo "🌐 URL: https://app-aqua-plus-web-test.azurewebsites.net"
+          echo "📦 Environment: TEST"
+          echo "🔗 API: https://app-aqua-plus-api-test.azurewebsites.net/api/v1"
