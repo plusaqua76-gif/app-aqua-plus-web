@@ -1,4 +1,6 @@
-name: Build and deploy Node.js app to Azure Web App - app-aqua-plus-web-prod
+# Build Once, Deploy Anywhere - Angular SSR to Azure (PRODUCTION Environment)
+
+name: Deploy to PRODUCTION - app-aqua-plus-web-prod
 
 on:
   push:
@@ -7,25 +9,31 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy: # Unimos build y deploy en un solo job para evitar el error de storage
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     permissions:
       id-token: write
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js version
+      - name: Setup Node.js 20.x
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
+          cache: 'npm'
 
-      - name: npm install and build
-        run: |
-          npm install
-          npm run build:ssr:prod
-          npm ci --omit=dev # Instalamos dependencias de prod aquí mismo
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Angular SSR (Single Build)
+        run: npm run build
+
+      - name: Install production dependencies only
+        run: npm ci --omit=dev
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -34,9 +42,16 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0D8A9E5888704B12B3CC580CCE82C0A0 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_94745A0832814300AFC99A181290D578 }}
 
-      - name: 'Deploy to Azure Web App'
+      - name: Deploy to Azure Web App (PRODUCTION)
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'app-aqua-plus-web-prod'
           slot-name: 'Production'
-          package: . # Sube el contenido actual del runner directamente
+          package: dist/aqua-plus
+
+      - name: Deployment Summary
+        run: |
+          echo "Deployment to PRODUCTION completed successfully"
+          echo "URL: https://app-aqua-plus-web-prod.azurewebsites.net"
+          echo "Environment: PRODUCTION"
+          echo "API: https://app-aqua-plus-api.azurewebsites.net/api/v1"
