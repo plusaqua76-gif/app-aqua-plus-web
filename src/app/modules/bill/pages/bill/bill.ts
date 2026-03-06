@@ -80,13 +80,16 @@ import { BillBack } from '../../../../core/components/billBack/bill-back';
       [showAddButton]="true"
       [addButtonText]="'Deuda Clientes'"
       [addButtonIcon]="'fa-solid fa-file-invoice-dollar'"
+      [showSecondaryButton]="true"
+      [secondaryButtonText]="bulkDownloadButtonText()"
+      [secondaryButtonIcon]="'fa-solid fa-download'"
       [showExportButton]="true"
       [exportFileName]="exportFileName()"
       [showColumnFilters]="true"
       [externalFilters]="tableState.columnFilters()"
       [externalFiltersVisible]="tableState.filtersVisible()"
       (action)="handleTableAction($event)"
-      (secondaryButtonAction)="goToCreateDebt()"
+      (secondaryButtonAction)="confirmBulkDownload()"
       (serverPaginationChange)="onPaginationChange($event)"
       (filtersChange)="onFiltersChange($event)"
       (filtersVisibilityChange)="onFiltersVisibilityChange($event)"
@@ -103,6 +106,31 @@ import { BillBack } from '../../../../core/components/billBack/bill-back';
       [confirmText]="'Eliminar'"
       [cancelText]="'Cancelar'"
       (confirmAction)="confirmDelete()"
+    >
+    </app-pop-up>
+
+    <!-- Popup de confirmación de descarga masiva -->
+    <app-pop-up
+      [open]="showBulkDownloadConfirm"
+      [isConfirmation]="true"
+      [title]="'Descarga Masiva de Facturas'"
+      [message]="getBulkDownloadConfirmMessage()"
+      [confirmText]="'Iniciar Descarga'"
+      [cancelText]="'Cancelar'"
+      (confirmAction)="startBulkDownload()"
+      (cancelAction)="cancelBulkDownload()"
+    >
+    </app-pop-up>
+
+    <!-- Popup de progreso de descarga masiva -->
+    <app-pop-up
+      [open]="showBulkDownloadProgress"
+      [isConfirmation]="true"
+      [title]="'Descargando Facturas'"
+      [message]="getBulkDownloadProgressMessage()"
+      [confirmText]="'Cancelar Descarga'"
+      [cancelText]="''"
+      (confirmAction)="cancelBulkDownload()"
     >
     </app-pop-up>
 
@@ -139,6 +167,15 @@ export class Bill  {
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
 
+  // Signals para descarga masiva
+  isBulkDownloading = signal(false);
+  bulkDownloadProgress = signal(0);
+  bulkDownloadTotal = signal(0);
+  bulkDownloadErrors = signal<string[]>([]);
+  showBulkDownloadConfirm = signal(false);
+  showBulkDownloadProgress = signal(false);
+  shouldCancelBulkDownload = false;
+
   protected readonly facturaService = inject(FacturaService);
   protected readonly toastService = inject(ToastService);
   protected readonly router = inject(Router);
@@ -153,11 +190,12 @@ export class Bill  {
   billColumns = signal([
     { field: 'codigo', header: 'Código', type: 'text' as const },
     { field: 'clienteNombreCompleto', header: 'Nombre', type: 'text' as const },
+    { field: 'corregimientoNombre', header: 'Ubicación', type: 'text' as const },
     { field: 'consumo', header: 'Lectura', type: 'number' as const },
     { field: 'fechaEmision', header: 'Fecha emisión', type: 'date' as const },
     { field: 'fechaFin', header: 'Fecha Vencimiento', type: 'date' as const },
     { field: 'estadoNombre', header: 'Estado', type: 'text' as const },
-    { field: 'tipoPagoNombre', header: 'Tipo Pago', type: 'text' as const },
+    // { field: 'tipoPagoNombre', header: 'Tipo Pago', type: 'text' as const }, lo comente por qeu no nos srive para nada
     { field: 'precio', header: 'Precio', type: 'currency' as const },
   ]);
 
@@ -181,6 +219,15 @@ export class Bill  {
     readonly exportFileName = computed(
     () => `facturas_${new Date().toISOString().split('T')[0]}`
   );
+
+  // Computed para el texto dinámico del botón de descarga masiva
+  readonly bulkDownloadButtonText = computed(() => {
+    if (this.isBulkDownloading()) {
+      return `Descargando... (${this.bulkDownloadProgress()}/${this.bulkDownloadTotal()})`;
+    }
+    const total = this.serverBillData.value()?.response?.length || 0;
+    return `Descargar todas (${total})`;
+  });
 
   // Usar paginationParams del servicio de estado genérico
   readonly paginationParams = this.tableState.paginationParams;
@@ -213,7 +260,7 @@ export class Bill  {
                 factura.segundoApellido
               ]
                 .filter(Boolean)
-                .join(' ') 
+                .join(' ')
                 .trim()
             }));
           }
@@ -309,14 +356,16 @@ export class Bill  {
     this.tableState.updateFiltersVisibility(visible);
   }
 
-  async downloadBillPDF(billId: number, billCode: string | number): Promise<void> {
-    if (this.isDownloading()) {
+  async downloadBillPDF(billId: number, billCode: string | number, isBulkDownload: boolean = false): Promise<boolean> {
+    if (!isBulkDownload && this.isDownloading()) {
       this.toastService.warning('Descarga en proceso', 'Ya hay una descarga en curso, por favor espere.');
-      return;
+      return false;
     }
 
-    this.isDownloading.set(true);
-    this.toastService.info('Preparando descarga', 'Generando PDF de la factura...');
+    if (!isBulkDownload) {
+      this.isDownloading.set(true);
+      this.toastService.info('Preparando descarga', 'Generando PDF de la factura...');
+    }
 
     try {
 
@@ -400,27 +449,143 @@ export class Bill  {
         await this.pdfService.convertTwoPagesToPdf(frontElement, backElement, filename);
       }
 
-      this.toastService.success(
-        '¡Descarga Exitosa!',
-        `La factura ${billCode} se ha descargado correctamente con frente y reverso.`
-      );
+      if (!isBulkDownload) {
+        this.toastService.success(
+          '¡Descarga Exitosa!',
+          `La factura ${billCode} se ha descargado correctamente con frente y reverso.`
+        );
+      }
 
       // 7. Limpiar los datos después de la descarga
       setTimeout(() => {
         this.billDataForPdf.set(null);
         this.deudaConsolidadaForPdf.set(null);
         this.backTemplateDataForPdf.set(null);
-        this.isDownloading.set(false);
-      }, 1500);
+        if (!isBulkDownload) {
+          this.isDownloading.set(false);
+        }
+      }, isBulkDownload ? 100 : 1500);
+
+      return true;
 
     } catch (error) {
       console.error('Error en downloadBillPDF:', error);
-      this.toastService.error('Error en la descarga', 'No se pudo generar el PDF de la factura');
+      if (!isBulkDownload) {
+        this.toastService.error('Error en la descarga', 'No se pudo generar el PDF de la factura');
+      }
       // Limpiar los datos en caso de error
       this.billDataForPdf.set(null);
       this.deudaConsolidadaForPdf.set(null);
       this.backTemplateDataForPdf.set(null);
-      this.isDownloading.set(false);
+      if (!isBulkDownload) {
+        this.isDownloading.set(false);
+      }
+      return false;
     }
+  }
+
+  // Métodos para descarga masiva
+  getBulkDownloadConfirmMessage(): string {
+    const total = this.serverBillData.value()?.response?.length || 0;
+    return `Está a punto de descargar ${total} factura(s) en formato PDF. Este proceso puede tomar varios minutos dependiendo de la cantidad de facturas. ¿Desea continuar?`;
+  }
+
+  getBulkDownloadProgressMessage(): string {
+    const progress = this.bulkDownloadProgress();
+    const total = this.bulkDownloadTotal();
+    const percentage = total > 0 ? Math.round((progress / total) * 100) : 0;
+    const errors = this.bulkDownloadErrors().length;
+
+    let message = `Progreso: ${progress} de ${total} facturas (${percentage}%)`;
+    if (errors > 0) {
+      message += `\n\nErrores: ${errors} factura(s) no se pudieron descargar`;
+    }
+    message += '\n\nPor favor espere...';
+
+    return message;
+  }
+
+  confirmBulkDownload(): void {
+    const bills = this.serverBillData.value()?.response;
+    if (!bills || bills.length === 0) {
+      this.toastService.warning('No hay facturas', 'No hay facturas disponibles para descargar');
+      return;
+    }
+
+    this.showBulkDownloadConfirm.set(true);
+  }
+
+  async startBulkDownload(): Promise<void> {
+    const bills = this.serverBillData.value()?.response;
+    if (!bills || bills.length === 0) return;
+
+    this.showBulkDownloadConfirm.set(false);
+    this.showBulkDownloadProgress.set(true);
+    this.isBulkDownloading.set(true);
+    this.bulkDownloadProgress.set(0);
+    this.bulkDownloadTotal.set(bills.length);
+    this.bulkDownloadErrors.set([]);
+    this.shouldCancelBulkDownload = false;
+
+    this.toastService.info('Iniciando descarga masiva', `Comenzando a descargar ${bills.length} factura(s)...`);
+
+    const errors: string[] = [];
+
+    for (let i = 0; i < bills.length; i++) {
+      // Verificar si se debe cancelar
+      if (this.shouldCancelBulkDownload) {
+        this.toastService.warning(
+          'Descarga cancelada',
+          `Se canceló la descarga. Se descargaron ${i} de ${bills.length} facturas.`
+        );
+        break;
+      }
+
+      const bill = bills[i];
+      try {
+        const success = await this.downloadBillPDF(bill.id, bill.codigo || bill.id, true);
+        if (!success) {
+          errors.push(`Factura ${bill.codigo || bill.id}`);
+        }
+      } catch (error) {
+        errors.push(`Factura ${bill.codigo || bill.id}`);
+      }
+
+      this.bulkDownloadProgress.set(i + 1);
+      this.bulkDownloadErrors.set(errors);
+
+      // Pequeño delay entre descargas para no saturar el navegador
+      if (i < bills.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 800));
+      }
+    }
+
+    // Mostrar resumen final
+    this.showBulkDownloadProgress.set(false);
+    this.isBulkDownloading.set(false);
+
+    if (!this.shouldCancelBulkDownload) {
+      const successCount = bills.length - errors.length;
+      if (errors.length === 0) {
+        this.toastService.success(
+          '¡Descarga masiva completada!',
+          `Se descargaron exitosamente ${successCount} factura(s).`
+        );
+      } else {
+        this.toastService.warning(
+          'Descarga masiva completada con errores',
+          `Se descargaron ${successCount} factura(s). ${errors.length} factura(s) fallaron: ${errors.join(', ')}`
+        );
+      }
+    }
+
+    this.shouldCancelBulkDownload = false;
+  }
+
+  cancelBulkDownload(): void {
+    this.shouldCancelBulkDownload = true;
+    this.showBulkDownloadConfirm.set(false);
+    this.showBulkDownloadProgress.set(false);
+    this.isBulkDownloading.set(false);
   }
 }

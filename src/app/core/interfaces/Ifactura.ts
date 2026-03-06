@@ -89,6 +89,7 @@ export interface IfacturaResponse {
     segundoNombre: string;
     apellido: string;
     segundoApellido: string;
+    corregimientoNombre: string;
     tarifaId: number;
     tarifaValor: string;
     lecturaId: number;
@@ -108,3 +109,4 @@ export interface IfacturaResponse {
     usuarioModificacion: string | null;
     fechaModificacion: Date | null
 }
+

@@ -47,13 +47,12 @@
           <label
             for="tipoDocumento"
             class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
-            >Tipo de Documento <span class="text-red-500">*</span></label
+            >Tipo de Documento </label
           >
           <select
             id="tipoDocumento"
             formControlName="tipoDocumento"
             class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
-            required
           >
             <option value="" disabled>Seleccione tipo de documento</option>
             @for (tipo of tiposDocumento(); track $index) {
@@ -65,12 +64,6 @@
             </option>
             }
           </select>
-          @if (updateForm.get('tipoDocumento')?.invalid &&
-          updateForm.get('tipoDocumento')?.touched) {
-          <p class="text-red-500 text-sm mt-1">
-            El tipo de documento es requerido
-          </p>
-          }
         </div>
 
         <!-- Campo: Número de Documento -->
@@ -79,7 +72,7 @@
             for="numeroDocumento"
             class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
           >
-            Número de Documento <span class="text-red-500">*</span>
+            Número de Documento
           </label>
           <div class="relative">
             <input
@@ -107,19 +100,6 @@
               </svg>
             </div>
           </div>
-          @if (updateForm.get('numeroDocumento')?.invalid &&
-          updateForm.get('numeroDocumento')?.touched) {
-          <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fill-rule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            El número de documento es requerido
-          </p>
-          }
         </div>
 
         <!-- Campo: Correo Electrónico -->
@@ -156,20 +136,6 @@
               </svg>
             </div>
           </div>
-          @if (updateForm.get('correo')?.invalid &&
-          updateForm.get('correo')?.touched) {
-          <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fill-rule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            @if (updateForm.get('correo')?.errors?.['email']) {
-            El correo debe tener un formato válido }
-          </p>
-          }
         </div>
 
         <!-- Campo: Primer Nombre -->
@@ -178,7 +144,7 @@
             for="primerNombre"
             class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
           >
-            Primer Nombre <span class="text-red-500">*</span>
+            Primer Nombre
           </label>
           <div class="relative">
             <input
@@ -206,19 +172,6 @@
               </svg>
             </div>
           </div>
-          @if (updateForm.get('primerNombre')?.invalid &&
-          updateForm.get('primerNombre')?.touched) {
-          <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fill-rule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            El primer nombre es requerido
-          </p>
-          }
         </div>
 
         <!-- Campo: Segundo Nombre -->
@@ -263,7 +216,7 @@
             for="primerApellido"
             class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
           >
-            Primer Apellido <span class="text-red-500">*</span>
+            Primer Apellido
           </label>
           <div class="relative">
             <input
@@ -291,19 +244,6 @@
               </svg>
             </div>
           </div>
-          @if (updateForm.get('primerApellido')?.invalid &&
-          updateForm.get('primerApellido')?.touched) {
-          <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fill-rule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            El primer apellido es requerido
-          </p>
-          }
         </div>
 
         <!-- Campo: Segundo Apellido -->
@@ -376,19 +316,6 @@
               </svg>
             </div>
           </div>
-          @if (updateForm.get('telefono')?.invalid &&
-          updateForm.get('telefono')?.touched) {
-          <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fill-rule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            El teléfono no es válido
-          </p>
-          }
         </div>
 
         <!-- Campo: Empleado Asignado -->
@@ -397,14 +324,13 @@
             for="idEmpleadoEmpresa"
             class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
           >
-            Empleado Asignado <span class="text-red-500">*</span>
+            Empleado Asignado
           </label>
           <div class="relative">
             <select
               id="idEmpleadoEmpresa"
               formControlName="idEmpleadoEmpresa"
               class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
-              required
               style="color: white;"
             >
               <!-- <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
@@ -443,19 +369,6 @@
               </svg>
             </div>
           </div>
-          @if (updateForm.get('idEmpleadoEmpresa')?.invalid &&
-          updateForm.get('idEmpleadoEmpresa')?.touched) {
-          <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fill-rule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            El empleado asignado es requerido
-          </p>
-          }
         </div>
 
         <!-- Campo: Departamento -->
@@ -464,14 +377,13 @@
             for="idDepartamento"
             class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
           >
-            Departamento <span class="text-red-500">*</span>
+            Departamento
           </label>
           <div class="relative">
             <select
               id="idDepartamento"
               formControlName="idDepartamento"
               class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
-              required
               style="color: white;"
             >
               <option
@@ -530,14 +442,13 @@
             for="idCiudad"
             class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
           >
-            Ciudad <span class="text-red-500">*</span>
+            Ciudad
           </label>
           <div class="relative">
             <select
               id="idCiudad"
               formControlName="idCiudad"
               class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
-              required
               style="color: white;"
             >
               <option
@@ -640,7 +551,7 @@
             for="direccion"
             class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
           >
-            Dirección <span class="text-red-500">*</span>
+            Dirección
           </label>
           <div class="relative">
             <input
@@ -668,19 +579,6 @@
               </svg>
             </div>
           </div>
-          @if (updateForm.get('direccion')?.invalid &&
-          updateForm.get('direccion')?.touched) {
-          <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fill-rule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            La dirección es requerida
-          </p>
-          }
         </div>
 
         <!-- Campo: Códigos de Residencia Fiscal (Multi-select) -->
@@ -800,7 +698,7 @@
             for="datacodigos_residencia_fiscal"
             class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
           >
-           datacodigos_residencia_fiscal  <span class="text-red-500">*</span>
+           datacodigos_residencia_fiscal
           </label>
           <div class="relative">
             <input
@@ -880,10 +778,10 @@
             <!-- Header del contador -->
             <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/10 dark:border-slate-700/30">
               <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
-                <!-- <span class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400 text-sm font-bold">
-                  {{ contadorControl.value.id }}
-                </span> -->
-                Contador # {{ contadorControl.value.serial }}
+                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                </svg>
+                Contador Serial: {{ contadorControl.value.serial || 'Sin serial' }}
               </h3>
               <div class="flex items-center gap-2">
                 @if (contadorControl.value.activo) {
@@ -903,22 +801,24 @@
                 }
               </div>
             </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <!-- Serial del Contador -->
               <div>
                 <label for="serial_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Serial del Contador <span class="text-red-500">*</span>
+                  Serial del Contador
                 </label>
                 <div class="relative">
                   <input
                     type="text"
                     id="serial_{{i}}"
                     formControlName="serial"
+                    placeholder="Ingrese el serial"
                     class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
                   />
                   <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
                     </svg>
                   </div>
                 </div>
@@ -927,10 +827,26 @@
                 }
               </div>
 
+              <!-- Estado del Contador -->
+              <div>
+                <label for="estadoContador_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
+                  Estado del Contador
+                </label>
+                <div class="relative">
+                  <select
+                    id="estadoContador_{{i}}"
+                    formControlName="estadoContador"
+                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+                  >
+                    <option value="">Seleccione un estado (opcional)</option>
+                  </select>
+                </div>
+              </div>
+
               <!-- Tipo de Contador -->
               <div>
                 <label for="tipoContador_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Tipo de Contador <span class="text-red-500">*</span>
+                  Tipo de Contador
                 </label>
                 <div class="relative">
                   <select
@@ -960,44 +876,141 @@
                 }
               </div>
 
-              <!-- Aforo del Contador -->
+              <!-- Aforo del Contador (Multiselect) -->
               <div>
-                <label for="aforoContadorId_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Aforo
+                <label for="aforosContador_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
+                  Tipos de Aforo
                 </label>
+
+                <!-- Botón del Dropdown -->
                 <div class="relative">
-                  <select
-                    id="aforoContadorId_{{i}}"
-                    formControlName="aforoContadorId"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
+                  <button
+                    id="dropdownAforosButton_{{i}}"
+                    type="button"
+                    (click)="toggleCounterAforosDropdown(i)"
+                    class="w-full inline-flex items-center justify-between px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
                   >
-                    <option value="">Sin aforo asignado</option>
-                    @if (typesAforos.isLoading()) {
-                      <option value="" disabled>Cargando aforos...</option>
-                    } @else {
-                      @for (aforo of availableAforos(); track aforo.id) {
-                        <option
-                          [value]="aforo.id"
-                          class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
-                        >
-                          {{ aforo.nombre }} - {{ aforo.tipoUso?.nombre }} ({{ aforo.tipoAforo?.descripcion }})
-                        </option>
+                    <span class="flex items-center gap-2">
+                      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                      </svg>
+                      @if (getCounterAforosSelectedCount(i) > 0) {
+                        <span>{{ getCounterAforosSelectedCount(i) }} aforo(s) seleccionado(s)</span>
+                      } @else {
+                        <span class="text-gray-400 dark:text-gray-300">Seleccionar aforos...</span>
                       }
-                    }
-                  </select>
-                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </span>
+                    <svg class="w-4 h-4 transition-transform" [class.rotate-180]="isCounterAforosDropdownOpen(i)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
                     </svg>
+                  </button>
+
+                  <!-- Dropdown Menu -->
+                  @if (isCounterAforosDropdownOpen(i)) {
+                  <div class="absolute z-[9999] mt-2 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-xl backdrop-blur-lg">
+                    <!-- Barra de búsqueda -->
+                    <div class="bg-white/50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-slate-700 p-2 rounded-t-xl">
+                      <label for="search-aforo-{{i}}" class="sr-only">Buscar aforo</label>
+                      <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                          <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                          </svg>
+                        </div>
+                        <input
+                          type="text"
+                          id="search-aforo-{{i}}"
+                          [value]="getCounterAforosSearchTerm(i)"
+                          (input)="onCounterAforosSearchChange(i, $event)"
+                          class="bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 px-2.5 py-2 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                          placeholder="Buscar aforos..."
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Lista de Checkboxes -->
+                    <ul class="max-h-60 select-none overflow-y-auto p-2 text-sm">
+                      @if (typesAforos.isLoading()) {
+                        <li class="p-4 text-center text-gray-500 dark:text-gray-400">
+                          <div class="flex justify-center">
+                            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
+                          </div>
+                        </li>
+                      } @else if (typesAforos.error()) {
+                        <li class="p-4 text-center text-red-500 dark:text-red-400">
+                          Error al cargar aforos
+                        </li>
+                      } @else {
+                        @for (aforo of getFilteredAforos(i); track aforo.id) {
+                        <li>
+                          <div class="inline-flex items-center w-full p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors">
+                            <app-checkbox
+                              [id]="'checkbox-aforo-' + i + '-' + aforo.id"
+                              [checked]="isCounterAforoSelected(i, aforo.id!)"
+                              (checkedChange)="onCounterAforoSelect(i, aforo.id!)"
+                              [widthHeight]="'20px'"
+                            ></app-checkbox>
+                            <label
+                              [for]="'checkbox-aforo-' + i + '-' + aforo.id"
+                              class="w-full ms-2 text-sm font-medium text-gray-900 dark:text-gray-200 cursor-pointer"
+                            >
+                              {{ getAforoFullInfo(aforo) }}
+                            </label>
+                          </div>
+                        </li>
+                        } @empty {
+                        <li class="p-4 text-center text-gray-500 dark:text-gray-400">
+                          No se encontraron aforos
+                        </li>
+                        }
+                      }
+                    </ul>
+
+                    <!-- Footer con acciones -->
+                    <div class="p-2 border-t border-gray-200 dark:border-slate-700 flex gap-2">
+                      <button
+                        type="button"
+                        (click)="clearCounterSelectedAforos(i)"
+                        class="flex-1 inline-flex items-center justify-center text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-xs px-3 py-2 transition-colors"
+                      >
+                        <svg class="w-4 h-4 me-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        Limpiar
+                      </button>
+                      <button
+                        type="button"
+                        (click)="closeCounterAforosDropdown(i)"
+                        class="flex-1 inline-flex items-center justify-center text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-slate-600 hover:bg-gray-300 dark:hover:bg-slate-500 focus:ring-4 focus:ring-gray-300 dark:focus:ring-slate-700 font-medium rounded-lg text-xs px-3 py-2 transition-colors"
+                      >
+                        <svg class="w-4 h-4 me-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Cerrar
+                      </button>
+                    </div>
                   </div>
+                  }
                 </div>
-                @if (contadorControl.value.aforoContadorNombre) {
-                <p class="text-gray-500 dark:text-gray-400 text-xs mt-1 flex items-center gap-1">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                  </svg>
-                  Aforo actual: {{ contadorControl.value.aforoContadorNombre }}
-                </p>
+
+                <!-- Chips de aforos seleccionados -->
+                @if (getCounterAforosSelectedCount(i) > 0) {
+                <div class="mt-3 flex flex-wrap gap-2">
+                  @for (aforoId of contadorControl.get('aforosContador')?.value || []; track aforoId) {
+                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                    {{ getAforoNameById(aforoId) }}
+                    <button
+                      type="button"
+                      (click)="onCounterAforoSelect(i, aforoId)"
+                      class="ml-1 hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5 transition-colors"
+                    >
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                    </button>
+                  </span>
+                  }
+                </div>
                 }
               </div>
 
@@ -1019,7 +1032,7 @@
               <!-- Estrato -->
               <div>
                 <label for="estrato_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Estrato <span class="text-red-500">*</span>
+                  Estrato
                 </label>
                 <div class="relative">
                   <input
@@ -1045,7 +1058,7 @@
               <!-- Dígitos del Contador -->
               <div>
                 <label for="digitos_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Dígitos del Contador <span class="text-red-500">*</span>
+                  Dígitos del Contador
                 </label>
                 <div class="relative">
                   <input
@@ -1070,7 +1083,7 @@
               <!-- Departamento del Contador -->
               <div>
                 <label for="departamento_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Departamento <span class="text-red-500">*</span>
+                  Departamento
                 </label>
                 <div class="relative">
                   <select
@@ -1110,7 +1123,7 @@
               <!-- Ciudad del Contador -->
               <div>
                 <label for="ciudad_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Ciudad <span class="text-red-500">*</span>
+                  Ciudad
                 </label>
                 <div class="relative">
                   <select
@@ -1182,10 +1195,33 @@
                 </div>
               </div>
 
+                      <div>
+          <label
+            for="tipoUso"
+            class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+            >Tipo Uso </label
+          >
+          <select
+            id="tipoUso"
+            formControlName="tipoUso"
+            class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+          >
+            <option value="" disabled>Seleccione tipo de uso</option>
+            @for (tipo of typeUseData(); track $index) {
+            <option
+              [value]="tipo.id"
+              class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
+            >
+              {{ tipo.nombre }}
+            </option>
+            }
+          </select>
+        </div>
+
               <!-- Dirección del Contador -->
               <div class="md:col-span-2 lg:col-span-3" formGroupName="descripcion">
                 <label for="descripcionTexto_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Dirección del Contador <span class="text-red-500">*</span>
+                  Dirección del Contador
                 </label>
                 <div class="relative">
                   <input
@@ -1736,7 +1772,7 @@
                   for="tipoContador"
                   class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
                 >
-                  Tipo de Contador <span class="text-red-500">*</span>
+                  Tipo de Contador
                 </label>
                 <div class="relative">
                   <select
@@ -1773,7 +1809,7 @@
                   for="serial"
                   class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
                 >
-                  Serial del Contador <span class="text-red-500">*</span>
+                  Serial del Contador
                 </label>
                 <div class="relative">
                   <input
@@ -1809,7 +1845,7 @@
                   for="counterDepartamento"
                   class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
                 >
-                  Departamento <span class="text-red-500">*</span>
+                  Departamento
                 </label>
                 <div class="relative">
                   <select
@@ -1839,7 +1875,7 @@
                   for="counterCiudad"
                   class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
                 >
-                  Ciudad <span class="text-red-500">*</span>
+                  Ciudad
                 </label>
                 <div class="relative">
                   <select
@@ -1904,7 +1940,7 @@
                   for="counterDireccion"
                   class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
                 >
-                  Dirección <span class="text-red-500">*</span>
+                  Dirección
                 </label>
                 <div class="relative">
                   <input
@@ -1940,7 +1976,7 @@
                   for="estrato"
                   class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
                 >
-                  Estrato <span class="text-red-500">*</span>
+                  Estrato
                 </label>
                 <div class="relative">
                   <input
@@ -1949,7 +1985,7 @@
                     type="number"
                     min="1"
                     max="6"
-                    placeholder="Ingrese el estrato"
+                    placeholder="Ingrese el estrato (1-6)"
                     class="w-full px-4 py-3 pl-12 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
                   />
                   <div
@@ -1975,15 +2011,15 @@
               <!-- Campo: Dígitos del Contador -->
               <div>
                 <label
-                  for="digitosContador"
+                  for="digitos"
                   class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
                 >
-                  Dígitos del Contador <span class="text-red-500">*</span>
+                  Dígitos del Contador
                 </label>
                 <div class="relative">
                   <input
-                    id="digitosContador"
-                    formControlName="digitosContador"
+                    id="digitos"
+                    formControlName="digitos"
                     type="number"
                     min="1"
                     placeholder="Número de dígitos"
@@ -2006,6 +2042,97 @@
                       />
                     </svg>
                   </div>
+                </div>
+              </div>
+
+              <!-- Campo: Fecha de Instalación -->
+              <div>
+                <label
+                  for="fechaInstalacion"
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+                >
+                  Fecha de Instalación
+                </label>
+                <div class="relative">
+                  <input
+                    id="fechaInstalacion"
+                    formControlName="fechaInstalacion"
+                    type="date"
+                    class="w-full px-4 py-3 pl-12 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+                  />
+                  <div
+                    class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                  >
+                    <svg
+                      class="w-5 h-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Campo: Tipo de Uso -->
+              <div>
+                <label
+                  for="tipoUso"
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+                >
+                  Tipo de Uso
+                </label>
+                <div class="relative">
+                  <select
+                    id="tipoUso"
+                    formControlName="tipoUso"
+                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+                    required
+                  >
+                    <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
+                      @if (typeUse.isLoading()) {
+                        Cargando tipos de uso...
+                      } @else if (typeUse.error()) {
+                        Error al cargar tipos de uso
+                      } @else {
+                        Seleccione tipo de uso
+                      }
+                    </option>
+                    @for (tipo of typeUseData(); track $index) {
+                    <option
+                      [value]="tipo.id"
+                      class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
+                    >
+                      {{ tipo.nombre }}
+                    </option>
+                    }
+                  </select>
+                </div>
+              </div>
+
+              <!-- Campo: Estado del Contador (opcional) -->
+              <div>
+                <label
+                  for="estadoContador"
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+                >
+                  Estado del Contador (Opcional)
+                </label>
+                <div class="relative">
+                  <select
+                    id="estadoContador"
+                    formControlName="estadoContador"
+                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+                  >
+                    <option value="">Seleccione un estado (opcional)</option>
+                    <!-- Los estados se cargarían de un servicio similar a tipoUso -->
+                  </select>
                 </div>
               </div>
             </div>

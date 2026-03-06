@@ -902,7 +902,7 @@
             <div class="usuario-item">
               <span class="usuario-label">Dirección:</span>
               <span class="usuario-value">
-                {{ billData()?.cliente?.direccion?.descripcion || '' }}
+                 {{ billData()?.contador?.direccion?.descripcion || '' }}
               </span>
             </div>
             <div class="usuario-item">
@@ -1007,7 +1007,7 @@
           <div class="final-total-card">
             <span class="total-label">TOTAL A PAGAR:</span>
             <span class="total-amount"
-              >{{ getTotalAPagar() | colombianCurrency }}</span
+              >{{ billData()?.totalesTarifas?.totalConDeuda | colombianCurrency }}</span
             >
           </div>
         </div>
