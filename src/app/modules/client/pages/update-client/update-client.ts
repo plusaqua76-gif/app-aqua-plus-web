@@ -26,7 +26,7 @@ import { ITipoDocumento } from '@interfaces/Iuser';
 import { LocationService } from '@shared/services/location.service';
 import { EmpleadoService } from '../../../employee/service/empleado.service';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { catchError, EMPTY, of } from 'rxjs';
+import { catchError, EMPTY, of, forkJoin } from 'rxjs';
 import { EnterpriseClientCounterService } from '../../service/enterpriseClientCounter.service';
 import { IClienteDetalle } from '@interfaces/client/IclientDetail';
 import { TypeCounterService } from '../../../counter/service/typeCounter.service';
@@ -37,10 +37,12 @@ import { switchMap } from 'rxjs';
 import { error } from 'node:console';
 import { ConfigurationMasiveBillService } from '../../../electronic-invoicing/services/configuration-masive-bill.service';
 import { filter } from 'rxjs/operators';
+import { Checkbox } from '@shared/components/checkbox';
+import { UseService } from '../../../fee/services/use.service';
 
 @Component({
   selector: 'app-update-client',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, Checkbox],
   templateUrl: './update-client.html',
   providers: [DatePipe],
 })
@@ -84,6 +86,10 @@ export class UpdateClient implements OnInit {
   selectedCodigosResidenciaFiscal = signal<string[]>([]);
   isCodigosDropdownOpen = signal<boolean>(false);
 
+  // Signals para gestión de aforos multiselect por contador
+  counterAforosDropdownOpen = signal<{ [key: number]: boolean }>({});
+  counterAforosSearchTerm = signal<{ [key: number]: string }>({});
+
   // Signals para crear nuevos contadores
   isAddCounterModalOpen = signal<boolean>(false);
   counterForm!: FormGroup;
@@ -116,6 +122,7 @@ export class UpdateClient implements OnInit {
   private readonly counterService = inject(CounterService);
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
+  protected useService = inject(UseService);
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -144,6 +151,26 @@ export class UpdateClient implements OnInit {
         .getFiscalResponsabilityTypesDian()
         .pipe(catchError((error) => of(null))),
   });
+
+    typeUse = rxResource({
+      params: () => ({
+        enterpriseId: this.empresaId(),
+      }),
+      stream: ({ params }) => {
+        if (!params.enterpriseId) {
+          return of(null);
+        }
+        return this.useService.getTypeUse(params.enterpriseId).pipe(
+          catchError((error) => {
+            return of(null);
+          }),
+        );
+      },
+    });
+
+      readonly typeUseData = computed(
+    () => this.typeUse.value()?.response || [],
+  );
 
   dataClient = rxResource({
     params: () => ({
@@ -282,6 +309,21 @@ export class UpdateClient implements OnInit {
         this.originalTarifas.set([...tarifasNoAplicanIds]);
       }
     });
+
+    // Effect para actualizar nombres de aforos cuando availableAforos esté cargado
+    effect(() => {
+      const aforos = this.availableAforos();
+      const contadoresArray = this.contadoresFormArray;
+
+      if (aforos && aforos.length > 0 && contadoresArray && contadoresArray.length > 0) {
+        contadoresArray.controls.forEach((control, index) => {
+          const aforosIds = control.get('aforosContador')?.value || [];
+          if (aforosIds.length > 0) {
+            this.updateAforoNombreForCounter(index, aforosIds);
+          }
+        });
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -302,19 +344,19 @@ export class UpdateClient implements OnInit {
   }
   private initializeForm(): void {
     this.updateForm = this.fb.group({
-      tipoDocumento: [null, [Validators.required]],
-      numeroDocumento: ['', [Validators.required]],
-      primerNombre: ['', [Validators.required]],
+      tipoDocumento: [null],
+      numeroDocumento: [''],
+      primerNombre: [''],
       segundoNombre: [''],
-      primerApellido: ['', [Validators.required]],
+      primerApellido: [''],
       segundoApellido: [''],
-      idDepartamento: ['', [Validators.required]],
-      idCiudad: ['', [Validators.required]],
+      idDepartamento: [''],
+      idCiudad: [''],
       idCorregimiento: [''],
-      direccion: ['', [Validators.required]],
+      direccion: [''],
       telefono: [''],
       correo: ['', [Validators.email]],
-      idEmpleadoEmpresa: ['', [Validators.required]],
+      idEmpleadoEmpresa: [''],
       codigosResidenciaFiscal: [''], // Formato: "O-13;230;24"
       contadores: this.fb.array([]), // Agregar FormArray para contadores
     });
@@ -333,24 +375,28 @@ export class UpdateClient implements OnInit {
 
   // Crear FormGroup para un contador
   private createCounterFormGroup(contador: any): FormGroup {
-    // Formatear fecha para input date
-    const fechaFormatted = contador.fechaInstalacion
-      ? new Date(contador.fechaInstalacion).toISOString().split('T')[0]
-      : '';
-
     // Si es un contador nuevo, no aplicar validadores ya que solo se enviará el ID
     const isNew = contador.isNewCounter || false;
 
     return this.fb.group({
       id: [contador.id],
-      serial: [contador.serial, isNew ? [] : Validators.required],
-      fechaInstalacion: [fechaFormatted],
+      serial: [
+        contador.serial || '',
+        isNew ? [] : Validators.required,
+      ],
       tipoContador: [
         contador.tipoContador?.id,
         isNew ? [] : Validators.required,
       ],
+      tipoUso: [
+        contador.tipoUso?.id || '',
+        isNew ? [] : Validators.required,
+      ],
+      estadoContador: [
+        contador.estadoContador?.id || '',
+      ],
       activo: [contador.activo],
-      isNewCounter: [isNew], // Flag para identificar contadores nuevos
+      isNewCounter: [isNew],
       estrato: [
         contador.estrato || '',
         isNew
@@ -361,9 +407,17 @@ export class UpdateClient implements OnInit {
         contador.digitos || '',
         isNew ? [] : [Validators.required, Validators.min(1)],
       ],
-      // Campo de aforo
-      aforoContadorId: [contador.aforoContador?.[0]?.id || ''],
-      aforoContadorNombre: [contador.aforoContador?.[0]?.nombre || ''],
+      fechaInstalacion: [contador.fechaInstalacion || ''],
+      aforosContador: [
+        contador.aforoContador?.map((a: any) => a.id) || []
+      ],
+      aforoContadorNombre: [
+        contador.aforoContador?.map((a: any) => a.nombre).join(', ') || ''
+      ],
+      // Guardar los datos completos de aforoContador con IDs de la tabla de relación
+      aforosContadorData: [
+        contador.aforoContador || []
+      ],
 
       // Campos editables de ubicación
       idDepartamento: [
@@ -396,6 +450,9 @@ export class UpdateClient implements OnInit {
       departamentoNombre: [contador.descripcion?.departamento?.nombre],
       ciudadNombre: [contador.descripcion?.ciudad?.nombre],
       corregimientoNombre: [contador.descripcion?.corregimiento?.nombre],
+      tipoContadorNombre: [contador.tipoContador?.nombre],
+      tipoUsoNombre: [contador.tipoUso?.nombre],
+      estadoContadorNombre: [contador.estadoContador?.descripcion],
     });
   }
 
@@ -752,6 +809,31 @@ export class UpdateClient implements OnInit {
       return;
     }
 
+    // Obtener aforos a eliminar
+    const aforosToDelete = this.getAforosToDelete();
+
+    // Si hay aforos para eliminar, eliminarlos primero
+    if (aforosToDelete.length > 0) {
+      const deleteRequests = aforosToDelete.map(idAforoRelacion =>
+        this.counterService.deleteAforoContador(idAforoRelacion)
+      );
+
+      forkJoin(deleteRequests).subscribe({
+        next: () => {
+          this.proceedWithUpdate();
+        },
+        error: (err) => {
+          console.error('Error eliminando aforos:', err);
+          this.toast.error('Error', 'No se pudieron eliminar algunos aforos');
+        },
+      });
+    } else {
+      // Si no hay aforos para eliminar, proceder directamente con la actualización
+      this.proceedWithUpdate();
+    }
+  }
+
+  private proceedWithUpdate(): void {
     // Construir payload solo con campos modificados
     const dirtyFields = this.getDirtyValues(this.updateForm);
     const payload: any = {
@@ -767,8 +849,18 @@ export class UpdateClient implements OnInit {
     }
 
     // Agregar tarifas si cambiaron
+    const tarifasDirty = this.hasTarifasChanged();
     if (tarifasDirty) {
       payload.tarifasContador = this.buildTarifasPayload();
+    }
+
+    // Agregar aforos si fueron modificados
+    const aforosPayload = this.buildAforosPayload();
+    if (aforosPayload && aforosPayload.length > 0) {
+      payload.aforosContador = aforosPayload;
+      // Extraer los IDs únicos de contadores que tienen aforos modificados
+      const contadoresIds = [...new Set(aforosPayload.map(aforo => aforo.idContador))];
+      payload.contadoresIds = contadoresIds;
     }
 
     this.enterpriseClientCounterService.updateClient(payload).subscribe({
@@ -780,6 +872,7 @@ export class UpdateClient implements OnInit {
       },
       error: (err) => {
         console.error('Error actualizando cliente:', err);
+        this.toast.error('Error', 'No se pudo actualizar el cliente');
       },
     });
   }
@@ -971,32 +1064,42 @@ export class UpdateClient implements OnInit {
 
       const payload: any = {
         id: contador.id,
-        serial: contador.serial,
         activo: contador.activo,
       };
+
+      // Agregar serial
+      if (contador.serial) {
+        payload.serial = contador.serial;
+      }
 
       if (contador.tipoContador) {
         payload.tipoContador = { id: contador.tipoContador };
       }
 
-      if (contador.fechaInstalacion) {
-        payload.fechaInstalacion = new Date(
-          contador.fechaInstalacion,
-        ).toISOString();
+      if (contador.tipoUso) {
+        payload.tipoUso = { id: contador.tipoUso };
       }
 
-      // Agregar estrato y digitos
+      if (contador.estadoContador) {
+        payload.estadoContador = { id: contador.estadoContador };
+      }
+
+      // Agregar estrato
       if (contador.estrato) {
         payload.estrato = Number(contador.estrato);
       }
+
+      // Agregar dígitos
       if (contador.digitos) {
         payload.digitos = Number(contador.digitos);
       }
 
-      // Agregar aforo si fue modificado
-      if (contador.aforoContadorId) {
-        payload.aforoContador = { id: Number(contador.aforoContadorId) };
+      // Agregar fecha de instalación
+      if (contador.fechaInstalacion) {
+        payload.fechaInstalacion = contador.fechaInstalacion;
       }
+
+      // Ya no agregamos aforo aquí, se manejará en buildAforosPayload
 
       if (contador.descripcion) {
         const departamentoId =
@@ -1032,12 +1135,81 @@ export class UpdateClient implements OnInit {
     return !current.every((id) => original.includes(id));
   }
 
-  // ==================== CREACIÓN DE NUEVOS CONTADORES ====================
+  // Construir payload de aforos en el formato esperado por el backend
+  // Formato simplificado: [{ idContador: 3325, idAforo: 2239 }]
+  private buildAforosPayload(): any[] {
+    const contadoresArray = this.contadoresFormArray;
+    const aforosPayload: any[] = [];
+
+    contadoresArray.controls.forEach((control) => {
+      const contador = control.value;
+      const aforosControl = control.get('aforosContador');
+
+      // Solo incluir si el campo de aforos fue modificado
+      if (aforosControl?.dirty) {
+        // IDs de aforos actuales seleccionados
+        const aforosIdsActuales = Array.isArray(contador.aforosContador)
+          ? contador.aforosContador.filter((id: any) => id).map((id: any) => Number(id))
+          : [];
+
+        // Crear un payload por cada aforo
+        aforosIdsActuales.forEach((aforoId: number) => {
+          aforosPayload.push({
+            idContador: Number(contador.id),
+            idAforo: aforoId
+          });
+        });
+      }
+    });
+
+    return aforosPayload;
+  }
+
+  // Obtener IDs de aforos a eliminar (IDs de la tabla intermedia aforo_contador)
+  private getAforosToDelete(): number[] {
+    const contadoresArray = this.contadoresFormArray;
+    const idsToDelete: number[] = [];
+
+    contadoresArray.controls.forEach((control) => {
+      const contador = control.value;
+      const aforosControl = control.get('aforosContador');
+
+      // Solo procesar si el campo de aforos fue modificado
+      if (aforosControl?.dirty) {
+        // IDs actuales seleccionados
+        const aforosIdsActuales = Array.isArray(contador.aforosContador)
+          ? contador.aforosContador.filter((id: any) => id).map((id: any) => Number(id))
+          : [];
+
+        // Datos originales con IDs de la relación
+        const aforosOriginales = Array.isArray(contador.aforosContadorData)
+          ? contador.aforosContadorData
+          : [];
+
+        // Identificar aforos eliminados
+        aforosOriginales.forEach((aforoOriginal: any) => {
+          const aforoIdInDb = aforoOriginal.id;
+
+          // Si el aforo original ya no está en la selección actual, debe eliminarse
+          if (!aforosIdsActuales.includes(aforoIdInDb)) {
+            // Usar el ID del aforo para eliminar la relación
+            idsToDelete.push(aforoIdInDb);
+          }
+        });
+      }
+    });
+
+    return idsToDelete;
+  }
+
+  // ====================  CREACIÓN DE NUEVOS CONTADORES ====================
 
   private initializeCounterForm(): void {
     this.counterForm = this.fb.group({
-      tipoContador: ['', Validators.required],
       serial: ['', Validators.required],
+      tipoContador: ['', Validators.required],
+      tipoUso: ['', Validators.required],
+      estadoContador: [''],
       idDepartamento: [{ value: '', disabled: true }, Validators.required],
       idCiudad: [{ value: '', disabled: true }, Validators.required],
       idCorregimiento: [''],
@@ -1046,7 +1218,8 @@ export class UpdateClient implements OnInit {
         '',
         [Validators.required, Validators.min(1), Validators.max(6)],
       ],
-      digitosContador: ['', [Validators.required, Validators.min(1)]],
+      digitos: ['', [Validators.required, Validators.min(1)]],
+      fechaInstalacion: [''],
     });
   }
 
@@ -1185,15 +1358,21 @@ export class UpdateClient implements OnInit {
       .pipe(
         switchMap((addressResponse) => {
           const counterPayload: any = {
-            tipoContador: { id: Number(formData.tipoContador) },
-            descripcion: { id: addressResponse.response.id },
             serial: formData.serial,
-            nuid: this.generateNuid(),
+            tipoContador: { id: Number(formData.tipoContador) },
+            tipoUso: { id: Number(formData.tipoUso) },
+            descripcion: { id: addressResponse.response.id },
             estrato: Number(formData.estrato),
-            digitos: Number(formData.digitosContador),
+            digitos: formData.digitos ? Number(formData.digitos) : null,
+            fechaInstalacion: formData.fechaInstalacion || null,
             activo: true,
             usuarioCreacion: usuarioCreacion,
           };
+
+          if (formData.estadoContador) {
+            counterPayload.estadoContador = { id: Number(formData.estadoContador) };
+          }
+
           return this.counterService.saveCounter(counterPayload);
         }),
       )
@@ -1206,13 +1385,25 @@ export class UpdateClient implements OnInit {
 
             const newCounter = {
               id: counter.id,
-              serial: counter.serial,
-              fechaInstalacion: counter.fechaInstalacion,
+              serial: counter.serial || formData.serial,
               tipoContador: {
                 id: counter.tipoContador?.id,
+                nombre: counter.tipoContador?.nombre,
               },
+              tipoUso: {
+                id: counter.tipoUso?.id,
+                nombre: counter.tipoUso?.nombre,
+              },
+              estadoContador: counter.estadoContador ? {
+                id: counter.estadoContador?.id,
+                descripcion: counter.estadoContador?.descripcion,
+              } : null,
+              estrato: counter.estrato,
+              digitos: counter.digitos || formData.digitos || null,
+              fechaInstalacion: counter.fechaInstalacion || formData.fechaInstalacion || null,
               activo: counter.activo,
               isNewCounter: true,
+              aforoContador: [],
               descripcion: {
                 id: counter.descripcion?.id,
                 departamento: {
@@ -1349,7 +1540,7 @@ export class UpdateClient implements OnInit {
     const tarifas: Array<{
       id: number;
       nombre: string;
-      descripcion: string;
+      descripcion?: string;
       codigo: string;
       aplica: boolean;
       registroId?: number;
@@ -1373,7 +1564,6 @@ export class UpdateClient implements OnInit {
         tarifas.push({
           id: t.id,
           nombre: t.nombre,
-          descripcion: t.descripcion,
           codigo: t.codigo,
           aplica: true,
         });
@@ -1390,4 +1580,132 @@ export class UpdateClient implements OnInit {
   readonly tarifasNoAplicadas = computed(() => {
     return this.allTarifasDisponibles().filter((t) => t.aplica === false);
   });
+
+  toggleCounterAforosDropdown(counterIndex: number): void {
+    const current = this.counterAforosDropdownOpen();
+    const newState = { ...current };
+    newState[counterIndex] = !newState[counterIndex];
+    this.counterAforosDropdownOpen.set(newState);
+
+    // Limpiar búsqueda al cerrar
+    if (!newState[counterIndex]) {
+      const searchTerms = this.counterAforosSearchTerm();
+      const newSearchTerms = { ...searchTerms };
+      newSearchTerms[counterIndex] = '';
+      this.counterAforosSearchTerm.set(newSearchTerms);
+    }
+  }
+
+  closeCounterAforosDropdown(counterIndex: number): void {
+    const current = this.counterAforosDropdownOpen();
+    const newState = { ...current };
+    newState[counterIndex] = false;
+    this.counterAforosDropdownOpen.set(newState);
+
+    // Limpiar búsqueda
+    const searchTerms = this.counterAforosSearchTerm();
+    const newSearchTerms = { ...searchTerms };
+    newSearchTerms[counterIndex] = '';
+    this.counterAforosSearchTerm.set(newSearchTerms);
+  }
+
+  isCounterAforosDropdownOpen(counterIndex: number): boolean {
+    return this.counterAforosDropdownOpen()[counterIndex] || false;
+  }
+
+  onCounterAforosSearchChange(counterIndex: number, event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const searchTerms = this.counterAforosSearchTerm();
+    const newSearchTerms = { ...searchTerms };
+    newSearchTerms[counterIndex] = target.value;
+    this.counterAforosSearchTerm.set(newSearchTerms);
+  }
+
+  getCounterAforosSearchTerm(counterIndex: number): string {
+    return this.counterAforosSearchTerm()[counterIndex] || '';
+  }
+
+  onCounterAforoSelect(counterIndex: number, aforoId: number): void {
+    const contadorControl = this.contadoresFormArray.at(counterIndex);
+    const currentAforosControl = contadorControl.get('aforosContador');
+    const currentAforos = currentAforosControl?.value || [];
+
+    const aforosArray = Array.isArray(currentAforos) ? currentAforos : [];
+    const isSelected = aforosArray.includes(aforoId);
+
+    let newAforos: number[];
+    if (isSelected) {
+      newAforos = aforosArray.filter((id: number) => id !== aforoId);
+    } else {
+      newAforos = [...aforosArray, aforoId];
+    }
+
+    currentAforosControl?.setValue(newAforos);
+    currentAforosControl?.markAsDirty();
+
+    // Actualizar el nombre para display
+    this.updateAforoNombreForCounter(counterIndex, newAforos);
+  }
+
+  isCounterAforoSelected(counterIndex: number, aforoId: number): boolean {
+    const contadorControl = this.contadoresFormArray.at(counterIndex);
+    const currentAforos = contadorControl?.get('aforosContador')?.value || [];
+    const aforosArray = Array.isArray(currentAforos) ? currentAforos : [];
+    return aforosArray.includes(aforoId);
+  }
+
+  getCounterAforosSelectedCount(counterIndex: number): number {
+    const contadorControl = this.contadoresFormArray.at(counterIndex);
+    const currentAforos = contadorControl?.get('aforosContador')?.value || [];
+    const aforosArray = Array.isArray(currentAforos) ? currentAforos : [];
+    return aforosArray.length;
+  }
+
+  clearCounterSelectedAforos(counterIndex: number): void {
+    const contadorControl = this.contadoresFormArray.at(counterIndex);
+    contadorControl?.get('aforosContador')?.setValue([]);
+    contadorControl?.get('aforoContadorNombre')?.setValue('');
+    contadorControl?.get('aforosContador')?.markAsDirty();
+    this.closeCounterAforosDropdown(counterIndex);
+  }
+
+  private updateAforoNombreForCounter(counterIndex: number, aforosIds: number[]): void {
+    const contadorControl = this.contadoresFormArray.at(counterIndex);
+    const aforos = this.availableAforos();
+    const nombres = aforosIds
+      .map(id => aforos.find(a => a.id === id)?.nombre)
+      .filter(nombre => nombre)
+      .join(', ');
+    contadorControl?.get('aforoContadorNombre')?.setValue(nombres);
+  }
+
+  getAforoFullInfo(aforo: any): string {
+    const parts = [aforo.nombre];
+    if (aforo.tipoUso?.nombre) parts.push(aforo.tipoUso.nombre);
+    if (aforo.tipoAforo?.descripcion) parts.push(`(${aforo.tipoAforo.descripcion})`);
+    return parts.join(' - ');
+  }
+
+getAforoNameById(aforoId: number): string {
+  const aforo = this.availableAforos().find(a => a.id === aforoId);
+  if (!aforo) return '';
+  const tarifa = new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0
+  }).format(aforo.tarifaBase ?? 0);
+
+  return `${aforo.nombre} - ${tarifa}`;
+}
+  getFilteredAforos(counterIndex: number): any[] {
+    const searchTerm = this.getCounterAforosSearchTerm(counterIndex).toLowerCase().trim();
+    const aforos = this.availableAforos();
+
+    if (!searchTerm) return aforos;
+
+    return aforos.filter(aforo => {
+      const fullInfo = this.getAforoFullInfo(aforo).toLowerCase();
+      return fullInfo.includes(searchTerm);
+    });
+  }
 }

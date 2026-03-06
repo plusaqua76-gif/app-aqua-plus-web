@@ -143,6 +143,8 @@ export class FacturaService {
         return this.isValidNumber(value)
           ? httpParams.set('consumo', value)
           : httpParams;
+      case 'corregimientoNombre':
+        return httpParams.set('corregimientoNombre', value);
       case 'fechaEmision':
         return this.isValidDateFormat(value)
           ? httpParams.set('fechaEmision', value)

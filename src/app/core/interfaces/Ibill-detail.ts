@@ -58,7 +58,7 @@ export interface ILectura {
   lectura: number;
   descripcion: string | null;
   fechaLectura: string;
-  consumoAnormal: boolean;
+  consumoAnormal: boolean | null;
 }
 
 export interface IFactura {
@@ -113,8 +113,10 @@ export interface IContador {
 
 export interface IDeudaCliente {
   id: number;
-  valor: number;
+  meses: number;
+  valorTotal: number;
   idFactura: number | null;
+  facturaCodigo: string | null;
   plazoPago: string;
   fechaDeuda: string;
   descripcion: string;
@@ -124,6 +126,7 @@ export interface IDeudaCliente {
 export interface ITotalesTarifas {
   total: number;
   porTipo: { [key: string]: number };
+  totalConDeuda: number;
 }
 
 export interface ILecturaHistorico {

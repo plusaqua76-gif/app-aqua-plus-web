@@ -312,7 +312,7 @@ export class BillUsers {
 
     // Sumar todas las deudas, manejando tanto string como number
     return deudas.reduce((total, deuda) => {
-      const valorDeuda = deuda.valor || 0;
+      const valorDeuda = deuda.valorTotal || 0;
       // Manejar tanto string como number por seguridad
       const valor = typeof valorDeuda === 'string'
         ? parseFloat(valorDeuda)

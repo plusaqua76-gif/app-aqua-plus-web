@@ -9,6 +9,7 @@ export interface IDeudaCliente {
     factura: IFactura;
     fechaDeuda: Date;
     valor: string;
+    valorTotal?: string;
     descripcion: string;
     activo: boolean;
     usuarioCreacion: string;
@@ -21,6 +22,7 @@ export interface IDeudaClienteResponse {
     id: number;
     fechaDeuda: string;
     valor: number;
+    valorTotal?: number;
     descripcion: string;
     activo: boolean;
     facturaId: number;

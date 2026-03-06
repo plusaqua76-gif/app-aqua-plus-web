@@ -36,6 +36,7 @@ const PARAM_KEYS = {
   PERIODOS_FACTURADOS: 'PERIODOS_FACT',
   PERIODOS_VENCIDA: 'PERIODOS_VIG',
   PERIODOS_INMEDIATO: 'PERIODOS_INM',
+  INTERES_DEUDA: 'INTERES_DEUDA',
 } as const;
 
 @Component({
@@ -108,7 +109,7 @@ const PARAM_KEYS = {
           <!-- Card 1: Días de Vigencia -->
           <div
             class="group animated-bg relative overflow-hidden rounded-xl border border-[#312f62a3] bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-6 hover:shadow-2xl transition-all duration-300"
-          >
+           >
             <!-- Animated circles -->
             <div
               class="group-hover:-top-3 bg-transparent -top-12 -right-12 absolute shadow-blue-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
@@ -179,17 +180,18 @@ const PARAM_KEYS = {
           >
             <!-- Animated circles -->
             <div
-              class="group-hover:-top-3 bg-transparent -top-12 -right-12 absolute shadow-green-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
+              class="group-hover:-top-3 bg-transparent -top-12 -right-12 absolute shadow-blue-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
             ></div>
             <div
-              class="group-hover:top-44 bg-transparent top-32 right-14 absolute shadow-emerald-500 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
+              class="group-hover:top-44 bg-transparent top-32 right-14 absolute shadow-blue-400 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
             ></div>
             <div
-              class="group-hover:-right-12 bg-transparent top-20 right-48 absolute shadow-green-700 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-20 h-20"
+              class="group-hover:-right-12 bg-transparent top-20 right-48 absolute shadow-sky-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-20 h-20"
             ></div>
             <div
-              class="group-hover:-top-32 bg-transparent top-8 right-8 absolute shadow-green-800 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-12 h-12"
+              class="group-hover:-top-32 bg-transparent top-8 right-8 absolute shadow-blue-800 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-12 h-12"
             ></div>
+
 
             <div class="relative z-10">
               <div class="flex items-start gap-4 mb-6">
@@ -245,16 +247,16 @@ const PARAM_KEYS = {
           >
             <!-- Animated circles -->
             <div
-              class="group-hover:-top-3 bg-transparent -top-12 -right-12 absolute shadow-orange-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
+              class="group-hover:-top-3 bg-transparent -top-12 -right-12 absolute shadow-blue-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
             ></div>
             <div
-              class="group-hover:top-44 bg-transparent top-32 right-14 absolute shadow-amber-500 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
+              class="group-hover:top-44 bg-transparent top-32 right-14 absolute shadow-blue-400 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
             ></div>
             <div
-              class="group-hover:-right-12 bg-transparent top-20 right-48 absolute shadow-orange-700 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-20 h-20"
+              class="group-hover:-right-12 bg-transparent top-20 right-48 absolute shadow-sky-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-20 h-20"
             ></div>
             <div
-              class="group-hover:-top-32 bg-transparent top-8 right-8 absolute shadow-orange-800 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-12 h-12"
+              class="group-hover:-top-32 bg-transparent top-8 right-8 absolute shadow-blue-800 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-12 h-12"
             ></div>
 
             <div class="relative z-10">
@@ -313,16 +315,16 @@ const PARAM_KEYS = {
           >
             <!-- Animated circles -->
             <div
-              class="group-hover:-top-3 bg-transparent -top-12 -right-12 absolute shadow-red-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
+              class="group-hover:-top-3 bg-transparent -top-12 -right-12 absolute shadow-blue-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
             ></div>
             <div
-              class="group-hover:top-44 bg-transparent top-32 right-14 absolute shadow-rose-500 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
+              class="group-hover:top-44 bg-transparent top-32 right-14 absolute shadow-blue-400 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
             ></div>
             <div
-              class="group-hover:-right-12 bg-transparent top-20 right-48 absolute shadow-red-700 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-20 h-20"
+              class="group-hover:-right-12 bg-transparent top-20 right-48 absolute shadow-sky-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-20 h-20"
             ></div>
             <div
-              class="group-hover:-top-32 bg-transparent top-8 right-8 absolute shadow-red-800 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-12 h-12"
+              class="group-hover:-top-32 bg-transparent top-8 right-8 absolute shadow-blue-800 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-12 h-12"
             ></div>
 
             <div class="relative z-10">
@@ -368,6 +370,73 @@ const PARAM_KEYS = {
                 <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
                   <i class="fas fa-info-circle mr-1"></i>
                   Número de periodos sin pagar para requerir pago inmediato
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 5: Tasa de Interés -->
+          <div
+            class="group animated-bg relative overflow-hidden rounded-xl border border-[#312f62a3] bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-6 hover:shadow-2xl transition-all duration-300"
+          >
+            <!-- Animated circles -->
+            <div
+              class="group-hover:-top-3 bg-transparent -top-12 -right-12 absolute shadow-blue-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
+            ></div>
+            <div
+              class="group-hover:top-44 bg-transparent top-32 right-14 absolute shadow-blue-400 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
+            ></div>
+            <div
+              class="group-hover:-right-12 bg-transparent top-20 right-48 absolute shadow-sky-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-20 h-20"
+            ></div>
+            <div
+              class="group-hover:-top-32 bg-transparent top-8 right-8 absolute shadow-blue-800 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-12 h-12"
+            ></div>
+
+            <div class="relative z-10">
+              <div class="flex items-start gap-4 mb-6">
+                <div
+                  class="w-14 h-14 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center flex-shrink-0"
+                >
+                  <i class="fas fa-percent text-2xl text-[#b9b7eeb9]"></i>
+                </div>
+                <div class="flex-1">
+                  <h3
+                    class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2"
+                  >
+                    Tasa de Interés
+                  </h3>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Porcentaje de interés aplicado a deudas vencidas
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
+                >
+                  Tasa de interés de mora
+                </label>
+                <div class="relative">
+                  <input
+                    type="number"
+                    [(ngModel)]="interesDeuda"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    placeholder="Ej: 1.5"
+                    class="w-full px-4 py-3.5 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 text-lg font-medium"
+                  />
+                  <div
+                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm font-medium"
+                  >
+                    %
+                  </div>
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  <i class="fas fa-info-circle mr-1"></i>
+                  Porcentaje de interés aplicado mensualmente sobre la deuda
                 </p>
               </div>
             </div>
@@ -677,6 +746,7 @@ export class BillValidityParameters {
   periodosFacturados: number = 0;
   periodosNoPagosVencida: number = 0;
   periodosPagoInmediato: number = 0;
+  interesDeuda: number = 0;
 
   guardando = signal<boolean>(false);
 
@@ -685,6 +755,7 @@ export class BillValidityParameters {
     periodosFacturados: undefined as number | undefined,
     periodosVencida: undefined as number | undefined,
     periodosInmediato: undefined as number | undefined,
+    interesDeuda: undefined as number | undefined,
   };
 
   readonly empresaId = computed(() => {
@@ -739,8 +810,14 @@ export class BillValidityParameters {
         empresaId,
         PARAM_KEYS.PERIODOS_INMEDIATO,
       ),
+      interesDeuda: this.counterEnterpriceService.getParamsEnterprice(
+        empresaId,
+        PARAM_KEYS.INTERES_DEUDA,
+      ),
     }).subscribe({
       next: (params) => {
+        console.log('Parámetros recibidos:', params);
+
         // El response puede ser un objeto o array, manejar ambos casos
         const diasParam = Array.isArray(params.diasVigencia.response)
           ? params.diasVigencia.response[0]
@@ -754,24 +831,42 @@ export class BillValidityParameters {
         const inmediatoParam = Array.isArray(params.periodosInmediato.response)
           ? params.periodosInmediato.response[0]
           : params.periodosInmediato.response;
+        const interesParam = Array.isArray(params.interesDeuda.response)
+          ? params.interesDeuda.response[0]
+          : params.interesDeuda.response;
 
-        if (diasParam) {
-          this.diasVigencia = Number(diasParam.valorParametro) || 0;
+        console.log('Parámetros procesados:', {
+          diasParam,
+          periodosParam,
+          vencidaParam,
+          inmediatoParam,
+          interesParam
+        });
+
+        if (diasParam && diasParam.valorParametro) {
+          this.diasVigencia = Number(diasParam.valorParametro);
           this.paramIds.diasVigencia = diasParam.id;
+          console.log('Días vigencia asignado:', this.diasVigencia);
         }
-        if (periodosParam) {
-          this.periodosFacturados = Number(periodosParam.valorParametro) || 0;
+        if (periodosParam && periodosParam.valorParametro) {
+          this.periodosFacturados = Number(periodosParam.valorParametro);
           this.paramIds.periodosFacturados = periodosParam.id;
+          console.log('Periodos facturados asignado:', this.periodosFacturados);
         }
-        if (vencidaParam) {
-          this.periodosNoPagosVencida =
-            Number(vencidaParam.valorParametro) || 0;
+        if (vencidaParam && vencidaParam.valorParametro) {
+          this.periodosNoPagosVencida = Number(vencidaParam.valorParametro);
           this.paramIds.periodosVencida = vencidaParam.id;
+          console.log('Periodos vencida asignado:', this.periodosNoPagosVencida);
         }
-        if (inmediatoParam) {
-          this.periodosPagoInmediato =
-            Number(inmediatoParam.valorParametro) || 0;
+        if (inmediatoParam && inmediatoParam.valorParametro) {
+          this.periodosPagoInmediato = Number(inmediatoParam.valorParametro);
           this.paramIds.periodosInmediato = inmediatoParam.id;
+          console.log('Periodos inmediato asignado:', this.periodosPagoInmediato);
+        }
+        if (interesParam && interesParam.valorParametro) {
+          this.interesDeuda = Number(interesParam.valorParametro);
+          this.paramIds.interesDeuda = interesParam.id;
+          console.log('Interés deuda asignado:', this.interesDeuda);
         }
       },
       error: (error) => {
@@ -798,6 +893,7 @@ export class BillValidityParameters {
       this.periodosFacturados > 0 &&
       this.periodosNoPagosVencida > 0 &&
       this.periodosPagoInmediato > 0 &&
+      this.interesDeuda > 0 &&
       this.periodosNoPagosVencida < this.periodosPagoInmediato
     );
   }
@@ -846,6 +942,14 @@ export class BillValidityParameters {
         empresa: { id: empresaId },
         llave: PARAM_KEYS.PERIODOS_INMEDIATO,
         valorParametro: String(this.periodosPagoInmediato),
+        activo: true,
+        usuarioCreacion: usuario,
+      },
+      {
+        id: this.paramIds.interesDeuda,
+        empresa: { id: empresaId },
+        llave: PARAM_KEYS.INTERES_DEUDA,
+        valorParametro: String(this.interesDeuda),
         activo: true,
         usuarioCreacion: usuario,
       },
