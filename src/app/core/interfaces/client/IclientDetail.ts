@@ -1,8 +1,10 @@
 // Interfaces para la respuesta detallada del cliente
+
 export interface ITipoDocumento {
   id: number;
   nombre: string;
   codigo: string;
+  idTipoDian: string;
 }
 
 export interface ICiudad {
@@ -39,7 +41,7 @@ export interface IPersona {
   segundoNombre?: string;
   apellido: string;
   segundoApellido?: string;
-  discapacidad: boolean;
+  discapacidad?: boolean;
   activo: boolean;
 }
 
@@ -57,22 +59,43 @@ export interface IDescripcionContador {
   usuarioCreacion: string;
 }
 
+export interface IEstadoContador {
+  id: number;
+  codigoPadre: string;
+  codigo: string;
+  descripcion: string;
+  activo: boolean;
+  usuarioCreacion: string;
+  fechaCreacion: string;
+}
+
+export interface ITipoUso {
+  id: number;
+  nombre: string;
+  codigo: string;
+}
+
+export interface IAforoContador {
+  id: number;
+  nombre: string;
+  tarifaBase: number;
+}
+
 export interface IContador {
   id: number;
   tipoContador: ITipoContador;
   descripcion: IDescripcionContador;
-  serial: string;
-  digitos: number;
-  fechaInstalacion: string;
-  nuid: number;
+  estadoContador: IEstadoContador;
+  tipoUso: ITipoUso;
   estrato: number;
   activo: boolean;
+  aforoContador?: IAforoContador[];
 }
 
 export interface ITipoTarifa {
   id: number;
   nombre: string;
-  descripcion: string;
+  descripcion?: string;
   codigo: string;
 }
 
@@ -82,21 +105,22 @@ export interface ITarifa {
   aplica: boolean;
 }
 
+export interface ITipoTarifaFaltante {
+  id: number;
+  nombre: string;
+  codigo: string;
+}
+
 export interface IClienteDetalle {
   persona: IPersona;
   contadores: IContador[];
-  empleadoEmpresaId: number;
-  empleadoNombre: string;
-  correo: string;
+  empleadoEmpresaId: number | null;
+  empleadoNombre: string | null;
+  correo: string | null;
   telefono: string;
-  codigosResidenciaFiscal?: string; // Formato: "O-13;230;24"
+  codigosResidenciaFiscal?: string;
   tarifasContadores: ITarifa[];
-  tiposTarifaFaltantes: ITipoTarifa[];
-}
-
-
-export interface tiposTarifaFaltantes {
-
+  tiposTarifaFaltantes: ITipoTarifaFaltante[];
 }
 
 export interface IClienteDetalleApiResponse {
@@ -105,5 +129,3 @@ export interface IClienteDetalleApiResponse {
   code: number;
   response: IClienteDetalle;
 }
-
-

@@ -42,35 +42,117 @@
           <label for="cliente" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
             Cliente <span class="text-red-500">*</span>
           </label>
-          <div class="relative">
-            <select
-              id="cliente"
-              formControlName="empresaClienteContadorId"
-              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+
+          <!-- Buscador de Cliente -->
+          <div class="relative mb-3">
+            <input
+              type="text"
+              #searchInput
+              [(ngModel)]="searchTerm"
+              [ngModelOptions]="{standalone: true}"
+              (input)="onSearchChange($event)"
+              placeholder="Buscar cliente por documento o nombre..."
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
               [class.border-red-500]="deudaForm.get('empresaClienteContadorId')?.invalid && deudaForm.get('empresaClienteContadorId')?.touched"
-              required>
-              <option
-                value=""
-                disabled
-                selected
-                hidden
-                class="text-gray-400 dark:text-gray-500"
+            />
+            @if (isSearching()) {
+              <div class="absolute right-3 top-3">
+                <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+              </div>
+            } @else {
+              <svg
+                class="w-5 h-5 text-gray-400 absolute right-3 top-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                @if (dataClients.isLoading()) { Cargando clientes... } @else {
-                Seleccione un cliente... }
-              </option>
-              @for (client of dataClients.value()?.response ?? []; track client.id) {
-                <option [value]="client.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
-                  {{ client.nombreCompleto }}
-                </option>
-              }
-            </select>
-            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
-            </div>
+            }
+
+            @if (showResults() && searchResults().length > 0) {
+              <div class="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                @for (cliente of searchResults(); track cliente.id) {
+                  <button
+                    type="button"
+                    (click)="selectClient(cliente)"
+                    class="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-200 dark:border-gray-700 last:border-b-0"
+                  >
+                    <div class="flex flex-col">
+                      <span class="text-gray-900 dark:text-white font-medium">{{ cliente.nombreCompleto }}</span>
+                      <span class="text-sm text-gray-600 dark:text-gray-400">Cédula: {{ cliente.numeroCedula }}</span>
+                      @if (cliente.correo) {
+                        <span class="text-xs text-gray-500 dark:text-gray-500">{{ cliente.correo }}</span>
+                      }
+                    </div>
+                  </button>
+                }
+              </div>
+            }
+
+            @if (showResults() && searchResults().length === 0 && searchTerm.length > 2) {
+              <div class="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-4">
+                <p class="text-gray-600 dark:text-gray-400 text-sm text-center">
+                  No se encontraron clientes
+                </p>
+              </div>
+            }
           </div>
+
+          @if (selectedClient()) {
+            <div class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/30 rounded-lg space-y-1">
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <p class="text-gray-900 dark:text-white font-semibold">
+                    {{ selectedClient()?.nombreCompleto }}
+                  </p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Cédula: {{ selectedClient()?.numeroCedula }}
+                  </p>
+                  @if (selectedClient()?.correo) {
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      {{ selectedClient()?.correo }}
+                    </p>
+                  }
+                  @if (selectedClient()?.telefono) {
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Tel: {{ selectedClient()?.telefono }}
+                    </p>
+                  }
+                </div>
+                <button
+                  type="button"
+                  (click)="clearClient()"
+                  class="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-1"
+                  title="Limpiar selección"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="text-sm text-gray-500 dark:text-gray-500 italic p-3 bg-white/5 dark:bg-gray-800/30 rounded-lg">
+              Busca y selecciona un cliente
+            </div>
+          }
+
           @if (deudaForm.get('empresaClienteContadorId')?.invalid && deudaForm.get('empresaClienteContadorId')?.touched) {
             <p class="mt-1 text-sm text-red-600">Debe seleccionar un cliente</p>
           }
@@ -208,8 +290,8 @@
           }
         </div>
 
-        <!-- Descripción - campo que ocupa toda la fila -->
-        <div class="md:col-span-2">
+        <!-- Descripción - ahora al lado del valor -->
+        <div>
           <label for="descripcion" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
             Descripción <span class="text-red-500">*</span>
           </label>
@@ -217,7 +299,7 @@
             <textarea
               id="descripcion"
               formControlName="descripcion"
-              rows="4"
+              rows="3"
               placeholder="Describa el motivo o detalle de la deuda..."
               class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 resize-none"
               [class.border-red-500]="deudaForm.get('descripcion')?.invalid && deudaForm.get('descripcion')?.touched">
@@ -247,10 +329,41 @@
             </span>
           </div>
         </div>
+
+        <!-- Desglose de interés - ahora en toda la fila debajo -->
+        @if (valorFormulario() > 0 && tasaInteres() > 0) {
+          <div class="md:col-span-2">
+            <div class="w-full py-3 px-5 rounded-xl border border-white/20 bg-white/10 dark:bg-slate-700/30 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-700/40">
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                  <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  <span class="text-gray-600 dark:text-gray-400 text-xs">Valor base:</span>
+                  <span class="font-bold text-gray-900 dark:text-white">
+                    ${{ valorFormulario().toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-600 dark:text-gray-400 text-xs">Interés ({{ tasaInteres() }}%):</span>
+                  <span class="font-bold text-orange-600 dark:text-orange-400">
+                    +${{ valorInteres().toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-2 px-3 py-1 rounded-lg bg-blue-500/20 dark:bg-blue-500/30 border border-blue-500/30">
+                  <span class="text-blue-700 dark:text-blue-300 text-xs font-semibold">Total:</span>
+                  <span class="text-lg font-bold text-blue-700 dark:text-blue-300">
+                    ${{ totalConInteres().toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
       </div>
 
       <!-- Loading States -->
-      @if (dataClients.isLoading() || plazopago.isLoading() || tipodeuda.isLoading()) {
+      @if (plazopago.isLoading() || tipodeuda.isLoading() || parametroInteres.isLoading()) {
         <div class="flex items-center justify-center py-8">
           <div class="flex items-center space-x-3 text-blue-600 dark:text-blue-400">
             <svg class="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -258,6 +371,174 @@
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             <span class="text-sm font-medium">Cargando datos...</span>
+          </div>
+        </div>
+      }
+
+      <!-- Alerta si no hay tasa de interés configurada -->
+      @if (!parametroInteres.isLoading() && tasaInteres() === 0) {
+        <div class="flex items-start gap-3 p-4 rounded-xl bg-yellow-50/50 dark:bg-yellow-900/20 border border-yellow-200/50 dark:border-yellow-700/30 mb-6">
+          <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div class="flex-1">
+            <p class="text-sm font-semibold text-yellow-800 dark:text-yellow-300">Tasa de interés no configurada</p>
+            <p class="text-xs text-yellow-700 dark:text-yellow-400 mt-1">
+              No se aplicará interés a las deudas. Configure la tasa de interés en Configuración Empresarial.
+            </p>
+          </div>
+        </div>
+      }
+
+      <!-- Resumen de la deuda con cuotas -->
+      @if (valorFormulario() > 0 && numeroMeses() > 0) {
+        <div class="mt-6 p-6 rounded-xl border border-white/20 bg-white/10 dark:bg-slate-700/30 backdrop-blur-md hover:bg-white/15 dark:hover:bg-slate-700/40 transition-all duration-300">
+          <!-- Header -->
+          <div class="flex items-center gap-3 mb-5 pb-4 border-b border-white/20 dark:border-slate-600/30">
+            <div class="p-3 rounded-lg bg-blue-500/20 dark:bg-blue-500/30 border border-blue-500/30">
+              <svg class="w-6 h-6 text-blue-700 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white">Resumen de la Deuda</h3>
+              <p class="text-xs text-gray-600 dark:text-gray-400">Desglose detallado de pagos y cuotas</p>
+            </div>
+          </div>
+
+          <!-- Información general -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="relative p-4 rounded-xl border border-white/20 bg-white/10 dark:bg-slate-700/30 backdrop-blur-md hover:bg-white/15 dark:hover:bg-slate-700/40 transition-transform duration-300 ease-in-out overflow-hidden group hover:scale-105">
+              <div class="relative z-20 w-full">
+                <p class="text-xs text-gray-600 dark:text-gray-400 mb-2 font-semibold">Valor Base</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">
+                  ${{ valorFormulario().toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                </p>
+              </div>
+              <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"></span>
+            </div>
+            <div class="relative p-4 rounded-xl border border-orange-500/30 bg-orange-50/50 dark:bg-orange-900/20 backdrop-blur-md hover:bg-orange-50/70 dark:hover:bg-orange-900/30 transition-transform duration-300 ease-in-out overflow-hidden group hover:scale-105">
+              <div class="relative z-20 w-full">
+                <p class="text-xs text-orange-700 dark:text-orange-400 mb-2 font-semibold">Interés Total ({{ tasaInteres() }}%)</p>
+                <p class="text-2xl font-bold text-orange-700 dark:text-orange-300">
+                  ${{ valorInteres().toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                </p>
+              </div>
+              <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"></span>
+            </div>
+            <div class="relative  p-4 rounded-xl border border-blue-500/30 bg-blue-50/50 dark:bg-blue-900/30 backdrop-blur-md hover:bg-blue-50/70 dark:hover:bg-blue-900/40 transition-transform duration-300 ease-in-out overflow-hidden group hover:scale-105">
+              <div class="relative z-20 w-full">
+                <p class="text-xs text-blue-700 dark:text-blue-400 mb-2 font-semibold">Total a Pagar</p>
+                <p class="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                  ${{ totalConInteres().toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                </p>
+              </div>
+              <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"></span>
+            </div>
+          </div>
+
+          <!-- Plan de pagos -->
+          <div class="space-y-4">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="p-2 rounded-lg bg-blue-500/20 dark:bg-blue-500/30 border border-blue-500/30">
+                <svg class="w-5 h-5 text-blue-700 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h4 class="text-base font-bold text-gray-900 dark:text-white">
+                Plan de Pagos - {{ numeroMeses() }} {{ numeroMeses() === 1 ? 'Cuota' : 'Cuotas' }} Mensuales
+              </h4>
+            </div>
+
+            <!-- Tabla de cuotas -->
+            <div class="overflow-hidden rounded-xl border border-white/20 bg-white/10 dark:bg-slate-700/30 backdrop-blur-md">
+              <table class="w-full text-sm">
+                <thead class="bg-white/20 dark:bg-slate-600/30 border-b border-white/20 dark:border-slate-600/30">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Cuota</th>
+                    <th class="px-4 py-3 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Capital</th>
+                    <th class="px-4 py-3 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Interés</th>
+                    <th class="px-4 py-3 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Total Cuota</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/10 dark:divide-slate-600/20">
+                  @for (cuota of Array(numeroMeses()).fill(0); track $index) {
+                    <tr class="hover:bg-white/10 dark:hover:bg-slate-600/20 transition-all duration-200">
+                      <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">
+                        Cuota {{ $index + 1 }}
+                      </td>
+                      <td class="px-4 py-3 text-right text-gray-700 dark:text-gray-300 font-medium">
+                        ${{ capitalPorCuota().toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                      </td>
+                      <td class="px-4 py-3 text-right text-orange-600 dark:text-orange-400 font-medium">
+                        ${{ interesPorCuota().toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                      </td>
+                      <td class="px-4 py-3 text-right font-bold text-blue-700 dark:text-blue-300">
+                        ${{ valorCuota().toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+                <tfoot class="bg-white/20 dark:bg-slate-600/40 border-t-2 border-white/30 dark:border-slate-600/40">
+                  <tr class="font-bold">
+                    <td class="px-4 py-4 text-gray-900 dark:text-white uppercase tracking-wide">TOTAL</td>
+                    <td class="px-4 py-4 text-right text-gray-900 dark:text-white">
+                      ${{ valorFormulario().toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                    </td>
+                    <td class="px-4 py-4 text-right text-orange-700 dark:text-orange-300">
+                      ${{ valorInteres().toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                    </td>
+                    <td class="px-4 py-4 text-right text-blue-700 dark:text-blue-300 text-lg">
+                      ${{ totalConInteres().toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <!-- Nota informativa -->
+            <div class="flex items-start gap-3 p-4 rounded-xl border border-blue-500/30 bg-blue-50/50 dark:bg-blue-900/20 backdrop-blur-md">
+              <div class="p-2 rounded-lg bg-blue-500/20 dark:bg-blue-500/30 border border-blue-500/30 flex-shrink-0">
+                <svg class="w-5 h-5 text-blue-700 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div class="flex-1">
+                <p class="text-xs font-semibold text-blue-800 dark:text-blue-300 mb-1">Información del Plan</p>
+                <p class="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
+                  El interés del <span class="text-orange-600 dark:text-orange-400 font-semibold">{{ tasaInteres() }}%</span> se distribuirá equitativamente en cada cuota mensual.
+                  El cliente deberá pagar <span class="text-blue-700 dark:text-blue-300 font-semibold">${{ valorCuota().toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span> por mes durante <span class="text-gray-900 dark:text-white font-semibold">{{ numeroMeses() }} {{ numeroMeses() === 1 ? 'mes' : 'meses' }}</span>.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      } @else if (valorFormulario() > 0 || numeroMeses() > 0) {
+        <!-- Mensaje de ayuda cuando faltan datos -->
+        <div class="mt-6 p-6 rounded-xl bg-gradient-to-br from-gray-50/80 to-gray-100/80 dark:from-gray-800/20 dark:to-gray-900/20 border border-gray-200/50 dark:border-gray-700/30 backdrop-blur-sm">
+          <div class="flex items-start gap-3">
+            <div class="p-2 rounded-lg bg-gray-500/20 dark:bg-gray-500/30">
+              <svg class="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h4 class="text-sm font-bold text-gray-800 dark:text-white mb-2">Calculadora de Deuda</h4>
+              <div class="space-y-2 text-xs text-gray-700 dark:text-gray-300">
+                @if (valorFormulario() === 0) {
+                  <p class="flex items-center gap-2">
+                    <span class="inline-block w-2 h-2 rounded-full bg-orange-500"></span>
+                    Ingrese el <strong>valor de la deuda</strong> para ver el cálculo
+                  </p>
+                }
+                @if (numeroMeses() === 0) {
+                  <p class="flex items-center gap-2">
+                    <span class="inline-block w-2 h-2 rounded-full bg-orange-500"></span>
+                    Seleccione el <strong>plazo de pago</strong> para ver la distribución de cuotas
+                  </p>
+                }
+              </div>
+            </div>
           </div>
         </div>
       }

@@ -5,12 +5,15 @@ import { EnterpriseClientCounterService } from '../../../client/service/enterpri
 import { PlazoPagoService } from '../../service/plazoPago.service';
 import { ToastService } from '@services/toast.service';
 import { PqrEnterprisesService } from '../../../pqr-client/services/pqr-enterprices.service';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { of, catchError } from 'rxjs';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { of, catchError, startWith, map, Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { TipoDeudaService } from '../../service/tipoDeuda.service';
 import { DeudaService } from '../../service/deuda.service';
 import { IDeudaCliente } from '@interfaces/IdeudaFactura';
 import { Router } from '@angular/router';
+import { CounterEnterpriceService } from '../../../fee/services/counter-enterprice.service';
+import { ClientRaw } from '@interfaces/client/IclientRaw';
+import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
 
 @Component({
@@ -20,6 +23,8 @@ import { Router } from '@angular/router';
   standalone: true,
 })
 export class CreateDebt  {
+  // Exponer Array para usar en el template
+  protected readonly Array = Array;
 
   protected readonly toastService = inject(ToastService);
   protected readonly pqrService = inject(PqrEnterprisesService);
@@ -31,7 +36,16 @@ export class CreateDebt  {
   private readonly deudaService = inject(DeudaService);
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly counterEnterpriceService = inject(CounterEnterpriceService);
   readonly procesandoDeuda = signal(false);
+
+  // Propiedades para búsqueda de clientes
+  searchTerm = '';
+  private searchSubject = new Subject<string>();
+  searchResults = signal<ClientRaw[]>([]);
+  selectedClient = signal<ClientRaw | null>(null);
+  showResults = signal(false);
+  isSearching = signal(false);
 
   readonly deudaForm = this.fb.group({
     empresaClienteContadorId: [null, [Validators.required]],
@@ -68,22 +82,9 @@ export class CreateDebt  {
     return data?.nombre || null;
   });
 
-  dataClients = rxResource({
-    params: () => ({
-      empresaId: this.empresaId()
-    }),
-    stream: ({ params }) => {
-      const { empresaId } = params;
-      if (!empresaId) {
-        return of(null);
-      }
-      return this.enterpriseClientCounterService.getAllClientsByIdEnterprise(empresaId).pipe(
-        catchError(error => {
-          return of({ success: false, response: [], message: 'Error al cargar clientes' });
-        })
-      );
-    }
-  })
+  constructor() {
+    this.initClientSearch();
+  }
 
   plazopago = rxResource({
     stream: () => this.plazoPagoService.getAllPlazoPago().pipe(
@@ -102,6 +103,209 @@ export class CreateDebt  {
       })
     )
   })
+
+  // Parámetro de interés de mora
+  parametroInteres = rxResource({
+    params: () => ({
+      empresaId: this.empresaId()
+    }),
+    stream: ({ params }) => {
+      const { empresaId } = params;
+      if (!empresaId) {
+        return of(null);
+      }
+      return this.counterEnterpriceService.getParamsEnterprice(empresaId, 'INTERES_DEUDA').pipe(
+        catchError(error => {
+          console.error('Error loading interest parameter:', error);
+          return of(null);
+        })
+      );
+    }
+  });
+
+  // Tasa de interés como número
+  readonly tasaInteres = computed(() => {
+    const paramResponse = this.parametroInteres.value();
+    if (!paramResponse) return 0;
+
+    const param = Array.isArray(paramResponse.response)
+      ? paramResponse.response[0]
+      : paramResponse.response;
+
+    return param?.valorParametro ? Number(param.valorParametro) : 0;
+  });
+
+  // Valor del formulario reactivo
+  private valorControl = toSignal(
+    this.deudaForm.get('valor')!.valueChanges.pipe(
+      startWith(this.deudaForm.get('valor')?.value),
+      map(val => val ? Number(val) : 0)
+    ),
+    { initialValue: 0 }
+  );
+
+  // Plazo de pago reactivo
+  private plazoPagoControl = toSignal(
+    this.deudaForm.get('plazoPagoId')!.valueChanges.pipe(
+      startWith(this.deudaForm.get('plazoPagoId')?.value)
+    ),
+    { initialValue: null }
+  );
+
+  readonly valorFormulario = computed(() => this.valorControl());
+
+  // Lista de plazos de pago
+  readonly plazoPagoOptions = computed(() => {
+    return this.plazopago.value()?.response || [];
+  });
+
+  // Cálculo del interés
+  readonly valorInteres = computed(() => {
+    const valor = this.valorFormulario();
+    const tasa = this.tasaInteres();
+    return valor * (tasa / 100);
+  });
+
+  // Total con interés
+  readonly totalConInteres = computed(() => {
+    return this.valorFormulario() + this.valorInteres();
+  });
+
+  // Plazo de pago seleccionado (reactivo)
+  readonly plazoSeleccionado = computed(() => {
+    const plazoPagoId = this.plazoPagoControl();
+    console.log('🔄 plazoSeleccionado - ID:', plazoPagoId);
+
+    if (!plazoPagoId) {
+      return null;
+    }
+
+    const plazo = this.plazoPagoOptions().find(p => p.id === Number(plazoPagoId));
+    console.log('🔄 plazoSeleccionado - plazo encontrado:', plazo);
+    return plazo || null;
+  });
+
+  // Extraer número de meses del plazo
+  readonly numeroMeses = computed(() => {
+    const plazo = this.plazoSeleccionado();
+    console.log('📅 numeroMeses - plazo recibido:', plazo);
+
+    if (!plazo) {
+      console.log('📅 numeroMeses - SIN PLAZO, retornando 0');
+      return 0;
+    }
+
+    // Buscar número de meses en nombre o descripción
+    const texto = `${plazo.nombre || ''} ${plazo.descripcion || ''}`;
+    console.log('📅 numeroMeses - texto completo:', texto);
+
+    const match = texto.match(/(\d+)\s*mes/i);
+    console.log('📅 numeroMeses - regex match:', match);
+
+    const meses = match ? parseInt(match[1], 10) : 0;
+    console.log('📅 numeroMeses - RESULTADO FINAL:', meses);
+
+    return meses;
+  });
+
+  // Valor de cada cuota
+  readonly valorCuota = computed(() => {
+    const total = this.totalConInteres();
+    const meses = this.numeroMeses();
+    return meses > 0 ? total / meses : 0;
+  });
+
+  // Interés por cuota
+  readonly interesPorCuota = computed(() => {
+    const interes = this.valorInteres();
+    const meses = this.numeroMeses();
+    return meses > 0 ? interes / meses : 0;
+  });
+
+  // Capital por cuota
+  readonly capitalPorCuota = computed(() => {
+    const valor = this.valorFormulario();
+    const meses = this.numeroMeses();
+    return meses > 0 ? valor / meses : 0;
+  });
+
+  private initClientSearch(): void {
+    this.searchSubject
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        switchMap((term) => {
+          if (term.length < 3) {
+            this.searchResults.set([]);
+            this.showResults.set(false);
+            this.isSearching.set(false);
+            return of(null);
+          }
+
+          this.isSearching.set(true);
+          const empresaId = this.empresaId();
+
+          if (!empresaId) {
+            this.isSearching.set(false);
+            return of(null);
+          }
+
+          const isNumeric = /^\d+$/.test(term.trim());
+
+          const params: IPaginationParams = {
+            page: 0,
+            size: 10,
+            filters: isNumeric
+              ? { numeroCedula: term.trim() }
+              : { nombreCompleto: term.trim() },
+          };
+
+          return this.enterpriseClientCounterService
+            .getAllClientsByIdEnterprisePaginated(empresaId, params)
+            .pipe(
+              catchError((error) => {
+                console.error('Error buscando clientes:', error);
+                return of(null);
+              })
+            );
+        })
+      )
+      .subscribe((response) => {
+        this.isSearching.set(false);
+        if (response?.response) {
+          this.searchResults.set(response.response);
+          this.showResults.set(true);
+        } else {
+          this.searchResults.set([]);
+          this.showResults.set(false);
+        }
+      });
+  }
+
+  onSearchChange(event: Event): void {
+    const term = (event.target as HTMLInputElement).value;
+    this.searchSubject.next(term);
+  }
+
+  selectClient(cliente: ClientRaw): void {
+    this.selectedClient.set(cliente);
+    this.showResults.set(false);
+    this.searchTerm = cliente.nombreCompleto || '';
+    // Actualizar el formulario con el ID del cliente
+    this.deudaForm.patchValue({
+      empresaClienteContadorId: cliente.id as any
+    });
+  }
+
+  clearClient(): void {
+    this.selectedClient.set(null);
+    this.searchTerm = '';
+    this.searchResults.set([]);
+    this.showResults.set(false);
+    this.deudaForm.patchValue({
+      empresaClienteContadorId: null
+    });
+  }
 
   onSubmit(): void {
     if (this.deudaForm.invalid) {
@@ -136,23 +340,27 @@ export class CreateDebt  {
       return;
     }
 
-    // Buscar el cliente seleccionado para obtener el empresaClienteContadorId
-    const clienteSeleccionado = this.dataClients.value()?.response?.find(
-      cliente => cliente.id === Number(formValue.empresaClienteContadorId)
-    );
+    // Verificar que haya un cliente seleccionado
+    const clienteSeleccionado = this.selectedClient();
 
     if (!clienteSeleccionado) {
-      this.toastService.error('Error', 'No se pudo obtener la información del cliente seleccionado');
+      this.toastService.error('Error', 'Debe seleccionar un cliente');
       this.procesandoDeuda.set(false);
       return;
     }
+
+    // Calcular el valor total con interés
+    const valorBase = Number(formValue.valor);
+    const tasaInteres = this.tasaInteres();
+    const valorInteres = valorBase * (tasaInteres / 100);
+    const valorTotal = valorBase + valorInteres;
 
     const deuda: Partial<IDeudaCliente> = {
       empresaClienteContador: { id: (clienteSeleccionado as any).empresaClienteContadorId } as any,
       tipoDeuda: tipoDeudaSeleccionado,
       plazoPago: plazoPagoSeleccionado.nombre,
       fechaDeuda: new Date(formValue.fechaDeuda!),
-      valor: formValue.valor!,
+      valor: String(valorTotal),
       descripcion: formValue.descripcion!,
       activo: true,
       usuarioCreacion: usuario,
@@ -163,7 +371,7 @@ export class CreateDebt  {
       next: (response) => {
         this.toastService.success(
           'Deuda Creada',
-          `La deuda por valor de $${Number(formValue.valor).toLocaleString('es-CO')} ha sido creada exitosamente`
+          `La deuda por valor de $${valorTotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (incluye interés del ${tasaInteres}%) ha sido creada exitosamente`
         );
         this.resetForm();
         this.procesandoDeuda.set(false);
@@ -184,6 +392,7 @@ export class CreateDebt  {
     this.deudaForm.reset({
       fechaDeuda: new Date().toISOString().split('T')[0]
     });
+    this.clearClient();
     this.procesandoDeuda.set(false);
   }
 
