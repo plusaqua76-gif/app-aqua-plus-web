@@ -45,7 +45,7 @@ jobs:
         with:
           app-name: 'app-aqua-plus-web-test'
           slot-name: 'Production'
-          package: dist/aqua-plus
+          package: .
 
       - name: Deployment Summary
         run: |
