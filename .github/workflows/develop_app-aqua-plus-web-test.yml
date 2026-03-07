@@ -9,6 +9,7 @@ on:
 env:
   APP_NAME: app-aqua-plus-web-test
   RESOURCE_GROUP: rg_code_makers
+  DIST_PATH: dist/aqua-plus
 
 jobs:
   build-and-deploy:
@@ -21,7 +22,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 20
           cache: npm
@@ -32,8 +34,11 @@ jobs:
       - name: Build Angular SSR
         run: npm run build
 
-      - name: Verify build
-        run: ls -la dist/aqua-plus
+      - name: Verify build structure
+        run: |
+          ls -la ${{ env.DIST_PATH }}
+          # Verifica si existe la carpeta server, fundamental para SSR
+          if [ -d "${{ env.DIST_PATH }}/server" ]; then echo "Server folder exists"; fi
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -42,14 +47,15 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E64924ECF3504939A52FF7004FE59CAA }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_04E4B3D9D34842DEB8A0B3BEC2453A34 }}
 
-      - name: Deploy
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.APP_NAME }}
-          package: dist/aqua-plus
+          package: ${{ env.DIST_PATH }}
+          clean: true
 
       - name: Restart App Service
         run: |
           az webapp restart \
-            --name $APP_NAME \
-            --resource-group $RESOURCE_GROUP
+            --name ${{ env.APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }}
