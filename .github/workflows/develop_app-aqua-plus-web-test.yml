@@ -1,9 +1,3 @@
-# Build Once, Deploy Anywhere - Angular SSR to Azure (TEST Environment)
-#
-# Este workflow construye la aplicación UNA SOLA VEZ y la despliega en Azure.
-# La configuración específica del ambiente (TEST) se hace mediante variables
-# de entorno de Azure App Service, NO mediante diferentes builds.
-
 name: Deploy to TEST - app-aqua-plus-web-test
 
 on:
@@ -11,6 +5,10 @@ on:
     branches:
       - develop
   workflow_dispatch:
+
+env:
+  APP_NAME: app-aqua-plus-web-test
+  RESOURCE_GROUP: rg_code_makers
 
 jobs:
   build-and-deploy:
@@ -21,23 +19,21 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: '20.x'
-          cache: 'npm'
+          node-version: 20
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Angular SSR (Single Build)
+      - name: Build Angular SSR
         run: npm run build
 
-      - name: Install production dependencies only
-        run: npm ci --omit=dev
+      - name: Verify build
+        run: ls -la dist/aqua-plus
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -46,16 +42,14 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E64924ECF3504939A52FF7004FE59CAA }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_04E4B3D9D34842DEB8A0B3BEC2453A34 }}
 
-      - name: Deploy to Azure Web App (TEST)
+      - name: Deploy
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'app-aqua-plus-web-test'
-          slot-name: 'Production'
+          app-name: ${{ env.APP_NAME }}
           package: dist/aqua-plus
 
-      - name: Deployment Summary
+      - name: Restart App Service
         run: |
-          echo "Deployment to TEST completed successfully"
-          echo "URL: https://app-aqua-plus-web-test.azurewebsites.net"
-          echo "Environment: TEST"
-          echo "🔗API: https://app-aqua-plus-api-test.azurewebsites.net/api/v1"
+          az webapp restart \
+            --name $APP_NAME \
+            --resource-group $RESOURCE_GROUP
