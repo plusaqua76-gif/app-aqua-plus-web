@@ -43,7 +43,7 @@ app.use(
   }),
 );
 
-app.get('/app-config.js', (req, res) => {
+app.get('/config.js', (req, res) => {
   res.type('application/javascript');
   res.send(`window.APP_CONFIG = ${JSON.stringify(APP_CONFIG)};`);
 });
