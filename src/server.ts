@@ -43,38 +43,9 @@ app.use(
   }),
 );
 
-app.use((req, res, next) => {
-  const originalWrite = res.write.bind(res);
-  const originalEnd = res.end.bind(res);
-  let responseBody = '';
-
-  res.write = function(chunk: any, ...args: any[]): boolean {
-    if (chunk) {
-      responseBody += chunk.toString();
-    }
-    return true;
-  };
-
-  res.end = function(chunk?: any, ...args: any[]): any {
-    if (chunk) {
-      responseBody += chunk.toString();
-    }
-
-    if (res.getHeader('content-type')?.toString().includes('text/html')) {
-      const configScript = `
-        <script>
-          window.APP_CONFIG = ${JSON.stringify(APP_CONFIG)};
-        </script>
-      `;
-      responseBody = responseBody.replace('</head>', `${configScript}</head>`);
-    }
-
-    res.write = originalWrite;
-    res.end = originalEnd;
-    return res.end(responseBody, ...args);
-  };
-
-  next();
+app.get('/app-config.js', (req, res) => {
+  res.type('application/javascript');
+  res.send(`window.APP_CONFIG = ${JSON.stringify(APP_CONFIG)};`);
 });
 
 /**
@@ -83,9 +54,13 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   angularApp
     .handle(req)
-    .then((response) =>
-      response ? writeResponseToNodeResponse(response, res) : next(),
-    )
+    .then((response) => {
+      if (response) {
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return writeResponseToNodeResponse(response, res);
+      }
+      return next();
+    })
     .catch(next);
 });
 
