@@ -44,6 +44,7 @@ app.use(
 );
 
 app.get('/config.js', (req, res) => {
+  console.log("config inicio");
   res.type('application/javascript');
   res.send(`window.APP_CONFIG = ${JSON.stringify(APP_CONFIG)};`);
 });
