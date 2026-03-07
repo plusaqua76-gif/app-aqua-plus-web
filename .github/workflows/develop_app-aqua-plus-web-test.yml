@@ -6,11 +6,6 @@ on:
       - develop
   workflow_dispatch:
 
-env:
-  APP_NAME: app-aqua-plus-web-test
-  RESOURCE_GROUP: rg_code_makers
-  DIST_PATH: dist/aqua-plus
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -20,25 +15,23 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js 20.x
         uses: actions/setup-node@v3
         with:
-          node-version: 20
-          cache: npm
+          node-version: '20.x'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Angular SSR
+      - name: Build Angular SSR (Single Build)
         run: npm run build
 
-      - name: Verify build structure
-        run: |
-          ls -la ${{ env.DIST_PATH }}
-          # Verifica si existe la carpeta server, fundamental para SSR
-          if [ -d "${{ env.DIST_PATH }}/server" ]; then echo "Server folder exists"; fi
+      - name: Install production dependencies only
+        run: npm ci --omit=dev
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -47,15 +40,16 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E64924ECF3504939A52FF7004FE59CAA }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_04E4B3D9D34842DEB8A0B3BEC2453A34 }}
 
-      - name: Deploy to Azure Web App
+      - name: Deploy to Azure Web App (TEST)
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ env.APP_NAME }}
-          package: ${{ env.DIST_PATH }}
-          clean: true
+          app-name: 'app-aqua-plus-web-test'
+          slot-name: 'Production'
+          package: dist/aqua-plus
 
-      - name: Restart App Service
+      - name: Deployment Summary
         run: |
-          az webapp restart \
-            --name ${{ env.APP_NAME }} \
-            --resource-group ${{ env.RESOURCE_GROUP }}
+          echo "Deployment to TEST completed successfully"
+          echo "URL: https://app-aqua-plus-web-test.azurewebsites.net"
+          echo "Environment: TEST"
+          echo "API: https://app-aqua-plus-api-test.azurewebsites.net/api/v1"
