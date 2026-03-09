@@ -41,6 +41,11 @@ export class EnterpriseClientCounterService {
     );
   }
 
+  deleteEnterpriceClientCounter(id: number): Observable<ApiResponse<any>> {
+    const url = `${this.apiUrl}/${id}`;
+    return this.http.delete<ApiResponse<any>>(url);
+  }
+
   // Método que obtiene todos los clientes sin transformación
   getAllClientsByIdEnterprise(
     enterpriseId: number
@@ -85,6 +90,15 @@ export class EnterpriseClientCounterService {
   }): Observable<Map<string, any>> {
     const url = `${environment.apiUrl}/${ENTERPRISE_CLIENT_COUNT.ENT_CLI_COU}/${END_POINT_SERVICE.POST_UPD_ESTADO}`;
     return this.http.post<Map<string, any>>(url, data);
+  }
+
+  updateEstadoContador(data: {
+    id: number;
+    activo: boolean;
+    usuarioCambio: string;
+  }): Observable<ApiResponse<any>> {
+    const url = `${environment.apiUrl}/${ENTERPRISE_CLIENT_COUNT.ENT_CLI_COU}/estado`;
+    return this.http.post<ApiResponse<any>>(url, data);
   }
 
   saveClient(data: SaveClientPayload): Observable<SaveClientResponse> {
