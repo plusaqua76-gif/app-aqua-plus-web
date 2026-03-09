@@ -23,18 +23,20 @@ export class AppConfigService {
   private readonly config: AppConfig;
 
   constructor() {
+    console.log('cons config service')
     if (isPlatformBrowser(this.platformId)) {
-      this.config = window.APP_CONFIG || this.getDefaultConfig();
+      this.config = (window as any).APP_CONFIG || this.getDefaultConfig();
     } else {
       this.config = (globalThis as any).APP_CONFIG || this.getDefaultConfig();
     }
 
+    // Fallback para desarrollo local
+    if (!this.config.apiUrl) {
+      this.config.apiUrl = 'http://localhost:8080/api/v1';
+    }
+
     if (!this.config.production) {
-      console.log('🔧 AppConfig loaded:', {
-        environment: this.config.environment,
-        apiUrl: this.config.apiUrl,
-        azureBlobStorageUrl: this.config.azureBlobStorageUrl
-      });
+      console.log('🔧 AppConfig loaded:', this.config);
     }
   }
 
