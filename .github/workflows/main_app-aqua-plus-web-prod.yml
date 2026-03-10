@@ -58,15 +58,10 @@ jobs:
           slot-name: 'Production'
           package: deploy
 
-      - name: Restart Azure Web App
-        run: |
-          az webapp restart \
-            --name app-aqua-plus-web-prod \
-            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }}
-
       - name: Deployment Summary
         run: |
           echo "Deployment to PRODUCTION completed successfully"
           echo "URL: https://app-aqua-plus-web-prod.azurewebsites.net"
           echo "Environment: PRODUCTION"
           echo "API: https://app-aqua-plus-api.azurewebsites.net/api/v1"
+
