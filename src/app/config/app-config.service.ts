@@ -39,7 +39,6 @@ export class AppConfigService {
       console.log('🔧 AppConfig loaded:', this.config);
     }
   }
-
   private getDefaultConfig(): AppConfig {
     return {
       apiUrl: 'http://localhost:8080/api/v1',
