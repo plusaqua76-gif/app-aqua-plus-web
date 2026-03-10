@@ -850,8 +850,8 @@ export class UpdateClient implements OnInit {
 
     // Si hay aforos para eliminar, eliminarlos primero
     if (aforosToDelete.length > 0) {
-      const deleteRequests = aforosToDelete.map(idAforoRelacion =>
-        this.counterService.deleteAforoContador(idAforoRelacion)
+      const deleteRequests = aforosToDelete.map(({idContador, idAforo}) =>
+        this.counterService.deleteAforoContador(idContador, idAforo)
       );
 
       forkJoin(deleteRequests).subscribe({
@@ -1314,10 +1314,10 @@ export class UpdateClient implements OnInit {
     return aforosPayload;
   }
 
-  // Obtener IDs de aforos a eliminar (IDs de la tabla intermedia aforo_contador)
-  private getAforosToDelete(): number[] {
+  // Obtener aforos a eliminar (retorna objetos con idContador e idAforo)
+  private getAforosToDelete(): Array<{idContador: number, idAforo: number}> {
     const contadoresArray = this.contadoresFormArray;
-    const idsToDelete: number[] = [];
+    const aforosToDelete: Array<{idContador: number, idAforo: number}> = [];
 
     contadoresArray.controls.forEach((control) => {
       const contador = control.value;
@@ -1330,25 +1330,27 @@ export class UpdateClient implements OnInit {
           ? contador.aforosContador.filter((id: any) => id).map((id: any) => Number(id))
           : [];
 
-        // Datos originales con IDs de la relación
+        // Datos originales de aforos
         const aforosOriginales = Array.isArray(contador.aforosContadorData)
           ? contador.aforosContadorData
           : [];
 
         // Identificar aforos eliminados
         aforosOriginales.forEach((aforoOriginal: any) => {
-          const aforoIdInDb = aforoOriginal.id;
+          const aforoId = aforoOriginal.id; // Este es el ID del aforo
 
           // Si el aforo original ya no está en la selección actual, debe eliminarse
-          if (!aforosIdsActuales.includes(aforoIdInDb)) {
-            // Usar el ID del aforo para eliminar la relación
-            idsToDelete.push(aforoIdInDb);
+          if (!aforosIdsActuales.includes(aforoId)) {
+            aforosToDelete.push({
+              idContador: Number(contador.id),
+              idAforo: aforoId
+            });
           }
         });
       }
     });
 
-    return idsToDelete;
+    return aforosToDelete;
   }
 
   // ====================  CREACIÓN DE NUEVOS CONTADORES ====================
