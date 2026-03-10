@@ -107,7 +107,7 @@ export interface ICreateNovedadRequest {
 export interface ICreateNovedadWithFileRequest {
   novedad: ICreateNovedadRequest;
   base64File: string;
-  idPersona: number;
+  idPersona?: number;
   nombreArchivo: string;
   extension: string;
   categoriaCodigo: string;

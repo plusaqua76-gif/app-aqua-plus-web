@@ -48,7 +48,13 @@
             ]
           },
           "configurations": {
-            "production": {
+            "test": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.test.ts"
+                }
+              ],
               "optimization": true,
               "outputMode": "server",
               "budgets": [
@@ -71,13 +77,13 @@
               "sourceMap": true
             }
           },
-          "defaultConfiguration": "production"
+          "defaultConfiguration": "test"
         },
         "serve": {
           "builder": "@angular/build:dev-server",
           "configurations": {
-            "production": {
-              "buildTarget": "aqua-plus:build:production"
+            "test": {
+              "buildTarget": "aqua-plus:build:test"
             },
             "development": {
               "buildTarget": "aqua-plus:build:development"

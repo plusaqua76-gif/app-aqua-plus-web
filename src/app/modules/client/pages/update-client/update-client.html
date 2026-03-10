@@ -781,7 +781,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
               </svg>
               Crear Contador
-            </button>.kd< 
+            </button>
           </div>
         </div>
 
@@ -1259,7 +1259,7 @@
             <div class="mt-4 pt-4 border-t border-white/10 dark:border-slate-700/30 flex justify-end">
               <button
                 type="button"
-                (click)="confirmDeleteCounter(i, contadorControl.value.id, contadorControl.value.serial)"
+                (click)="confirmDeleteCounter(i, contadorControl.value.id, contadorControl.value.serial, contadorControl.value.idEmpresaClienteContador)"
                 class="flex items-center gap-2 px-4 py-2 rounded-xl border border-orange-500/30 bg-orange-500/10 backdrop-blur-md text-orange-600 dark:text-orange-400 hover:bg-orange-500/20 hover:border-orange-500/50 focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all duration-300"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2273,16 +2273,22 @@
             </svg>
             <p class="mt-4 text-gray-600 dark:text-gray-400">Buscando contador...</p>
           </div>
-        } @else if (searchSerialResult.value()?.response) {
+        } @else if (searchSerialResult.value()) {
+          @if (searchSerialResult.value()?.response) {
           <div class="p-4 rounded-xl bg-white/10 dark:bg-slate-800/20 border border-white/20 dark:border-slate-700/30">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                  Serial: {{ searchSerialResult.value()?.response?.contador?.serial }}
+                  Serial: {{ searchSerialResult.value()?.response?.serial || '' }}
                 </p>
                 <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                  Tipo: {{ searchSerialResult.value()?.response?.contador?.tipoContador?.nombre }}
+                  Tipo: {{ searchSerialResult.value()?.response?.tipoContador?.nombre || '' }}
                 </p>
+                @if (searchSerialResult.value()?.response?.descripcion?.descripcion) {
+                <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                  Dirección: {{ searchSerialResult.value()?.response?.descripcion?.descripcion }}
+                </p>
+                }
               </div>
               <button
                 type="button"
@@ -2293,7 +2299,12 @@
               </button>
             </div>
           </div>
-        } @else if (searchSerialValue() && !isSearchingCounter() && !searchSerialResult.value()?.response) {
+          } @else {
+            <div class="p-4 rounded-xl bg-red-100 dark:bg-red-900/20 border border-red-500/30">
+              <p class="text-sm text-red-900 dark:text-red-200">No hay datos en response</p>
+            </div>
+          }
+        } @else if (searchSerialValue() && !isSearchingCounter()) {
           <div class="text-center py-8">
             <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>

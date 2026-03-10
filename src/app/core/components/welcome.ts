@@ -854,12 +854,12 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
               class="purple-bg-grad  reveal-up absolute left-1/2 -translate-x-1/2 top-[5%] h-[200px] w-[200px]"
             ></div>
 
-            <!-- <img
+            <img
               class="relative z-10 w-full max-w-4xl rounded-lg shadow-2xl"
               id="dashboard"
               src="/images/welcomeimage.webp"
               alt="dashboard"
-            /> -->
+            />
           </div>
         </div>
       </section>

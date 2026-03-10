@@ -110,7 +110,7 @@ export class UpdateClient implements OnInit {
 
   // Signals para popup de confirmación de eliminación
   showDeleteConfirmCounter = signal<boolean>(false);
-  counterToDelete = signal<{ index: number; id: number; serial: string } | null>(null);
+  counterToDelete = signal<{ index: number; id: number; serial: string; idEmpresaClienteContador: number } | null>(null);
 
   // Signals para modal de asignar contador existente
   isAssignCounterModalOpen = signal<boolean>(false);
@@ -250,6 +250,7 @@ export class UpdateClient implements OnInit {
     }),
     stream: ({ params: { serial, isModalOpen } }) => {
       if (!serial || !isModalOpen || serial.length < 3) {
+        this.isSearchingCounter.set(false);
         return of(null);
       }
 
@@ -258,6 +259,7 @@ export class UpdateClient implements OnInit {
         .getClientBySerial(serial)
         .pipe(
           catchError((error) => {
+            console.error('Error buscando contador:', error);
             this.isSearchingCounter.set(false);
             return of(null);
           }),
@@ -278,6 +280,10 @@ export class UpdateClient implements OnInit {
   });
 
   constructor() {
+
+    effect(() => {
+      console.log('data del contador  para asignar un existente', this.searchSerialResult.value());
+    })
     effect(() => {
       const deptId = this.selectedDepartmentId();
       if (deptId) {
@@ -363,6 +369,9 @@ export class UpdateClient implements OnInit {
       const result = this.searchSerialResult.value();
       const isLoading = this.searchSerialResult.isLoading();
 
+      console.log('Search serial result:', result);
+      console.log('Is loading:', isLoading);
+
       if (!isLoading) {
         this.isSearchingCounter.set(false);
       }
@@ -423,6 +432,7 @@ export class UpdateClient implements OnInit {
 
     return this.fb.group({
       id: [contador.id],
+      idEmpresaClienteContador: [contador.idEmpresaClienteContador],
       serial: [
         contador.serial || '',
       ],
@@ -868,10 +878,13 @@ export class UpdateClient implements OnInit {
       ...this.mapDirtyFieldsToPayload(dirtyFields),
     };
 
-    // Agregar contadores si fueron modificados
+    // Agregar contadores si fueron modificados o nuevos
     const dirtyCounters = this.getDirtyCounters();
-    if (dirtyCounters) {
-      payload.contadores = dirtyCounters;
+    if (dirtyCounters.modified) {
+      payload.contadores = dirtyCounters.modified;
+    }
+    if (dirtyCounters.new) {
+      payload.contadoresNuevos = dirtyCounters.new;
     }
 
     // Agregar tarifas si cambiaron
@@ -888,6 +901,8 @@ export class UpdateClient implements OnInit {
       const contadoresIds = [...new Set(aforosPayload.map(aforo => aforo.idContador))];
       payload.contadoresIds = contadoresIds;
     }
+
+    console.log('Payload a enviar:', payload);
 
     this.enterpriseClientCounterService.updateClient(payload).subscribe({
       next: () => {
@@ -909,8 +924,8 @@ export class UpdateClient implements OnInit {
 
   // ==================== INACTIVAR CONTADOR ====================
 
-  confirmDeleteCounter(index: number, contadorId: number, serial: string): void {
-    this.counterToDelete.set({ index, id: contadorId, serial });
+  confirmDeleteCounter(index: number, contadorId: number, serial: string, idEmpresaClienteContador: number): void {
+    this.counterToDelete.set({ index, id: contadorId, serial, idEmpresaClienteContador });
     this.showDeleteConfirmCounter.set(true);
   }
 
@@ -924,7 +939,7 @@ export class UpdateClient implements OnInit {
   confirmDeleteCounterAction(): void {
     const counter = this.counterToDelete();
     if (counter) {
-      this.deleteCounter(counter.index, counter.id);
+      this.deleteCounter(counter.index, counter.id, counter.idEmpresaClienteContador);
     }
     this.showDeleteConfirmCounter.set(false);
     this.counterToDelete.set(null);
@@ -935,20 +950,20 @@ export class UpdateClient implements OnInit {
     this.counterToDelete.set(null);
   }
 
-  private deleteCounter(index: number, contadorId: number): void {
-    if (!contadorId) {
-      this.toast.error('Error', 'No se pudo obtener el ID del contador');
+  private deleteCounter(index: number, contadorId: number, idEmpresaClienteContador: number): void {
+    if (!idEmpresaClienteContador) {
+      this.toast.error('Error', 'No se pudo obtener el ID de empresa-cliente-contador');
       return;
     }
 
     const payload = {
-      id: contadorId,
-      activo: false,
+      idEmpresaClienteContador: idEmpresaClienteContador,
       usuarioCambio: this.usuarioModificacion(),
+      activo: false,
     };
 
     this.enterpriseClientCounterService
-      .updateEstadoContador(payload)
+      .updateClient(payload)
       .subscribe({
         next: (response) => {
           this.toast.success('Éxito', 'Contador inactivado correctamente');
@@ -978,7 +993,7 @@ export class UpdateClient implements OnInit {
   }
 
   assignCounterToClient(counterData: any): void {
-    if (!counterData || !counterData.contador?.id) {
+    if (!counterData || !counterData.id) {
       this.toast.error('Error', 'Seleccione un contador válido');
       return;
     }
@@ -986,7 +1001,7 @@ export class UpdateClient implements OnInit {
     const payload = {
       idEmpresaClienteContador: this.empresaClienteContadorId(),
       usuarioCambio: this.usuarioModificacion(),
-      contadoresIds: [counterData.contador.id],
+      contadoresNuevos: [{ id: counterData.id }],
     };
 
     this.enterpriseClientCounterService.updateClient(payload).subscribe({
@@ -1173,10 +1188,11 @@ export class UpdateClient implements OnInit {
     return payload;
   }
 
-  // Obtener contadores modificados o nuevos
-  private getDirtyCounters(): any[] | null {
+  // Obtener contadores modificados o nuevos (retorna objeto con arrays separados)
+  private getDirtyCounters(): { modified: any[] | null; new: any[] | null } {
     const contadoresArray = this.contadoresFormArray;
-    const dirtyCounters: any[] = [];
+    const modifiedCounters: any[] = [];
+    const newCounters: any[] = [];
 
     contadoresArray.controls.forEach((control, index) => {
       const contador = control.value;
@@ -1185,6 +1201,13 @@ export class UpdateClient implements OnInit {
       // Incluir si está dirty O si es un contador nuevo
       if (!control.dirty && !isNewCounter) return;
 
+      // Si es contador nuevo, solo enviar el ID
+      if (isNewCounter) {
+        newCounters.push({ id: contador.id });
+        return;
+      }
+
+      // Para contadores modificados, enviar todos los datos
       const payload: any = {
         id: contador.id,
         activo: contador.activo,
@@ -1243,10 +1266,13 @@ export class UpdateClient implements OnInit {
           payload.descripcion.corregimiento = { id: Number(corregimientoId) };
       }
 
-      dirtyCounters.push(payload);
+      modifiedCounters.push(payload);
     });
 
-    return dirtyCounters.length > 0 ? dirtyCounters : null;
+    return {
+      modified: modifiedCounters.length > 0 ? modifiedCounters : null,
+      new: newCounters.length > 0 ? newCounters : null,
+    };
   }
 
   // Verificar si las tarifas cambiaron
