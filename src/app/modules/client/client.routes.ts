@@ -1,10 +1,12 @@
 
 import { Routes } from '@angular/router';
+import { TableStateService } from '@services/table-state.service';
 
 export default [
   {
     path: '',
     loadComponent: () =>   import('./pages/client-module/client').then(m => m.Client),
+    providers: [TableStateService]
   },
   {
     path: 'create-client',

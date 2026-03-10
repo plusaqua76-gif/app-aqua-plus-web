@@ -69,7 +69,7 @@ export interface TarifasCliente {
 export interface SaveClientResponse {
   detalle: DetalleContador[];
   message: string;
-  idPersona: number;
+  idPersona?: number;
   idUsuario: number | null;
   statusCode: number;
   tarifasCliente: TarifasCliente;

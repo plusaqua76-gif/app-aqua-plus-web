@@ -35,10 +35,15 @@ export class EnterpriseClientCounterService {
 
   getClientBySerial(
     serial: string
-  ): Observable<ApiResponse<IEnterpriseClientCounter>> {
-    return this.http.get<ApiResponse<IEnterpriseClientCounter>>(
+  ): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(
       `${environment.apiUrl}/contador/serial?serial=${serial}`
     );
+  }
+
+  deleteEnterpriceClientCounter(id: number): Observable<ApiResponse<any>> {
+    const url = `${this.apiUrl}/${id}`;
+    return this.http.delete<ApiResponse<any>>(url);
   }
 
   // Método que obtiene todos los clientes sin transformación

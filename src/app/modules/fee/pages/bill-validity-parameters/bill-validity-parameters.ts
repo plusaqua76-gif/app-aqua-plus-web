@@ -816,8 +816,6 @@ export class BillValidityParameters {
       ),
     }).subscribe({
       next: (params) => {
-        console.log('Parámetros recibidos:', params);
-
         // El response puede ser un objeto o array, manejar ambos casos
         const diasParam = Array.isArray(params.diasVigencia.response)
           ? params.diasVigencia.response[0]
@@ -835,38 +833,26 @@ export class BillValidityParameters {
           ? params.interesDeuda.response[0]
           : params.interesDeuda.response;
 
-        console.log('Parámetros procesados:', {
-          diasParam,
-          periodosParam,
-          vencidaParam,
-          inmediatoParam,
-          interesParam
-        });
-
         if (diasParam && diasParam.valorParametro) {
           this.diasVigencia = Number(diasParam.valorParametro);
           this.paramIds.diasVigencia = diasParam.id;
-          console.log('Días vigencia asignado:', this.diasVigencia);
+
         }
         if (periodosParam && periodosParam.valorParametro) {
           this.periodosFacturados = Number(periodosParam.valorParametro);
           this.paramIds.periodosFacturados = periodosParam.id;
-          console.log('Periodos facturados asignado:', this.periodosFacturados);
         }
         if (vencidaParam && vencidaParam.valorParametro) {
           this.periodosNoPagosVencida = Number(vencidaParam.valorParametro);
           this.paramIds.periodosVencida = vencidaParam.id;
-          console.log('Periodos vencida asignado:', this.periodosNoPagosVencida);
         }
         if (inmediatoParam && inmediatoParam.valorParametro) {
           this.periodosPagoInmediato = Number(inmediatoParam.valorParametro);
           this.paramIds.periodosInmediato = inmediatoParam.id;
-          console.log('Periodos inmediato asignado:', this.periodosPagoInmediato);
         }
         if (interesParam && interesParam.valorParametro) {
           this.interesDeuda = Number(interesParam.valorParametro);
           this.paramIds.interesDeuda = interesParam.id;
-          console.log('Interés deuda asignado:', this.interesDeuda);
         }
       },
       error: (error) => {

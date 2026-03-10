@@ -104,7 +104,7 @@ export interface IContador {
   serial: string;
   estrato: number;
   direccion: IDireccion;
-  idPersona: number;
+  idPersona?: number;
   tipoContadorNombre: string;
   codConvenio?: string;
   convenioEmpresa?: string | null;

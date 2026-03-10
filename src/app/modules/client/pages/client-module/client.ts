@@ -12,6 +12,7 @@ import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { Action, TableComponent } from '../../../../core/components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ToastService } from '@services/toast.service';
+import { TableStateService } from '../../../../core/services/table-state.service';
 import { catchError, of } from 'rxjs';
 import { PopupComponent } from '@shared/components/popUp';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
@@ -77,8 +78,12 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       [showColumnFilters]="true"
       [showExportButton]="true"
       [exportFileName]="exportFileName()"
+      [externalFilters]="tableState.columnFilters()"
+      [externalFiltersVisible]="tableState.filtersVisible()"
       (action)="onTableAction($event)"
       (serverPaginationChange)="onPaginationChange($event)"
+      (filtersChange)="onFiltersChange($event)"
+      (filtersVisibilityChange)="onFiltersVisibilityChange($event)"
     >
     </app-table-dynamic>
 
@@ -110,6 +115,7 @@ export class Client {
   protected readonly router = inject(Router);
   protected readonly route = inject(ActivatedRoute);
   protected readonly toastService = inject(ToastService);
+  protected readonly tableState = inject(TableStateService);
 
   clienteColumns = signal([
     {
@@ -149,10 +155,8 @@ export class Client {
     () => `clientes_${new Date().toISOString().split('T')[0]}`
   );
 
-  readonly paginationParams = signal<IPaginationParams>({
-    page: 0,
-    size: 5,
-  });
+  // Usar paginationParams del servicio de estado genérico
+  readonly paginationParams = this.tableState.paginationParams;
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -280,6 +284,14 @@ export class Client {
   }
 
   onPaginationChange(params: IPaginationParams): void {
-    this.paginationParams.set(params);
+    this.tableState.updatePagination(params);
+  }
+
+  onFiltersChange(filters: Record<string, string>): void {
+    this.tableState.updateFilters(filters);
+  }
+
+  onFiltersVisibilityChange(visible: boolean): void {
+    this.tableState.updateFiltersVisibility(visible);
   }
 }

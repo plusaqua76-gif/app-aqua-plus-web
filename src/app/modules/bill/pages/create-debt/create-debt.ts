@@ -174,36 +174,26 @@ export class CreateDebt  {
   // Plazo de pago seleccionado (reactivo)
   readonly plazoSeleccionado = computed(() => {
     const plazoPagoId = this.plazoPagoControl();
-    console.log('🔄 plazoSeleccionado - ID:', plazoPagoId);
-
     if (!plazoPagoId) {
       return null;
     }
 
     const plazo = this.plazoPagoOptions().find(p => p.id === Number(plazoPagoId));
-    console.log('🔄 plazoSeleccionado - plazo encontrado:', plazo);
     return plazo || null;
   });
 
   // Extraer número de meses del plazo
   readonly numeroMeses = computed(() => {
     const plazo = this.plazoSeleccionado();
-    console.log('📅 numeroMeses - plazo recibido:', plazo);
 
     if (!plazo) {
-      console.log('📅 numeroMeses - SIN PLAZO, retornando 0');
       return 0;
     }
 
     // Buscar número de meses en nombre o descripción
     const texto = `${plazo.nombre || ''} ${plazo.descripcion || ''}`;
-    console.log('📅 numeroMeses - texto completo:', texto);
-
     const match = texto.match(/(\d+)\s*mes/i);
-    console.log('📅 numeroMeses - regex match:', match);
-
     const meses = match ? parseInt(match[1], 10) : 0;
-    console.log('📅 numeroMeses - RESULTADO FINAL:', meses);
 
     return meses;
   });

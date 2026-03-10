@@ -13,6 +13,7 @@ import {
   FormGroup,
   FormArray,
   ReactiveFormsModule,
+  FormsModule,
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -39,10 +40,11 @@ import { ConfigurationMasiveBillService } from '../../../electronic-invoicing/se
 import { filter } from 'rxjs/operators';
 import { Checkbox } from '@shared/components/checkbox';
 import { UseService } from '../../../fee/services/use.service';
+import { PopupComponent } from '@shared/components/popUp';
 
 @Component({
   selector: 'app-update-client',
-  imports: [CommonModule, ReactiveFormsModule, Checkbox],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, Checkbox, PopupComponent],
   templateUrl: './update-client.html',
   providers: [DatePipe],
 })
@@ -105,6 +107,15 @@ export class UpdateClient implements OnInit {
   departmentsLoading = signal<boolean>(false);
   citiesLoading = signal<boolean>(false);
   corregimientosLoading = signal<boolean>(false);
+
+  // Signals para popup de confirmación de eliminación
+  showDeleteConfirmCounter = signal<boolean>(false);
+  counterToDelete = signal<{ index: number; id: number; serial: string; idEmpresaClienteContador: number } | null>(null);
+
+  // Signals para modal de asignar contador existente
+  isAssignCounterModalOpen = signal<boolean>(false);
+  searchSerialValue = signal<string>('');
+  isSearchingCounter = signal<boolean>(false);
 
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -232,6 +243,30 @@ export class UpdateClient implements OnInit {
     }
   });
 
+  searchSerialResult = rxResource({
+    params: () => ({
+      serial: this.searchSerialValue(),
+      isModalOpen: this.isAssignCounterModalOpen(),
+    }),
+    stream: ({ params: { serial, isModalOpen } }) => {
+      if (!serial || !isModalOpen || serial.length < 3) {
+        this.isSearchingCounter.set(false);
+        return of(null);
+      }
+
+      this.isSearchingCounter.set(true);
+      return this.enterpriseClientCounterService
+        .getClientBySerial(serial)
+        .pipe(
+          catchError((error) => {
+            console.error('Error buscando contador:', error);
+            this.isSearchingCounter.set(false);
+            return of(null);
+          }),
+        );
+    },
+  });
+
   readonly employeeData = computed(
     () => this.dataEmployee.value()?.response || [],
   );
@@ -245,6 +280,10 @@ export class UpdateClient implements OnInit {
   });
 
   constructor() {
+
+    effect(() => {
+      console.log('data del contador  para asignar un existente', this.searchSerialResult.value());
+    })
     effect(() => {
       const deptId = this.selectedDepartmentId();
       if (deptId) {
@@ -324,6 +363,19 @@ export class UpdateClient implements OnInit {
         });
       }
     });
+
+    // Effect para actualizar estado de carga de búsqueda de contador
+    effect(() => {
+      const result = this.searchSerialResult.value();
+      const isLoading = this.searchSerialResult.isLoading();
+
+      console.log('Search serial result:', result);
+      console.log('Is loading:', isLoading);
+
+      if (!isLoading) {
+        this.isSearchingCounter.set(false);
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -380,17 +432,15 @@ export class UpdateClient implements OnInit {
 
     return this.fb.group({
       id: [contador.id],
+      idEmpresaClienteContador: [contador.idEmpresaClienteContador],
       serial: [
         contador.serial || '',
-        isNew ? [] : Validators.required,
       ],
       tipoContador: [
         contador.tipoContador?.id,
-        isNew ? [] : Validators.required,
       ],
       tipoUso: [
         contador.tipoUso?.id || '',
-        isNew ? [] : Validators.required,
       ],
       estadoContador: [
         contador.estadoContador?.id || '',
@@ -399,13 +449,11 @@ export class UpdateClient implements OnInit {
       isNewCounter: [isNew],
       estrato: [
         contador.estrato || '',
-        isNew
-          ? []
-          : [Validators.required, Validators.min(1), Validators.max(6)],
+        [Validators.min(1), Validators.max(6)],
       ],
       digitos: [
         contador.digitos || '',
-        isNew ? [] : [Validators.required, Validators.min(1)],
+        [Validators.min(1)],
       ],
       fechaInstalacion: [contador.fechaInstalacion || ''],
       aforosContador: [
@@ -422,11 +470,9 @@ export class UpdateClient implements OnInit {
       // Campos editables de ubicación
       idDepartamento: [
         contador.descripcion?.departamento?.id || '',
-        isNew ? [] : Validators.required,
       ],
       idCiudad: [
         contador.descripcion?.ciudad?.id || '',
-        isNew ? [] : Validators.required,
       ],
       idCorregimiento: [contador.descripcion?.corregimiento?.id || ''],
 
@@ -443,7 +489,6 @@ export class UpdateClient implements OnInit {
         }),
         descripcion: [
           contador.descripcion?.descripcion,
-          isNew ? [] : Validators.required,
         ],
       }),
       // Campos para mostrar nombres (solo lectura)
@@ -791,15 +836,6 @@ export class UpdateClient implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.updateForm.invalid) {
-      this.updateForm.markAllAsTouched();
-      this.toast.error(
-        'Error',
-        'Por favor complete todos los campos requeridos',
-      );
-      return;
-    }
-
     // Verificar si hay cambios
     const formDirty = this.updateForm.dirty;
     const tarifasDirty = this.hasTarifasChanged();
@@ -814,8 +850,8 @@ export class UpdateClient implements OnInit {
 
     // Si hay aforos para eliminar, eliminarlos primero
     if (aforosToDelete.length > 0) {
-      const deleteRequests = aforosToDelete.map(idAforoRelacion =>
-        this.counterService.deleteAforoContador(idAforoRelacion)
+      const deleteRequests = aforosToDelete.map(({idContador, idAforo}) =>
+        this.counterService.deleteAforoContador(idContador, idAforo)
       );
 
       forkJoin(deleteRequests).subscribe({
@@ -842,10 +878,13 @@ export class UpdateClient implements OnInit {
       ...this.mapDirtyFieldsToPayload(dirtyFields),
     };
 
-    // Agregar contadores si fueron modificados
+    // Agregar contadores si fueron modificados o nuevos
     const dirtyCounters = this.getDirtyCounters();
-    if (dirtyCounters) {
-      payload.contadores = dirtyCounters;
+    if (dirtyCounters.modified) {
+      payload.contadores = dirtyCounters.modified;
+    }
+    if (dirtyCounters.new) {
+      payload.contadoresNuevos = dirtyCounters.new;
     }
 
     // Agregar tarifas si cambiaron
@@ -863,6 +902,8 @@ export class UpdateClient implements OnInit {
       payload.contadoresIds = contadoresIds;
     }
 
+    console.log('Payload a enviar:', payload);
+
     this.enterpriseClientCounterService.updateClient(payload).subscribe({
       next: () => {
         this.toast.success('Éxito', 'Cliente actualizado correctamente');
@@ -879,6 +920,103 @@ export class UpdateClient implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/shell/client']);
+  }
+
+  // ==================== INACTIVAR CONTADOR ====================
+
+  confirmDeleteCounter(index: number, contadorId: number, serial: string, idEmpresaClienteContador: number): void {
+    this.counterToDelete.set({ index, id: contadorId, serial, idEmpresaClienteContador });
+    this.showDeleteConfirmCounter.set(true);
+  }
+
+  getDeleteConfirmMessageCounter(): string {
+    const counter = this.counterToDelete();
+    if (!counter) return '';
+    const serialText = counter.serial || 'Sin serial';
+    return `¿Está seguro de que desea inactivar el contador ${serialText}?`;
+  }
+
+  confirmDeleteCounterAction(): void {
+    const counter = this.counterToDelete();
+    if (counter) {
+      this.deleteCounter(counter.index, counter.id, counter.idEmpresaClienteContador);
+    }
+    this.showDeleteConfirmCounter.set(false);
+    this.counterToDelete.set(null);
+  }
+
+  cancelDeleteCounter(): void {
+    this.showDeleteConfirmCounter.set(false);
+    this.counterToDelete.set(null);
+  }
+
+  private deleteCounter(index: number, contadorId: number, idEmpresaClienteContador: number): void {
+    if (!idEmpresaClienteContador) {
+      this.toast.error('Error', 'No se pudo obtener el ID de empresa-cliente-contador');
+      return;
+    }
+
+    const payload = {
+      idEmpresaClienteContador: idEmpresaClienteContador,
+      usuarioCambio: this.usuarioModificacion(),
+      activo: false,
+    };
+
+    this.enterpriseClientCounterService
+      .updateClient(payload)
+      .subscribe({
+        next: (response) => {
+          this.toast.success('Éxito', 'Contador inactivado correctamente');
+          // Recargar los datos del cliente para reflejar el cambio
+          this.dataClient.reload();
+        },
+        error: (err) => {
+          console.error('Error inactivando contador:', err);
+          const errorMessage = err?.error?.message || 'No se pudo inactivar el contador';
+          this.toast.error('Error', errorMessage);
+        },
+      });
+  }
+
+  openAssignCounterModal(): void {
+    this.isAssignCounterModalOpen.set(true);
+    this.searchSerialValue.set('');
+  }
+
+  closeAssignCounterModal(): void {
+    this.isAssignCounterModalOpen.set(false);
+    this.searchSerialValue.set('');
+  }
+
+  onSearchSerialChange(value: string): void {
+    this.searchSerialValue.set(value);
+  }
+
+  assignCounterToClient(counterData: any): void {
+    if (!counterData || !counterData.id) {
+      this.toast.error('Error', 'Seleccione un contador válido');
+      return;
+    }
+
+    const payload = {
+      idEmpresaClienteContador: this.empresaClienteContadorId(),
+      usuarioCambio: this.usuarioModificacion(),
+      contadoresNuevos: [{ id: counterData.id }],
+    };
+
+    this.enterpriseClientCounterService.updateClient(payload).subscribe({
+      next: (response) => {
+        this.toast.success('Éxito', 'Contador asignado correctamente');
+        this.closeAssignCounterModal();
+        this.dataClient.reload();
+      },
+      error: (err) => {
+        console.error('Error asignando contador:', err);
+        const errorMessage =
+          err?.error?.message || 'No se pudo asignar el contador';
+        this.toast.error('Error', errorMessage);
+      },
+    });
   }
 
   // ==================== GESTIÓN DE TARIFAS ====================
@@ -1050,10 +1188,11 @@ export class UpdateClient implements OnInit {
     return payload;
   }
 
-  // Obtener contadores modificados o nuevos
-  private getDirtyCounters(): any[] | null {
+  // Obtener contadores modificados o nuevos (retorna objeto con arrays separados)
+  private getDirtyCounters(): { modified: any[] | null; new: any[] | null } {
     const contadoresArray = this.contadoresFormArray;
-    const dirtyCounters: any[] = [];
+    const modifiedCounters: any[] = [];
+    const newCounters: any[] = [];
 
     contadoresArray.controls.forEach((control, index) => {
       const contador = control.value;
@@ -1062,6 +1201,13 @@ export class UpdateClient implements OnInit {
       // Incluir si está dirty O si es un contador nuevo
       if (!control.dirty && !isNewCounter) return;
 
+      // Si es contador nuevo, solo enviar el ID
+      if (isNewCounter) {
+        newCounters.push({ id: contador.id });
+        return;
+      }
+
+      // Para contadores modificados, enviar todos los datos
       const payload: any = {
         id: contador.id,
         activo: contador.activo,
@@ -1120,10 +1266,13 @@ export class UpdateClient implements OnInit {
           payload.descripcion.corregimiento = { id: Number(corregimientoId) };
       }
 
-      dirtyCounters.push(payload);
+      modifiedCounters.push(payload);
     });
 
-    return dirtyCounters.length > 0 ? dirtyCounters : null;
+    return {
+      modified: modifiedCounters.length > 0 ? modifiedCounters : null,
+      new: newCounters.length > 0 ? newCounters : null,
+    };
   }
 
   // Verificar si las tarifas cambiaron
@@ -1165,10 +1314,10 @@ export class UpdateClient implements OnInit {
     return aforosPayload;
   }
 
-  // Obtener IDs de aforos a eliminar (IDs de la tabla intermedia aforo_contador)
-  private getAforosToDelete(): number[] {
+  // Obtener aforos a eliminar (retorna objetos con idContador e idAforo)
+  private getAforosToDelete(): Array<{idContador: number, idAforo: number}> {
     const contadoresArray = this.contadoresFormArray;
-    const idsToDelete: number[] = [];
+    const aforosToDelete: Array<{idContador: number, idAforo: number}> = [];
 
     contadoresArray.controls.forEach((control) => {
       const contador = control.value;
@@ -1181,44 +1330,46 @@ export class UpdateClient implements OnInit {
           ? contador.aforosContador.filter((id: any) => id).map((id: any) => Number(id))
           : [];
 
-        // Datos originales con IDs de la relación
+        // Datos originales de aforos
         const aforosOriginales = Array.isArray(contador.aforosContadorData)
           ? contador.aforosContadorData
           : [];
 
         // Identificar aforos eliminados
         aforosOriginales.forEach((aforoOriginal: any) => {
-          const aforoIdInDb = aforoOriginal.id;
+          const aforoId = aforoOriginal.id; // Este es el ID del aforo
 
           // Si el aforo original ya no está en la selección actual, debe eliminarse
-          if (!aforosIdsActuales.includes(aforoIdInDb)) {
-            // Usar el ID del aforo para eliminar la relación
-            idsToDelete.push(aforoIdInDb);
+          if (!aforosIdsActuales.includes(aforoId)) {
+            aforosToDelete.push({
+              idContador: Number(contador.id),
+              idAforo: aforoId
+            });
           }
         });
       }
     });
 
-    return idsToDelete;
+    return aforosToDelete;
   }
 
   // ====================  CREACIÓN DE NUEVOS CONTADORES ====================
 
   private initializeCounterForm(): void {
     this.counterForm = this.fb.group({
-      serial: ['', Validators.required],
-      tipoContador: ['', Validators.required],
-      tipoUso: ['', Validators.required],
+      serial: [''],
+      tipoContador: [''],
+      tipoUso: [''],
       estadoContador: [''],
-      idDepartamento: [{ value: '', disabled: true }, Validators.required],
-      idCiudad: [{ value: '', disabled: true }, Validators.required],
+      idDepartamento: [{ value: '', disabled: true }],
+      idCiudad: [{ value: '', disabled: true }],
       idCorregimiento: [''],
-      direccion: ['', Validators.required],
+      direccion: [''],
       estrato: [
         '',
-        [Validators.required, Validators.min(1), Validators.max(6)],
+        [Validators.min(1), Validators.max(6)],
       ],
-      digitos: ['', [Validators.required, Validators.min(1)]],
+      digitos: ['', [Validators.min(1)]],
       fechaInstalacion: [''],
     });
   }

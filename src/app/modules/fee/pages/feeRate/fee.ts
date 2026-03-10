@@ -372,7 +372,6 @@ export class FeeComponent implements AfterViewInit {
   });
 
 mostrardata = this.consumptionParamsData().forEach(param => {
-    console.log('Parámetro:', param.description, 'Valor:', param.value);
     this.valorComplementario.set(param.key === 'CONCOM' ? param.value : null);
     this.valorUnitario.set(param.key === 'CONSUN' ? param.value : null);
     this.valorBasico.set(param.key === 'CONBAS' ? param.value : null);
@@ -1389,7 +1388,6 @@ mostrardata = this.consumptionParamsData().forEach(param => {
           const match = valorParam.match(/-(\d+)/);
           if (match) {
             this.consumoMinimo.set(parseInt(match[1]));
-            console.log('CONBAS cargado:', valorParam, '-> mínimo:', match[1], '-> ID:', data.CONBAS.response.id);
           }
         }
 
@@ -1403,7 +1401,6 @@ mostrardata = this.consumptionParamsData().forEach(param => {
           const match = valorParam.match(/-(\d+)/);
           if (match) {
             this.consumoMaximo.set(parseInt(match[1]));
-            console.log('CONCOM cargado:', valorParam, '-> máximo:', match[1], '-> ID:', data.CONCOM.response.id);
           }
         }
 
@@ -1412,12 +1409,9 @@ mostrardata = this.consumptionParamsData().forEach(param => {
           if (data.CONSUN.response.id) {
             this.paramConsumptionIds.CONSUN = data.CONSUN.response.id;
           }
-          console.log('CONSUN cargado -> ID:', data.CONSUN.response.id);
         }
 
         this.cargandoParametrosConsumo.set(false);
-        console.log('Parámetros de consumo cargados - Min:', this.consumoMinimo(), 'Max:', this.consumoMaximo());
-        console.log('IDs guardados:', this.paramConsumptionIds);
       },
       error: (error) => {
         console.error('Error al cargar parámetros de consumo:', error);
