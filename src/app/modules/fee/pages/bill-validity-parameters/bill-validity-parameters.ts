@@ -797,60 +797,59 @@ export class BillValidityParameters {
       diasVigencia: this.counterEnterpriceService.getParamsEnterprice(
         empresaId,
         PARAM_KEYS.DIAS_VIGENCIA,
-      ),
+      ).pipe(catchError(() => of({ response: null }))),
       periodosFacturados: this.counterEnterpriceService.getParamsEnterprice(
         empresaId,
         PARAM_KEYS.PERIODOS_FACTURADOS,
-      ),
+      ).pipe(catchError(() => of({ response: null }))),
       periodosVencida: this.counterEnterpriceService.getParamsEnterprice(
         empresaId,
         PARAM_KEYS.PERIODOS_VENCIDA,
-      ),
+      ).pipe(catchError(() => of({ response: null }))),
       periodosInmediato: this.counterEnterpriceService.getParamsEnterprice(
         empresaId,
         PARAM_KEYS.PERIODOS_INMEDIATO,
-      ),
+      ).pipe(catchError(() => of({ response: null }))),
       interesDeuda: this.counterEnterpriceService.getParamsEnterprice(
         empresaId,
         PARAM_KEYS.INTERES_DEUDA,
-      ),
+      ).pipe(catchError(() => of({ response: null }))),
     }).subscribe({
       next: (params) => {
         // El response puede ser un objeto o array, manejar ambos casos
-        const diasParam = Array.isArray(params.diasVigencia.response)
+        const diasParam = params.diasVigencia.response && (Array.isArray(params.diasVigencia.response)
           ? params.diasVigencia.response[0]
-          : params.diasVigencia.response;
-        const periodosParam = Array.isArray(params.periodosFacturados.response)
+          : params.diasVigencia.response);
+        const periodosParam = params.periodosFacturados.response && (Array.isArray(params.periodosFacturados.response)
           ? params.periodosFacturados.response[0]
-          : params.periodosFacturados.response;
-        const vencidaParam = Array.isArray(params.periodosVencida.response)
+          : params.periodosFacturados.response);
+        const vencidaParam = params.periodosVencida.response && (Array.isArray(params.periodosVencida.response)
           ? params.periodosVencida.response[0]
-          : params.periodosVencida.response;
-        const inmediatoParam = Array.isArray(params.periodosInmediato.response)
+          : params.periodosVencida.response);
+        const inmediatoParam = params.periodosInmediato.response && (Array.isArray(params.periodosInmediato.response)
           ? params.periodosInmediato.response[0]
-          : params.periodosInmediato.response;
-        const interesParam = Array.isArray(params.interesDeuda.response)
+          : params.periodosInmediato.response);
+        const interesParam = params.interesDeuda.response && (Array.isArray(params.interesDeuda.response)
           ? params.interesDeuda.response[0]
-          : params.interesDeuda.response;
+          : params.interesDeuda.response);
 
-        if (diasParam && diasParam.valorParametro) {
+        if (diasParam && diasParam.valorParametro !== undefined) {
           this.diasVigencia = Number(diasParam.valorParametro);
           this.paramIds.diasVigencia = diasParam.id;
-
         }
-        if (periodosParam && periodosParam.valorParametro) {
+        if (periodosParam && periodosParam.valorParametro !== undefined) {
           this.periodosFacturados = Number(periodosParam.valorParametro);
           this.paramIds.periodosFacturados = periodosParam.id;
         }
-        if (vencidaParam && vencidaParam.valorParametro) {
+        if (vencidaParam && vencidaParam.valorParametro !== undefined) {
           this.periodosNoPagosVencida = Number(vencidaParam.valorParametro);
           this.paramIds.periodosVencida = vencidaParam.id;
         }
-        if (inmediatoParam && inmediatoParam.valorParametro) {
+        if (inmediatoParam && inmediatoParam.valorParametro !== undefined) {
           this.periodosPagoInmediato = Number(inmediatoParam.valorParametro);
           this.paramIds.periodosInmediato = inmediatoParam.id;
         }
-        if (interesParam && interesParam.valorParametro) {
+        if (interesParam && interesParam.valorParametro !== undefined) {
           this.interesDeuda = Number(interesParam.valorParametro);
           this.paramIds.interesDeuda = interesParam.id;
         }
@@ -879,7 +878,7 @@ export class BillValidityParameters {
       this.periodosFacturados > 0 &&
       this.periodosNoPagosVencida > 0 &&
       this.periodosPagoInmediato > 0 &&
-      this.interesDeuda > 0 &&
+      this.interesDeuda >= 0 &&
       this.periodosNoPagosVencida < this.periodosPagoInmediato
     );
   }

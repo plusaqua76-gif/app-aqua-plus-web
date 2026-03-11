@@ -90,6 +90,15 @@ export class FacturaService {
     return this.http.get<ApiResponse<IfacturaResponse[]>>(this.Url);
   }
 
+  getBillsByCounterAndCode(
+    empresaClienteContadorId: number,
+    codigo: string
+  ): Observable<ApiResponse<Array<{ id: number; codigo: string; precio: number; fechaEmision: Date; activo: boolean }>>> {
+    const url = `${this.apiUrl}/empresa-cliente-contador/${empresaClienteContadorId}/factura`;
+    const params = new HttpParams().set('codigo', codigo);
+    return this.http.get<ApiResponse<Array<{ id: number; codigo: string; precio: number; fechaEmision: Date; activo: boolean }>>>(url, { params });
+  }
+
   getAllBillByIdPaginated(
     empresaId: number,
     params: IPaginationParams

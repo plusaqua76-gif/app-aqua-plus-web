@@ -325,14 +325,16 @@
                  [style.opacity]="registerForm.get('facturacionAutomatica')?.value ? '1' : '0'"
                  [style.margin-top]="registerForm.get('facturacionAutomatica')?.value ? '1rem' : '0'">
               @if (registerForm.get('facturacionAutomatica')?.value) {
-                <div class="textbox" style="max-width: 350px;">
-                  <select formControlName="diaCorteFacturacion" required>
-                    <option value="" disabled>Seleccione el día del mes</option>
-                    @for (dia of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]; track dia) {
-                      <option [value]="dia">Día {{ dia }}</option>
-                    }
-                  </select>
-                  <label>Día de corte para facturación</label>
+                <div style="max-width: 350px;">
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Día de corte para facturación
+                  </label>
+                  <app-datepicker
+                    placeholder="Seleccione el día de corte"
+                    [value]="registerForm.get('diaCorteFacturacion')?.value"
+                    (dateChange)="registerForm.patchValue({diaCorteFacturacion: $event})"
+                    [compact]="true"
+                  ></app-datepicker>
                 </div>
               }
             </div>

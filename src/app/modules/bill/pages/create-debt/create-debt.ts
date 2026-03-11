@@ -14,6 +14,8 @@ import { Router } from '@angular/router';
 import { CounterEnterpriceService } from '../../../fee/services/counter-enterprice.service';
 import { ClientRaw } from '@interfaces/client/IclientRaw';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
+import { FacturaService } from '../../service/factura.service';
+import { IEnterpriseClientCounter } from '@interfaces/IenterpriseClientCounter';
 
 
 @Component({
@@ -37,6 +39,7 @@ export class CreateDebt  {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly counterEnterpriceService = inject(CounterEnterpriceService);
+  private readonly facturaService = inject(FacturaService);
   readonly procesandoDeuda = signal(false);
 
   // Propiedades para búsqueda de clientes
@@ -47,10 +50,18 @@ export class CreateDebt  {
   showResults = signal(false);
   isSearching = signal(false);
 
+  // Propiedades para contadores
+  selectedCounter = signal<IEnterpriseClientCounter | null>(null);
+
+  // Propiedades para búsqueda de facturas
+  billTerm = signal('');
+  selectedBill = signal<{ codigo: string; id: number } | null>(null);
+
   readonly deudaForm = this.fb.group({
     empresaClienteContadorId: [null, [Validators.required]],
     tipoDeudaId: [null, [Validators.required]],
     plazoPagoId: [null, [Validators.required]],
+    facturaId: [null],
     fechaDeuda: [new Date().toISOString().split('T')[0], [Validators.required]],
     valor: ['', [Validators.required, Validators.min(0.01), Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
     descripcion: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(500)]]
@@ -103,6 +114,46 @@ export class CreateDebt  {
       })
     )
   })
+
+  // Obtener contadores del cliente seleccionado
+  countersClient = rxResource({
+    params: () => ({
+      idEmpresa: this.empresaId(),
+      idPersona: this.selectedClient()?.id || null
+    }),
+    stream: ({ params }) => {
+      const { idEmpresa, idPersona } = params;
+      if (!idEmpresa || !idPersona) {
+        return of(null);
+      }
+      return this.enterpriseClientCounterService.getCountersByEmpresaPersona(idEmpresa, idPersona).pipe(
+        catchError(error => {
+          console.error('Error loading counters:', error);
+          return of(null);
+        })
+      );
+    }
+  });
+
+  // Búsqueda de facturas por código
+  billcode = rxResource({
+    params: () => ({
+      term: this.billTerm(),
+      counterId: this.selectedCounter()?.id || null
+    }),
+    stream: ({ params }) => {
+      const { term, counterId } = params;
+      if (!term || term.trim().length < 3 || !counterId) {
+        return of(null);
+      }
+      return this.facturaService.getBillsByCounterAndCode(counterId, term).pipe(
+        catchError(error => {
+          console.error('Error searching bills:', error);
+          return of(null);
+        })
+      );
+    }
+  });
 
   // Parámetro de interés de mora
   parametroInteres = rxResource({
@@ -281,10 +332,9 @@ export class CreateDebt  {
     this.selectedClient.set(cliente);
     this.showResults.set(false);
     this.searchTerm = cliente.nombreCompleto || '';
-    // Actualizar el formulario con el ID del cliente
-    this.deudaForm.patchValue({
-      empresaClienteContadorId: cliente.id as any
-    });
+    // Limpiar selecciones dependientes
+    this.clearCounter();
+    this.clearBill();
   }
 
   clearClient(): void {
@@ -292,9 +342,75 @@ export class CreateDebt  {
     this.searchTerm = '';
     this.searchResults.set([]);
     this.showResults.set(false);
+    this.clearCounter();
+    this.clearBill();
     this.deudaForm.patchValue({
       empresaClienteContadorId: null
     });
+  }
+
+  // Métodos para contador
+  selectCounter(counter: IEnterpriseClientCounter): void {
+    this.selectedCounter.set(counter);
+    // Actualizar el formulario con el ID del empresaClienteContador
+    this.deudaForm.patchValue({
+      empresaClienteContadorId: counter.id as any
+    });
+    // Limpiar la factura seleccionada
+    this.clearBill();
+  }
+
+  clearCounter(): void {
+    this.selectedCounter.set(null);
+    this.clearBill();
+  }
+
+  // Métodos para factura
+  onBillTermChange(value: string): void {
+    this.billTerm.set(value);
+    this.selectedBill.set(null);
+  }
+
+  selectBill(bill: { codigo: string; id: number }): void {
+    this.selectedBill.set(bill);
+    this.deudaForm.patchValue({
+      facturaId: bill.id as any
+    });
+  }
+
+  clearBill(): void {
+    this.billTerm.set('');
+    this.selectedBill.set(null);
+    this.deudaForm.patchValue({
+      facturaId: null
+    });
+  }
+
+  shouldShowNoResultsMessage(): boolean {
+    const billData = this.billcode.value();
+    const term = this.billTerm();
+
+    if (!term || term.trim().length < 3) {
+      return false;
+    }
+
+    if (this.billcode.isLoading()) {
+      return false;
+    }
+
+    if (this.billcode.error()) {
+      return true;
+    }
+
+    if (!billData) {
+      return true;
+    }
+
+    if (billData.response && billData.response.length === 0) {
+      return true;
+    }
+
+    return false;
   }
 
   onSubmit(): void {
@@ -330,11 +446,11 @@ export class CreateDebt  {
       return;
     }
 
-    // Verificar que haya un cliente seleccionado
-    const clienteSeleccionado = this.selectedClient();
+    // Verificar que haya un contador seleccionado
+    const contadorSeleccionado = this.selectedCounter();
 
-    if (!clienteSeleccionado) {
-      this.toastService.error('Error', 'Debe seleccionar un cliente');
+    if (!contadorSeleccionado) {
+      this.toastService.error('Error', 'Debe seleccionar un contador');
       this.procesandoDeuda.set(false);
       return;
     }
@@ -345,23 +461,33 @@ export class CreateDebt  {
     const valorInteres = valorBase * (tasaInteres / 100);
     const valorTotal = valorBase + valorInteres;
 
+    // Construir objeto deuda con payload limpio y correcto
     const deuda: Partial<IDeudaCliente> = {
-      empresaClienteContador: { id: (clienteSeleccionado as any).empresaClienteContadorId } as any,
-      tipoDeuda: tipoDeudaSeleccionado,
-      plazoPago: plazoPagoSeleccionado.nombre,
+      empresaClienteContador: { id: contadorSeleccionado.id },
+      tipoDeuda: { id: tipoDeudaSeleccionado.id },
+      plazoPago: plazoPagoSeleccionado.id,
       fechaDeuda: new Date(formValue.fechaDeuda!),
-      valor: String(valorTotal),
+      valor: valorTotal, // Enviar como número, no string
       descripcion: formValue.descripcion!,
       activo: true,
-      usuarioCreacion: usuario,
-      fechaCreacion: new Date()
+      usuarioCreacion: usuario
+      // fechaCreacion, usuarioCambio y fechaCambio los genera el backend
     };
+
+    // Agregar factura si fue seleccionada
+    const facturaSeleccionada = this.selectedBill();
+    if (facturaSeleccionada) {
+      deuda.factura = { id: facturaSeleccionada.id };
+    }
 
     this.deudaService.saveDeuda(deuda as IDeudaCliente).subscribe({
       next: (response) => {
+        const mensajeFactura = facturaSeleccionada
+          ? ` asociada a la factura ${facturaSeleccionada.codigo}`
+          : '';
         this.toastService.success(
           'Deuda Creada',
-          `La deuda por valor de $${valorTotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (incluye interés del ${tasaInteres}%) ha sido creada exitosamente`
+          `La deuda por valor de $${valorTotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (incluye interés del ${tasaInteres}%)${mensajeFactura} ha sido creada exitosamente`
         );
         this.resetForm();
         this.procesandoDeuda.set(false);

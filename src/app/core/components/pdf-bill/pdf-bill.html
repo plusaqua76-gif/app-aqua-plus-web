@@ -176,7 +176,6 @@
 <div class="tarifas-consumo-section">
   <div class="tarifas-consumo-table">
 
-    @let itemsMTC = billData()?.valoresMetrosCubicos?.tipoConcepto ?? [];
     @let totalAcueducto = billData()?.valoresMetrosCubicos?.totalAcueducto ?? 0;
     @let totalAlcantarillado = billData()?.valoresMetrosCubicos?.totalAlcantarillado ?? 0;
 
@@ -189,33 +188,21 @@
       <div class="tarifa-header-cell">
         TARIFA POR M³<br />
         CONSUMO DE<br />
-        @for (item of itemsMTC; track item.codigo) {
-          @if (item.codigo === 'ACUCONBAS') {
-            {{ item.rango }} M³
-          }
-        }
+        {{ getRangoM3('ACU', 'Consumo basico') }} M³
       </div>
 
       <!-- ACUCONCOM -->
       <div class="tarifa-header-cell">
         TARIFA POR M³<br />
         CONSUMO DE<br />
-        @for (item of itemsMTC; track item.codigo) {
-          @if (item.codigo === 'ACUCONCOM') {
-            {{ item.rango }} M³
-          }
-        }
+        {{ getRangoM3('ACU', 'Consumo complementario') }} M³
       </div>
 
       <!-- ACUCONSUN -->
       <div class="tarifa-header-cell">
         TARIFA POR M³<br />
         CONSUMO<br />
-        @for (item of itemsMTC; track item.codigo) {
-          @if (item.codigo === 'ACUCONSUN') {
-            {{ item.rango || '0' }} M³
-          }
-        }
+        {{ getRangoM3('ACU', 'Consumo suntuario') || '0' }} M³
       </div>
 
       <div class="tarifa-header-cell">
@@ -232,29 +219,17 @@
 
       <!-- ACUCONBAS -->
       <div class="tarifa-value-cell">
-        @for (item of itemsMTC; track item.codigo) {
-          @if (item.codigo === 'ACUCONBAS') {
-            {{ item.valor | colombianCurrency }}
-          }
-        }
+        {{ getTarifaPorM3('ACU', 'Consumo basico') | colombianCurrency }}
       </div>
 
       <!-- ACUCONCOM -->
       <div class="tarifa-value-cell">
-        @for (item of itemsMTC; track item.codigo) {
-          @if (item.codigo === 'ACUCONCOM') {
-            {{ item.valor | colombianCurrency }}
-          }
-        }
+        {{ getTarifaPorM3('ACU', 'Consumo complementario') | colombianCurrency }}
       </div>
 
       <!-- ACUCONSUN -->
       <div class="tarifa-value-cell">
-        @for (item of itemsMTC; track item.codigo) {
-          @if (item.codigo === 'ACUCONSUN') {
-            {{ item.valor | colombianCurrency }}
-          }
-        }
+        {{ getTarifaPorM3('ACU', 'Consumo suntuario') | colombianCurrency }}
       </div>
 
       <div class="tarifa-value-cell">
@@ -271,33 +246,21 @@
       <div class="tarifa-header-cell">
         TARIFA POR M³<br />
         CONSUMO DE<br />
-        @for (item of itemsMTC; track item.codigo) {
-          @if (item.codigo === 'ALCCONBAS') {
-            {{ item.rango }} M³
-          }
-        }
+        {{ getRangoM3('ALC', 'Consumo basico') }} M³
       </div>
 
       <!-- ALCCONCOM -->
       <div class="tarifa-header-cell">
         TARIFA POR M³<br />
         CONSUMO DE<br />
-        @for (item of itemsMTC; track item.codigo) {
-          @if (item.codigo === 'ALCCONCOM') {
-            {{ item.rango }} M³
-          }
-        }
+        {{ getRangoM3('ALC', 'Consumo complementario') }} M³
       </div>
 
       <!-- ALCCONSUN -->
       <div class="tarifa-header-cell">
         TARIFA POR M³<br />
         CONSUMO<br />
-        @for (item of itemsMTC; track item.codigo) {
-          @if (item.codigo === 'ALCCONSUN') {
-            {{ item.rango }} M³
-          }
-        }
+        {{ getRangoM3('ALC', 'Consumo suntuario') }} M³
       </div>
 
       <div class="tarifa-header-cell">
@@ -312,27 +275,15 @@
       </div>
 
       <div class="tarifa-value-cell">
-        @for (item of itemsMTC; track item.codigo) {
-          @if (item.codigo === 'ALCCONBAS') {
-            {{ item.valor | colombianCurrency }}
-          }
-        }
+        {{ getTarifaPorM3('ALC', 'Consumo basico') | colombianCurrency }}
       </div>
 
       <div class="tarifa-value-cell">
-        @for (item of itemsMTC; track item.codigo) {
-          @if (item.codigo === 'ALCCONCOM') {
-            {{ item.valor | colombianCurrency }}
-          }
-        }
+        {{ getTarifaPorM3('ALC', 'Consumo complementario') | colombianCurrency }}
       </div>
 
       <div class="tarifa-value-cell">
-        @for (item of itemsMTC; track item.codigo) {
-          @if (item.codigo === 'ALCCONSUN') {
-            {{ item.valor | colombianCurrency }}
-          }
-        }
+        {{ getTarifaPorM3('ALC', 'Consumo suntuario') | colombianCurrency }}
       </div>
 
       <div class="tarifa-value-cell">
@@ -454,33 +405,17 @@
                   <tr class="liquidar-labels-row">
                     <td class="liquidar-rango-cell rango-first" rowspan="2">CONSUMO BÁSICO</td>
                     <td class="liquidar-value text-gray-700">
-                      @for (item of itemsMTC; track item.codigo) {
-                        @if (item.codigo === 'ACUCONBAS') {
-                          {{ item.valor | colombianCurrency }}
-                        }
-                      }
+                      {{ getTarifaPorM3('ACU', 'Consumo basico') | colombianCurrency }}
                     </td>
                     <td class="liquidar-value text-gray-700">
-                      @for (item of itemsMTC; track item.codigo) {
-                        @if (item.codigo === 'ACUCONBAS') {
-                          {{ item.rango }} M³
-                        }
-                      }
+                      {{ getRangoM3('ACU', 'Consumo basico') }} M³
                     </td>
                     <td class="liquidar-subtotal" rowspan="2">{{ getSubtotalAcuBasico() | colombianCurrency }}</td>
                     <td class="liquidar-value text-gray-700">
-                      @for (item of itemsMTC; track item.codigo) {
-                        @if (item.codigo === 'ALCCONBAS') {
-                          {{ item.valor | colombianCurrency }}
-                        }
-                      }
+                      {{ getTarifaPorM3('ALC', 'Consumo basico') | colombianCurrency }}
                     </td>
                     <td class="liquidar-value text-gray-700">
-                      @for (item of itemsMTC; track item.codigo) {
-                        @if (item.codigo === 'ALCCONBAS') {
-                          {{ item.rango }} M³
-                        }
-                      }
+                      {{ getRangoM3('ALC', 'Consumo basico') }} M³
                     </td>
                     <td class="liquidar-subtotal" rowspan="2">{{ getSubtotalAlcBasico() | colombianCurrency }}</td>
                   </tr>
@@ -495,33 +430,17 @@
                   <tr class="liquidar-labels-row">
                     <td class="liquidar-rango-cell" rowspan="2">CONSUMO COMPLEMENTARIO</td>
                     <td class="liquidar-value text-gray-700">
-                      @for (item of itemsMTC; track item.codigo) {
-                        @if (item.codigo === 'ACUCONCOM') {
-                          {{ item.valor | colombianCurrency }}
-                        }
-                      }
+                      {{ getTarifaPorM3('ACU', 'Consumo complementario') | colombianCurrency }}
                     </td>
                     <td class="liquidar-value text-gray-700">
-                      @for (item of itemsMTC; track item.codigo) {
-                        @if (item.codigo === 'ACUCONCOM') {
-                          {{ item.rango }} M³
-                        }
-                      }
+                      {{ getRangoM3('ACU', 'Consumo complementario') }} M³
                     </td>
                     <td class="liquidar-subtotal" rowspan="2">{{ getSubtotalAcuComplementario() | colombianCurrency }}</td>
                     <td class="liquidar-value text-gray-700">
-                      @for (item of itemsMTC; track item.codigo) {
-                        @if (item.codigo === 'ALCCONCOM') {
-                          {{ item.valor | colombianCurrency }}
-                        }
-                      }
+                      {{ getTarifaPorM3('ALC', 'Consumo complementario') | colombianCurrency }}
                     </td>
                     <td class="liquidar-value text-gray-700">
-                      @for (item of itemsMTC; track item.codigo) {
-                        @if (item.codigo === 'ALCCONCOM') {
-                          {{ item.rango }} M³
-                        }
-                      }
+                      {{ getRangoM3('ALC', 'Consumo complementario') }} M³
                     </td>
                     <td class="liquidar-subtotal" rowspan="2">{{ getSubtotalAlcComplementario() | colombianCurrency }}</td>
                   </tr>
@@ -536,33 +455,17 @@
                   <tr class="liquidar-labels-row">
                     <td class="liquidar-rango-cell" rowspan="2">CONSUMO SUNTUARIO</td>
                     <td class="liquidar-value text-gray-700">
-                      @for (item of itemsMTC; track item.codigo) {
-                        @if (item.codigo === 'ACUCONSUN') {
-                          {{ item.valor | colombianCurrency }}
-                        }
-                      }
+                      {{ getTarifaPorM3('ACU', 'Consumo suntuario') | colombianCurrency }}
                     </td>
                     <td class="liquidar-value text-gray-700">
-                      @for (item of itemsMTC; track item.codigo) {
-                        @if (item.codigo === 'ACUCONSUN') {
-                          {{ item.rango }} M³
-                        }
-                      }
+                      {{ getRangoM3('ACU', 'Consumo suntuario') }} M³
                     </td>
                     <td class="liquidar-subtotal" rowspan="2">{{ getSubtotalAcuSuntuario() | colombianCurrency }}</td>
                     <td class="liquidar-value text-gray-700">
-                      @for (item of itemsMTC; track item.codigo) {
-                        @if (item.codigo === 'ALCCONSUN') {
-                          {{ item.valor | colombianCurrency }}
-                        }
-                      }
+                      {{ getTarifaPorM3('ALC', 'Consumo suntuario') | colombianCurrency }}
                     </td>
                     <td class="liquidar-value text-gray-700">
-                      @for (item of itemsMTC; track item.codigo) {
-                        @if (item.codigo === 'ALCCONSUN') {
-                          {{ item.rango }} M³
-                        }
-                      }
+                      {{ getRangoM3('ALC', 'Consumo suntuario') }} M³
                     </td>
                     <td class="liquidar-subtotal" rowspan="2">{{ getSubtotalAlcSuntuario() | colombianCurrency }}</td>
                   </tr>
@@ -800,20 +703,19 @@
 
         <div class="deuda-labels-row">
           <div class="deuda-label-cell">TIPO DE DEUDA</div>
-          <div class="deuda-label-cell">CÓDIGO TIPO DEUDA</div>
           <div class="deuda-label-cell">NÚMERO DE CUOTAS</div>
           <div class="deuda-label-cell">VALOR CUOTA</div>
           <div class="deuda-label-cell">ABONOS REALIZADOS</div>
           <div class="deuda-label-cell">CUOTAS CANCELADAS</div>
           <div class="deuda-label-cell">CUOTAS PENDIENTES</div>
+          <div class="deuda-label-cell">SALDO TOTAL</div>
           <div class="deuda-label-cell">NUEVO SALDO</div>
         </div>
 
-        @if (dataDeudaConsolidada() && dataDeudaConsolidada()!.length > 0) {
-        @for (deuda of dataDeudaConsolidada(); track deuda.idTipoDeuda) {
+        @if (billData()?.deudaCliente && billData()!.deudaCliente.length > 0) {
+        @for (deuda of billData()!.deudaCliente; track deuda.id) {
         <div class="deuda-values-row">
           <div class="deuda-value-cell">{{ deuda.nombreTipoDeuda }}</div>
-          <div class="deuda-value-cell">{{ deuda.codigoTipoDeuda }}</div>
           <div class="deuda-value-cell">{{ deuda.numeroCuotas }}</div>
           <div class="deuda-value-cell">
             {{ deuda.valorCuota | colombianCurrency }}
@@ -823,6 +725,9 @@
           </div>
           <div class="deuda-value-cell">{{ deuda.cuotasCanceladas }}</div>
           <div class="deuda-value-cell">{{ deuda.cuotasPendientes }}</div>
+          <div class="deuda-value-cell">
+            {{ deuda.deudaTotal | colombianCurrency }}
+          </div>
           <div class="deuda-value-cell">
             {{ deuda.nuevoSaldo | colombianCurrency }}
           </div>
@@ -838,7 +743,7 @@
               color: #666;
             "
           >
-            No hay información de deudas consolidadas
+            No hay información de deudas
           </div>
         </div>
         }

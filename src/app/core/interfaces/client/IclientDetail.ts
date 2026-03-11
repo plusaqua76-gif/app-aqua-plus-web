@@ -77,6 +77,7 @@ export interface ITipoUso {
 
 export interface IAforoContador {
   id: number;
+  idAforoContador?: number;
   nombre: string;
   tarifaBase: number;
 }

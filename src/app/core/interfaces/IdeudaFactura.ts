@@ -3,19 +3,19 @@ import { IFactura } from "./Ifactura";
 
 export interface IDeudaCliente {
     id: number;
-    empresaClienteContador: IEnterpriseClientCounter;
-    tipoDeuda: ITipoDeuda;
-    plazoPago: string;
-    factura: IFactura;
+    empresaClienteContador: IEnterpriseClientCounter | { id: number };
+    tipoDeuda: ITipoDeuda | { id: number };
+    plazoPago: number;
+    factura?: IFactura | { id: number };
     fechaDeuda: Date;
-    valor: string;
-    valorTotal?: string;
+    valor: number;
+    valorTotal?: number;
     descripcion: string;
     activo: boolean;
     usuarioCreacion: string;
-    fechaCreacion: Date;
-    usuarioActualizacion: string;
-    fechaModificacion: Date;
+    fechaCreacion?: Date;
+    usuarioCambio?: string;
+    fechaCambio?: Date;
 }
 
 export interface IDeudaClienteResponse {

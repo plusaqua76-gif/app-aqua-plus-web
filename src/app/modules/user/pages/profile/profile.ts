@@ -1257,8 +1257,7 @@ export class Profile {
           nombreArchivo: fileNameWithExt,
           extension: extension,
           usuario: usuarioCambio,
-          categoriaCodigo: 'FACIMG',
-          publico: true,
+          categoriaCodigo: 'FOT',
         };
 
         this.documentAzureBlobService

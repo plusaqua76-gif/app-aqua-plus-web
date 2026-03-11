@@ -149,12 +149,167 @@
             </div>
           } @else {
             <div class="text-sm text-gray-500 dark:text-gray-500 italic p-3 bg-white/5 dark:bg-gray-800/30 rounded-lg">
-              Busca y selecciona un cliente
+              Busca apartir de 3 letras  y selecciona un cliente
             </div>
           }
 
           @if (deudaForm.get('empresaClienteContadorId')?.invalid && deudaForm.get('empresaClienteContadorId')?.touched) {
             <p class="mt-1 text-sm text-red-600">Debe seleccionar un cliente</p>
+          }
+        </div>
+
+        <!-- Contador -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Contador <span class="text-red-500">*</span>
+          </label>
+
+          @if (selectedClient()) {
+            @if (countersClient.isLoading()) {
+              <div class="flex items-center justify-center p-4 bg-white/5 dark:bg-gray-800/30 rounded-lg">
+                <svg class="animate-spin h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-sm text-gray-600 dark:text-gray-400">Cargando contadores...</span>
+              </div>
+            } @else if (countersClient.error()) {
+              <div class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/30 rounded-lg">
+                <p class="text-sm text-red-600 dark:text-red-400">Error al cargar contadores</p>
+              </div>
+            } @else if (countersClient.value()?.response && countersClient.value()!.response.length > 0) {
+              @if (!selectedCounter()) {
+                <div class="space-y-2 max-h-60 overflow-y-auto">
+                  @for (counter of countersClient.value()!.response; track counter.id) {
+                    <button
+                      type="button"
+                      (click)="selectCounter(counter)"
+                      class="w-full p-3 text-left rounded-lg border border-gray-300 dark:border-gray-600 bg-white/10 dark:bg-gray-800/30 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-500/50 transition-all"
+                    >
+                      <div class="flex flex-col gap-1">
+                        <span class="text-sm font-semibold text-gray-900 dark:text-white">
+                          Serial: {{ counter.contador.serial }}
+                        </span>
+                        <span class="text-xs text-gray-600 dark:text-gray-400">
+                          {{ counter.contador.tipoContador.nombre }}
+                        </span>
+                        <span class="text-xs text-gray-500 dark:text-gray-500">
+                          {{ counter.contador.descripcion.descripcion }}
+                        </span>
+                      </div>
+                    </button>
+                  }
+                </div>
+              } @else {
+                <div class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/30 rounded-lg space-y-1">
+                  <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                      <p class="text-gray-900 dark:text-white font-semibold">
+                        Serial: {{ selectedCounter()?.contador?.serial }}
+                      </p>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">
+                        {{ selectedCounter()?.contador?.tipoContador?.nombre }}
+                      </p>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">
+                        {{ selectedCounter()?.contador?.descripcion?.descripcion }}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      (click)="clearCounter()"
+                      class="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-1"
+                      title="Cambiar contador"
+                    >
+                      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              }
+            } @else {
+              <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-500/30 rounded-lg">
+                <p class="text-sm text-yellow-700 dark:text-yellow-400">
+                  Este cliente no tiene contadores registrados
+                </p>
+              </div>
+            }
+          } @else {
+            <div class="text-sm text-gray-500 dark:text-gray-500 italic p-3 bg-white/5 dark:bg-gray-800/30 rounded-lg">
+              Primero selecciona un cliente
+            </div>
+          }
+        </div>
+        <!-- Búsqueda de Factura (Opcional) -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Factura (Opcional)
+          </label>
+          @if (selectedCounter()) {
+            <div class="relative mb-3">
+              <input
+                type="text"
+                [ngModel]="billTerm()"
+                (ngModelChange)="onBillTermChange($event)"
+                [ngModelOptions]="{standalone: true}"
+                placeholder="Buscar código de factura..."
+                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+              />
+              @if (billcode.isLoading()) {
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <svg class="animate-spin h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
+              }
+            </div>
+            @if (billcode.value()?.response && billcode.value()!.response.length > 0) {
+              <div cla  ss="mt-2 space-y-2">
+                <p class="text-sm text-gray-600 dark:text-gray-400 font-medium">Facturas encontradas:</p>
+                @for (bill of billcode.value()!.response; track bill.id) {
+                  <div
+                    class="p-3 rounded-lg border cursor-pointer transition-colors"
+                    [class]="selectedBill()?.id === bill.id ? 'border-green-600/70 bg-green-50 dark:bg-green-900/20' : 'border-gray-300 dark:border-gray-600 bg-white/10 dark:bg-gray-800/20 hover:bg-gray-100 dark:hover:bg-gray-700/20'"
+                    (click)="selectBill(bill)"
+                  >
+                    <div class="flex items-center gap-2">
+                      @if (selectedBill()?.id === bill.id) {
+                        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      } @else {
+                        <div class="w-4 h-4 rounded-full border border-gray-400"></div>
+                      }
+                      <div class="flex-1">
+                        <span class="text-sm font-medium" [class]="selectedBill()?.id === bill.id ? 'text-green-700 dark:text-green-300' : 'text-gray-900 dark:text-gray-300'">
+                          {{ bill.codigo }}
+                        </span>
+                        <span class="text-xs text-gray-500 dark:text-gray-500 ml-2">
+                          ${{ bill.precio.toLocaleString('es-CO') }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+            @if (shouldShowNoResultsMessage()) {
+              <div class="mt-2 p-3 rounded-lg border border-red-200 dark:border-red-600/70 bg-red-50 dark:bg-red-900/20">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  <span class="text-sm text-red-600 dark:text-red-400">
+                    No se encontró ninguna factura con ese código
+                  </span>
+                </div>
+              </div>
+            }
+          } @else {
+            <div class="text-sm text-gray-500 dark:text-gray-500 italic p-3 bg-white/5 dark:bg-gray-800/30 rounded-lg">
+              Primero selecciona un contador
+            </div>
           }
         </div>
 

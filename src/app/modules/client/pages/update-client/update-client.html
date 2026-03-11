@@ -318,59 +318,6 @@
           </div>
         </div>
 
-        <!-- Campo: Empleado Asignado -->
-        <div>
-          <label
-            for="idEmpleadoEmpresa"
-            class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
-          >
-            Empleado Asignado
-          </label>
-          <div class="relative">
-            <select
-              id="idEmpleadoEmpresa"
-              formControlName="idEmpleadoEmpresa"
-              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
-              style="color: white;"
-            >
-              <!-- <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
-                @if (dataEmployee.isLoading()) {
-                  Cargando empleados...
-                } @else if (selectedClient()?.empleadoNombreCompleto) {
-                 {{ selectedClient()?.empleadoNombreCompleto }}
-                } @else {
-                  Seleccione un empleado...
-                }
-              </option> -->
-              @for (item of employeeData(); track $index) {
-                <option
-                  [value]="item.id"
-                  class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
-                >
-                  {{ item.personaNombreCompleto }}
-                </option>
-              }
-            </select>
-            <div
-              class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-            >
-              <svg
-                class="w-5 h-5 text-gray-400 transition-transform duration-200"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
         <!-- Campo: Departamento -->
         <div>
           <label
@@ -545,8 +492,8 @@
           </div>
         </div>
 
-        <!-- Campo: Dirección (span completo) -->
-        <div class="md:col-span-2 lg:col-span-3">
+        <!-- Campo: Dirección -->
+        <div>
           <label
             for="direccion"
             class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
@@ -1014,8 +961,9 @@
                     {{ getAforoNameById(aforoId) }}
                     <button
                       type="button"
-                      (click)="onCounterAforoSelect(i, aforoId)"
+                      (click)="confirmDeleteAforo(i, aforoId)"
                       class="ml-1 hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5 transition-colors"
+                      title="Eliminar aforo"
                     >
                       <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
@@ -1208,28 +1156,62 @@
                 </div>
               </div>
 
-                      <div>
-          <label
-            for="tipoUso"
-            class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
-            >Tipo Uso </label
-          >
-          <select
-            id="tipoUso"
-            formControlName="tipoUso"
-            class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
-          >
-            <option value="" disabled>Seleccione tipo de uso</option>
-            @for (tipo of typeUseData(); track $index) {
-            <option
-              [value]="tipo.id"
-              class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
-            >
-              {{ tipo.nombre }}
-            </option>
-            }
-          </select>
-        </div>
+              <!-- Tipo Uso -->
+              <div>
+                <label
+                  for="tipoUso_{{i}}"
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
+                >
+                  Tipo Uso
+                </label>
+                <select
+                  id="tipoUso_{{i}}"
+                  formControlName="tipoUso"
+                  class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+                >
+                  <option value="" disabled>Seleccione tipo de uso</option>
+                  @for (tipo of typeUseData(); track $index) {
+                  <option
+                    [value]="tipo.id"
+                    class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
+                  >
+                    {{ tipo.nombre }}
+                  </option>
+                  }
+                </select>
+              </div>
+
+              <!-- Empleado Asignado -->
+              <div>
+                <label
+                  for="idEmpleadoEmpresa_{{i}}"
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
+                >
+                  Empleado Asignado
+                </label>
+                <div class="relative">
+                  <select
+                    id="idEmpleadoEmpresa_{{i}}"
+                    formControlName="idEmpleadoEmpresa"
+                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+                  >
+                    <option value="">Seleccione un empleado...</option>
+                    @for (item of employeeData(); track $index) {
+                    <option
+                      [value]="item.id"
+                      class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
+                    >
+                      {{ item.personaNombreCompleto }}
+                    </option>
+                    }
+                  </select>
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
 
               <!-- Dirección del Contador -->
               <div class="md:col-span-2 lg:col-span-3" formGroupName="descripcion">
@@ -2162,6 +2144,58 @@
                   </select>
                 </div>
               </div>
+
+                      <div>
+          <label
+            for="idEmpleadoEmpresa"
+            class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+          >
+            Empleado Asignado
+          </label>
+          <div class="relative">
+            <select
+              id="idEmpleadoEmpresa"
+              formControlName="idEmpleadoEmpresa"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+              style="color: white;"
+            >
+              <!-- <option value="" disabled selected hidden class="text-gray-400 dark:text-gray-500">
+                @if (dataEmployee.isLoading()) {
+                  Cargando empleados...
+                } @else if (selectedClient()?.empleadoNombreCompleto) {
+                 {{ selectedClient()?.empleadoNombreCompleto }}
+                } @else {
+                  Seleccione un empleado...
+                }
+              </option> -->
+              @for (item of employeeData(); track $index) {
+                <option
+                  [value]="item.id"
+                  class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
+                >
+                  {{ item.personaNombreCompleto }}
+                </option>
+              }
+            </select>
+            <div
+              class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
+            >
+              <svg
+                class="w-5 h-5 text-gray-400 transition-transform duration-200"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
             </div>
           </form>
         </div>
@@ -2202,6 +2236,17 @@
   cancelText="Cancelar"
   (confirmAction)="confirmDeleteCounterAction()"
   (cancelAction)="cancelDeleteCounter()"
+>
+</app-pop-up>
+<app-pop-up
+  [open]="showDeleteConfirmAforo"
+  [isConfirmation]="true"
+  title="Eliminar Aforo"
+  [message]="getDeleteConfirmMessageAforo()"
+  confirmText="Eliminar"
+  cancelText="Cancelar"
+  (confirmAction)="confirmDeleteAforoAction()"
+  (cancelAction)="cancelDeleteAforo()"
 >
 </app-pop-up>
 

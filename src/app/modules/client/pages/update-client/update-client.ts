@@ -107,10 +107,12 @@ export class UpdateClient implements OnInit {
   departmentsLoading = signal<boolean>(false);
   citiesLoading = signal<boolean>(false);
   corregimientosLoading = signal<boolean>(false);
-
-  // Signals para popup de confirmación de eliminación
   showDeleteConfirmCounter = signal<boolean>(false);
   counterToDelete = signal<{ index: number; id: number; serial: string; idEmpresaClienteContador: number } | null>(null);
+
+
+  showDeleteConfirmAforo = signal<boolean>(false);
+  aforoToDelete = signal<{ counterIndex: number; aforoId: number; aforoName: string; idAforoContador?: number } | null>(null);
 
   // Signals para modal de asignar contador existente
   isAssignCounterModalOpen = signal<boolean>(false);
@@ -280,10 +282,6 @@ export class UpdateClient implements OnInit {
   });
 
   constructor() {
-
-    effect(() => {
-      console.log('data del contador  para asignar un existente', this.searchSerialResult.value());
-    })
     effect(() => {
       const deptId = this.selectedDepartmentId();
       if (deptId) {
@@ -369,9 +367,6 @@ export class UpdateClient implements OnInit {
       const result = this.searchSerialResult.value();
       const isLoading = this.searchSerialResult.isLoading();
 
-      console.log('Search serial result:', result);
-      console.log('Is loading:', isLoading);
-
       if (!isLoading) {
         this.isSearchingCounter.set(false);
       }
@@ -408,7 +403,6 @@ export class UpdateClient implements OnInit {
       direccion: [''],
       telefono: [''],
       correo: ['', [Validators.email]],
-      idEmpleadoEmpresa: [''],
       codigosResidenciaFiscal: [''], // Formato: "O-13;230;24"
       contadores: this.fb.array([]), // Agregar FormArray para contadores
     });
@@ -456,6 +450,7 @@ export class UpdateClient implements OnInit {
         [Validators.min(1)],
       ],
       fechaInstalacion: [contador.fechaInstalacion || ''],
+      idEmpleadoEmpresa: [contador.empleadoEmpresaId || ''],
       aforosContador: [
         contador.aforoContador?.map((a: any) => a.id) || []
       ],
@@ -808,7 +803,6 @@ export class UpdateClient implements OnInit {
       telefono: telefono || '',
       correo: correo || '',
       direccion: direccion?.descripcion || '',
-      idEmpleadoEmpresa: empleadoEmpresaId || '',
       codigosResidenciaFiscal: clienteData.codigosResidenciaFiscal || '',
       // Pre-cargar ubicación si está disponible
       idDepartamento: departamento?.id || '',
@@ -845,27 +839,60 @@ export class UpdateClient implements OnInit {
       return;
     }
 
+    // Obtener contadores donde solo cambió el empleado
+    const employeeChanges = this.getCountersWithEmployeeChange();
+
     // Obtener aforos a eliminar
     const aforosToDelete = this.getAforosToDelete();
 
-    // Si hay aforos para eliminar, eliminarlos primero
-    if (aforosToDelete.length > 0) {
-      const deleteRequests = aforosToDelete.map(({idContador, idAforo}) =>
-        this.counterService.deleteAforoContador(idContador, idAforo)
-      );
+    // Verificar si hay cambios además de los empleados
+    const hasOtherChanges = this.hasOtherChanges(employeeChanges.length);
 
-      forkJoin(deleteRequests).subscribe({
+    // Crear array de observables para ejecutar en secuencia
+    const requests: any[] = [];
+
+    // 1. Eliminar aforos si es necesario
+    if (aforosToDelete.length > 0) {
+      const deleteRequests = aforosToDelete.map((idAforoContador) =>
+        this.counterService.deleteAforoContador(idAforoContador)
+      );
+      requests.push(...deleteRequests);
+    }
+
+    // 2. Actualizar empleados de contadores si es necesario
+    if (employeeChanges.length > 0) {
+      const employeeRequests = employeeChanges.map((change) =>
+        this.updateCounterEmployee(change)
+      );
+      requests.push(...employeeRequests);
+    }
+
+    // Ejecutar peticiones preparatorias si existen
+    if (requests.length > 0) {
+      forkJoin(requests).subscribe({
         next: () => {
-          this.proceedWithUpdate();
+          // Solo proceder con la actualización general si hay otros cambios
+          if (hasOtherChanges) {
+            this.proceedWithUpdate();
+          } else {
+            // Si solo hubo cambios de empleado, solo recargar y marcar como pristine
+            this.toast.success('Éxito', 'Cambios guardados correctamente');
+            this.dataClient.reload();
+            this.updateForm.markAsPristine();
+          }
         },
         error: (err) => {
-          console.error('Error eliminando aforos:', err);
-          this.toast.error('Error', 'No se pudieron eliminar algunos aforos');
+          console.error('Error en actualizaciones preparatorias:', err);
+          this.toast.error('Error', 'No se pudieron completar algunas actualizaciones');
         },
       });
     } else {
-      // Si no hay aforos para eliminar, proceder directamente con la actualización
-      this.proceedWithUpdate();
+      // Si no hay peticiones preparatorias pero hay otros cambios, proceder directamente
+      if (hasOtherChanges) {
+        this.proceedWithUpdate();
+      } else {
+        this.toast.info('Información', 'No hay cambios para guardar');
+      }
     }
   }
 
@@ -895,14 +922,20 @@ export class UpdateClient implements OnInit {
 
     // Agregar aforos si fueron modificados
     const aforosPayload = this.buildAforosPayload();
-    if (aforosPayload && aforosPayload.length > 0) {
-      payload.aforosContador = aforosPayload;
-      // Extraer los IDs únicos de contadores que tienen aforos modificados
-      const contadoresIds = [...new Set(aforosPayload.map(aforo => aforo.idContador))];
-      payload.contadoresIds = contadoresIds;
+
+    // Agregar nuevos aforos
+    if (aforosPayload.nuevos && aforosPayload.nuevos.length > 0) {
+      payload.aforosContador = aforosPayload.nuevos;
     }
 
-    console.log('Payload a enviar:', payload);
+    // Agregar aforos actualizados (aunque no cambien, mantienen la relación)
+    if (aforosPayload.actualizados && aforosPayload.actualizados.length > 0) {
+      if (!payload.aforosContador) {
+        payload.aforosContador = [];
+      }
+      // Combinar nuevos y actualizados si ambos existen
+      payload.aforosContador = [...payload.aforosContador, ...aforosPayload.actualizados];
+    }
 
     this.enterpriseClientCounterService.updateClient(payload).subscribe({
       next: () => {
@@ -910,12 +943,102 @@ export class UpdateClient implements OnInit {
         this.dataClient.reload();
         this.updateForm.markAsPristine();
         this.originalTarifas.set([...this.selectedTarifas()]);
+
+        // Marcar los campos de empleado como pristine también
+        this.contadoresFormArray.controls.forEach((control) => {
+          const empleadoControl = control.get('idEmpleadoEmpresa');
+          if (empleadoControl) {
+            empleadoControl.markAsPristine();
+          }
+        });
       },
       error: (err) => {
         console.error('Error actualizando cliente:', err);
         this.toast.error('Error', 'No se pudo actualizar el cliente');
       },
     });
+  }
+
+  // Obtener contadores donde solo cambió el empleado
+  private getCountersWithEmployeeChange(): Array<{
+    idEmpresaClienteContador: number;
+    idEmpleadoEmpresa: number;
+  }> {
+    const contadoresArray = this.contadoresFormArray;
+    const employeeChanges: Array<{
+      idEmpresaClienteContador: number;
+      idEmpleadoEmpresa: number;
+    }> = [];
+
+    contadoresArray.controls.forEach((control) => {
+      const contador = control.value;
+      const empleadoControl = control.get('idEmpleadoEmpresa');
+      const isEmpleadoDirty = empleadoControl && empleadoControl.dirty;
+
+      // Verificar si el contador está dirty excluyendo el campo de empleado y aforos
+      const isCounterDirty = this.isCounterDirtyExcludingAforos(control);
+
+      // Si solo cambió el empleado (no otros campos)
+      if (isEmpleadoDirty && !isCounterDirty && contador.idEmpresaClienteContador) {
+        employeeChanges.push({
+          idEmpresaClienteContador: contador.idEmpresaClienteContador,
+          idEmpleadoEmpresa: contador.idEmpleadoEmpresa ? Number(contador.idEmpleadoEmpresa) : 0,
+        });
+      }
+    });
+
+    return employeeChanges;
+  }
+
+  // Verificar si hay cambios además de los empleados
+  private hasOtherChanges(employeeChangesCount: number): boolean {
+    // Verificar si hay cambios en tarifas
+    if (this.hasTarifasChanged()) {
+      return true;
+    }
+
+    // Verificar si hay campos modificados en el formulario principal (excluyendo contadores)
+    const mainFormControls = Object.keys(this.updateForm.controls).filter(
+      key => key !== 'contadores'
+    );
+    const hasMainFormChanges = mainFormControls.some(
+      key => this.updateForm.get(key)?.dirty
+    );
+    if (hasMainFormChanges) {
+      return true;
+    }
+
+    // Verificar si hay contadores modificados o nuevos (excluyendo solo cambios de empleado)
+    const dirtyCounters = this.getDirtyCounters();
+    if (dirtyCounters.modified && dirtyCounters.modified.length > 0) {
+      return true;
+    }
+    if (dirtyCounters.new && dirtyCounters.new.length > 0) {
+      return true;
+    }
+
+    // Verificar si hay aforos modificados
+    const aforosPayload = this.buildAforosPayload();
+    if ((aforosPayload.nuevos && aforosPayload.nuevos.length > 0) ||
+        (aforosPayload.actualizados && aforosPayload.actualizados.length > 0)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  // Actualizar empleado de un contador específico
+  private updateCounterEmployee(change: {
+    idEmpresaClienteContador: number;
+    idEmpleadoEmpresa: number;
+  }) {
+    const payload = {
+      idEmpresaClienteContador: change.idEmpresaClienteContador,
+      usuarioCambio: this.usuarioModificacion(),
+      idEmpleadoEmpresa: change.idEmpleadoEmpresa,
+    };
+
+    return this.enterpriseClientCounterService.updateClient(payload);
   }
 
   goBack(): void {
@@ -948,6 +1071,82 @@ export class UpdateClient implements OnInit {
   cancelDeleteCounter(): void {
     this.showDeleteConfirmCounter.set(false);
     this.counterToDelete.set(null);
+  }
+
+  // ==================== ELIMINAR AFORO DEL CONTADOR ====================
+
+  confirmDeleteAforo(counterIndex: number, aforoId: number): void {
+    const aforoName = this.getAforoNameById(aforoId);
+    const contadorControl = this.contadoresFormArray.at(counterIndex);
+    const aforosData = contadorControl?.get('aforosContadorData')?.value || [];
+
+    // Buscar si tiene idAforoContador
+    const aforoData = aforosData.find((a: any) => a.id === aforoId);
+    const idAforoContador = aforoData?.idAforoContador;
+
+    this.aforoToDelete.set({
+      counterIndex,
+      aforoId,
+      aforoName,
+      idAforoContador
+    });
+    this.showDeleteConfirmAforo.set(true);
+  }
+
+  getDeleteConfirmMessageAforo(): string {
+    const aforo = this.aforoToDelete();
+    if (!aforo) return '';
+    return `¿Está seguro de que desea eliminar el aforo "${aforo.aforoName}" de este contador?`;
+  }
+
+  confirmDeleteAforoAction(): void {
+    const aforo = this.aforoToDelete();
+    if (aforo) {
+      this.removeAforoFromCounter(aforo.counterIndex, aforo.aforoId, aforo.idAforoContador);
+    }
+    this.showDeleteConfirmAforo.set(false);
+    this.aforoToDelete.set(null);
+  }
+
+  cancelDeleteAforo(): void {
+    this.showDeleteConfirmAforo.set(false);
+    this.aforoToDelete.set(null);
+  }
+
+  private removeAforoFromCounter(counterIndex: number, aforoId: number, idAforoContador?: number): void {
+    const contadorControl = this.contadoresFormArray.at(counterIndex);
+    if (!contadorControl) return;
+
+    // Si tiene idAforoContador, significa que ya existe en el backend y debe eliminarse
+    if (idAforoContador) {
+      this.counterService.deleteAforoContador(idAforoContador).subscribe({
+        next: () => {
+          this.toast.success('Éxito', 'Aforo eliminado correctamente');
+
+          // Actualizar el formulario removiendo el aforo
+          this.onCounterAforoSelect(counterIndex, aforoId);
+
+          // Actualizar aforosContadorData para remover el aforo eliminado
+          const aforosData = contadorControl.get('aforosContadorData')?.value || [];
+          const updatedAforosData = aforosData.filter((a: any) => a.id !== aforoId);
+          contadorControl.patchValue({
+            aforosContadorData: updatedAforosData
+          });
+
+          // Marcar como pristine para que no se intente eliminar de nuevo en onSubmit
+          contadorControl.get('aforosContador')?.markAsPristine();
+        },
+        error: (err) => {
+          console.error('Error eliminando aforo:', err);
+          this.toast.error('Error', 'No se pudo eliminar el aforo');
+        },
+      });
+    } else {
+      // Si no tiene idAforoContador, es un aforo recién agregado que aún no se ha guardado
+      // Simplemente removelo del formulario
+      this.onCounterAforoSelect(counterIndex, aforoId);
+      this.toast.info('Información', 'Aforo removido de la selección');
+    }
   }
 
   private deleteCounter(index: number, contadorId: number, idEmpresaClienteContador: number): void {
@@ -1001,7 +1200,10 @@ export class UpdateClient implements OnInit {
     const payload = {
       idEmpresaClienteContador: this.empresaClienteContadorId(),
       usuarioCambio: this.usuarioModificacion(),
-      contadoresNuevos: [{ id: counterData.id }],
+      contadoresNuevos: [{
+        id: counterData.id,
+        idEmpleado: counterData.empleadoEmpresaId,
+       }],
     };
 
     this.enterpriseClientCounterService.updateClient(payload).subscribe({
@@ -1176,7 +1378,6 @@ export class UpdateClient implements OnInit {
           'idDepartamento',
           'idCiudad',
           'idCorregimiento',
-          'idEmpleadoEmpresa',
         ].includes(payloadKey)
       ) {
         payload[payloadKey] = value ? Number(value) : null;
@@ -1198,16 +1399,33 @@ export class UpdateClient implements OnInit {
       const contador = control.value;
       const isNewCounter = contador.isNewCounter === true;
 
-      // Incluir si está dirty O si es un contador nuevo
-      if (!control.dirty && !isNewCounter) return;
+      // Verificar si el contador está dirty excluyendo el campo aforosContador
+      const isCounterDirty = this.isCounterDirtyExcludingAforos(control);
+      const empleadoControl = control.get('idEmpleadoEmpresa');
+      const isEmpleadoDirty = empleadoControl && empleadoControl.dirty;
 
-      // Si es contador nuevo, solo enviar el ID
+      // Incluir si está dirty (sin contar aforos) O si es un contador nuevo O si cambió el empleado
+      if (!isCounterDirty && !isNewCounter && !isEmpleadoDirty) return;
+
+      // Si es contador nuevo, enviar ID y idEmpleado
       if (isNewCounter) {
-        newCounters.push({ id: contador.id });
+        const payload: any = { id: contador.id };
+
+        if (contador.idEmpleadoEmpresa) {
+          payload.idEmpleado = Number(contador.idEmpleadoEmpresa);
+        }
+
+        newCounters.push(payload);
         return;
       }
 
-      // Para contadores modificados, enviar todos los datos
+      // Si solo cambió el empleado (no otros campos), se manejará por separado
+      // en el método getCountersWithEmployeeChange(), no lo incluimos aquí
+      if (isEmpleadoDirty && !isCounterDirty) {
+        return;
+      }
+
+      // Para contadores modificados con otros cambios, enviar todos los datos
       const payload: any = {
         id: contador.id,
         activo: contador.activo,
@@ -1245,6 +1463,11 @@ export class UpdateClient implements OnInit {
         payload.fechaInstalacion = contador.fechaInstalacion;
       }
 
+      // Agregar idEmpleado si está presente
+      if (contador.idEmpleadoEmpresa) {
+        payload.idEmpleado = Number(contador.idEmpleadoEmpresa);
+      }
+
       // Ya no agregamos aforo aquí, se manejará en buildAforosPayload
 
       if (contador.descripcion) {
@@ -1275,6 +1498,23 @@ export class UpdateClient implements OnInit {
     };
   }
 
+  // Verificar si el contador está dirty excluyendo el campo aforosContador e idEmpleadoEmpresa
+  private isCounterDirtyExcludingAforos(counterControl: any): boolean {
+    // Recorrer todos los controles del contador
+    const controls = counterControl.controls;
+    for (const key in controls) {
+      // Ignorar aforosContador, aforoContadorNombre, aforosContadorData e idEmpleadoEmpresa
+      if (key === 'aforosContador' || key === 'aforoContadorNombre' || key === 'aforosContadorData' || key === 'idEmpleadoEmpresa') {
+        continue;
+      }
+      // Si algún otro campo está dirty, el contador está modificado
+      if (controls[key].dirty) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // Verificar si las tarifas cambiaron
   private hasTarifasChanged(): boolean {
     const current = this.selectedTarifas();
@@ -1285,10 +1525,12 @@ export class UpdateClient implements OnInit {
   }
 
   // Construir payload de aforos en el formato esperado por el backend
-  // Formato simplificado: [{ idContador: 3325, idAforo: 2239 }]
-  private buildAforosPayload(): any[] {
+  // Para crear: [{ idContador, idAforo }]
+  // Para actualizar: [{ id, idAforo }] donde id es el idAforoContador
+  private buildAforosPayload(): { nuevos: any[], actualizados: any[] } {
     const contadoresArray = this.contadoresFormArray;
-    const aforosPayload: any[] = [];
+    const aforosNuevos: any[] = [];
+    const aforosActualizados: any[] = [];
 
     contadoresArray.controls.forEach((control) => {
       const contador = control.value;
@@ -1301,23 +1543,40 @@ export class UpdateClient implements OnInit {
           ? contador.aforosContador.filter((id: any) => id).map((id: any) => Number(id))
           : [];
 
-        // Crear un payload por cada aforo
+        // Datos originales de aforos (contiene el id de la relación aforoContador)
+        const aforosOriginales = Array.isArray(contador.aforosContadorData)
+          ? contador.aforosContadorData
+          : [];
+
+        // Procesar cada aforo seleccionado
         aforosIdsActuales.forEach((aforoId: number) => {
-          aforosPayload.push({
-            idContador: Number(contador.id),
-            idAforo: aforoId
-          });
+          // Buscar si este aforo ya existía en los datos originales (por su ID de aforo)
+          const aforoOriginal = aforosOriginales.find((a: any) => a.id === aforoId);
+
+          if (aforoOriginal && aforoOriginal.idAforoContador) {
+            // Si existe y tiene idAforoContador, es una actualización
+            aforosActualizados.push({
+              id: aforoOriginal.idAforoContador, // ID de la relación aforoContador
+              idAforo: aforoId
+            });
+          } else {
+            // Si no existe o no tiene idAforoContador, es un nuevo aforo para este contador
+            aforosNuevos.push({
+              idContador: Number(contador.id),
+              idAforo: aforoId
+            });
+          }
         });
       }
     });
 
-    return aforosPayload;
+    return { nuevos: aforosNuevos, actualizados: aforosActualizados };
   }
 
-  // Obtener aforos a eliminar (retorna objetos con idContador e idAforo)
-  private getAforosToDelete(): Array<{idContador: number, idAforo: number}> {
+  // Obtener aforos a eliminar (retorna el ID de la relación aforoContador)
+  private getAforosToDelete(): number[] {
     const contadoresArray = this.contadoresFormArray;
-    const aforosToDelete: Array<{idContador: number, idAforo: number}> = [];
+    const aforosToDelete: number[] = [];
 
     contadoresArray.controls.forEach((control) => {
       const contador = control.value;
@@ -1330,7 +1589,7 @@ export class UpdateClient implements OnInit {
           ? contador.aforosContador.filter((id: any) => id).map((id: any) => Number(id))
           : [];
 
-        // Datos originales de aforos
+        // Datos originales de aforos (contienen el id de la relación aforoContador)
         const aforosOriginales = Array.isArray(contador.aforosContadorData)
           ? contador.aforosContadorData
           : [];
@@ -1341,10 +1600,10 @@ export class UpdateClient implements OnInit {
 
           // Si el aforo original ya no está en la selección actual, debe eliminarse
           if (!aforosIdsActuales.includes(aforoId)) {
-            aforosToDelete.push({
-              idContador: Number(contador.id),
-              idAforo: aforoId
-            });
+            // Usar el ID de la relación aforoContador para eliminar
+            if (aforoOriginal.idAforoContador) {
+              aforosToDelete.push(aforoOriginal.idAforoContador);
+            }
           }
         });
       }
@@ -1371,6 +1630,7 @@ export class UpdateClient implements OnInit {
       ],
       digitos: ['', [Validators.min(1)]],
       fechaInstalacion: [''],
+      idEmpleadoEmpresa: [''],
     });
   }
 
@@ -1524,6 +1784,10 @@ export class UpdateClient implements OnInit {
             counterPayload.estadoContador = { id: Number(formData.estadoContador) };
           }
 
+          if (formData.idEmpleadoEmpresa) {
+            counterPayload.empleadoEmpresaId = Number(formData.idEmpleadoEmpresa);
+          }
+
           return this.counterService.saveCounter(counterPayload);
         }),
       )
@@ -1555,6 +1819,7 @@ export class UpdateClient implements OnInit {
               activo: counter.activo,
               isNewCounter: true,
               aforoContador: [],
+              empleadoEmpresaId: counter.empleadoEmpresaId || formData.idEmpleadoEmpresa || null,
               descripcion: {
                 id: counter.descripcion?.id,
                 departamento: {
