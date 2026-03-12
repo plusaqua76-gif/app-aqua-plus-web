@@ -30,10 +30,10 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        <!-- Campo: Cliente -->
-        <div>
+        <!-- Campo: Cliente (solo lectura) - Ocupa todo el ancho -->
+        <div class="md:col-span-2">
           <label for="empresaClienteContador" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
-            Cliente <span class="text-red-500">*</span>
+            Cliente
           </label>
           <div class="relative">
             <input
@@ -54,10 +54,77 @@
           </div>
         </div>
 
-        <!-- Campo: Tipo de Deuda -->
-        <div>
+        <!-- Campo: Contador (editable si hay múltiples) -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Contador
+          </label>
+
+          @if (countersClient.isLoading()) {
+            <div class="flex items-center justify-center p-4 bg-white/5 dark:bg-gray-800/30 rounded-lg">
+              <div class="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+                <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-sm">Cargando contadores...</span>
+              </div>
+            </div>
+          } @else if (countersClient.error()) {
+            <div class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/30 rounded-lg text-sm text-red-600 dark:text-red-400">
+              <div class="font-semibold">Error al cargar los contadores</div>
+              <div class="text-xs mt-1">{{ countersClient.error()?.message }}</div>
+            </div>
+          } @else if (countersClient.value()?.response && countersClient.value()!.response.length > 1) {
+            <div class="mb-2 text-sm text-gray-600 dark:text-gray-400">
+              Este cliente tiene múltiples contadores. Seleccione uno:
+            </div>
+            <div class="space-y-2">
+              <!-- Lista de contadores disponibles -->
+              @for (counter of countersClient.value()!.response; track counter.id) {
+                <div
+                  (click)="selectCounter(counter)"
+                  [class.border-blue-500]="selectedCounter()?.id === counter.id"
+                  [class.bg-blue-50]="selectedCounter()?.id === counter.id"
+                  [class.dark:bg-blue-900]="selectedCounter()?.id === counter.id"
+                  class="p-3 border border-white/20 dark:border-slate-400/30 rounded-lg cursor-pointer hover:bg-white/15 dark:hover:bg-slate-600/40 transition-all duration-200">
+                  <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                      <div class="font-semibold text-gray-900 dark:text-white">
+                        Serial: {{ counter.contador.serial || '' }}
+                      </div>
+                      @if (counter.contador.descripcion.descripcion) {
+                        <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          Dirección: {{ counter.contador.descripcion.descripcion || '' }}
+                        </div>
+                      }
+                    </div>
+                    @if (selectedCounter()?.id === counter.id) {
+                      <div class="ml-3">
+                        <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          } @else if (countersClient.value()?.response && countersClient.value()!.response.length === 1) {
+            <div class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/30 rounded-lg text-sm text-blue-700 dark:text-blue-300">
+              Este cliente tiene un solo contador
+            </div>
+          } @else {
+            <div class="text-sm text-gray-500 dark:text-gray-500 italic p-3 bg-white/5 dark:bg-gray-800/30 rounded-lg">
+              No hay contadores disponibles para este cliente
+            </div>
+          }
+        </div>
+
+        <!-- Campo: Tipo de Deuda (solo lectura) -->
+        <div class="md:col-span-2">
           <label for="tipoDeuda" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
-            Tipo de Deuda <span class="text-red-500">*</span>
+            Tipo de Deuda
           </label>
           <div class="relative">
             <input
@@ -74,50 +141,127 @@
           </div>
         </div>
 
-        <!-- Campo: Factura -->
-        <div>
-          <label for="factura" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
-            Factura <span class="text-red-500">*</span>
+        <!-- Campo: Búsqueda de Factura (editable y opcional) -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Factura (Opcional)
           </label>
-          <div class="relative">
-            <input
-              type="text"
-              [value]="debtData()?.factura?.codigo || ''"
-              readonly
-              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
-            />
-            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-              </svg>
-            </div>
-          </div>
-        </div>
 
-        <!-- Campo: N° de Cuotas -->
-        <div>
+          @if (selectedCounter()) {
+            <div class="relative mb-3">
+              <input
+                type="text"
+                placeholder="Buscar factura por código..."
+                [value]="billTerm()"
+                (input)="onBillTermChange($any($event.target).value)"
+                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+              />
+              @if (billcode.isLoading()) {
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
+              } @else {
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  </svg>
+                </div>
+              }
+            </div>
+
+            @if (billcode.value()?.response && billcode.value()!.response.length > 0) {
+              <div class="space-y-2 mb-3 max-h-48 overflow-y-auto">
+                @for (bill of billcode.value()!.response; track bill.id) {
+                  <div
+                    (click)="selectBill({ codigo: bill.codigo, id: bill.id })"
+                    [class.border-blue-500]="selectedBill()?.id === bill.id"
+                    [class.bg-blue-50]="selectedBill()?.id === bill.id"
+                    [class.dark:bg-blue-900]="selectedBill()?.id === bill.id"
+                    class="p-3 border border-white/10 dark:border-slate-400/20 rounded-lg cursor-pointer hover:bg-white/15 dark:hover:bg-slate-600/40 transition-all duration-200">
+                    <div class="flex items-center justify-between">
+                      <div class="flex-1">
+                        <div class="font-semibold text-gray-900 dark:text-white">
+                          Código: {{ bill.codigo }}
+                        </div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          Valor: ${{ bill.precio.toLocaleString() || 0 }}
+                        </div>
+                      </div>
+                      @if (selectedBill()?.id === bill.id) {
+                        <div class="ml-3">
+                          <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                          </svg>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (shouldShowNoResultsMessage()) {
+              <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-500/30 rounded-lg">
+                <div class="flex items-start gap-2">
+                  <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <p class="text-sm text-yellow-700 dark:text-yellow-300">No se encontraron facturas con ese código</p>
+                </div>
+              </div>
+            }
+
+            @if (selectedBill()) {
+              <div class="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-500/30 rounded-lg">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-sm font-medium text-green-700 dark:text-green-300">
+                      Factura seleccionada: {{ selectedBill()!.codigo }}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="clearBill()"
+                    class="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            }
+          } @else {
+            <div class="text-sm text-gray-500 dark:text-gray-500 italic p-3 bg-white/5 dark:bg-gray-800/30 rounded-lg">
+              Primero seleccione un contador para buscar facturas
+            </div>
+          }
+        </div>
+        <div class="md:col-span-2">
           <label for="plazoPago" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
-            N° de Cuotas <span class="text-red-500">*</span>
+            N° de Cuotas
           </label>
           <div class="relative">
             <input
-              type="text"
-              [value]="debtData()?.plazoPago ? (debtData()!.plazoPago.nombre || debtData()!.plazoPago) : '0'"
-              readonly
-              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+              id="plazoPago"
+              formControlName="plazoPago"
+              type="number"
+              min="1"
+              placeholder="Ej: 12"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
             />
-            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2h4a1 1 0 011 1v2a1 1 0 01-1 1h-1v12a2 2 0 01-2 2H6a2 2 0 01-2-2V8H3a1 1 0 01-1-1V5a1 1 0 011-1h4zM9 3v1h6V3H9z"/>
-              </svg>
-            </div>
           </div>
         </div>
 
         <!-- Campo: Fecha de Deuda -->
         <div>
           <label for="fechaDeuda" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
-            Fecha de Deuda <span class="text-red-500">*</span>
+            Fecha de Deuda
           </label>
           <div class="relative">
             <input
@@ -126,18 +270,13 @@
               type="date"
               class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
             />
-            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-              </svg>
-            </div>
           </div>
         </div>
 
         <!-- Campo: Valor -->
         <div>
           <label for="valor" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
-            Valor <span class="text-red-500">*</span>
+            Valor
           </label>
           <div class="relative">
             <input

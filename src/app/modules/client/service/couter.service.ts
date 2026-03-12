@@ -26,8 +26,8 @@ export class CounterService {
     return this.http.get<ApiResponse<AforoResponse>>(`${this.apiUrl}/aforo/empresa/${idEnterprice}`);
   }
 
-  deleteAforoContador(idContador: number, idAforo: number): Observable<ApiResponse<any>> {
-    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/aforo-contador/${idContador}/${idAforo}`);
+  deleteAforoContador(idAforoContador: number): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/aforo-contador/${idAforoContador}`);
   }
 
   saveAforo(aforo: AforoInterface): Observable<ApiResponse<any>> {

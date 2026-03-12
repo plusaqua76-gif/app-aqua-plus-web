@@ -20,6 +20,7 @@ import { PdfService } from '../../../../core/services/pdf.service';
 import { ToastService } from '../../../../core/services/toast.service';
 import { EstadoService } from '../../service/estado.service';
 import { PlazoPagoService } from '../../service/print-bill-details.service';
+import { PlazoPagoService as PlazoPagoServiceActual } from '../../service/plazoPago.service';
 import { DeudaService } from '../../service/deuda.service';
 import {
   AbonoService,
@@ -62,6 +63,7 @@ export class PrintBill {
   readonly deudaService = inject(DeudaService);
   readonly abonoService = inject(AbonoService);
   readonly tipoDeudaService = inject(TipoDeudaService);
+  readonly plazoPagoServiceActual = inject(PlazoPagoServiceActual);
   readonly facturaService = inject(FacturaService);
   readonly route = inject(ActivatedRoute);
   readonly fb = inject(FormBuilder);
@@ -77,6 +79,10 @@ export class PrintBill {
 
   tiposDeuda = rxResource({
     stream: () => this.tipoDeudaService.getAllTipoDeuda(),
+  });
+
+  plazoPagos = rxResource({
+    stream: () => this.plazoPagoServiceActual.getAllPlazoPago(),
   });
 
   clienteDeudas = rxResource({
@@ -1209,6 +1215,15 @@ export class PrintBill {
       return;
     }
 
+    // Obtener el primer plazo de pago disponible
+    const plazoPagos = this.plazoPagos.value()?.response;
+    const plazoPagoDefault = plazoPagos?.[0];
+
+    if (!plazoPagoDefault) {
+      this.toast.error('Error', 'No se encontró plazo de pago disponible');
+      return;
+    }
+
     const empresaClienteContadorId = this.empresaClienteContadorId();
     if (!empresaClienteContadorId) {
       this.toast.error('Error', 'No se encontró información del cliente');
@@ -1217,16 +1232,16 @@ export class PrintBill {
 
     const deuda: Partial<IDeudaCliente> = {
       fechaDeuda: new Date(),
-      valor: diferencia.toString(),
+      valor: diferencia, // Enviar como número, no string
       descripcion: `Deuda por saldo pendiente de factura tras pago parcial. Valor adeudado: $${diferencia.toLocaleString(
         'es-CO'
       )}`,
       activo: true,
-      factura: { id: Number(this.route.snapshot.paramMap.get('id')) } as any,
-      empresaClienteContador: { id: empresaClienteContadorId } as any,
-      tipoDeuda: tipoDeudaFacturaVencida,
-      usuarioCreacion: this.nombreUsuario(),
-      fechaCreacion: new Date(),
+      factura: { id: Number(this.route.snapshot.paramMap.get('id')) },
+      empresaClienteContador: { id: empresaClienteContadorId },
+      tipoDeuda: { id: tipoDeudaFacturaVencida.id },
+      plazoPago: plazoPagoDefault.id,
+      usuarioCreacion: this.nombreUsuario()
     };
 
     this.deudaService.saveDeuda(deuda as IDeudaCliente).subscribe({
@@ -1253,6 +1268,7 @@ export class PrintBill {
     this.getStatus.reload?.();
     this.billDetails.reload?.();
     this.tiposDeuda.reload?.();
+    this.plazoPagos.reload?.();
     // También intentar recargar deudas aunque no sea crítico
     this.clienteDeudas.reload?.();
   }

@@ -171,4 +171,14 @@ export class EnterpriseClientCounterService {
     const numericValue = parseFloat(value);
     return !isNaN(numericValue) && isFinite(numericValue);
   }
+  getCountersByEmpresaPersona(
+    idEmpresa: number,
+    idPersona: number
+  ): Observable<ApiResponse<IEnterpriseClientCounter[]>> {
+    const url = `${this.apiUrl}/empresa-persona`;
+    const params = new HttpParams()
+      .set('idEmpresa', idEmpresa.toString())
+      .set('idPersona', idPersona.toString());
+    return this.http.get<ApiResponse<IEnterpriseClientCounter[]>>(url, { params });
+  }
 }

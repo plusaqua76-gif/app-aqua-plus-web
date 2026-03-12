@@ -386,6 +386,51 @@ export class PdfBill {
     return concepto?.valor || 0;
   }
 
+  private getConceptoByNombre(codigoTarifa: string, nombreConcepto: string): any {
+    const billData = this.billData();
+    if (!billData?.tarifas) return null;
+
+    const tarifa = billData.tarifas.find((t: any) => t.codigo === codigoTarifa);
+    if (!tarifa?.conceptos) return null;
+
+    return tarifa.conceptos.find((c: any) =>
+      c.tipoConceptoNombre?.toLowerCase().includes(nombreConcepto.toLowerCase())
+    );
+  }
+
+  getTarifaPorM3(codigoTarifa: string, nombreConcepto: string): number {
+    const itemsMTC = this.billData()?.valoresMetrosCubicos?.tipoConcepto ?? [];
+    const codigoBuscar = this.getCodigoMTC(codigoTarifa, nombreConcepto);
+
+    const item = itemsMTC.find((i: any) => i.codigo === codigoBuscar);
+    if (item?.valor) return item.valor;
+    const concepto = this.getConceptoByNombre(codigoTarifa, nombreConcepto);
+    return concepto?.valor || 0;
+  }
+
+  getRangoM3(codigoTarifa: string, nombreConcepto: string): string {
+    const itemsMTC = this.billData()?.valoresMetrosCubicos?.tipoConcepto ?? [];
+    const codigoBuscar = this.getCodigoMTC(codigoTarifa, nombreConcepto);
+
+    const item = itemsMTC.find((i: any) => i.codigo === codigoBuscar);
+    return item?.rango || '0';
+  }
+
+  private getCodigoMTC(codigoTarifa: string, nombreConcepto: string): string {
+    const nombreLower = nombreConcepto.toLowerCase();
+    let sufijo = '';
+
+    if (nombreLower.includes('basico') || nombreLower.includes('básico')) {
+      sufijo = 'CONBAS';
+    } else if (nombreLower.includes('complementario')) {
+      sufijo = 'CONCOM';
+    } else if (nombreLower.includes('suntuario')) {
+      sufijo = 'CONSUN';
+    }
+
+    return codigoTarifa + sufijo;
+  }
+
   getSubtotalAcuBasico(): number {
     return this.getConceptoValorPorNombre('ACU', 'Consumo básico');
   }

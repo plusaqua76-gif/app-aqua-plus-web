@@ -15,11 +15,12 @@ import { IDepartament } from '@interfaces/Idepartament';
 import { ICity } from '@interfaces/Icity';
 import { ICorregimiento } from '@interfaces/icorregimiento';
 import { Checkbox } from "@shared/components/checkbox";
+import { Datepicker } from "@shared/components/datepicker";
 
 
 @Component({
   selector: 'app-register',
-  imports: [CommonModule, RouterLink, FormsModule, ReactiveFormsModule, Checkbox],
+  imports: [CommonModule, RouterLink, FormsModule, ReactiveFormsModule, Checkbox, Datepicker],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
@@ -109,7 +110,7 @@ export class Register implements OnInit, OnDestroy {
         diaCorteControl?.enable();
       } else {
         diaCorteControl?.clearValidators();
-        diaCorteControl?.setValue('');
+        diaCorteControl?.setValue(null);
         diaCorteControl?.disable();
       }
       diaCorteControl?.updateValueAndValidity();
@@ -131,7 +132,7 @@ export class Register implements OnInit, OnDestroy {
       codigoVerificacion: [''],
       facturacionElectronicaAutomatica: [false],
       facturacionAutomatica: [false],
-      diaCorteFacturacion: [{ value: '', disabled: true }],
+      diaCorteFacturacion: [{ value: null, disabled: true }],
     });
   }
 
@@ -261,22 +262,33 @@ export class Register implements OnInit, OnDestroy {
 
     try {
       const formData = this.registerForm.value;
-
-      // Preparar datos base según interfaz IEnterpriseSp
       const empresaData: any = {
         usuario: formData.usuario,
         password: formData.password,
         nombreEmpresa: formData.nombreEmpresa,
-        codigoEmpresa: '0',
         nit: formData.nit,
+        correo: formData.correo,
+        telefono: formData.telefono,
         idDepartamento: Number(formData.idDepartamento),
         idCiudad: Number(formData.idCiudad),
-        idCorregimiento: formData.idCorregimiento ? Number(formData.idCorregimiento) : null,
+        idCorregimiento: formData.idCorregimiento
+          ? Number(formData.idCorregimiento)
+          : null,
         descripcionDireccion: formData.descripcionDireccion || null,
-        codigoVerificacion: formData.codigoVerificacion && formData.codigoVerificacion.trim() !== '' ? formData.codigoVerificacion : '0',
+
+        codigoVerificacion:
+          formData.codigoVerificacion && formData.codigoVerificacion.trim() !== ''
+            ? formData.codigoVerificacion
+            : '0',
+
         facElectronica: formData.facturacionElectronicaAutomatica || false,
-        facturacionAutomatica: formData.facturacionAutomatica || false,
-        diaCorteFacturacion: formData.facturacionAutomatica && formData.diaCorteFacturacion ? Number(formData.diaCorteFacturacion) : null
+
+        facAutomatica: formData.facturacionAutomatica || false,
+
+        fechaProximoCorte:
+          formData.facturacionAutomatica && formData.diaCorteFacturacion
+            ? formData.diaCorteFacturacion
+            : null
       };
 
       if (this.selectedFile) {
@@ -303,6 +315,26 @@ export class Register implements OnInit, OnDestroy {
     } finally {
       this.isLoading = false;
     }
+  }
+
+  private extractDayFromDate(dateString: string): number | null {
+    if (!dateString) return null;
+
+    // Formato dd/mm/yyyy
+    const ddmmyyyyRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    const ddmmyyyyMatch = dateString.match(ddmmyyyyRegex);
+    if (ddmmyyyyMatch) {
+      return Number(ddmmyyyyMatch[1]);
+    }
+
+    // Formato yyyy-mm-dd
+    const isoRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
+    const isoMatch = dateString.match(isoRegex);
+    if (isoMatch) {
+      return Number(isoMatch[3]);
+    }
+
+    return null;
   }
 
   isFieldInvalid(fieldName: string): boolean {

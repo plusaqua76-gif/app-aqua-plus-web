@@ -120,7 +120,14 @@ export interface IDeudaCliente {
   plazoPago: string;
   fechaDeuda: string;
   descripcion: string;
-  tipoDeudaNombre: string;
+  nombreTipoDeuda: string;
+  numeroCuotas: number;
+  valorCuota: number;
+  abonosRealizados: number;
+  cuotasCanceladas: number;
+  cuotasPendientes: number;
+  deudaTotal: number;
+  nuevoSaldo: number;
 }
 
 export interface ITotalesTarifas {

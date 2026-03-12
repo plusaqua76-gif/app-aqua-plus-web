@@ -14,6 +14,7 @@ import { IFactura, IfacturaResponse } from '@interfaces/Ifactura';
 import { ToastService } from '@services/toast.service';
 import { ApiResponse } from '@interfaces/Iresponse';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-update-debt',
@@ -31,8 +32,17 @@ export class UpdateDebt {
   protected toast = inject(ToastService);
   protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
+  protected enterpriseClientCounterService = inject(EnterpriseClientCounterService);
+  protected facturaService = inject(FacturaService);
 
   id = signal<number>(+this.route.snapshot.paramMap.get('id')!);
+
+  // Propiedades para contadores
+  selectedCounter = signal<IEnterpriseClientCounter | null>(null);
+
+  // Propiedades para búsqueda de facturas
+  billTerm = signal('');
+  selectedBill = signal<{ codigo: string; id: number } | null>(null);
 
   dataDebtClient = rxResource({
     params: () => ({
@@ -54,6 +64,48 @@ export class UpdateDebt {
   // Computed para obtener la data de la deuda
   debtData = computed(() => this.dataDebtClient.value()?.response);
 
+  // Obtener contadores del cliente
+  countersClient = rxResource({
+    params: () => {
+      const idEmpresa = this.empresaId();
+      const idPersona = this.clienteId();
+
+      return { idEmpresa, idPersona };
+    },
+    stream: ({ params }) => {
+      const { idEmpresa, idPersona } = params;
+      if (!idEmpresa || !idPersona) {
+        return of(null);
+      }
+      return this.enterpriseClientCounterService.getCountersByEmpresaPersona(idEmpresa, idPersona).pipe(
+        catchError(error => {
+          console.error('Error loading counters:', error);
+          return of(null);
+        })
+      );
+    }
+  });
+
+  // Búsqueda de facturas por código
+  billcode = rxResource({
+    params: () => ({
+      term: this.billTerm(),
+      counterId: this.selectedCounter()?.id || null
+    }),
+    stream: ({ params }) => {
+      const { term, counterId } = params;
+      if (!term || term.trim().length < 3 || !counterId) {
+        return of(null);
+      }
+      return this.facturaService.getBillsByCounterAndCode(counterId, term).pipe(
+        catchError(error => {
+          console.error('Error searching bills:', error);
+          return of(null);
+        })
+      );
+    }
+  });
+
   // Computed para obtener el nombre del usuario
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -67,9 +119,19 @@ export class UpdateDebt {
     }
   });
 
+  readonly empresaId = computed(() => {
+    const data = this.userData();
+    return data?.empresaId || null;
+  });
+
   readonly nombreUsuario = computed(() => {
     const data = this.userData();
     return data?.nombre || null;
+  });
+
+  // Computed para obtener el ID del cliente de la deuda
+  readonly clienteId = computed(() => {
+    return this.debtData()?.empresaClienteContador?.cliente?.id || null;
   });
 
   constructor() {
@@ -80,18 +142,29 @@ export class UpdateDebt {
       const data = this.debtData();
       if (data) {
         this.fillForm(data);
+        // Inicializar contador seleccionado
+        if (data.empresaClienteContador) {
+          this.selectedCounter.set(data.empresaClienteContador as any);
+        }
+        // Inicializar factura seleccionada
+        if (data.factura) {
+          this.selectedBill.set({
+            codigo: (data.factura as any).codigo,
+            id: data.factura.id
+          });
+        }
       }
     });
   }
 
   initializeForm(): void {
     this.registerForm = this.fb.group({
-      empresaClienteContador: [null, Validators.required],
-      tipoDeuda: [null, Validators.required],
-      factura: [null, Validators.required],
-      plazoPago: [null, Validators.required],
-      fechaDeuda: ['', Validators.required],
-      valor: ['', Validators.required],
+      empresaClienteContador: [null],
+      tipoDeuda: [null],
+      factura: [null],
+      plazoPago: [null],
+      fechaDeuda: [''],
+      valor: [''],
       descripcion: ['']
     });
   }
@@ -100,30 +173,102 @@ export class UpdateDebt {
     // Formatear fecha
     const fechaFormateada = data.fechaDeuda ?
       new Date(data.fechaDeuda).toISOString().split('T')[0] : '';
-
+    const plazoPagoValue = data.plazoPago?.nombre || data.plazoPago || 0;
     this.registerForm.patchValue({
       empresaClienteContador: data.empresaClienteContador,
       tipoDeuda: data.tipoDeuda,
       factura: data.factura,
-      plazoPago: data.plazoPago,
+      plazoPago: plazoPagoValue,
       fechaDeuda: fechaFormateada,
       valor: data.valor,
       descripcion: data.descripcion || ''
     });
   }
 
+  // Métodos para contador
+  selectCounter(counter: IEnterpriseClientCounter): void {
+    this.selectedCounter.set(counter);
+    // Limpiar la factura seleccionada al cambiar contador
+    this.clearBill();
+  }
+
+  clearCounter(): void {
+    this.selectedCounter.set(null);
+    this.clearBill();
+  }
+
+  // Métodos para factura
+  onBillTermChange(value: string): void {
+    this.billTerm.set(value);
+    this.selectedBill.set(null);
+  }
+
+  selectBill(bill: { codigo: string; id: number }): void {
+    this.selectedBill.set(bill);
+  }
+
+  clearBill(): void {
+    this.billTerm.set('');
+    this.selectedBill.set(null);
+  }
+
+  shouldShowNoResultsMessage(): boolean {
+    const billData = this.billcode.value();
+    const term = this.billTerm();
+
+    if (!term || term.trim().length < 3) {
+      return false;
+    }
+
+    if (this.billcode.isLoading()) {
+      return false;
+    }
+
+    if (this.billcode.error()) {
+      return false;
+    }
+
+    if (!billData) {
+      return false;
+    }
+
+    if (billData.response && billData.response.length === 0) {
+      return true;
+    }
+
+    return false;
+  }
+
   onSubmit(): void {
     const data = this.debtData();
     if (!data) return;
 
+    // Validar que haya un contador seleccionado
+    const contadorSeleccionado = this.selectedCounter();
+    if (!contadorSeleccionado) {
+      this.toast.error('Error', 'Debe seleccionar un contador.');
+      return;
+    }
+
+    // Construir el objeto deuda actualizado
     const deuda = {
       ...data,
+      empresaClienteContador: { id: contadorSeleccionado.id },
       fechaDeuda: this.registerForm.value.fechaDeuda || data.fechaDeuda,
       valor: parseFloat(this.registerForm.value.valor) || data.valor,
       descripcion: this.registerForm.value.descripcion || data.descripcion,
+      plazoPago: parseInt(this.registerForm.value.plazoPago) || data.plazoPago,
       usuarioModificacion: this.nombreUsuario(),
       fechaModificacion: new Date()
     };
+
+    // Agregar factura si fue seleccionada
+    const facturaSeleccionada = this.selectedBill();
+    if (facturaSeleccionada) {
+      (deuda as any).factura = { id: facturaSeleccionada.id };
+    } else {
+      (deuda as any).factura = null;
+    }
 
     this.deudaService.updateDeuda(deuda as any).subscribe({
       next: () => {
