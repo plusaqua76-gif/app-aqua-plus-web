@@ -2098,7 +2098,7 @@ export class UpdateClient implements OnInit {
   getAforoFullInfo(aforo: any): string {
     const parts = [aforo.nombre];
     if (aforo.tipoUso?.nombre) parts.push(aforo.tipoUso.nombre);
-    if (aforo.tipoAforo?.descripcion) parts.push(`(${aforo.tipoAforo.descripcion})`);
+    if (aforo.tarifaBase) parts.push(`(${aforo.tarifaBase})`);
     return parts.join(' - ');
   }
 
