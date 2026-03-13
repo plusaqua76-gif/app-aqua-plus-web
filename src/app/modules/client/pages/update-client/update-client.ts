@@ -329,6 +329,7 @@ export class UpdateClient implements OnInit {
 
         const tarifasNoAplicanIds: number[] = [];
 
+        // Intentar obtener tarifas del cliente (estructura antigua)
         if (clienteData.tarifasContadores) {
           const registros = clienteData.tarifasContadores.map((t) => ({
             id: t.id,
@@ -340,6 +341,22 @@ export class UpdateClient implements OnInit {
           clienteData.tarifasContadores
             .filter((t) => !t.aplica)
             .forEach((t) => tarifasNoAplicanIds.push(t.tipoTarifa.id));
+        }
+        // Si no hay tarifas en la raíz, intentar del primer contador (estructura nueva)
+        else if (clienteData.contadores && clienteData.contadores.length > 0) {
+          const primerContador = clienteData.contadores[0];
+          if (primerContador.tarifasContadores) {
+            const registros = primerContador.tarifasContadores.map((t: any) => ({
+              id: t.id,
+              idTipoTarifa: t.tipoTarifa.id,
+              aplica: t.aplica,
+            }));
+            this.tarifasRegistros.set(registros);
+
+            primerContador.tarifasContadores
+              .filter((t: any) => !t.aplica)
+              .forEach((t: any) => tarifasNoAplicanIds.push(t.tipoTarifa.id));
+          }
         }
 
         this.selectedTarifas.set(tarifasNoAplicanIds);
@@ -1962,6 +1979,7 @@ export class UpdateClient implements OnInit {
       registroId?: number;
     }> = [];
 
+    // Intentar obtener tarifas del cliente (estructura antigua)
     if (clienteData?.tarifasContadores) {
       clienteData.tarifasContadores.forEach((t) => {
         tarifas.push({
@@ -1974,17 +1992,35 @@ export class UpdateClient implements OnInit {
         });
       });
     }
-
-    if (clienteData?.tiposTarifaFaltantes) {
-      clienteData.tiposTarifaFaltantes.forEach((t) => {
-        tarifas.push({
-          id: t.id,
-          nombre: t.nombre,
-          codigo: t.codigo,
-          aplica: true,
+    // Si no hay tarifas en la raíz, intentar del primer contador (estructura nueva)
+    else if (clienteData?.contadores && clienteData.contadores.length > 0) {
+      const primerContador = clienteData.contadores[0];
+      if (primerContador.tarifasContadores) {
+        primerContador.tarifasContadores.forEach((t: any) => {
+          tarifas.push({
+            id: t.tipoTarifa.id,
+            nombre: t.tipoTarifa.nombre,
+            descripcion: t.tipoTarifa.descripcion,
+            codigo: t.tipoTarifa.codigo,
+            aplica: t.aplica,
+            registroId: t.id,
+          });
         });
-      });
+      }
     }
+
+    // Agregar tarifas faltantes (de la raíz o del primer contador)
+    const tiposFaltantes = clienteData?.tiposTarifaFaltantes ||
+                          (clienteData?.contadores?.[0]?.tiposTarifaFaltantes) || [];
+
+    tiposFaltantes.forEach((t: any) => {
+      tarifas.push({
+        id: t.id,
+        nombre: t.nombre,
+        codigo: t.codigo,
+        aplica: false,
+      });
+    });
 
     return tarifas;
   });

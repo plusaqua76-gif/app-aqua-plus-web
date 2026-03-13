@@ -84,13 +84,23 @@ export interface IAforoContador {
 
 export interface IContador {
   id: number;
+  idEmpresaClienteContador?: number;
   tipoContador: ITipoContador;
   descripcion: IDescripcionContador;
   estadoContador: IEstadoContador;
   tipoUso: ITipoUso;
+  serial?: string;
+  nuid?: number;
   estrato: number;
+  digitos?: number;
+  fechaInstalacion?: string;
   activo: boolean;
   aforoContador?: IAforoContador[];
+  empleadoEmpresaId?: number;
+  empleadoNombre?: string;
+  // Tarifas específicas por contador
+  tarifasContadores?: ITarifa[];
+  tiposTarifaFaltantes?: ITipoTarifaFaltante[];
 }
 
 export interface ITipoTarifa {
@@ -120,8 +130,9 @@ export interface IClienteDetalle {
   correo: string | null;
   telefono: string;
   codigosResidenciaFiscal?: string;
-  tarifasContadores: ITarifa[];
-  tiposTarifaFaltantes: ITipoTarifaFaltante[];
+  // Tarifas consolidadas (opcional, puede estar en contadores individuales)
+  tarifasContadores?: ITarifa[];
+  tiposTarifaFaltantes?: ITipoTarifaFaltante[];
 }
 
 export interface IClienteDetalleApiResponse {
