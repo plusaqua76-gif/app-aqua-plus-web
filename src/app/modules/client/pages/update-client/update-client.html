@@ -1257,7 +1257,7 @@
       }
 
       <!-- Sección de Tarifas -->
-      @if (clientData()?.tarifasContadores || clientData()?.tiposTarifaFaltantes) {
+      @if (clientData()?.contadores && (clientData()?.contadores?.length ?? 0) > 0) {
       <div class="mt-8">
         <div class="mb-6 pb-4 border-b border-white/10 dark:border-slate-700/30">
           <h2 class="text-xl font-bold text-gray-700 dark:text-gray-200 flex items-center gap-3">
