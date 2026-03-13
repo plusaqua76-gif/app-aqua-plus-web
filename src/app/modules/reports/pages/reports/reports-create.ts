@@ -50,6 +50,10 @@ export class ReportsCreate {
   openDropdowns = signal<Record<string, boolean>>({});
   private clickListener?: (event: MouseEvent) => void;
 
+  // Signals para exportación completa de la tabla de reportes
+  exportDataForReports = signal<any[] | null>(null);
+  isLoadingExportDataReports = signal(false);
+
   billColumns = signal([
     { field: 'nombre', header: 'Nombre', type: 'text' as const },
     { field: 'descripcion', header: 'Descripción', type: 'text' as const },
@@ -137,6 +141,17 @@ export class ReportsCreate {
   }
 
   constructor() {
+    // Effect para limpiar datos de exportación después de usarlos
+    effect(() => {
+      const data = this.exportDataForReports();
+      const isLoading = this.isLoadingExportDataReports();
+      if (data && data.length > 0 && !isLoading) {
+        setTimeout(() => {
+          this.exportDataForReports.set(null);
+        }, 2000);
+      }
+    });
+
     effect(() => {
       if (this.filtersReports.value()?.response && this.showFiltersPopup()) {
         this.initializeFilterValues();

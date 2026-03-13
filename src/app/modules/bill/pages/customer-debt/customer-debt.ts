@@ -5,7 +5,7 @@ import { DeudaService } from '../../service/deuda.service';
 import { ToastService } from '@services/toast.service';
 import { TableComponent } from '@components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { map, EMPTY, catchError, of } from 'rxjs';
+import { map, EMPTY, catchError, of, firstValueFrom } from 'rxjs';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 import { ConfirmDeletePopupComponent } from '@shared/components/confirm-delete-popup';
 
@@ -68,7 +68,11 @@ import { ConfirmDeletePopupComponent } from '@shared/components/confirm-delete-p
   [showColumnFilters]="true"
   (secondaryButtonAction)="createdebt()"
   (action)="handleTableAction($event)"
-  (serverPaginationChange)="onPaginationChange($event)">
+  (serverPaginationChange)="onPaginationChange($event)"
+  [exportData]="exportDataForTable()"
+  [isLoadingExportData]="isLoadingExportData()"
+  (exportAllDataRequest)="handleExportRequest($event)"
+  >
   </app-table-dynamic>
 
   <app-confirm-delete-popup
@@ -91,6 +95,11 @@ import { ConfirmDeletePopupComponent } from '@shared/components/confirm-delete-p
 })
 export class CustomerDebt {
 
+
+  exportDataForTable = signal<any[] | null>(null);
+  isLoadingExportData = signal(false);
+
+
   debtColumns = signal([
     { field: 'clienteNombreCompleto', header: 'Cliente', type: 'text' as const },
     { field: 'facturaCodigo', header: 'Factura', type: 'text' as const },
@@ -98,7 +107,6 @@ export class CustomerDebt {
     { field: 'descripcion', header: 'Descripción', type: 'text' as const },
     { field: 'tipoDeudaNombre', header: 'Tipo deuda', type: 'text' as const },
     { field: 'valorTexto', header: 'Valor', type: 'text' as const },
-    { field: 'activo', header: 'Estado', type: 'text' as const },
     { field: 'plazoPago', header: 'N° de cuotas', type: 'text' as const }
   ]);
 
@@ -106,8 +114,21 @@ export class CustomerDebt {
   protected readonly toastService = inject(ToastService);
   protected readonly router = inject(Router);
   protected readonly route = inject(ActivatedRoute);
-    protected platformId = inject(PLATFORM_ID);
+  protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
+
+
+    constructor() {
+    effect(() => {
+      const data = this.exportDataForTable();
+      const isLoading = this.isLoadingExportData();
+      if (data && data.length > 0 && !isLoading) {
+        setTimeout(() => {
+          this.exportDataForTable.set(null);
+        }, 2000);
+      }
+    });
+  }
 
     readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -260,6 +281,53 @@ export class CustomerDebt {
     this.router.navigate(['../create-credit', id], {
       relativeTo: this.route,
     });
+  }
+
+  async handleExportRequest(event: { totalCount: number; currentParams: IPaginationParams }): Promise<void> {
+    const empresaId = this.empresaId();
+    if (!empresaId) {
+      this.toastService.error('Error', 'No se pudo obtener el ID de la empresa');
+      return;
+    }
+
+    this.isLoadingExportData.set(true);
+    this.toastService.info('Preparando exportación', `Cargando ${event.totalCount} registros...`);
+
+    try {
+      const exportParams: IPaginationParams = {
+        ...event.currentParams,
+        page: 0,
+        size: event.totalCount
+      };
+
+      const response = await firstValueFrom(
+        this.deudaService.getAllDeudaPaginated(empresaId, exportParams)
+      );
+
+      if (response?.response && Array.isArray(response.response)) {
+        const transformedData = response.response.map(deuda => ({
+          id: deuda.id,
+          clienteNombreCompleto: deuda.clienteNombre,
+          facturaCodigo: deuda.facturaCodigo,
+          fechaDeudaTexto: new Date(deuda.fechaDeuda).toLocaleDateString('es-CO'),
+          descripcion: deuda.descripcion,
+          tipoDeudaNombre: deuda.tipoDeuda?.nombre ?? '',
+          valorTexto: `$${deuda.valor.toLocaleString('es-CO')}`,
+          plazoPago: deuda.plazoPago || '0'
+        }));
+
+        this.exportDataForTable.set(transformedData);
+        this.toastService.success('Datos cargados', `${transformedData.length} registros listos para exportar`);
+      } else {
+        throw new Error('No se recibieron datos del servidor');
+      }
+    } catch (error) {
+      console.error('Error al cargar datos para exportación:', error);
+      this.toastService.error('Error', 'No se pudieron cargar los datos para exportar');
+      this.exportDataForTable.set(null);
+    } finally {
+      this.isLoadingExportData.set(false);
+    }
   }
 
 

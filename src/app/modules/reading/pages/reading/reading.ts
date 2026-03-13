@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ReadingService } from '../../service/reading.service';
 import { TableComponent } from '@components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { catchError, EMPTY, of, map } from 'rxjs';
+import { catchError, EMPTY, of, map, firstValueFrom } from 'rxjs';
 import { ToastService } from '@services/toast.service';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
@@ -68,8 +68,15 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       [showExportButton]="true"
       [exportFileName]="exportFileName()"
       [showColumnFilters]="true"
+      [externalFilters]="columnFilters()"
+      [externalFiltersVisible]="filtersVisible()"
+      [exportData]="exportDataForTable()"
+      [isLoadingExportData]="isLoadingExportData()"
       (action)="handleTableAction($event)"
       (serverPaginationChange)="onPaginationChange($event)"
+      (filtersChange)="onFiltersChange($event)"
+      (filtersVisibilityChange)="onFiltersVisibilityChange($event)"
+      (exportAllDataRequest)="handleExportRequest($event)"
     />
   `
 })
@@ -82,6 +89,12 @@ export class Reading {
   readonly toastService = inject(ToastService);
 
   title = signal('Gestión de Lecturas');
+
+  // Signals para exportación completa
+  exportDataForTable = signal<any[] | null>(null);
+  isLoadingExportData = signal(false);
+  columnFilters = signal<Record<string, string>>({});
+  filtersVisible = signal(false);
 
   readonly enterpriseId = computed(() => {
     if (!this.isBrowser) return null;
@@ -98,7 +111,7 @@ export class Reading {
   });
 
   readingColumns = signal([
-    { field: 'serialContador', header: 'Contador', type: 'text' as const, template: 'contadorTpl' },
+    { field: 'contador.serial', header: 'Contador', type: 'text' as const, template: 'contadorTpl' },
     { field: 'nombreCompleto', header: 'Nombre', type: 'text' as const, template: 'nombreCompletoTpl' },
     { field: 'lectura', header: 'Lectura(m³)', type: 'number' as const },
     { field: 'fechaLectura', header: 'Fecha Lectura', type: 'date' as const, template: 'fechaTpl' },
@@ -111,6 +124,19 @@ export class Reading {
     page: 0,
     size: 5,
   });
+
+  constructor() {
+    // Effect para limpiar datos de exportación después de usarlos
+    effect(() => {
+      const data = this.exportDataForTable();
+      const isLoading = this.isLoadingExportData();
+      if (data && data.length > 0 && !isLoading) {
+        setTimeout(() => {
+          this.exportDataForTable.set(null);
+        }, 2000);
+      }
+    });
+  }
 
   serverReadingData = rxResource({
     params: () => ({
@@ -164,6 +190,84 @@ export class Reading {
    */
   onPaginationChange(params: IPaginationParams): void {
     this.paginationParams.set(params);
+  }
+
+  /**
+   * Handler para cambios de filtros
+   */
+  onFiltersChange(filters: Record<string, string>): void {
+    this.columnFilters.set(filters);
+  }
+
+  /**
+   * Handler para cambios de visibilidad de filtros
+   */
+  onFiltersVisibilityChange(visible: boolean): void {
+    this.filtersVisible.set(visible);
+  }
+
+  /**
+   * Handler para solicitud de exportación de todos los datos
+   */
+  async handleExportRequest(event: { totalCount: number; currentParams: IPaginationParams }): Promise<void> {
+    const enterpriseId = this.enterpriseId();
+    if (!enterpriseId) {
+      this.toastService.error('Error', 'No se pudo obtener el ID de la empresa');
+      return;
+    }
+
+    this.isLoadingExportData.set(true);
+    this.toastService.info('Preparando exportación', `Cargando ${event.totalCount} registros...`);
+
+    try {
+      const exportParams: IPaginationParams = {
+        ...event.currentParams,
+        page: 0,
+        size: event.totalCount
+      };
+
+      const response = await firstValueFrom(
+        this.readingService.getReadingsPaginated(
+          enterpriseId,
+          exportParams
+        ).pipe(
+          map(response => {
+            if (response?.response && Array.isArray(response.response)) {
+              response.response = response.response.map((lectura: any) => {
+                const cliente = lectura.contador?.cliente;
+                const nombreCompleto = cliente ? [
+                  cliente.nombre,
+                  cliente.segundoNombre,
+                  cliente.apellido,
+                  cliente.segundoApellido
+                ].filter(Boolean).join(' ').trim() : '';
+                const serialContador = lectura.contador?.serial || '';
+
+                return {
+                  ...lectura,
+                  nombreCompleto,
+                  serialContador
+                };
+              });
+            }
+            return response;
+          })
+        )
+      );
+
+      if (response?.response && Array.isArray(response.response)) {
+        this.exportDataForTable.set(response.response);
+        this.toastService.success('Datos cargados', `${response.response.length} registros listos para exportar`);
+      } else {
+        throw new Error('No se recibieron datos del servidor');
+      }
+    } catch (error) {
+      console.error('Error al cargar datos para exportación:', error);
+      this.toastService.error('Error', 'No se pudieron cargar los datos para exportar');
+      this.exportDataForTable.set(null);
+    } finally {
+      this.isLoadingExportData.set(false);
+    }
   }
 
   /**

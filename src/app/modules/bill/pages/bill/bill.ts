@@ -88,11 +88,14 @@ import { BillBack } from '../../../../core/components/billBack/bill-back';
       [showColumnFilters]="true"
       [externalFilters]="tableState.columnFilters()"
       [externalFiltersVisible]="tableState.filtersVisible()"
+      [exportData]="exportDataForTable()"
+      [isLoadingExportData]="isLoadingExportData()"
       (action)="handleTableAction($event)"
       (secondaryButtonAction)="confirmBulkDownload()"
       (serverPaginationChange)="onPaginationChange($event)"
       (filtersChange)="onFiltersChange($event)"
       (filtersVisibilityChange)="onFiltersVisibilityChange($event)"
+      (exportAllDataRequest)="handleExportRequest($event)"
     >
     </app-table-dynamic>
 
@@ -175,6 +178,8 @@ export class Bill  {
   showBulkDownloadConfirm = signal(false);
   showBulkDownloadProgress = signal(false);
   shouldCancelBulkDownload = false;
+  exportDataForTable = signal<any[] | null>(null);
+  isLoadingExportData = signal(false);
 
   protected readonly facturaService = inject(FacturaService);
   protected readonly toastService = inject(ToastService);
@@ -187,8 +192,21 @@ export class Bill  {
   protected readonly deudaService = inject(DeudaService);
   protected readonly documentService = inject(DocumentAzureBlobService);
 
+  constructor() {
+    effect(() => {
+      const data = this.exportDataForTable();
+      const isLoading = this.isLoadingExportData();
+      if (data && data.length > 0 && !isLoading) {
+        setTimeout(() => {
+          this.exportDataForTable.set(null);
+        }, 2000);
+      }
+    });
+  }
+
   billColumns = signal([
     { field: 'codigo', header: 'Código', type: 'text' as const },
+    { field: 'nuid', header: 'NUID', type: 'text' as const },
     { field: 'clienteNombreCompleto', header: 'Nombre', type: 'text' as const },
     { field: 'corregimientoNombre', header: 'Ubicación', type: 'text' as const },
     { field: 'consumo', header: 'Lectura', type: 'number' as const },
@@ -354,6 +372,55 @@ export class Bill  {
 
   onFiltersVisibilityChange(visible: boolean): void {
     this.tableState.updateFiltersVisibility(visible);
+  }
+
+  async handleExportRequest(event: { totalCount: number; currentParams: IPaginationParams }): Promise<void> {
+    const enterpriseId = this.enterpriseId();
+    if (!enterpriseId) {
+      this.toastService.error('Error', 'No se pudo obtener el ID de la empresa');
+      return;
+    }
+
+    this.isLoadingExportData.set(true);
+    this.toastService.info('Preparando exportación', `Cargando ${event.totalCount} registros...`);
+
+    try {
+      const exportParams: IPaginationParams = {
+        ...event.currentParams,
+        page: 0,
+        size: event.totalCount
+      };
+
+      const response = await firstValueFrom(
+        this.facturaService.getAllBillByIdPaginated(enterpriseId, exportParams)
+      );
+
+      if (response?.response && Array.isArray(response.response)) {
+        const transformedData = response.response.map((factura: any) => ({
+          ...factura,
+          clienteNombreCompleto: [
+            factura.nombre,
+            factura.segundoNombre,
+            factura.apellido,
+            factura.segundoApellido
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .trim()
+        }));
+
+        this.exportDataForTable.set(transformedData);
+        this.toastService.success('Datos cargados', `${transformedData.length} registros listos para exportar`);
+      } else {
+        throw new Error('No se recibieron datos del servidor');
+      }
+    } catch (error) {
+      console.error('Error al cargar datos para exportación:', error);
+      // this.toastService.error('Error', 'No se pudieron cargar los datos para exportar');
+      this.exportDataForTable.set(null);
+    } finally {
+      this.isLoadingExportData.set(false);
+    }
   }
 
   async downloadBillPDF(billId: number, billCode: string | number, isBulkDownload: boolean = false): Promise<boolean> {
