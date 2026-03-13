@@ -426,6 +426,8 @@ export class TableComponent {
   // Inputs para sincronización de estado externo
   externalFilters = input<Record<string, string> | null>(null);
   externalFiltersVisible = input<boolean | null>(null);
+  exportData = input<any[] | null>(null);
+  isLoadingExportData = input<boolean>(false);
 
   action = output<Action>();
   secondaryButtonAction = output<void>();
@@ -433,7 +435,9 @@ export class TableComponent {
   // Outputs para notificar cambios de estado
   filtersChange = output<Record<string, string>>();
   filtersVisibilityChange = output<boolean>();
+  exportAllDataRequest = output<{totalCount: number; currentParams: IPaginationParams}>();
   readonly showExportDropdown = signal<boolean>(false);
+  private readonly pendingExportFormat = signal<'csv' | 'excel' | 'json' | 'txt' | 'sql' | null>(null);
 
   private readonly search = signal<string>('');
   readonly columnFilters = signal<Record<string, string>>({});
@@ -469,6 +473,37 @@ export class TableComponent {
       const extVisible = this.externalFiltersVisible();
       if (extVisible !== null) {
         this.buttonFilter.set(extVisible);
+      }
+    });
+
+    // Effect para disparar exportación cuando llegan los datos completos
+    effect(() => {
+      const data = this.exportData();
+      const format = this.pendingExportFormat();
+
+      if (data && data.length > 0 && format && !this.isLoadingExportData()) {
+        // Esperar un tick para asegurar que Angular actualizó todo
+        setTimeout(() => {
+          switch (format) {
+            case 'csv':
+              this.performCSVExport();
+              break;
+            case 'excel':
+              this.performExcelExport();
+              break;
+            case 'json':
+              this.performJSONExport();
+              break;
+            case 'txt':
+              this.performTXTExport();
+              break;
+            case 'sql':
+              this.performSQLExport();
+              break;
+          }
+          this.pendingExportFormat.set(null);
+          // Nota: Los datos de exportación se limpiarán desde el componente padre
+        }, 0);
       }
     });
   }
@@ -800,7 +835,12 @@ export class TableComponent {
   }
 
   private getExportData() {
-    return this.filtered().map(row => {
+    // Si está en modo servidor y hay datos de exportación completos, usarlos
+    const dataSource = this.serverMode() && this.exportData()
+      ? this.exportData()!
+      : this.filtered();
+
+    return dataSource.map(row => {
       const exportRow: any = {};
       this.columns().forEach(col => {
         exportRow[col.header] = row[col.field] ?? '';
@@ -810,6 +850,16 @@ export class TableComponent {
   }
 
   exportAsCSV() {
+    // Si está en modo servidor y no tiene datos completos, solicitarlos
+    if (this.serverMode() && !this.exportData() && !this.isLoadingExportData()) {
+      this.requestAllDataForExport('csv');
+      return;
+    }
+
+    this.performCSVExport();
+  }
+
+  private performCSVExport(): void {
     const data = this.getExportData();
     const headers = this.columns().map(col => col.header);
 
@@ -834,6 +884,16 @@ export class TableComponent {
   }
 
   exportAsExcel() {
+    // Si está en modo servidor y no tiene datos completos, solicitarlos
+    if (this.serverMode() && !this.exportData() && !this.isLoadingExportData()) {
+      this.requestAllDataForExport('excel');
+      return;
+    }
+
+    this.performExcelExport();
+  }
+
+  private performExcelExport(): void {
     const data = this.getExportData();
     const headers = this.columns().map(col => col.header);
 
@@ -908,6 +968,16 @@ export class TableComponent {
   }
 
   exportAsJSON() {
+    // Si está en modo servidor y no tiene datos completos, solicitarlos
+    if (this.serverMode() && !this.exportData() && !this.isLoadingExportData()) {
+      this.requestAllDataForExport('json');
+      return;
+    }
+
+    this.performJSONExport();
+  }
+
+  private performJSONExport(): void {
     const data = this.getExportData();
     const jsonContent = JSON.stringify(data, null, 2);
 
@@ -915,6 +985,16 @@ export class TableComponent {
   }
 
   exportAsTXT() {
+    // Si está en modo servidor y no tiene datos completos, solicitarlos
+    if (this.serverMode() && !this.exportData() && !this.isLoadingExportData()) {
+      this.requestAllDataForExport('txt');
+      return;
+    }
+
+    this.performTXTExport();
+  }
+
+  private performTXTExport(): void {
     const data = this.getExportData();
     const headers = this.columns().map(col => col.header);
     const colWidths = headers.map((header, index) => {
@@ -950,6 +1030,16 @@ export class TableComponent {
   }
 
   exportAsSQL() {
+    // Si está en modo servidor y no tiene datos completos, solicitarlos
+    if (this.serverMode() && !this.exportData() && !this.isLoadingExportData()) {
+      this.requestAllDataForExport('sql');
+      return;
+    }
+
+    this.performSQLExport();
+  }
+
+  private performSQLExport(): void {
     const data = this.getExportData();
     const headers = this.columns().map(col => col.header);
     const tableName = this.exportFileName().toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -978,6 +1068,31 @@ export class TableComponent {
     }
 
     this.downloadFile(sqlContent, `${this.exportFileName()}.sql`, 'application/sql');
+  }
+
+  private requestAllDataForExport(format: 'csv' | 'excel' | 'json' | 'txt' | 'sql'): void {
+    this.pendingExportFormat.set(format);
+    const serverData = this.serverData();
+    const totalCount = serverData?.totalCount || 0;
+
+    if (totalCount === 0) {
+      console.warn('No hay datos para exportar');
+      return;
+    }
+
+    const currentPage = serverData?.currentPage ?? 0;
+    const currentSize = serverData?.pageSize || this.pageSize();
+    const currentSearch = this.search();
+    const currentFilters = this.columnFilters();
+
+    const currentParams: IPaginationParams = {
+      page: currentPage,
+      size: currentSize,
+      search: currentSearch || undefined,
+      filters: Object.keys(currentFilters).length > 0 ? currentFilters : undefined
+    };
+
+    this.exportAllDataRequest.emit({ totalCount, currentParams });
   }
 
   private emitServerPaginationChange(additionalParams: Partial<IPaginationParams> = {}): void {

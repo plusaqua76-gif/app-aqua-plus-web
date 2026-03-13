@@ -13,7 +13,7 @@ import { Action, TableComponent } from '../../../../core/components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ToastService } from '@services/toast.service';
 import { TableStateService } from '../../../../core/services/table-state.service';
-import { catchError, of } from 'rxjs';
+import { catchError, of, firstValueFrom } from 'rxjs';
 import { PopupComponent } from '@shared/components/popUp';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
@@ -80,10 +80,13 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       [exportFileName]="exportFileName()"
       [externalFilters]="tableState.columnFilters()"
       [externalFiltersVisible]="tableState.filtersVisible()"
+      [exportData]="exportDataForTable()"
+      [isLoadingExportData]="isLoadingExportData()"
       (action)="onTableAction($event)"
       (serverPaginationChange)="onPaginationChange($event)"
       (filtersChange)="onFiltersChange($event)"
       (filtersVisibilityChange)="onFiltersVisibilityChange($event)"
+      (exportAllDataRequest)="handleExportRequest($event)"
     >
     </app-table-dynamic>
 
@@ -105,6 +108,10 @@ export class Client {
   showDeleteConfirm = signal(false);
   itemToDelete: number | null = null;
   title = 'Gestion de clientes';
+
+  // Signals para exportación completa
+  exportDataForTable = signal<any[] | null>(null);
+  isLoadingExportData = signal(false);
 
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
@@ -137,11 +144,11 @@ export class Client {
       type: 'text' as const,
     },
     // aqui se va a dejar al columna del NUID
-    // {
-    //   field: 'codigo',
-    //   header: 'Codigo',
-    //   type: 'text' as const,
-    // },
+    {
+      field: 'nuid',
+      header: 'Codigo',
+      type: 'text' as const,
+    },
     // { field: 'correo', header: 'Correo', type: 'text' as const },
     {
       field: 'activo',
@@ -157,6 +164,18 @@ export class Client {
 
   // Usar paginationParams del servicio de estado genérico
   readonly paginationParams = this.tableState.paginationParams;
+
+  constructor() {
+    effect(() => {
+      const data = this.exportDataForTable();
+      const isLoading = this.isLoadingExportData();
+      if (data && data.length > 0 && !isLoading) {
+        setTimeout(() => {
+          this.exportDataForTable.set(null);
+        }, 2000);
+      }
+    });
+  }
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -293,5 +312,44 @@ export class Client {
 
   onFiltersVisibilityChange(visible: boolean): void {
     this.tableState.updateFiltersVisibility(visible);
+  }
+
+  async handleExportRequest(event: { totalCount: number; currentParams: IPaginationParams }): Promise<void> {
+    const enterpriseId = this.enterpriseId();
+    if (!enterpriseId) {
+      this.toastService.error('Error', 'No se pudo obtener el ID de la empresa');
+      return;
+    }
+
+    this.isLoadingExportData.set(true);
+    this.toastService.info('Preparando exportación', `Cargando ${event.totalCount} registros...`);
+
+    try {
+      const exportParams: IPaginationParams = {
+        ...event.currentParams,
+        page: 0,
+        size: event.totalCount
+      };
+
+      const response = await firstValueFrom(
+        this.enterpriseClientCounterService.getAllClientsByIdEnterprisePaginated(
+          enterpriseId,
+          exportParams
+        )
+      );
+
+      if (response?.response && Array.isArray(response.response)) {
+        this.exportDataForTable.set(response.response);
+        this.toastService.success('Datos cargados', `${response.response.length} registros listos para exportar`);
+      } else {
+        throw new Error('No se recibieron datos del servidor');
+      }
+    } catch (error) {
+      console.error('Error al cargar datos para exportación:', error);
+      this.toastService.error('Error', 'No se pudieron cargar los datos para exportar');
+      this.exportDataForTable.set(null);
+    } finally {
+      this.isLoadingExportData.set(false);
+    }
   }
 }
