@@ -304,7 +304,6 @@ interface ParamUpdateData {
                     <input
                       type="number"
                       [(ngModel)]="tarifaBase"
-                      [min]="0"
                       [step]="0.01"
                       [placeholder]="'Ingrese tarifa base en COP'"
                       class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
@@ -873,7 +872,6 @@ interface ParamUpdateData {
                                   type="number"
                                   [value]="editForm()?.tarifaBase"
                                   (input)="updateEditField('tarifaBase', +$any($event.target).value)"
-                                  min="0"
                                   step="0.01"
                                   class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50"
                                 />
@@ -1085,7 +1083,6 @@ interface ParamUpdateData {
                                   type="number"
                                   [value]="editForm()?.tarifaBase"
                                   (input)="updateEditField('tarifaBase', +$any($event.target).value)"
-                                  min="0"
                                   step="0.01"
                                   class="w-full px-2 py-1.5 bg-gray-800/50 border border-gray-600/50 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                                 />
@@ -1668,10 +1665,7 @@ export class AforoComponent {
       return false;
     }
 
-    if (!this.tarifaBase() || this.tarifaBase() <= 0) {
-      this.toastService.warning('Validación', 'Ingrese una tarifa base válida');
-      return false;
-    }
+
 
     if (this.frecuenciaRecoleccion() < MIN_FRECUENCIA || this.frecuenciaRecoleccion() > MAX_FRECUENCIA) {
       this.toastService.warning('Validación', `La frecuencia de recolección debe estar entre ${MIN_FRECUENCIA} y ${MAX_FRECUENCIA}`);
