@@ -488,14 +488,14 @@ import {
 
           <!-- Totales y Forma de Pago -->
           <div
-            class="p-4 sm:p-6 rounded-lg border border-gray-600/70 bg-gradient-to-br from-emerald-600/5 to-transparent"
+            class="p-4 sm:p-6 rounded-lg border border-gray-600/70 bg-gradient-to-br from-slate-600/5 to-transparent"
           >
             <div class="flex items-center gap-2 sm:gap-3 mb-4">
               <div
-                class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-600/20 border border-emerald-500/30"
+                class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-slate-600/20 border border-slate-500/30"
               >
                 <svg
-                  class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400"
+                  class="w-4 h-4 sm:w-5 sm:h-5 text-slate-400"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -508,7 +508,7 @@ import {
                   />
                 </svg>
               </div>
-              <h2 class="text-lg sm:text-xl font-semibold text-emerald-400">
+              <h2 class="text-lg sm:text-xl font-semibold text-slate-400">
                 Forma de Pago y Totales
               </h2>
             </div>
@@ -520,7 +520,7 @@ import {
               <!-- Forma de Pago -->
               <div class="space-y-4">
                 <h3
-                  class="text-sm font-semibold text-emerald-400 uppercase tracking-wide"
+                  class="text-sm font-semibold text-slate-400 uppercase tracking-wide"
                 >
                   Forma de Pago
                 </h3>
@@ -535,7 +535,7 @@ import {
                   </label>
                   <select
                     formControlName="medioPago"
-                    class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 invalid:text-gray-400 cursor-pointer"
+                    class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/40 invalid:text-gray-400 cursor-pointer"
                     required
                   >
                     <option
@@ -570,7 +570,7 @@ import {
                     <select
                       id="tipoDocumento"
                       formControlName="tipoDocumento"
-                      class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 invalid:text-gray-400 cursor-pointer"
+                      class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/40 invalid:text-gray-400 cursor-pointer"
                       required
                     >
                       <option
@@ -605,7 +605,7 @@ import {
                     </label>
                     <select
                       formControlName="medioPago"
-                      class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 invalid:text-gray-400 cursor-pointer"
+                      class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/40 invalid:text-gray-400 cursor-pointer"
                       required
                     >
                       <option value="" disabled selected hidden class="text-gray-400">
@@ -624,7 +624,7 @@ import {
                                         <div class="col-span-3">
                           <select
                             formControlName="codigoRazon"
-                            class="w-full px-2 py-1 bg-gray-800/50 border border-gray-600/70 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                            class="w-full px-2 py-1 bg-gray-800/50 border border-gray-600/70 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-slate-500/40"
                           >
                             <option value="" disabled selected hidden>Código</option>
                             @for (razon of ParamsGeneral.value()?.response ?? []; track razon.codigo) {
@@ -650,8 +650,32 @@ import {
                       min="0"
                       step="0.01"
                       placeholder="$0"
-                      class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                      class="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/40"
                     />
+                  </div>
+
+                  <!-- Fecha de Emisión -->
+                  <div>
+                    <label class="block text-xs text-gray-400 mb-1.5">
+                      Fecha de Emisión (Opcional)
+                    </label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg class="w-4 h-4 text-slate-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 10h16m-8-3V4M7 7V4m10 3V4M5 20h14a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Zm3-7h.01v.01H8V13Zm4 0h.01v.01H12V13Zm4 0h.01v.01H16V13Zm-8 4h.01v.01H8V17Zm4 0h.01v.01H12V17Zm4 0h.01v.01H16V17Z"/>
+                        </svg>
+                      </div>
+                      <input
+                        type="date"
+                        formControlName="fechaEmision"
+                        class="block w-full pl-10 pr-3 py-2.5 bg-gray-800/50 border border-gray-600/70 text-white text-sm rounded-lg focus:ring-2 focus:ring-slate-500/40 focus:border-slate-500/70 hover:border-gray-500/80 transition-all shadow-sm placeholder:text-gray-500 cursor-pointer"
+                        style="color-scheme: dark;"
+                        placeholder="Fecha actual por defecto"
+                      />
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1.5 italic">
+                      Si no selecciona, se usará la fecha actual
+                    </p>
                   </div>
 
                   <!-- Credit Note Fields - Only visible in credit note mode -->
@@ -727,7 +751,7 @@ import {
                           <select
                             placeholder="Seleccione días"
                             formControlName="diasPredefinidos"
-                            class="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 cursor-pointer focus:border-emerald-500/70 hover:border-gray-500/80 transition-all appearance-none"
+                            class="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/40 cursor-pointer focus:border-slate-500/70 hover:border-gray-500/80 transition-all appearance-none"
                           >
                             <option value="" selected class="bg-gray-700">Seleccione días</option>
                             <option value="15" class="bg-gray-700">15 días</option>
@@ -740,7 +764,7 @@ import {
                           </select>
                         </div>
                         @if (invoiceForm.get('diasPredefinidos')?.value) {
-                        <p class="text-xs text-emerald-400 mt-1.5 flex items-center gap-1">
+                        <p class="text-xs text-slate-400 mt-1.5 flex items-center gap-1">
                           <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -753,7 +777,7 @@ import {
                       <div>
                         <div class="relative">
                           <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <svg class="w-4 h-4 text-emerald-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-slate-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                               <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 10h16m-8-3V4M7 7V4m10 3V4M5 20h14a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Zm3-7h.01v.01H8V13Zm4 0h.01v.01H12V13Zm4 0h.01v.01H16V13Zm-8 4h.01v.01H8V17Zm4 0h.01v.01H12V17Zm4 0h.01v.01H16V17Z"/>
                             </svg>
                           </div>
@@ -761,13 +785,13 @@ import {
                             type="date"
                             formControlName="fechaVencimiento"
                             [min]="getFechaMinima()"
-                            class="block w-full pl-10 pr-3 py-2.5 bg-gray-800/50 border border-gray-600/70 text-white text-sm rounded-lg focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/70 hover:border-gray-500/80 transition-all shadow-sm placeholder:text-gray-500 cursor-pointer"
+                            class="block w-full pl-10 pr-3 py-2.5 bg-gray-800/50 border border-gray-600/70 text-white text-sm rounded-lg focus:ring-2 focus:ring-slate-500/40 focus:border-slate-500/70 hover:border-gray-500/80 transition-all shadow-sm placeholder:text-gray-500 cursor-pointer"
                             style="color-scheme: dark;"
                             placeholder="Seleccione fecha"
                           />
                         </div>
                         @if (invoiceForm.get('fechaVencimiento')?.value) {
-                        <p class="text-xs text-emerald-400 mt-1.5 flex items-center gap-1">
+                        <p class="text-xs text-slate-400 mt-1.5 flex items-center gap-1">
                           <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -791,7 +815,7 @@ import {
                       type="checkbox"
                       id="aplicarDescuentoGlobal"
                       formControlName="aplicarDescuentoGlobal"
-                      class="w-4 h-4 text-emerald-600 bg-gray-800 border-gray-600 rounded focus:ring-emerald-500"
+                      class="w-4 h-4 text-slate-600 bg-gray-800 border-gray-600 rounded focus:ring-slate-500"
                     />
                     <label
                       for="aplicarDescuentoGlobal"
@@ -807,7 +831,7 @@ import {
                   >
                     <div class="flex items-center justify-between mb-2">
                       <h4
-                        class="text-xs font-semibold text-emerald-400 uppercase tracking-wide"
+                        class="text-xs font-semibold text-slate-400 uppercase tracking-wide"
                       >
                         Descuentos/Cargos Globales
                       </h4>
@@ -815,7 +839,7 @@ import {
                       <button
                         type="button"
                         (click)="addDescuento()"
-                        class="px-2 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 rounded text-emerald-400 text-xs font-medium"
+                        class="px-2 py-1 bg-slate-600/20 hover:bg-slate-600/30 border border-slate-500/30 rounded text-slate-400 text-xs font-medium"
                       >
                         + Agregar
                       </button>
@@ -839,7 +863,7 @@ import {
                             max="100"
                             step="0.1"
                             placeholder="$0"
-                            class="w-full px-2 py-1 bg-gray-800/50 border border-gray-600/70 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                            class="w-full px-2 py-1 bg-gray-800/50 border border-gray-600/70 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-slate-500/40"
                           />
                         </div>
                         <!-- <div class="col-span-6 sm:col-span-2 flex items-center">
@@ -847,7 +871,7 @@ import {
                             <input
                               type="checkbox"
                               formControlName="indCargo"
-                              class="w-4 h-4 text-emerald-600 bg-gray-800 border-gray-600 rounded focus:ring-emerald-500"
+                              class="w-4 h-4 text-slate-600 bg-gray-800 border-gray-600 rounded focus:ring-slate-500"
                             />
                             <span class="ml-1 text-xs text-gray-400"
                               >Cargo</span
@@ -857,7 +881,7 @@ import {
                         <div class="col-span-8 sm:col-span-2">
                           <select
                             formControlName="codigoRazon"
-                            class="w-full px-2 py-1 bg-gray-800/50 border border-gray-600/70 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                            class="w-full px-2 py-1 bg-gray-800/50 border border-gray-600/70 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-slate-500/40"
                           >
                             <option value="" disabled selected hidden>
                               Código
@@ -876,7 +900,7 @@ import {
                             type="text"
                             formControlName="razon"
                             placeholder="Descripción de la razón..."
-                            class="w-full px-2 py-1 bg-gray-800/50 border border-gray-600/70 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                            class="w-full px-2 py-1 bg-gray-800/50 border border-gray-600/70 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-slate-500/40"
                           />
                         </div>
                         <div
@@ -974,10 +998,10 @@ import {
                   <div class="h-px bg-gray-700/50"></div>
 
                   <div class="flex justify-between items-center pt-2">
-                    <span class="text-emerald-400 font-semibold text-lg"
+                    <span class="text-slate-400 font-semibold text-lg"
                       >Total a Pagar:</span
                     >
-                    <span class="text-emerald-400 font-bold text-2xl">{{
+                    <span class="text-slate-400 font-bold text-2xl">{{
                       calculateTotals().total | colombianCurrencyInteger
                     }}</span>
                   </div>
@@ -1492,7 +1516,8 @@ export class CreateInvoiceComponent {
       tipoDocumento: ['', Validators.required],
       medioPago: ['', Validators.required],
       observaciones: [''],
-      totalAnticipado: [0, [Validators.min(0)]],
+      totalAnticipado: [null, [Validators.min(0)]],
+      fechaEmision: [null],
       diasPredefinidos: [null],
       fechaVencimiento: [null],
       aplicarDescuentoGlobal: [false],
@@ -1553,8 +1578,8 @@ export class CreateInvoiceComponent {
       codigoProducto: ['', Validators.required],
       productoId: [''],
       descripcion: ['', Validators.required],
-      cantidad: [1, [Validators.required, Validators.min(1)]],
-      precioUnitario: [1, [Validators.required, Validators.min(1)]],
+      cantidad: [null, [Validators.required, Validators.min(1)]],
+      precioUnitario: [null, [Validators.required, Validators.min(1)]],
       iva: [19, Validators.required],
       nota: [''],
       total: [{ value: 0, disabled: true }],
@@ -1773,12 +1798,15 @@ export class CreateInvoiceComponent {
     return dias;
   }
 
-  calcularFechaVencimientoDesdeHoy(dias: number): string {
+  calcularFechaVencimientoDesdeHoy(dias: number | string): string {
     if (!dias) return '';
+
+    const diasNumero = typeof dias === 'string' ? parseInt(dias, 10) : dias;
+    if (isNaN(diasNumero)) return '';
 
     const hoy = new Date();
     const fechaVencimiento = new Date(hoy);
-    fechaVencimiento.setDate(hoy.getDate() + dias);
+    fechaVencimiento.setDate(hoy.getDate() + diasNumero);
 
     const opciones: Intl.DateTimeFormatOptions = {
       year: 'numeric',
@@ -1789,19 +1817,22 @@ export class CreateInvoiceComponent {
     return fechaVencimiento.toLocaleDateString('es-CO', opciones);
   }
 
-  calcularFechaISO(dias: number): string {
+  calcularFechaISO(dias: number | string): string {
     if (!dias) return '';
+
+    const diasNumero = typeof dias === 'string' ? parseInt(dias, 10) : dias;
+    if (isNaN(diasNumero)) return '';
 
     const hoy = new Date();
     const fechaCalculada = new Date(hoy);
-    fechaCalculada.setDate(hoy.getDate() + dias);
+    fechaCalculada.setDate(hoy.getDate() + diasNumero);
 
     return fechaCalculada.toISOString().split('T')[0];
   }
 
   private createDescuento(): FormGroup {
     return this.fb.group({
-      valor: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
+      valor: [null, [Validators.required, Validators.min(0), Validators.max(100)]],
       indCargo: [false],
       codigoRazon: ['00', Validators.required],
       razon: ['', Validators.required],
@@ -1909,7 +1940,9 @@ export class CreateInvoiceComponent {
       medio: formValue.tipoDocumento,
       ...(fechaParaEnviar && { fechaFin: fechaParaEnviar })
     };
-    request.fechaEmision = new Date().toISOString();
+    request.fechaEmision = formValue.fechaEmision
+      ? new Date(formValue.fechaEmision).toISOString()
+      : new Date().toISOString();
     request.totalAnticipado = formValue.totalAnticipado || 0;
     request.usuario = usuario || 'sistema';
 
@@ -2082,7 +2115,9 @@ export class CreateInvoiceComponent {
       associatedDocuments: associatedDocuments,
       conceptCode: formValue.conceptCode || '',
       note: formValue.note || '',
-      fechaEmision: new Date().toISOString(),
+      fechaEmision: formValue.fechaEmision
+        ? new Date(formValue.fechaEmision).toISOString()
+        : new Date().toISOString(),
       idEmpresa: empresaId,
       idCliente: cliente.id,
       usuario: usuario || 'sistema'
@@ -2269,6 +2304,7 @@ export class CreateInvoiceComponent {
       medioPago: '',
       observaciones: '',
       totalAnticipado: 0,
+      fechaEmision: null,
       aplicarDescuentoGlobal: false,
       conceptCode: '',
       note: ''

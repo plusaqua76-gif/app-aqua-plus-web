@@ -237,14 +237,14 @@ export class ClientInvoices {
   });
 
   invoiceColumns = signal([
-    // { field: 'estado', header: 'Estado', type: 'text' as const },
-    { field: 'numero', header: 'Factura', type: 'text' as const },
-    { field: 'estadoLegal', header: 'Estado Legal', type: 'text' as const },
+    { field: 'factura.codigo', header: 'Código Factura', type: 'text' as const },
+    { field: 'factura.estado.nombre', header: 'Estado', type: 'text' as const },
     { field: 'empresa.nombre', header: 'Empresa', type: 'text' as const },
     { field: 'cliente.nombre', header: 'Cliente', type: 'text' as const },
     { field: 'cliente.numeroCedula', header: 'Cédula', type: 'text' as const },
     // { field: 'empresa.fechaCreacion', header: 'Fecha Emisión', type: 'date' as const, template: 'fechaCreacionTpl' },
-    { field: 'descripcion', header: 'Descripción', type: 'text' as const },
+    { field: 'factura.consumo', header: 'Consumo', type: 'text' as const },
+    { field: 'factura.precio', header: 'Precio', type: 'text' as const },
   ]);
 
   readonly enterpriseId = computed(() => {
