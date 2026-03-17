@@ -229,7 +229,7 @@ export class CreateDebt  {
       return null;
     }
 
-    const plazo = this.plazoPagoOptions().find(p => p.id === Number(plazoPagoId));
+    const plazo = this.plazoPagoOptions().find(p => p.nombre === plazoPagoId);
     return plazo || null;
   });
 
@@ -437,7 +437,7 @@ export class CreateDebt  {
     );
 
     const plazoPagoSeleccionado = this.plazopago.value()?.response?.find(
-      plazo => plazo.id === Number(formValue.plazoPagoId)
+      plazo => formValue.plazoPagoId && plazo.nombre === formValue.plazoPagoId
     );
 
     if (!tipoDeudaSeleccionado || !plazoPagoSeleccionado) {
@@ -465,7 +465,7 @@ export class CreateDebt  {
     const deuda: Partial<IDeudaCliente> = {
       empresaClienteContador: { id: contadorSeleccionado.id },
       tipoDeuda: { id: tipoDeudaSeleccionado.id },
-      plazoPago: plazoPagoSeleccionado.id,
+      plazoPago: plazoPagoSeleccionado.nombre,
       fechaDeuda: new Date(formValue.fechaDeuda!),
       valor: valorTotal, // Enviar como número, no string
       descripcion: formValue.descripcion!,

@@ -366,7 +366,7 @@
               required
               placeholder="Seleccione un plazo de pago...">
               <option
-                value="seleccione un plazo"
+                value=""
                 disabled
                 selected
                 hidden
@@ -381,11 +381,6 @@
                 </option>
               }
             </select>
-            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
           </div>
           @if (deudaForm.get('plazoPagoId')?.invalid && deudaForm.get('plazoPagoId')?.touched) {
             <p class="mt-1 text-sm text-red-600">Debe seleccionar un plazo de pago</p>
