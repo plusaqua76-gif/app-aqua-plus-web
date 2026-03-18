@@ -485,9 +485,9 @@ export class EnterpriceDian {
 
   showConfirmEstado = signal(false);
   actualizandoEstado = signal(false);
-  estadoActual = signal<'PEND_PROC' | 'PEND'>('PEND_PROC');
+  estadoActual = signal<'PENDING' | 'PEND'>('PENDING');
   readonly puedeActivarFacturacion = computed(() => {
-    return this.estadoActual() === 'PEND_PROC';
+    return this.estadoActual() === 'PENDING';
   });
 
   abrirConfirmacionEstado() {
@@ -503,7 +503,7 @@ export class EnterpriceDian {
   }
 
   confirmarCambioEstado() {
-    if (this.estadoActual() !== 'PEND_PROC') {
+    if (this.estadoActual() !== 'PENDING') {
       this.toast.error('error', 'La facturación masiva ya está activa');
       this.showConfirmEstado.set(false);
       return;
@@ -512,7 +512,7 @@ export class EnterpriceDian {
     this.actualizandoEstado.set(true);
 
     const usuario = this.nombreUsuario() || 'usuario';
-    const estadoActualValue = 'PEND_PROC';
+    const estadoActualValue = 'PENDING';
     const nuevoEstado = 'PEND';
 
     const request: UpdateMasiveBillRequest = {

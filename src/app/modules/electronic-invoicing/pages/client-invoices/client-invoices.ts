@@ -5,6 +5,8 @@ import {
   inject,
   PLATFORM_ID,
   signal,
+  TemplateRef,
+  viewChild,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -79,7 +81,7 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
               d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
           </svg>
         </button>
-        <button
+        <!-- <button
           type="button"
           (click)="handleTableAction({ action: 'download', row })"
           class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-green-600/50 text-green-500 hover:bg-green-600/10 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors duration-200 cursor-pointer"
@@ -89,7 +91,7 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-        </button>
+        </button> -->
         <button
           type="button"
           (click)="handleTableAction({ action: 'create-credit-note', row })"
@@ -101,14 +103,10 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       </div>
     </ng-template>
 
-    <!-- <ng-template #fechaCreacionTpl let-row>
-      {{ formatDate(row.empresa?.fechaCreacion) }}
-    </ng-template> -->
+    <ng-template #fechaCreacionTpl let-row>
+      {{ formatDateTime(row.fechaCreacion) }}
+    </ng-template>
 
-    <!-- este va en la tabla
-          [columnTemplates]="{
-        'empresa.fechaCreacion': fechaCreacionTpl
-      }" -->
 
     <app-table-dynamic
       [title]="title()"
@@ -117,6 +115,9 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       [serverData]="serverInvoiceData.value() ?? null"
       [loading]="serverInvoiceData.isLoading()"
       [actionTemplate]="actionsTemplate"
+      [columnTemplates]="{
+        fechaCreacion: fechaCreacionTpl
+      }"
       [showAddButton]="true"
       [addButtonText]="'Nueva Factura Electrónica'"
       [addButtonIcon]="'fa-regular fa-file-lines'"
@@ -125,9 +126,9 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       [showColumnFilters]="true"
       (action)="handleTableAction($event)"
       (serverPaginationChange)="onPaginationChange($event)"
-            [showSecondaryButton]="true"
+      [showSecondaryButton]="true"
       [secondaryButtonText]="'Configuración '"
-            (secondaryButtonAction)="handleTableAction({ action: 'view-enterprise-dian' })"
+      (secondaryButtonAction)="handleTableAction({ action: 'view-enterprise-dian' })"
     >
     </app-table-dynamic>
 
@@ -226,6 +227,9 @@ export class ClientInvoices {
   protected readonly route = inject(ActivatedRoute);
   private readonly sanitizer = inject(DomSanitizer);
 
+  // Template references
+  readonly fechaCreacionTpl = viewChild<TemplateRef<any>>('fechaCreacionTpl');
+
   showPdfPopup = signal(false);
   selectedInvoiceForView = signal<any>(null);
 
@@ -237,12 +241,12 @@ export class ClientInvoices {
   });
 
   invoiceColumns = signal([
+    { field: 'numero', header: 'Factura', type: 'text' as const },
     { field: 'factura.codigo', header: 'Código Factura', type: 'text' as const },
-    { field: 'factura.estado.nombre', header: 'Estado', type: 'text' as const },
-    { field: 'empresa.nombre', header: 'Empresa', type: 'text' as const },
+    { field: 'estadoLegal', header: 'Estado Legal', type: 'text' as const },
     { field: 'cliente.nombre', header: 'Cliente', type: 'text' as const },
     { field: 'cliente.numeroCedula', header: 'Cédula', type: 'text' as const },
-    // { field: 'empresa.fechaCreacion', header: 'Fecha Emisión', type: 'date' as const, template: 'fechaCreacionTpl' },
+    { field: 'fechaCreacion', header: 'Fecha Emisión', type: 'date' as const, template: 'fechaCreacionTpl' },
     { field: 'factura.consumo', header: 'Consumo', type: 'text' as const },
     { field: 'factura.precio', header: 'Precio', type: 'text' as const },
   ]);
@@ -392,24 +396,27 @@ createCreditNote(invoice: any) {
     this.selectedInvoiceForView.set(null);
   }
 
-  /**
-   * Formatea una fecha ISO a formato legible DD/MM/YYYY
-   */
-  // formatDate(dateString: string): string {
-  //   if (!dateString) return '';
 
-  //   try {
-  //     const datePart = dateString.split('T')[0];
-  //     const [year, month, day] = datePart.split('-');
-  //     const date = new Date(Number.parseInt(year), Number.parseInt(month) - 1, Number.parseInt(day));
+  formatDateTime(dateString: string): string {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return '';
+      }
 
-  //     return date.toLocaleDateString('es-ES', {
-  //       day: '2-digit',
-  //       month: '2-digit',
-  //       year: 'numeric'
-  //     });
-  //   } catch (error) {
-  //     return dateString;
-  //   }
-  // }
+      return new Intl.DateTimeFormat('es-CO', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).format(date);
+
+    } catch (error) {
+      console.error('Error formateando fecha:', error);
+      return '';
+    }
+  }
 }
