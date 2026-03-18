@@ -100,13 +100,14 @@ export class CustomerDebt {
   isLoadingExportData = signal(false);
 
 debtColumns = signal([
+  { field: 'clienteNombre', header: 'Cliente', type: 'text' as const },
   { field: 'facturaCodigo', header: 'Factura', type: 'text' as const },
   { field: 'fechaDeuda', header: 'Fecha deuda', type: 'date' as const },
   { field: 'tipoDeudaNombre', header: 'Tipo deuda', type: 'text' as const },
-  { field: 'valorTotal', header: 'Valor total', type: 'text' as const },
-  { field: 'totalAbonado', header: 'Abonado', type: 'text' as const },
-  { field: 'saldoPendiente', header: 'Saldo pendiente', type: 'text' as const },
-  { field: 'valorMes', header: 'Valor cuota', type: 'text' as const },
+  { field: 'valorTotal', header: 'Valor total', type: 'currency' as const },
+  { field: 'totalAbonado', header: 'Abonado', type: 'currency' as const },
+  { field: 'saldoPendiente', header: 'Saldo pendiente', type: 'currency' as const },
+  { field: 'valorMes', header: 'Valor cuota', type: 'currency' as const },
   { field: 'meses', header: 'N° de cuotas', type: 'text' as const }
 ]);
 
