@@ -151,6 +151,9 @@ export class FeeComponent implements AfterViewInit {
   guardandoParametrosConsumo = signal(false);
   codigosTarifaConsumo = signal<string[]>([]);
   cargandoParametrosConsumo = signal(false);
+  rangoConsumoBasico = signal<string>('');
+  rangoConsumoComplementario = signal<string>('');
+  rangoConsumoSuntuario = signal<string>('');
 
   tipoServicio = computed(() => {
     const codigos = this.codigosTarifaConsumo();
@@ -171,13 +174,10 @@ export class FeeComponent implements AfterViewInit {
   };
 
   rangosConsumo = computed(() => {
-    const minimo = this.consumoMinimo();
-    const maximo = this.consumoMaximo();
-
     return {
-      CONBAS: `0 - ${minimo}`,
-      CONCOM: `${minimo + 1} - ${maximo - 1}`,
-      CONSUN: `${maximo} en adelante`
+      CONBAS: this.rangoConsumoBasico(),
+      CONCOM: this.rangoConsumoComplementario(),
+      CONSUN: this.rangoConsumoSuntuario()
     };
   });
 
@@ -524,6 +524,9 @@ mostrardata = this.consumptionParamsData().forEach(param => {
     this.indCalcularMc.set(true);
     this.indAplicarRango.set(false);
     this.valorRango.set(null);
+    this.rangoConsumoBasico.set('');
+    this.rangoConsumoComplementario.set('');
+    this.rangoConsumoSuntuario.set('');
   }
 
   onTipoTarifaChange(): void {
@@ -1300,6 +1303,9 @@ mostrardata = this.consumptionParamsData().forEach(param => {
   limpiarParametrosConsumo(): void {
     this.consumoMinimo.set(15);
     this.consumoMaximo.set(50);
+    this.rangoConsumoBasico.set('');
+    this.rangoConsumoComplementario.set('');
+    this.rangoConsumoSuntuario.set('');
   }
 
   // Método para construir códigos de consumo dinámicos
@@ -1330,6 +1336,9 @@ mostrardata = this.consumptionParamsData().forEach(param => {
       // Resetear valores cuando no hay tarifa seleccionada
       this.consumoMinimo.set(0);
       this.consumoMaximo.set(0);
+      this.rangoConsumoBasico.set('');
+      this.rangoConsumoComplementario.set('');
+      this.rangoConsumoSuntuario.set('');
       this.paramConsumptionIds.CONBAS = undefined;
       this.paramConsumptionIds.CONCOM = undefined;
       this.paramConsumptionIds.CONSUN = undefined;
@@ -1343,6 +1352,9 @@ mostrardata = this.consumptionParamsData().forEach(param => {
       // Resetear valores cuando no se pueden construir códigos
       this.consumoMinimo.set(0);
       this.consumoMaximo.set(0);
+      this.rangoConsumoBasico.set('');
+      this.rangoConsumoComplementario.set('');
+      this.rangoConsumoSuntuario.set('');
       this.paramConsumptionIds.CONBAS = undefined;
       this.paramConsumptionIds.CONCOM = undefined;
       this.paramConsumptionIds.CONSUN = undefined;
@@ -1357,6 +1369,9 @@ mostrardata = this.consumptionParamsData().forEach(param => {
     // Resetear valores antes de cargar nuevos parámetros
     this.consumoMinimo.set(0);
     this.consumoMaximo.set(0);
+    this.rangoConsumoBasico.set('');
+    this.rangoConsumoComplementario.set('');
+    this.rangoConsumoSuntuario.set('');
     this.paramConsumptionIds.CONBAS = undefined;
     this.paramConsumptionIds.CONCOM = undefined;
     this.paramConsumptionIds.CONSUN = undefined;
@@ -1380,6 +1395,8 @@ mostrardata = this.consumptionParamsData().forEach(param => {
         // La respuesta del API es un objeto directo, no un array
         if (data.CONBAS?.success && data.CONBAS.response) {
           const valorParam = data.CONBAS.response.valorParametro;
+          // Guardar el rango completo en el signal
+          this.rangoConsumoBasico.set(valorParam);
           // Guardar el ID para futuras actualizaciones
           if (data.CONBAS.response.id) {
             this.paramConsumptionIds.CONBAS = data.CONBAS.response.id;
@@ -1393,6 +1410,8 @@ mostrardata = this.consumptionParamsData().forEach(param => {
 
         if (data.CONCOM?.success && data.CONCOM.response) {
           const valorParam = data.CONCOM.response.valorParametro;
+          // Guardar el rango completo en el signal
+          this.rangoConsumoComplementario.set(valorParam);
           // Guardar el ID para futuras actualizaciones
           if (data.CONCOM.response.id) {
             this.paramConsumptionIds.CONCOM = data.CONCOM.response.id;
@@ -1405,6 +1424,9 @@ mostrardata = this.consumptionParamsData().forEach(param => {
         }
 
         if (data.CONSUN?.success && data.CONSUN.response) {
+          const valorParam = data.CONSUN.response.valorParametro;
+          // Guardar el rango completo en el signal
+          this.rangoConsumoSuntuario.set(valorParam);
           // Guardar el ID para futuras actualizaciones
           if (data.CONSUN.response.id) {
             this.paramConsumptionIds.CONSUN = data.CONSUN.response.id;

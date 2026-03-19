@@ -37,6 +37,7 @@ const PARAM_KEYS = {
   PERIODOS_VENCIDA: 'PERIODOS_VIG',
   PERIODOS_INMEDIATO: 'PERIODOS_INM',
   INTERES_DEUDA: 'INTERES_DEUDA',
+  PERIODOS_ANT: 'PERIODOS_ANT',
 } as const;
 
 @Component({
@@ -375,7 +376,73 @@ const PARAM_KEYS = {
             </div>
           </div>
 
-          <!-- Card 5: Tasa de Interés -->
+          <!-- Card 5: Periodos Anteriores -->
+          <div
+            class="group animated-bg relative overflow-hidden rounded-xl border border-[#312f62a3] bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-6 hover:shadow-2xl transition-all duration-300"
+          >
+            <!-- Animated circles -->
+            <div
+              class="group-hover:-top-3 bg-transparent -top-12 -right-12 absolute shadow-blue-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
+            ></div>
+            <div
+              class="group-hover:top-44 bg-transparent top-32 right-14 absolute shadow-blue-400 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
+            ></div>
+            <div
+              class="group-hover:-right-12 bg-transparent top-20 right-48 absolute shadow-sky-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-20 h-20"
+            ></div>
+            <div
+              class="group-hover:-top-32 bg-transparent top-8 right-8 absolute shadow-blue-800 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-12 h-12"
+            ></div>
+
+            <div class="relative z-10">
+              <div class="flex items-start gap-4 mb-6">
+                <div
+                  class="w-14 h-14 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center flex-shrink-0"
+                >
+                  <i class="fas fa-history text-2xl text-[#b9b7eeb9]"></i>
+                </div>
+                <div class="flex-1">
+                  <h3
+                    class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2"
+                  >
+                    Periodos Anteriores
+                  </h3>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Para empresas con facturación mes atrasado
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
+                >
+                  Periodos de facturación anterior
+                </label>
+                <div class="relative">
+                  <input
+                    type="number"
+                    [(ngModel)]="periodosAnteriores"
+                    min="0"
+                    max="12"
+                    placeholder="Ej: 1 periodo"
+                    class="w-full px-4 py-3.5 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 text-lg font-medium"
+                  />
+                  <div
+                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm font-medium"
+                  >
+                    periodos
+                  </div>
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  <i class="fas fa-info-circle mr-1"></i>
+                  Número de periodos anteriores para facturación mes atrasado (0 para facturación mes actual)
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 6: Tasa de Interés -->
           <div
             class="group animated-bg relative overflow-hidden rounded-xl border border-[#312f62a3] bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-6 hover:shadow-2xl transition-all duration-300"
           >
@@ -747,6 +814,7 @@ export class BillValidityParameters {
   periodosNoPagosVencida: number = 0;
   periodosPagoInmediato: number = 0;
   interesDeuda: number = 0;
+  periodosAnteriores: number = 0;
 
   guardando = signal<boolean>(false);
 
@@ -756,6 +824,7 @@ export class BillValidityParameters {
     periodosVencida: undefined as number | undefined,
     periodosInmediato: undefined as number | undefined,
     interesDeuda: undefined as number | undefined,
+    periodosAnteriores: undefined as number | undefined,
   };
 
   readonly empresaId = computed(() => {
@@ -814,6 +883,10 @@ export class BillValidityParameters {
         empresaId,
         PARAM_KEYS.INTERES_DEUDA,
       ).pipe(catchError(() => of({ response: null }))),
+      periodosAnteriores: this.counterEnterpriceService.getParamsEnterprice(
+        empresaId,
+        PARAM_KEYS.PERIODOS_ANT,
+      ).pipe(catchError(() => of({ response: null }))),
     }).subscribe({
       next: (params) => {
         // El response puede ser un objeto o array, manejar ambos casos
@@ -832,6 +905,9 @@ export class BillValidityParameters {
         const interesParam = params.interesDeuda.response && (Array.isArray(params.interesDeuda.response)
           ? params.interesDeuda.response[0]
           : params.interesDeuda.response);
+        const anterioresParam = params.periodosAnteriores.response && (Array.isArray(params.periodosAnteriores.response)
+          ? params.periodosAnteriores.response[0]
+          : params.periodosAnteriores.response);
 
         if (diasParam && diasParam.valorParametro !== undefined) {
           this.diasVigencia = Number(diasParam.valorParametro);
@@ -852,6 +928,10 @@ export class BillValidityParameters {
         if (interesParam && interesParam.valorParametro !== undefined) {
           this.interesDeuda = Number(interesParam.valorParametro);
           this.paramIds.interesDeuda = interesParam.id;
+        }
+        if (anterioresParam && anterioresParam.valorParametro !== undefined) {
+          this.periodosAnteriores = Number(anterioresParam.valorParametro);
+          this.paramIds.periodosAnteriores = anterioresParam.id;
         }
       },
       error: (error) => {
@@ -879,6 +959,7 @@ export class BillValidityParameters {
       this.periodosNoPagosVencida > 0 &&
       this.periodosPagoInmediato > 0 &&
       this.interesDeuda >= 0 &&
+      this.periodosAnteriores >= 0 &&
       this.periodosNoPagosVencida < this.periodosPagoInmediato
     );
   }
@@ -935,6 +1016,14 @@ export class BillValidityParameters {
         empresa: { id: empresaId },
         llave: PARAM_KEYS.INTERES_DEUDA,
         valorParametro: String(this.interesDeuda),
+        activo: true,
+        usuarioCreacion: usuario,
+      },
+      {
+        id: this.paramIds.periodosAnteriores,
+        empresa: { id: empresaId },
+        llave: PARAM_KEYS.PERIODOS_ANT,
+        valorParametro: String(this.periodosAnteriores),
         activo: true,
         usuarioCreacion: usuario,
       },
