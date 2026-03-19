@@ -248,7 +248,7 @@ export class ClientInvoices {
     { field: 'cliente.numeroCedula', header: 'Cédula', type: 'text' as const },
     { field: 'fechaCreacion', header: 'Fecha Emisión', type: 'date' as const, template: 'fechaCreacionTpl' },
     { field: 'factura.consumo', header: 'Consumo', type: 'text' as const },
-    { field: 'factura.precio', header: 'Precio', type: 'text' as const },
+    { field: 'factura.precio', header: 'Precio', type: 'currency' as const },
   ]);
 
   readonly enterpriseId = computed(() => {
