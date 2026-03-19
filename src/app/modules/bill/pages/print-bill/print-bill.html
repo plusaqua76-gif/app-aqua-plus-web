@@ -800,52 +800,15 @@
 
     <!-- Acciones -->
     <div class="space-y-3 pt-4 mt-4 border-t border-gray-600/50">
-      <!-- Botones de pago -->
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
-        <!-- Botón Pagar (valores ingresados) -->
         <button
           type="button"
           (click)="confirmarPagoParcial()"
           [disabled]="procesandoAbonoMasivo() || cantidadDeudas() === 0 || cantidadDeudasConValores() === 0"
-          class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-blue-600/50 text-blue-400 hover:bg-blue-600/10 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
-          [style.min-height]="showDeudaParcialSuccess() ? '120px' : 'auto'"
+          class="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-blue-600/50 text-blue-400 hover:bg-blue-600/10 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           title="Pagar solo las deudas con valores ingresados"
         >
-          @if (showDeudaParcialSuccess()) {
-            <!-- Animación de éxito -->
-            <div class="payment-success-container" [class.active]="showDeudaParcialSuccess()">
-              <div class="success-left-side">
-                <div class="success-card">
-                  <div class="success-card-line"></div>
-                  <div class="success-buttons"></div>
-                </div>
-                <div class="success-post">
-                  <div class="success-post-line"></div>
-                  <div class="success-screen">
-                    <div class="success-dollar">$</div>
-                  </div>
-                  <div class="success-numbers"></div>
-                  <div class="success-numbers-line2"></div>
-                </div>
-              </div>
-              <div class="success-right-side">
-                <div class="success-new">Procesando Pago</div>
-                <svg
-                  class="success-arrow"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="512"
-                  height="512"
-                  viewBox="0 0 451.846 451.847"
-                >
-                  <path
-                    d="M345.441 248.292L151.154 442.573c-12.359 12.365-32.397 12.365-44.75 0-12.354-12.354-12.354-32.391 0-44.744L278.318 225.92 106.409 54.017c-12.354-12.359-12.354-32.394 0-44.748 12.354-12.359 32.391-12.359 44.75 0l194.287 194.284c6.177 6.18 9.262 14.271 9.262 22.366 0 8.099-3.091 16.196-9.267 22.373z"
-                    class="active-path"
-                    fill="#a1a1ff"
-                  ></path>
-                </svg>
-              </div>
-            </div>
-          } @else if (procesandoAbonoMasivo()) {
+          @if (procesandoAbonoMasivo()) {
             <div class="w-4 h-4 border border-blue-400 border-t-transparent rounded-full animate-spin"></div>
             Procesando...
           } @else {
@@ -863,45 +826,10 @@
           type="button"
           (click)="confirmarPagoTotal()"
           [disabled]="procesandoAbonoMasivo() || cantidadDeudas() === 0"
-          class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-green-600/50 text-green-400 hover:bg-green-600/10 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
-          [style.min-height]="showDeudaTotalSuccess() ? '120px' : 'auto'"
+          class="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-green-600/50 text-green-400 hover:bg-green-600/10 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           title="Pagar el valor completo de todas las deudas"
         >
-          @if (showDeudaTotalSuccess()) {
-            <!-- Animación de éxito -->
-            <div class="payment-success-container" [class.active]="showDeudaTotalSuccess()">
-              <div class="success-left-side">
-                <div class="success-card">
-                  <div class="success-card-line"></div>
-                  <div class="success-buttons"></div>
-                </div>
-                <div class="success-post">
-                  <div class="success-post-line"></div>
-                  <div class="success-screen">
-                    <div class="success-dollar">$</div>
-                  </div>
-                  <div class="success-numbers"></div>
-                  <div class="success-numbers-line2"></div>
-                </div>
-              </div>
-              <div class="success-right-side">
-                <div class="success-new">Procesando Pago</div>
-                <svg
-                  class="success-arrow"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="512"
-                  height="512"
-                  viewBox="0 0 451.846 451.847"
-                >
-                  <path
-                    d="M345.441 248.292L151.154 442.573c-12.359 12.365-32.397 12.365-44.75 0-12.354-12.354-12.354-32.391 0-44.744L278.318 225.92 106.409 54.017c-12.354-12.359-12.354-32.394 0-44.748 12.354-12.359 32.391-12.359 44.75 0l194.287 194.284c6.177 6.18 9.262 14.271 9.262 22.366 0 8.099-3.091 16.196-9.267 22.373z"
-                    class="active-path"
-                    fill="#a1a1ff"
-                  ></path>
-                </svg>
-              </div>
-            </div>
-          } @else if (procesandoAbonoMasivo()) {
+          @if (procesandoAbonoMasivo()) {
             <div class="w-4 h-4 border border-green-400 border-t-transparent rounded-full animate-spin"></div>
             Procesando...
           } @else {

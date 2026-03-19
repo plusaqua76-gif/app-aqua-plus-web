@@ -78,12 +78,12 @@ export class UpdateClient implements OnInit {
 
   // Signals para gestión de tarifas
   isTarifasModalOpen = signal<boolean>(false);
-  selectedTarifas = signal<number[]>([]); // IDs de tipoTarifa seleccionados
+  selectedCounterForTarifas = signal<number | null>(null);
+  contadoresConTarifasModificadas = signal<Set<number>>(new Set());
+  tarifasPorContador = signal<Map<number, number[]>>(new Map());
+  selectedTarifas = signal<number[]>([]);
   tempSelectedTarifas = signal<number[]>([]); // Temporal para el modal
   originalTarifas = signal<number[]>([]); // Tarifas originales para comparación
-  tarifasRegistros = signal<
-    Array<{ id: number; idTipoTarifa: number; aplica: boolean }>
-  >([]);
 
   selectedCodigosResidenciaFiscal = signal<string[]>([]);
   isCodigosDropdownOpen = signal<boolean>(false);
@@ -165,7 +165,7 @@ export class UpdateClient implements OnInit {
         .pipe(catchError((error) => of(null))),
   });
 
-    typeUse = rxResource({
+  typeUse = rxResource({
       params: () => ({
         enterpriseId: this.empresaId(),
       }),
@@ -326,41 +326,6 @@ export class UpdateClient implements OnInit {
       if (clienteData) {
         this.selectedClient.set(clienteData);
         this.loadClientFromApiData(clienteData);
-
-        const tarifasNoAplicanIds: number[] = [];
-
-        // Intentar obtener tarifas del cliente (estructura antigua)
-        if (clienteData.tarifasContadores) {
-          const registros = clienteData.tarifasContadores.map((t) => ({
-            id: t.id,
-            idTipoTarifa: t.tipoTarifa.id,
-            aplica: t.aplica,
-          }));
-          this.tarifasRegistros.set(registros);
-
-          clienteData.tarifasContadores
-            .filter((t) => !t.aplica)
-            .forEach((t) => tarifasNoAplicanIds.push(t.tipoTarifa.id));
-        }
-        // Si no hay tarifas en la raíz, intentar del primer contador (estructura nueva)
-        else if (clienteData.contadores && clienteData.contadores.length > 0) {
-          const primerContador = clienteData.contadores[0];
-          if (primerContador.tarifasContadores) {
-            const registros = primerContador.tarifasContadores.map((t: any) => ({
-              id: t.id,
-              idTipoTarifa: t.tipoTarifa.id,
-              aplica: t.aplica,
-            }));
-            this.tarifasRegistros.set(registros);
-
-            primerContador.tarifasContadores
-              .filter((t: any) => !t.aplica)
-              .forEach((t: any) => tarifasNoAplicanIds.push(t.tipoTarifa.id));
-          }
-        }
-
-        this.selectedTarifas.set(tarifasNoAplicanIds);
-        this.originalTarifas.set([...tarifasNoAplicanIds]);
       }
     });
 
@@ -447,6 +412,7 @@ export class UpdateClient implements OnInit {
       serial: [
         contador.serial || '',
       ],
+      nuid: [contador.nuid || null],
       tipoContador: [
         contador.tipoContador?.id,
       ],
@@ -931,12 +897,6 @@ export class UpdateClient implements OnInit {
       payload.contadoresNuevos = dirtyCounters.new;
     }
 
-    // Agregar tarifas si cambiaron
-    const tarifasDirty = this.hasTarifasChanged();
-    if (tarifasDirty) {
-      payload.tarifasContador = this.buildTarifasPayload();
-    }
-
     // Agregar aforos si fueron modificados
     const aforosPayload = this.buildAforosPayload();
 
@@ -954,26 +914,59 @@ export class UpdateClient implements OnInit {
       payload.aforosContador = [...payload.aforosContador, ...aforosPayload.actualizados];
     }
 
-    this.enterpriseClientCounterService.updateClient(payload).subscribe({
-      next: () => {
-        this.toast.success('Éxito', 'Cliente actualizado correctamente');
-        this.dataClient.reload();
-        this.updateForm.markAsPristine();
-        this.originalTarifas.set([...this.selectedTarifas()]);
+    // Preparar peticiones de tarifas si cambiaron
+    const tarifasDirty = this.hasTarifasChanged();
+    const tarifasPayloads = tarifasDirty ? this.buildTarifasPayload() : [];
 
-        // Marcar los campos de empleado como pristine también
-        this.contadoresFormArray.controls.forEach((control) => {
-          const empleadoControl = control.get('idEmpleadoEmpresa');
-          if (empleadoControl) {
-            empleadoControl.markAsPristine();
-          }
-        });
-      },
-      error: (err) => {
-        console.error('Error actualizando cliente:', err);
-        this.toast.error('Error', 'No se pudo actualizar el cliente');
-      },
-    });
+    // Crear array de observables
+    const requests: any[] = [];
+
+    // Primero enviar actualizaciones de tarifas (una por cada contador)
+    if (tarifasPayloads.length > 0) {
+      tarifasPayloads.forEach(tarifaPayload => {
+        requests.push(this.enterpriseClientCounterService.updateClient(tarifaPayload));
+      });
+    }
+
+    // Luego enviar el resto de cambios del cliente (si hay)
+    const hasOtherChanges = Object.keys(payload).length > 2 || // Más que idEmpresaClienteContador y usuarioCambio
+                            (payload.contadores && payload.contadores.length > 0) ||
+                            (payload.contadoresNuevos && payload.contadoresNuevos.length > 0) ||
+                            (payload.aforosContador && payload.aforosContador.length > 0);
+
+    if (hasOtherChanges) {
+      requests.push(this.enterpriseClientCounterService.updateClient(payload));
+    }
+
+    // Ejecutar todas las peticiones
+    if (requests.length > 0) {
+      forkJoin(requests).subscribe({
+        next: () => {
+          this.toast.success('Éxito', 'Cliente actualizado correctamente');
+          this.dataClient.reload();
+          this.updateForm.markAsPristine();
+          this.originalTarifas.set([...this.selectedTarifas()]);
+
+          // Limpiar el registro de contadores con tarifas modificadas
+          this.contadoresConTarifasModificadas.set(new Set());
+          this.tarifasPorContador.set(new Map());
+
+          // Marcar los campos de empleado como pristine también
+          this.contadoresFormArray.controls.forEach((control) => {
+            const empleadoControl = control.get('idEmpleadoEmpresa');
+            if (empleadoControl) {
+              empleadoControl.markAsPristine();
+            }
+          });
+        },
+        error: (err) => {
+          console.error('Error actualizando cliente:', err);
+          this.toast.error('Error', 'No se pudo actualizar el cliente');
+        },
+      });
+    } else {
+      this.toast.info('Información', 'No hay cambios para guardar');
+    }
   }
 
   // Obtener contadores donde solo cambió el empleado
@@ -1240,22 +1233,68 @@ export class UpdateClient implements OnInit {
 
   // ==================== GESTIÓN DE TARIFAS ====================
 
-  openTarifasModal(): void {
+  openTarifasModal(counterIndex: number): void {
+    // Editar tarifas de un contador específico
+    const contador = this.contadoresFormArray.at(counterIndex);
+    const contadorId = contador?.value.id;
+
+    if (!contadorId) {
+      this.toast.error('Error', 'No se puede configurar tarifas para un contador sin ID');
+      return;
+    }
+
+    // Guardar el ID del contador (no el índice)
+    this.selectedCounterForTarifas.set(contadorId);
+
+    // Obtener TODAS las tarifas disponibles de la empresa
+    const allTarifas = this.tarifasParaModal();
+    const allTarifasIds = allTarifas.map(t => t.id);
+
+    // Iniciar con TODAS las tarifas seleccionadas
+    // El usuario deseleccionará las que NO aplican
+    this.selectedTarifas.set([...allTarifasIds]);
+    this.tempSelectedTarifas.set([...allTarifasIds]);
+
+    // Guardar las tarifas que actualmente aplican para comparación
+    const tarifas = this.getCounterTarifas(contadorId);
+    const tarifasActivasIds = tarifas.activas.map(t => t.tipoTarifaId);
+    this.originalTarifas.set([...tarifasActivasIds]);
+
     this.isTarifasModalOpen.set(true);
-    this.tempSelectedTarifas.set([...this.selectedTarifas()]);
   }
 
   closeTarifasModal(): void {
     this.isTarifasModalOpen.set(false);
     this.tempSelectedTarifas.set([]);
+    this.selectedCounterForTarifas.set(null);
   }
 
   applyTarifas(): void {
-    this.selectedTarifas.set([...this.tempSelectedTarifas()]);
+    const contadorId = this.selectedCounterForTarifas();
+
+    if (!contadorId) {
+      this.toast.error('Error', 'No se ha seleccionado ningún contador');
+      return;
+    }
+
+    // Guardar las tarifas seleccionadas para este contador (usa ID, no índice)
+    const currentMap = new Map(this.tarifasPorContador());
+    currentMap.set(contadorId, [...this.tempSelectedTarifas()]);
+    this.tarifasPorContador.set(currentMap);
+
+    // Agregar el ID del contador al Set de contadores modificados
+    const currentSet = new Set(this.contadoresConTarifasModificadas());
+    currentSet.add(contadorId);
+    this.contadoresConTarifasModificadas.set(currentSet);
+
+    // Marcar el formulario como modificado
+    this.updateForm.markAsDirty();
+    console.log('Tarifas aplicadas al contador ID:', contadorId, this.tempSelectedTarifas());
+
     this.closeTarifasModal();
     this.toast.info(
       'Información',
-      'Recuerde guardar los cambios del cliente para aplicar las tarifas',
+      'Tarifas configuradas. Recuerde guardar los cambios del cliente para aplicarlas',
     );
   }
 
@@ -1317,37 +1356,56 @@ export class UpdateClient implements OnInit {
   }
 
   getTarifasSeleccionadasCount(): number {
-    const allCount = this.allTarifasDisponibles().length;
-    const noAplicanCount = this.tempSelectedTarifas().length;
-    return allCount - noAplicanCount;
+    return this.tempSelectedTarifas().length;
   }
 
   private buildTarifasPayload(): any[] {
-    const tarifasArray: any[] = [];
-    const registrosActuales = this.tarifasRegistros();
-    const noAplicanIds = this.selectedTarifas();
-    const allTarifas = this.allTarifasDisponibles();
+    const payloadsArray: any[] = [];
+    const contadoresModificados = this.contadoresConTarifasModificadas();
 
-    allTarifas.forEach((tarifa) => {
-      const isSelected = noAplicanIds.includes(tarifa.id);
-      const registroExistente = registrosActuales.find(
-        (r) => r.idTipoTarifa === tarifa.id,
-      );
+    if (contadoresModificados.size > 0) {
+      const tarifasMap = this.tarifasPorContador();
+      const allTarifas = this.tarifasParaModal(); // Todas las tarifas disponibles de la empresa
 
-      if (registroExistente) {
-        tarifasArray.push({
-          id: registroExistente.id,
-          aplica: !isSelected,
+      // Iterar sobre los IDs de contadores modificados (no índices)
+      contadoresModificados.forEach(contadorId => {
+        const tarifasSeleccionadas = tarifasMap.get(contadorId) || [];
+
+        // Buscar el idEmpresaClienteContador del contador
+        const contador = this.contadoresFormArray.controls.find(
+          c => c.value.id === contadorId
+        );
+        const idEmpresaClienteContador = contador?.value.idEmpresaClienteContador;
+
+        if (!idEmpresaClienteContador) {
+          console.warn(`No se encontró idEmpresaClienteContador para el contador ${contadorId}`);
+          return;
+        }
+
+        // Construir array de tarifas para este contador
+        const tarifasContador: any[] = [];
+
+        // Iterar sobre TODAS las tarifas disponibles
+        allTarifas.forEach((tarifa) => {
+          // La tarifa aplica si está en las seleccionadas (las que NO se deseleccionaron)
+          const shouldApply = tarifasSeleccionadas.includes(tarifa.id);
+
+          tarifasContador.push({
+            idTipoTarifa: tarifa.id,
+            aplica: shouldApply,
+          });
         });
-      } else if (isSelected) {
-        tarifasArray.push({
-          idTipoTarifa: tarifa.id,
-          aplica: false,
-        });
-      }
-    });
 
-    return tarifasArray;
+        // Crear payload para este contador
+        payloadsArray.push({
+          idEmpresaClienteContador: idEmpresaClienteContador,
+          usuarioCambio: this.usuarioModificacion(),
+          tarifasContador: tarifasContador,
+        });
+      });
+    }
+
+    return payloadsArray;
   }
 
   // Obtener solo campos dirty del formulario
@@ -1534,6 +1592,12 @@ export class UpdateClient implements OnInit {
 
   // Verificar si las tarifas cambiaron
   private hasTarifasChanged(): boolean {
+    // Verificar si hay contadores con tarifas modificadas
+    if (this.contadoresConTarifasModificadas().size > 0) {
+      return true;
+    }
+
+    // Verificar cambios en tarifas globales (modo legacy)
     const current = this.selectedTarifas();
     const original = this.originalTarifas();
 
@@ -1818,6 +1882,7 @@ export class UpdateClient implements OnInit {
             const newCounter = {
               id: counter.id,
               serial: counter.serial || formData.serial,
+              nuid: counter.nuid || null,
               tipoContador: {
                 id: counter.tipoContador?.id,
                 nombre: counter.tipoContador?.nombre,
@@ -1968,69 +2033,40 @@ export class UpdateClient implements OnInit {
     return id || null;
   });
 
-  readonly allTarifasDisponibles = computed(() => {
-    const clienteData = this.clientData();
-    const tarifas: Array<{
-      id: number;
-      nombre: string;
-      descripcion?: string;
-      codigo: string;
-      aplica: boolean;
-      registroId?: number;
-    }> = [];
-
-    // Intentar obtener tarifas del cliente (estructura antigua)
-    if (clienteData?.tarifasContadores) {
-      clienteData.tarifasContadores.forEach((t) => {
-        tarifas.push({
-          id: t.tipoTarifa.id,
-          nombre: t.tipoTarifa.nombre,
-          descripcion: t.tipoTarifa.descripcion,
-          codigo: t.tipoTarifa.codigo,
-          aplica: t.aplica,
-          registroId: t.id,
-        });
-      });
-    }
-    // Si no hay tarifas en la raíz, intentar del primer contador (estructura nueva)
-    else if (clienteData?.contadores && clienteData.contadores.length > 0) {
-      const primerContador = clienteData.contadores[0];
-      if (primerContador.tarifasContadores) {
-        primerContador.tarifasContadores.forEach((t: any) => {
-          tarifas.push({
-            id: t.tipoTarifa.id,
-            nombre: t.tipoTarifa.nombre,
-            descripcion: t.tipoTarifa.descripcion,
-            codigo: t.tipoTarifa.codigo,
-            aplica: t.aplica,
-            registroId: t.id,
-          });
-        });
-      }
+  // Tarifas disponibles para el modal (todas las tarifas de la empresa)
+  readonly tarifasParaModal = computed(() => {
+    const feeConceptData = this.feeConcept.value();
+    if (!feeConceptData?.response) {
+      return [];
     }
 
-    // Agregar tarifas faltantes (de la raíz o del primer contador)
-    const tiposFaltantes = clienteData?.tiposTarifaFaltantes ||
-                          (clienteData?.contadores?.[0]?.tiposTarifaFaltantes) || [];
+    const response = feeConceptData.response;
+    const tarifas = Array.isArray(response) ? response : [response];
 
-    tiposFaltantes.forEach((t: any) => {
-      tarifas.push({
-        id: t.id,
-        nombre: t.nombre,
-        codigo: t.codigo,
-        aplica: false,
-      });
-    });
-
-    return tarifas;
-  });
-
-  readonly tarifasActivas = computed(() => {
-    return this.allTarifasDisponibles().filter((t) => t.aplica === true);
-  });
-
-  readonly tarifasNoAplicadas = computed(() => {
-    return this.allTarifasDisponibles().filter((t) => t.aplica === false);
+    return tarifas.map((t: any) => ({
+      id: t.tipoTarifa?.id || t.id,
+      nombre: t.tipoTarifa?.nombre || '',
+      descripcion: t.tipoTarifa?.descripcion || '',
+      codigo: t.tipoTarifa?.codigo || '',
+      tipoConcepto: t.tipoConcepto ? {
+        id: t.tipoConcepto.id,
+        descripcion: t.tipoConcepto.descripcion,
+        codigo: t.tipoConcepto.codigo
+      } : null,
+      tipoUso: t.tipoUso ? {
+        id: t.tipoUso.id,
+        nombre: t.tipoUso.nombre,
+        codigo: t.tipoUso.codigo
+      } : null,
+      indCalcularMc: t.indCalcularMc || false,
+      porEstrato: t.porEstrato || false,
+      estratos: t.estratos && Array.isArray(t.estratos) ? t.estratos.map((e: any) => ({
+        id: e.id,
+        estrato: e.estrato,
+        valor: e.valor
+      })) : [],
+      idConceptoTarifa: t.id
+    }));
   });
 
   toggleCounterAforosDropdown(counterIndex: number): void {
@@ -2159,5 +2195,78 @@ getAforoNameById(aforoId: number): string {
       const fullInfo = this.getAforoFullInfo(aforo).toLowerCase();
       return fullInfo.includes(searchTerm);
     });
+  }
+
+  // Obtener tarifas específicas de un contador
+  getCounterTarifas(contadorId: number): {
+    activas: Array<{id: number, tipoTarifaId: number, nombre: string, codigo: string, descripcion?: string, aplica: boolean}>,
+    inactivas: Array<{id: number, tipoTarifaId: number, nombre: string, codigo: string, descripcion?: string, aplica: boolean}>,
+    faltantes: Array<{tipoTarifaId: number, nombre: string, codigo: string}>
+  } {
+    const clienteData = this.clientData();
+    const result: {
+      activas: Array<{id: number, tipoTarifaId: number, nombre: string, codigo: string, descripcion?: string, aplica: boolean}>,
+      inactivas: Array<{id: number, tipoTarifaId: number, nombre: string, codigo: string, descripcion?: string, aplica: boolean}>,
+      faltantes: Array<{tipoTarifaId: number, nombre: string, codigo: string}>
+    } = { activas: [], inactivas: [], faltantes: [] };
+
+    if (!clienteData?.contadores) {
+      return result;
+    }
+
+    const contador = clienteData.contadores.find((c: any) => c.id === contadorId);
+    if (!contador) {
+      return result;
+    }
+
+    // Procesar tarifas existentes del contador
+    if (contador.tarifasContadores && contador.tarifasContadores.length > 0) {
+      contador.tarifasContadores.forEach((t: any) => {
+        const tarifaInfo = {
+          id: t.id,
+          tipoTarifaId: t.tipoTarifa.id,
+          nombre: t.tipoTarifa.nombre,
+          codigo: t.tipoTarifa.codigo,
+          descripcion: t.tipoTarifa.descripcion,
+          aplica: t.aplica
+        };
+
+        if (t.aplica) {
+          result.activas.push(tarifaInfo);
+        } else {
+          result.inactivas.push(tarifaInfo);
+        }
+      });
+    }
+
+    // Procesar tarifas faltantes del contador
+    if (contador.tiposTarifaFaltantes && contador.tiposTarifaFaltantes.length > 0) {
+      contador.tiposTarifaFaltantes.forEach((t: any) => {
+        result.activas.push({
+          id: 0,
+          tipoTarifaId: t.id,
+          nombre: t.nombre,
+          codigo: t.codigo,
+          descripcion: t.descripcion,
+          aplica: true
+        });
+      });
+    }
+
+    return result;
+  }
+
+  // Obtener título del modal de tarifas según contexto
+  getTarifasModalTitle(): string {
+    const contadorId = this.selectedCounterForTarifas();
+    if (contadorId) {
+      // Buscar el contador por su ID
+      const contador = this.contadoresFormArray.controls.find(
+        c => c.value.id === contadorId
+      );
+      const serial = contador?.value.serial || 'Sin serial';
+      return `Configurar Tarifas - Contador: ${serial}`;
+    }
+    return 'Gestionar Tarifas del Cliente';
   }
 }

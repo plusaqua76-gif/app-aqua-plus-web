@@ -5,9 +5,10 @@ import { DeudaService } from '../../service/deuda.service';
 import { ToastService } from '@services/toast.service';
 import { TableComponent } from '@components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { map, EMPTY, catchError, of, firstValueFrom } from 'rxjs';
+import { map, EMPTY, catchError, of, firstValueFrom, pipe } from 'rxjs';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 import { ConfirmDeletePopupComponent } from '@shared/components/confirm-delete-popup';
+import { error, log } from 'node:console';
 
 @Component({
   selector: 'app-customer-debt',
@@ -71,7 +72,6 @@ import { ConfirmDeletePopupComponent } from '@shared/components/confirm-delete-p
   (serverPaginationChange)="onPaginationChange($event)"
   [exportData]="exportDataForTable()"
   [isLoadingExportData]="isLoadingExportData()"
-  (exportAllDataRequest)="handleExportRequest($event)"
   >
   </app-table-dynamic>
 
@@ -99,16 +99,19 @@ export class CustomerDebt {
   exportDataForTable = signal<any[] | null>(null);
   isLoadingExportData = signal(false);
 
+debtColumns = signal([
+  { field: 'clienteNombre', header: 'Cliente', type: 'text' as const },
+  { field: 'facturaCodigo', header: 'Factura', type: 'text' as const },
+  { field: 'fechaDeuda', header: 'Fecha deuda', type: 'date' as const },
+  { field: 'tipoDeudaNombre', header: 'Tipo deuda', type: 'text' as const },
+  { field: 'valorTotal', header: 'Valor total', type: 'currency' as const },
+  { field: 'totalAbonado', header: 'Abonado', type: 'currency' as const },
+  { field: 'saldoPendiente', header: 'Saldo pendiente', type: 'currency' as const },
+  { field: 'valorMes', header: 'Valor cuota', type: 'currency' as const },
+  { field: 'meses', header: 'N° de cuotas', type: 'text' as const }
+]);
 
-  debtColumns = signal([
-    { field: 'clienteNombreCompleto', header: 'Cliente', type: 'text' as const },
-    { field: 'facturaCodigo', header: 'Factura', type: 'text' as const },
-    { field: 'fechaDeudaTexto', header: 'Fecha deuda', type: 'date' as const },
-    { field: 'descripcion', header: 'Descripción', type: 'text' as const },
-    { field: 'tipoDeudaNombre', header: 'Tipo deuda', type: 'text' as const },
-    { field: 'valorTexto', header: 'Valor', type: 'text' as const },
-    { field: 'plazoPago', header: 'N° de cuotas', type: 'text' as const }
-  ]);
+
 
   protected readonly deudaService = inject(DeudaService);
   protected readonly toastService = inject(ToastService);
@@ -119,6 +122,9 @@ export class CustomerDebt {
 
 
     constructor() {
+    effect(() => {
+      console.log("la data mi negro", this.debtData());
+    })
     effect(() => {
       const data = this.exportDataForTable();
       const isLoading = this.isLoadingExportData();
@@ -178,25 +184,9 @@ export class CustomerDebt {
       return this.deudaService.getAllDeudaPaginated(
         empresaId,
         pagination
-      ).pipe(
-        map((response) => ({
-          ...response,
-          response: response.response.map(deuda => ({
-            id: deuda.id,
-            clienteNombreCompleto: deuda.clienteNombre,
-            facturaCodigo: deuda.facturaCodigo,
-            fechaDeudaTexto: new Date(deuda.fechaDeuda).toLocaleDateString('es-CO'),
-            descripcion: deuda.descripcion,
-            tipoDeudaNombre: deuda.tipoDeuda?.nombre ?? '',
-            valorTexto: `$${deuda.valor.toLocaleString('es-CO')}`,
-            activo: deuda.activo ? 'PENDIENTE' : 'PAGO',
-            plazoPago: deuda.plazoPago ||  '0'
-          }))
-        })),
-        catchError(error => {
-          return of(null);
-        })
-      );
+      ).pipe(catchError((error) => {
+        return of(null);
+      }));
     },
   });
 
@@ -281,53 +271,6 @@ export class CustomerDebt {
     this.router.navigate(['../create-credit', id], {
       relativeTo: this.route,
     });
-  }
-
-  async handleExportRequest(event: { totalCount: number; currentParams: IPaginationParams }): Promise<void> {
-    const empresaId = this.empresaId();
-    if (!empresaId) {
-      this.toastService.error('Error', 'No se pudo obtener el ID de la empresa');
-      return;
-    }
-
-    this.isLoadingExportData.set(true);
-    this.toastService.info('Preparando exportación', `Cargando ${event.totalCount} registros...`);
-
-    try {
-      const exportParams: IPaginationParams = {
-        ...event.currentParams,
-        page: 0,
-        size: event.totalCount
-      };
-
-      const response = await firstValueFrom(
-        this.deudaService.getAllDeudaPaginated(empresaId, exportParams)
-      );
-
-      if (response?.response && Array.isArray(response.response)) {
-        const transformedData = response.response.map(deuda => ({
-          id: deuda.id,
-          clienteNombreCompleto: deuda.clienteNombre,
-          facturaCodigo: deuda.facturaCodigo,
-          fechaDeudaTexto: new Date(deuda.fechaDeuda).toLocaleDateString('es-CO'),
-          descripcion: deuda.descripcion,
-          tipoDeudaNombre: deuda.tipoDeuda?.nombre ?? '',
-          valorTexto: `$${deuda.valor.toLocaleString('es-CO')}`,
-          plazoPago: deuda.plazoPago || '0'
-        }));
-
-        this.exportDataForTable.set(transformedData);
-        this.toastService.success('Datos cargados', `${transformedData.length} registros listos para exportar`);
-      } else {
-        throw new Error('No se recibieron datos del servidor');
-      }
-    } catch (error) {
-      console.error('Error al cargar datos para exportación:', error);
-      this.toastService.error('Error', 'No se pudieron cargar los datos para exportar');
-      this.exportDataForTable.set(null);
-    } finally {
-      this.isLoadingExportData.set(false);
-    }
   }
 
 

@@ -101,12 +101,14 @@ export interface ITarifa {
 
 export interface IContador {
   id: number;
+  ruta?: string;
   serial: string;
   estrato: number;
   direccion: IDireccion;
   idPersona?: number;
   tipoContadorNombre: string;
   codConvenio?: string;
+  codigoBarras?: string;
   convenioEmpresa?: string | null;
   matriculaContador?: string;
 }
