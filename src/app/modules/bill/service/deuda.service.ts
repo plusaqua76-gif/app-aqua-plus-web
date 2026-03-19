@@ -63,41 +63,25 @@ export class DeudaService {
 
         return this.http
             .get<IPaginatedResponse<IDeudaClienteResponse>>(url, { params: httpParams })
-            .pipe(catchError(this.handleError));
+
     }
 
-    private handleError(error: any): Observable<never> {
-        let errorMessage = 'An unknown error occurred while loading factura.';
-        if (error.error instanceof ErrorEvent) {
-            errorMessage = `Client Error: ${error.error.message}`;
-        } else {
-            errorMessage = `Server Error: ${error.status} - ${error.message || ''}`;
-            if (error.error && error.error.message) {
-                errorMessage = `${errorMessage} - ${error.error.message}`;
-            }
-        }
-        console.error('Error in facturaService:', errorMessage);
-        return throwError(() => new Error(errorMessage));
-    }
 
     saveDeuda(deuda: IDeudaCliente): Observable<ApiResponse<any>> {
         return this.http.post<ApiResponse<any>>(`${this.apiUrl}`, deuda)
     }
 
     deleteDeudaById(id: number): Observable<ApiResponse<any>> {
-        return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${id}`).pipe(
-            catchError(this.handleError)
-        );
+        return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${id}`)
+
     }
     getDeudaById(id: number): Observable<ApiResponse<IDeudaCliente>> {
-        return this.http.get<ApiResponse<IDeudaCliente>>(`${this.apiUrl}/${id}`).pipe(
-            catchError(this.handleError)
-        );
+        return this.http.get<ApiResponse<IDeudaCliente>>(`${this.apiUrl}/${id}`)
+
     }
     updateDeuda(deuda: IDeudaCliente): Observable<ApiResponse<any>> {
-        return this.http.put<ApiResponse<any>>(`${this.apiUrl}`, deuda).pipe(
-            catchError(this.handleError)
-        );
+        return this.http.put<ApiResponse<any>>(`${this.apiUrl}`, deuda)
+
     }
 
 
@@ -114,34 +98,69 @@ export class DeudaService {
         return httpParams;
     }
 
-    private applyFilter(
-        httpParams: HttpParams,
-        key: string,
-        value: string
-    ): HttpParams {
-        switch (key) {
-            case 'clienteNombreCompleto':
-                return httpParams.set('clienteNombreLike', value);
-            case 'facturaCodigo':
-                return httpParams.set('facturaCodigoLike', value);
-            case 'descripcion':
-                return httpParams.set('descripcionLike', value);
-            case 'fechaDeudaTexto':
-                return this.isValidDateFormat(value)
-                    ? httpParams.set('fechaDeuda', value)
-                    : httpParams;
-            case 'valorTexto':
-                return this.isValidNumber(value)
-                    ? httpParams.set('valor', parseFloat(value.replace(/[$,]/g, '')).toString())
-                    : httpParams;
-            case 'tipoDeudaNombre':
-                return httpParams.set('tipoDeudaNombre', value);
-            case 'plazoPagoNombre':
-                return httpParams.set('plazoPagoNombre', value);
-            default:
-                return httpParams.set(key, value);
-        }
-    }
+private applyFilter(
+  httpParams: HttpParams,
+  key: string,
+  value: string
+): HttpParams {
+  switch (key) {
+
+    case 'clienteNombre':
+      return httpParams.set('clienteNombreLike', value);
+
+    case 'facturaCodigo':
+      return httpParams.set('facturaCodigoLike', value);
+
+    case 'descripcion':
+      return httpParams.set('descripcionLike', value);
+
+    case 'fechaDeuda':
+      return this.isValidDateFormat(value)
+        ? httpParams.set('fechaDeuda', value)
+        : httpParams;
+
+    case 'valorTotal':
+      return this.isValidNumber(value)
+        ? httpParams.set(
+            'valorTotal',
+            parseFloat(value.replace(/[$,]/g, '')).toString()
+          )
+        : httpParams;
+
+    case 'totalAbonado':
+      return this.isValidNumber(value)
+        ? httpParams.set(
+            'totalAbonado',
+            parseFloat(value.replace(/[$,]/g, '')).toString()
+          )
+        : httpParams;
+
+    case 'saldoPendiente':
+      return this.isValidNumber(value)
+        ? httpParams.set(
+            'saldoPendiente',
+            parseFloat(value.replace(/[$,]/g, '')).toString()
+          )
+        : httpParams;
+
+    case 'valorMes':
+      return this.isValidNumber(value)
+        ? httpParams.set(
+            'valorMes',
+            parseFloat(value.replace(/[$,]/g, '')).toString()
+          )
+        : httpParams;
+
+    case 'tipoDeudaNombre':
+      return httpParams.set('tipoDeudaNombre', value);
+
+    case 'plazoPagoNombre':
+      return httpParams.set('plazoPagoNombre', value);
+
+    default:
+      return httpParams.set(key, value);
+  }
+}
 
 
     private isValidDateFormat(value: string): boolean {

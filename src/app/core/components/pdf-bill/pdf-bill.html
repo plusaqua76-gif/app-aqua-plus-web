@@ -801,6 +801,10 @@
               <span class="usuario-value">{{ billData()?.contador?.matriculaContador || '' }}</span>
             </div>
             <div class="usuario-item">
+              <span class="usuario-label">RUTA:</span>
+              <span class="usuario-value">{{ billData()?.contador?.ruta || '' }}</span>
+            </div>
+            <div class="usuario-item">
               <span class="usuario-label">ESTRATO:</span>
               <span class="usuario-value">{{ billData()?.contador?.estrato || '' }}</span>
             </div>
@@ -843,9 +847,9 @@
               <div>Información de Pago</div>
               <ngx-barcode6
                 [bc-format]="'CODE128'"
-                [bc-value]="billData()?.contador?.codConvenio || billData()?.contador?.matriculaContador || '000000000000'"
+                [bc-value]="billData()?.contador?.codigoBarras   || ''"
                 [bc-height]="80"
-                [bc-width]="3"
+                [bc-width]="1"
                 [bc-display-value]="true">
               </ngx-barcode6>
             </div>

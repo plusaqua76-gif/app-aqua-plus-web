@@ -1,4 +1,4 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, inject, input, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LegendsHistoryBill } from '../charts/legens-bill-history';
@@ -36,7 +36,6 @@ export class PdfBill {
   enterpriseInfo = rxResource({
     stream: () => this.enterpriseIdService.getEnterpriseInfo(),
   });
-
   getTotalesPorTipo() {
     const billData = this.billData();
     if (!billData?.totalesTarifas?.porTipo) return [];
@@ -379,9 +378,19 @@ export class PdfBill {
     const tarifa = billData.tarifas.find((t: any) => t.codigo === codigoTarifa);
     if (!tarifa?.conceptos) return 0;
 
-    const concepto = tarifa.conceptos.find((c: any) =>
-      c.tipoConceptoNombre?.toLowerCase() === nombreConcepto.toLowerCase()
-    );
+    // Normalizar texto: remover acentos, convertir a minúsculas
+    const normalizarTexto = (texto: string) =>
+      texto.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+
+    const nombreBuscado = normalizarTexto(nombreConcepto);
+
+    const concepto = tarifa.conceptos.find((c: any) => {
+      const nombreConcepto = normalizarTexto(c.tipoConceptoNombre || '');
+      return nombreConcepto.includes(nombreBuscado);
+    });
 
     return concepto?.valor || 0;
   }
@@ -393,9 +402,19 @@ export class PdfBill {
     const tarifa = billData.tarifas.find((t: any) => t.codigo === codigoTarifa);
     if (!tarifa?.conceptos) return null;
 
-    return tarifa.conceptos.find((c: any) =>
-      c.tipoConceptoNombre?.toLowerCase().includes(nombreConcepto.toLowerCase())
-    );
+    // Normalizar texto: remover acentos
+    const normalizarTexto = (texto: string) =>
+      texto.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+
+    const nombreBuscado = normalizarTexto(nombreConcepto);
+
+    return tarifa.conceptos.find((c: any) => {
+      const nombreConcepto = normalizarTexto(c.tipoConceptoNombre || '');
+      return nombreConcepto.includes(nombreBuscado);
+    });
   }
 
   getTarifaPorM3(codigoTarifa: string, nombreConcepto: string): number {
@@ -453,5 +472,30 @@ export class PdfBill {
 
   getSubtotalAlcSuntuario(): number {
     return this.getConceptoValorPorNombre('ALC', 'Consumo suntuario');
+  }
+
+
+  // Método alternativo para obtener conceptos con normalización de nombres
+  private getConceptoValorNormalizado(codigoTarifa: string, nombreConcepto: string): number {
+    const billData = this.billData();
+    if (!billData?.tarifas) return 0;
+
+    const tarifa = billData.tarifas.find((t: any) => t.codigo === codigoTarifa);
+    if (!tarifa?.conceptos) return 0;
+    const normalizarTexto = (texto: string) =>
+      texto.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim()
+        .replace(/\s+/g, ' ');
+
+    const nombreBuscado = normalizarTexto(nombreConcepto);
+
+    const concepto = tarifa.conceptos.find((c: any) => {
+      const nombreConcepto = normalizarTexto(c.tipoConceptoNombre || '');
+      return nombreConcepto.includes(nombreBuscado);
+    });
+
+    return concepto?.valor || 0;
   }
 }
