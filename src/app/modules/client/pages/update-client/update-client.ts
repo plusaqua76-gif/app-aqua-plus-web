@@ -424,6 +424,7 @@ export class UpdateClient implements OnInit {
       ],
       activo: [contador.activo],
       isNewCounter: [isNew],
+      porEstrato: [contador.porEstrato || false],
       estrato: [
         contador.estrato || '',
         [Validators.min(1), Validators.max(6)],
@@ -1246,19 +1247,46 @@ export class UpdateClient implements OnInit {
     // Guardar el ID del contador (no el índice)
     this.selectedCounterForTarifas.set(contadorId);
 
-    // Obtener TODAS las tarifas disponibles de la empresa
-    const allTarifas = this.tarifasParaModal();
-    const allTarifasIds = allTarifas.map(t => t.id);
+    // Verificar si hay tarifas guardadas en el Map para este contador
+    const tarifasGuardadas = this.tarifasPorContador().get(contadorId);
 
-    // Iniciar con TODAS las tarifas seleccionadas
-    // El usuario deseleccionará las que NO aplican
-    this.selectedTarifas.set([...allTarifasIds]);
-    this.tempSelectedTarifas.set([...allTarifasIds]);
+    let tarifasACargar: number[];
 
-    // Guardar las tarifas que actualmente aplican para comparación
-    const tarifas = this.getCounterTarifas(contadorId);
-    const tarifasActivasIds = tarifas.activas.map(t => t.tipoTarifaId);
-    this.originalTarifas.set([...tarifasActivasIds]);
+    if (tarifasGuardadas && tarifasGuardadas.length > 0) {
+      // Usar las tarifas previamente configuradas en esta sesión
+      tarifasACargar = [...tarifasGuardadas];
+    } else {
+      // Cargar las tarifas activas del contador desde el API
+      const clienteData = this.clientData();
+      const contadorData = clienteData?.contadores?.find((c: any) => c.id === contadorId);
+
+      if (contadorData?.tarifasContadores && contadorData.tarifasContadores.length > 0) {
+        // Mapear a los IDs de ConceptoTarifa usando todasLasTarifas
+        // Hacer match por tipoTarifaId Y tipoUsoId del contador
+        const allTarifas = this.todasLasTarifas();
+        const contadorTipoUsoId = contadorData.tipoUso?.id;
+
+        tarifasACargar = contadorData.tarifasContadores
+          .filter((tc: any) => tc.aplica) // Solo las que aplican
+          .map((tc: any) => {
+            // Buscar el ConceptoTarifa que matchea tipoTarifa.id y tipoUso.id
+            const conceptoTarifa = allTarifas.find(t =>
+              t.tipoTarifaId === tc.tipoTarifa.id &&
+              t.tipoUso?.id === contadorTipoUsoId
+            );
+            return conceptoTarifa?.id;
+          })
+          .filter((id: number | undefined) => id !== undefined) as number[];
+      } else {
+        // Contador nuevo o sin tarifas: iniciar vacío
+        tarifasACargar = [];
+      }
+    }
+
+    // Configurar las tarifas seleccionadas
+    this.selectedTarifas.set([...tarifasACargar]);
+    this.tempSelectedTarifas.set([...tarifasACargar]);
+    this.originalTarifas.set([...tarifasACargar]);
 
     this.isTarifasModalOpen.set(true);
   }
@@ -1365,33 +1393,39 @@ export class UpdateClient implements OnInit {
 
     if (contadoresModificados.size > 0) {
       const tarifasMap = this.tarifasPorContador();
-      const allTarifas = this.tarifasParaModal(); // Todas las tarifas disponibles de la empresa
+      const todasLasTarifas = this.todasLasTarifas();
 
       // Iterar sobre los IDs de contadores modificados (no índices)
       contadoresModificados.forEach(contadorId => {
         const tarifasSeleccionadas = tarifasMap.get(contadorId) || [];
 
-        // Buscar el idEmpresaClienteContador del contador
+        // Buscar el contador y obtener su información
         const contador = this.contadoresFormArray.controls.find(
           c => c.value.id === contadorId
         );
         const idEmpresaClienteContador = contador?.value.idEmpresaClienteContador;
+        const tipoUsoContador = contador?.value.tipoUso;
 
         if (!idEmpresaClienteContador) {
           console.warn(`No se encontró idEmpresaClienteContador para el contador ${contadorId}`);
           return;
         }
 
+        // Filtrar tarifas por el tipoUso del contador
+        const tarifasDelContador = todasLasTarifas.filter(
+          t => t.tipoUso?.id === tipoUsoContador
+        );
+
         // Construir array de tarifas para este contador
         const tarifasContador: any[] = [];
 
-        // Iterar sobre TODAS las tarifas disponibles
-        allTarifas.forEach((tarifa) => {
-          // La tarifa aplica si está en las seleccionadas (las que NO se deseleccionaron)
+        // Iterar sobre las tarifas que corresponden al tipoUso del contador
+        tarifasDelContador.forEach((tarifa) => {
+          // La tarifa aplica si está en las seleccionadas
           const shouldApply = tarifasSeleccionadas.includes(tarifa.id);
 
           tarifasContador.push({
-            idTipoTarifa: tarifa.id,
+            idTipoTarifa: tarifa.tipoTarifaId, // Usar tipoTarifaId, no el id del conceptoTarifa
             aplica: shouldApply,
           });
         });
@@ -1464,6 +1498,54 @@ export class UpdateClient implements OnInit {
     return payload;
   }
 
+  private mapDirtyCounterFields(control: any, contador: any): any {
+    const payload: any = { id: contador.id };
+
+    const fieldMapping: Record<string, { backendKey: string; transform?: (val: any) => any }> = {
+      'activo': { backendKey: 'activo' },
+      'serial': { backendKey: 'serial' },
+      'tipoContador': { backendKey: 'idTipoContador', transform: (val) => Number(val) },
+      'tipoUso': { backendKey: 'idTipoUso', transform: (val) => String(val) },
+      'estadoContador': { backendKey: 'idEstadoContador', transform: (val) => Number(val) },
+      'estrato': { backendKey: 'estrato', transform: (val) => Number(val) },
+      'digitos': { backendKey: 'digitos', transform: (val) => Number(val) },
+      'fechaInstalacion': { backendKey: 'fechaInstalacion' },
+      'idEmpleadoEmpresa': { backendKey: 'idEmpleado', transform: (val) => Number(val) },
+      'idDepartamento': { backendKey: 'idDepartamento', transform: (val) => Number(val) },
+      'idCiudad': { backendKey: 'idCiudad', transform: (val) => Number(val) },
+      'idCorregimiento': { backendKey: 'idCorregimiento', transform: (val) => val ? Number(val) : null },
+    };
+
+    Object.keys(control.controls).forEach((key) => {
+      const fieldControl = control.get(key);
+
+      if (['aforosContador', 'aforoContadorNombre', 'aforosContadorData', 'idEmpresaClienteContador', 'isNewCounter',
+           'departamentoNombre', 'ciudadNombre', 'corregimientoNombre', 'tipoContadorNombre',
+           'tipoUsoNombre', 'estadoContadorNombre', 'nuid', 'porEstrato'].includes(key)) {
+        return;
+      }
+
+      if (key === 'descripcion' && fieldControl instanceof FormGroup) {
+        const descripcionControl = fieldControl.get('descripcion');
+        if (descripcionControl?.dirty) {
+          payload['descripcionDireccion'] = descripcionControl.value;
+        }
+        return;
+      }
+
+      if (fieldControl?.dirty) {
+        const mapping = fieldMapping[key];
+
+        if (mapping) {
+          const value = fieldControl.value;
+          payload[mapping.backendKey] = mapping.transform ? mapping.transform(value) : value;
+        }
+      }
+    });
+
+    return payload;
+  }
+
   // Obtener contadores modificados o nuevos (retorna objeto con arrays separados)
   private getDirtyCounters(): { modified: any[] | null; new: any[] | null } {
     const contadoresArray = this.contadoresFormArray;
@@ -1500,71 +1582,13 @@ export class UpdateClient implements OnInit {
         return;
       }
 
-      // Para contadores modificados con otros cambios, enviar todos los datos
-      const payload: any = {
-        id: contador.id,
-        activo: contador.activo,
-      };
+      // Para contadores modificados, enviar SOLO los campos que cambiaron
+      const payload = this.mapDirtyCounterFields(control, contador);
 
-      // Agregar serial
-      if (contador.serial) {
-        payload.serial = contador.serial;
+      // Solo agregar si hay algún campo modificado además del id
+      if (Object.keys(payload).length > 1) {
+        modifiedCounters.push(payload);
       }
-
-      if (contador.tipoContador) {
-        payload.tipoContador = { id: contador.tipoContador };
-      }
-
-      if (contador.tipoUso) {
-        payload.tipoUso = { id: contador.tipoUso };
-      }
-
-      if (contador.estadoContador) {
-        payload.estadoContador = { id: contador.estadoContador };
-      }
-
-      // Agregar estrato
-      if (contador.estrato) {
-        payload.estrato = Number(contador.estrato);
-      }
-
-      // Agregar dígitos
-      if (contador.digitos) {
-        payload.digitos = Number(contador.digitos);
-      }
-
-      // Agregar fecha de instalación
-      if (contador.fechaInstalacion) {
-        payload.fechaInstalacion = contador.fechaInstalacion;
-      }
-
-      // Agregar idEmpleado si está presente
-      if (contador.idEmpleadoEmpresa) {
-        payload.idEmpleado = Number(contador.idEmpleadoEmpresa);
-      }
-
-      // Ya no agregamos aforo aquí, se manejará en buildAforosPayload
-
-      if (contador.descripcion) {
-        const departamentoId =
-          contador.idDepartamento || contador.descripcion.departamento?.id;
-        const ciudadId = contador.idCiudad || contador.descripcion.ciudad?.id;
-        const corregimientoId =
-          contador.idCorregimiento || contador.descripcion.corregimiento?.id;
-
-        payload.descripcion = {
-          id: contador.descripcion.id,
-          descripcion: contador.descripcion.descripcion,
-        };
-
-        if (departamentoId)
-          payload.descripcion.departamento = { id: Number(departamentoId) };
-        if (ciudadId) payload.descripcion.ciudad = { id: Number(ciudadId) };
-        if (corregimientoId)
-          payload.descripcion.corregimiento = { id: Number(corregimientoId) };
-      }
-
-      modifiedCounters.push(payload);
     });
 
     return {
@@ -1895,6 +1919,7 @@ export class UpdateClient implements OnInit {
                 id: counter.estadoContador?.id,
                 descripcion: counter.estadoContador?.descripcion,
               } : null,
+              porEstrato: counter.porEstrato || false,
               estrato: counter.estrato,
               digitos: counter.digitos || formData.digitos || null,
               fechaInstalacion: counter.fechaInstalacion || formData.fechaInstalacion || null,
@@ -2033,8 +2058,8 @@ export class UpdateClient implements OnInit {
     return id || null;
   });
 
-  // Tarifas disponibles para el modal (todas las tarifas de la empresa)
-  readonly tarifasParaModal = computed(() => {
+  // Tarifas disponibles (todas las tarifas de la empresa sin filtrar)
+  readonly todasLasTarifas = computed(() => {
     const feeConceptData = this.feeConcept.value();
     if (!feeConceptData?.response) {
       return [];
@@ -2044,7 +2069,7 @@ export class UpdateClient implements OnInit {
     const tarifas = Array.isArray(response) ? response : [response];
 
     return tarifas.map((t: any) => ({
-      id: t.tipoTarifa?.id || t.id,
+      id: t.id, // Usar idConceptoTarifa como ID único
       nombre: t.tipoTarifa?.nombre || '',
       descripcion: t.tipoTarifa?.descripcion || '',
       codigo: t.tipoTarifa?.codigo || '',
@@ -2060,14 +2085,54 @@ export class UpdateClient implements OnInit {
       } : null,
       indCalcularMc: t.indCalcularMc || false,
       porEstrato: t.porEstrato || false,
-      valor: t.valor || 0, 
+      valor: t.valor || 0,
       estratos: t.estratos && Array.isArray(t.estratos) ? t.estratos.map((e: any) => ({
         id: e.id,
         estrato: e.estrato,
         valor: e.valor
       })) : [],
-      idConceptoTarifa: t.id
+      idConceptoTarifa: t.id,
+      tipoTarifaId: t.tipoTarifa?.id
     }));
+  });
+
+  // Tarifas para el modal (filtradas por porEstrato o tipoUso del contador seleccionado)
+  readonly tarifasParaModal = computed(() => {
+    const allTarifas = this.todasLasTarifas();
+    const contadorId = this.selectedCounterForTarifas();
+
+    if (!contadorId) {
+      return allTarifas;
+    }
+
+    const contador = this.contadoresFormArray.controls.find(
+      c => c.value.id === contadorId
+    );
+
+    if (!contador) {
+      return allTarifas;
+    }
+
+    const porEstrato = contador.value.porEstrato;
+    const tipoUsoCodigo = contador.value.tipoUso;
+
+    // Si porEstrato es true, mostrar solo tarifas residenciales
+    if (porEstrato === true) {
+      return allTarifas.filter(t => t.porEstrato === true);
+    }
+
+    // Si porEstrato es false, filtrar por código del tipoUso
+    if (porEstrato === false && tipoUsoCodigo) {
+      // Obtener el objeto tipoUso completo del typeUseData
+      const tipoUsoData = this.typeUseData().find((tu: any) => tu.id === tipoUsoCodigo);
+      const codigoTipoUso = tipoUsoData?.codigo;
+
+      if (codigoTipoUso) {
+        return allTarifas.filter(t => t.tipoUso?.codigo === codigoTipoUso);
+      }
+    }
+
+    return allTarifas;
   });
 
   toggleCounterAforosDropdown(counterIndex: number): void {

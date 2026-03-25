@@ -91,6 +91,7 @@ export interface IContador {
   tipoUso: ITipoUso;
   serial?: string;
   nuid?: number;
+  porEstrato?: boolean;
   estrato: number;
   digitos?: number;
   fechaInstalacion?: string;
