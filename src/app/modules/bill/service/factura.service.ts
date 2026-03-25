@@ -169,7 +169,7 @@ export class FacturaService {
       case 'precio':
         return this.handleNumericRangeFilter(
           httpParams,
-          value,
+          this.normalizeCurrencyValue(value),
           null,
           'precioMin',
           'precioMax'
@@ -288,5 +288,19 @@ export class FacturaService {
   private isValidNumber(value: string): boolean {
     const trimmed = value.trim();
     return trimmed !== '' && !isNaN(Number(trimmed));
+  }
+
+  /**
+   * Normaliza valores de moneda del formato colombiano al formato numérico estándar
+   * Ejemplo: "$ 37.579,56" -> "37579.56"
+   * @param value - Valor en formato de moneda colombiana
+   * @returns Valor normalizado en formato numérico
+   */
+  private normalizeCurrencyValue(value: string): string {
+    return value
+      .replace(/\$/g, '')           // Eliminar símbolo $
+      .replace(/\s/g, '')           // Eliminar espacios
+      .replace(/\./g, '')           // Eliminar puntos de miles
+      .replace(/,/g, '.');          // Reemplazar coma decimal por punto
   }
 }
