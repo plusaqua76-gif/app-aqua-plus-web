@@ -1291,9 +1291,9 @@
                             <div class="flex items-start justify-between mb-2">
                               <div class="flex-1">
                                 <p class="text-sm font-bold text-gray-900 dark:text-white mb-1">{{ tarifa.nombre }}</p>
-                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+                                <!-- <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
                                   <span class="text-xs font-mono font-semibold text-emerald-700 dark:text-emerald-300">{{ tarifa.codigo }}</span>
-                                </div>
+                                </div> -->
                               </div>
                               <div class="flex-shrink-0 ml-3">
                                 <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
@@ -1630,35 +1630,47 @@
           </div>
         } @else {
           <!-- Lista de tarifas con checkboxes -->
-          <div class="space-y-4">
+          <div class="space-y-3">
             @for (tarifa of tarifasParaModal(); track tarifa.id) {
               <label
-                class="flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all duration-200 hover:shadow-md"
+                class="group relative flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-300 overflow-hidden"
                 [class]="isTarifaSelected(tarifa.id)
-                  ? 'bg-purple-500/20 border-purple-500/50 shadow-purple-500/20'
-                  : 'bg-white/5 border-white/10 hover:bg-white/10'"
+                  ? 'bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border-[#b9b7eeb9]/60 hover:border-[#b9b7eeb9]/80 hover:shadow-lg'
+                  : 'bg-white/10 dark:bg-slate-800/10 backdrop-blur-xl border-white/20 dark:border-slate-700/30 hover:bg-white/15 dark:hover:bg-slate-800/15 hover:border-white/30'"
               >
-                <input
-                  type="checkbox"
-                  [checked]="isTarifaSelected(tarifa.id)"
-                  (change)="onTarifaSelect(tarifa.id)"
-                  class="mt-1 w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-2 cursor-pointer"
-                />
+                <!-- Checkbox personalizado con neon effects -->
+                <div class="flex-shrink-0 mt-0.5">
+                  <app-checkbox
+                    [checked]="isTarifaSelected(tarifa.id)"
+                    (checkedChange)="onTarifaSelect(tarifa.id)"
+                    [widthHeight]="'24px'"
+                  />
+                </div>
 
-                <div class="flex-1 min-w-0">
-                  <!-- Nombre y código de la tarifa -->
-                  <div class="flex items-center gap-2 mb-2">
-                    <span class="font-semibold text-gray-700 dark:text-gray-200">
-                      {{ tarifa.nombre }}
-                    </span>
-                    <span class="px-2 py-0.5 text-xs font-mono bg-blue-500/20 text-blue-700 dark:text-blue-300 rounded border border-blue-500/30">
-                      {{ tarifa.codigo }}
-                    </span>
+                <div class="flex-1 min-w-0 relative z-10">
+                  <!-- Nombre de la tarifa -->
+                  <div class="flex items-start gap-3 mb-2">
+                    <div class="flex-1">
+                      <h4 class="font-bold text-sm text-gray-900 dark:text-white">
+                        {{ tarifa.nombre }}
+                      </h4>
+                    </div>
+
+                    <!-- Estado seleccionado -->
+                    @if (isTarifaSelected(tarifa.id)) {
+                      <div class="flex-shrink-0">
+                        <div class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                          <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                          </svg>
+                        </div>
+                      </div>
+                    }
                   </div>
 
                   <!-- Descripción si existe -->
                   @if (tarifa.descripcion) {
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-2 leading-relaxed">
                       {{ tarifa.descripcion }}
                     </p>
                   }
@@ -1667,7 +1679,7 @@
                   <div class="flex flex-wrap items-center gap-2 mb-2">
                     <!-- Tipo de Concepto -->
                     @if (tarifa.tipoConcepto) {
-                      <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-green-500/20 text-green-700 dark:text-green-300 rounded-md border border-green-500/30">
+                      <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 rounded-lg border border-emerald-500/30 backdrop-blur-sm">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
@@ -1677,7 +1689,7 @@
 
                     <!-- Tipo de Uso -->
                     @if (tarifa.tipoUso) {
-                      <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-orange-500/20 text-orange-700 dark:text-orange-300 rounded-md border border-orange-500/30">
+                      <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold bg-orange-500/15 text-orange-700 dark:text-orange-300 rounded-lg border border-orange-500/30 backdrop-blur-sm">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
@@ -1687,7 +1699,7 @@
 
                     <!-- Indicador de cálculo MC -->
                     @if (tarifa.indCalcularMc) {
-                      <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 rounded-md border border-cyan-500/30">
+                      <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 rounded-lg border border-cyan-500/30 backdrop-blur-sm">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                         </svg>
@@ -1696,22 +1708,46 @@
                     }
                   </div>
 
+                  <!-- Valor único (cuando NO es por estrato) -->
+                  @if (!tarifa.porEstrato || !tarifa.estratos || tarifa.estratos.length === 0) {
+                    <div class="mt-3 p-3 rounded-lg bg-gradient-to-br from-[#312f62a3]/20 to-[#004fbb00]/10 border border-[#b9b7eeb9]/30 backdrop-blur-sm">
+                      <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center flex-shrink-0">
+                          <svg class="w-4 h-4 text-[#b9b7eeb9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div class="flex-1">
+                          <span class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-0.5">Valor</span>
+                          <span class="block text-base font-mono font-bold text-gray-900 dark:text-white">
+                            {{ tarifa.valor | currency:'COP':'symbol-narrow':'1.0-0' }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  }
+
                   <!-- Valores por estrato -->
                   @if (tarifa.porEstrato && tarifa.estratos && tarifa.estratos.length > 0) {
-                    <div class="mt-3 p-3 rounded-lg bg-gray-500/10 border border-gray-500/20">
+                    <div class="mt-3 p-3 rounded-lg ">
                       <div class="flex items-center gap-2 mb-2">
-                        <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Valores por estrato:</span>
+                        <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center flex-shrink-0">
+                          <svg class="w-3.5 h-3.5 text-[#b9b7eeb9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <span class="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">Valores por estrato</span>
                       </div>
-                      <div class="grid grid-cols-3 gap-2">
+                      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         @for (estrato of tarifa.estratos; track estrato.id) {
-                          <div class="text-xs bg-white/10 dark:bg-slate-700/20 px-2 py-1.5 rounded border border-white/20">
-                            <span class="font-medium text-gray-700 dark:text-gray-300">E{{ estrato.estrato }}:</span>
-                            <span class="ml-1 text-gray-600 dark:text-gray-400 font-mono">
-                              {{ estrato.valor | currency:'COP':'symbol-narrow':'1.0-0' }}
-                            </span>
+                          <div class="relative group/estrato p-2 rounded-lg bg-white/20 dark:bg-slate-800/20 border border-white/30 dark:border-slate-600/30 backdrop-blur-sm hover:bg-white/30 dark:hover:bg-slate-700/30 transition-all duration-300 overflow-hidden">
+                            <div class="relative z-10">
+                              <span class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-0.5">Estrato {{ estrato.estrato }}</span>
+                              <span class="block text-xs font-mono font-bold text-gray-900 dark:text-white">
+                                {{ estrato.valor | currency:'COP':'symbol-narrow':'1.0-0' }}
+                              </span>
+                            </div>
+                            <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/20 rotate-12 blur-md group-hover/estrato:left-[125%] transition-all duration-700 ease-in-out"></span>
                           </div>
                         }
                       </div>
@@ -1723,10 +1759,22 @@
           </div>
 
           <!-- Resumen de selección -->
-          <div class="mt-4 p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
-            <p class="text-sm text-purple-700 dark:text-purple-300 font-medium">
-              <span class="font-bold">{{ getTarifasSeleccionadasCount() }}</span> de {{ tarifasParaModal().length }} tarifas aplicarán al contador
-            </p>
+          <div class="mt-4 p-4 rounded-xl bg-gradient-to-br from-[#767de6]/10 to-[#b9b7ee]/5 border border-[#b9b7eeb9]/30 backdrop-blur-md">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-[#b9b7eeb9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+              </div>
+              <div class="flex-1">
+                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                  <span class="text-base font-bold text-[#767de6] dark:text-[#b9b7ee]">{{ getTarifasSeleccionadasCount() }}</span>
+                  <span class="text-gray-600 dark:text-gray-400"> de </span>
+                  <span class="font-semibold">{{ tarifasParaModal().length }}</span>
+                  <span class="text-gray-700 dark:text-gray-300"> tarifas aplicarán al contador</span>
+                </p>
+              </div>
+            </div>
           </div>
         }
       </div>
@@ -1737,16 +1785,28 @@
           <button
             type="button"
             (click)="closeTarifasModal()"
-            class="px-6 py-2 bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-all"
+            class="relative cursor-pointer py-2.5 px-6 text-center inline-flex justify-center items-center gap-2 text-sm font-semibold text-gray-300 rounded-xl border border-gray-500/30 bg-gradient-to-br from-gray-500/10 to-gray-500/20 transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline-1 focus:outline-gray-400/50 focus:outline-offset-2 overflow-hidden hover:scale-105"
           >
-            Cancelar
+            <span class="relative z-20 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Cancelar
+            </span>
+            <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-gray-400/20 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"></span>
           </button>
           <button
             type="button"
             (click)="applyTarifas()"
-            class="px-6 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 text-purple-700 dark:text-purple-300 font-medium rounded-lg transition-all"
+            class="relative cursor-pointer py-2.5 px-6 text-center inline-flex justify-center items-center gap-2 text-sm font-semibold text-gray-300 rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
           >
-            Aplicar Cambios
+            <span class="relative z-20 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Aplicar Cambios
+            </span>
+            <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"></span>
           </button>
         </div>
       </div>

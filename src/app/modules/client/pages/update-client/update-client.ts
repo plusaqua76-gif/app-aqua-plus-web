@@ -2060,6 +2060,7 @@ export class UpdateClient implements OnInit {
       } : null,
       indCalcularMc: t.indCalcularMc || false,
       porEstrato: t.porEstrato || false,
+      valor: t.valor || 0, 
       estratos: t.estratos && Array.isArray(t.estratos) ? t.estratos.map((e: any) => ({
         id: e.id,
         estrato: e.estrato,
