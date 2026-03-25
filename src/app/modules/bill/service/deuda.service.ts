@@ -120,36 +120,16 @@ private applyFilter(
         : httpParams;
 
     case 'valorTotal':
-      return this.isValidNumber(value)
-        ? httpParams.set(
-            'valorTotal',
-            parseFloat(value.replace(/[$,]/g, '')).toString()
-          )
-        : httpParams;
+      return httpParams.set('valorTotal', this.normalizeCurrencyValue(value));
 
     case 'totalAbonado':
-      return this.isValidNumber(value)
-        ? httpParams.set(
-            'totalAbonado',
-            parseFloat(value.replace(/[$,]/g, '')).toString()
-          )
-        : httpParams;
+      return httpParams.set('totalAbonado', this.normalizeCurrencyValue(value));
 
     case 'saldoPendiente':
-      return this.isValidNumber(value)
-        ? httpParams.set(
-            'saldoPendiente',
-            parseFloat(value.replace(/[$,]/g, '')).toString()
-          )
-        : httpParams;
+      return httpParams.set('saldoPendiente', this.normalizeCurrencyValue(value));
 
     case 'valorMes':
-      return this.isValidNumber(value)
-        ? httpParams.set(
-            'valorMes',
-            parseFloat(value.replace(/[$,]/g, '')).toString()
-          )
-        : httpParams;
+      return httpParams.set('valorMes', this.normalizeCurrencyValue(value));
 
     case 'tipoDeudaNombre':
       return httpParams.set('tipoDeudaNombre', value);
@@ -175,6 +155,15 @@ private applyFilter(
     private isValidNumber(value: string): boolean {
         const numericValue = parseFloat(value.replace(/[$,]/g, ''));
         return !isNaN(numericValue) && isFinite(numericValue);
+    }
+
+
+    private normalizeCurrencyValue(value: string): string {
+        return value
+            .replace(/\$/g, '')
+            .replace(/\s/g, '')
+            .replace(/\./g, '')           
+            .replace(/,/g, '.');
     }
 
 }

@@ -110,14 +110,59 @@ export class InvoiceService {
     }
 
     if (params.filters) {
-      Object.entries(params.filters).forEach(([key, value]) => {
-        if (value?.trim()) {
-          httpParams = httpParams.set(key, value.trim());
-        }
-      });
+      httpParams = this.mapFiltersToHttpParams(httpParams, params.filters);
     }
 
     return this.http.get<IPaginatedResponse<IFacturaElectronica>>(url, { params: httpParams });
+  }
+
+  private mapFiltersToHttpParams(
+    httpParams: HttpParams,
+    filters: Record<string, string>
+  ): HttpParams {
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value?.trim()) {
+        const trimmedValue = value.trim();
+        httpParams = this.applyFilter(httpParams, key, trimmedValue);
+      }
+    });
+    return httpParams;
+  }
+
+  private applyFilter(
+    httpParams: HttpParams,
+    key: string,
+    value: string
+  ): HttpParams {
+    switch (key) {
+      case 'factura.codigo':
+        return httpParams.set('codigoFactura', value);
+      case 'cliente.nombre':
+        return httpParams.set('nombreCompleto', value);
+      case 'cliente.numeroCedula':
+        return httpParams.set('numeroCedula', value);
+      case 'fechaCreacion':
+        return httpParams.set('fechaEmision', value);
+      case 'factura.consumo':
+        return httpParams.set('consumo', value);
+      case 'factura.precio':
+        return httpParams.set('precio', this.normalizeCurrencyValue(value));
+      case 'estadoLegal':
+        return httpParams.set('estadoLegal', value);
+      case 'numero':
+        return httpParams.set('numero', value);
+      default:
+        // Si no hay mapeo específico, usar el mismo nombre
+        return httpParams.set(key, value);
+    }
+  }
+
+  private normalizeCurrencyValue(value: string): string {
+    return value
+      .replace(/\$/g, '')
+      .replace(/\s/g, '')
+      .replace(/\./g, '')
+      .replace(/,/g, '.');          
   }
 
 }
