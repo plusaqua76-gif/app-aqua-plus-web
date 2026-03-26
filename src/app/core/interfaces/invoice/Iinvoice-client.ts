@@ -95,6 +95,7 @@ export interface IFacturaElectronica {
   data: string;
   usuarioCreacion: string;
   fechaCreacion: string;
+  codigoConcepto?: string;
 }
 
 // Tipos para estados
