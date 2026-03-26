@@ -95,8 +95,11 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
         <button
           type="button"
           (click)="handleTableAction({ action: 'create-credit-note', row })"
-          class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-purple-600/50 text-purple-500 hover:bg-purple-600/10 focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-colors duration-200 cursor-pointer"
-          title="Crear nota crédito"
+          [disabled]="row.codigoConcepto === '2'"
+          [class]="row.codigoConcepto === '2'
+            ? 'inline-flex items-center justify-center h-8 w-8 rounded-lg border border-gray-400/30 text-gray-400 cursor-not-allowed opacity-50'
+            : 'inline-flex items-center justify-center h-8 w-8 rounded-lg border border-purple-600/50 text-purple-500 hover:bg-purple-600/10 focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-colors duration-200 cursor-pointer'"
+          [title]="row.codigoConcepto === '2' ? 'No se puede crear nota crédito para facturas anuladas' : 'Crear nota crédito'"
          >
          <i class="fas fa-file-invoice"></i>
         </button>
