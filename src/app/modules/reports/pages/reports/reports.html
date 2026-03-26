@@ -223,8 +223,77 @@
                       "
                 />
               </div>
-              } @case ('INTEGER') { @if (filterItem.codigo) {
+              } @case ('INTEGER') {
+              <!-- Campo INTEGER con año -->
+              @if (isYearField(filterItem.filtro.campo)) {
+              <div>
+                <div class="relative">
+                  <select
+                    class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 appearance-none cursor-pointer"
+                    [value]="filterValues()[filterItem.filtro.campo] || ''"
+                    (change)="updateSelectValue(filterItem.filtro.campo, $event)"
+                  >
+                    <option value="" disabled class="bg-gray-800 text-gray-400">
+                      Seleccione un año
+                    </option>
+                    @for (year of getYearOptions(); track year) {
+                    <option [value]="year" class="bg-gray-800 text-white">
+                      {{ year }}
+                    </option>
+                    }
+                  </select>
+                  <svg
+                    class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+              }
+              <!-- Campo INTEGER con mes -->
+              @else if (isMonthField(filterItem.filtro.campo)) {
+              <div>
+                <div class="relative">
+                  <select
+                    class="w-full px-4 py-3 bg-transparent border border-gray-600/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 appearance-none cursor-pointer"
+                    [value]="filterValues()[filterItem.filtro.campo] || ''"
+                    (change)="updateSelectValue(filterItem.filtro.campo, $event)"
+                  >
+                    <option value="" disabled class="bg-gray-800 text-gray-400">
+                      Seleccione un mes
+                    </option>
+                    @for (month of getMonthOptions(); track month.value) {
+                    <option [value]="month.value" class="bg-gray-800 text-white">
+                      {{ month.label }}
+                    </option>
+                    }
+                  </select>
+                  <svg
+                    class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+              }
               <!-- Campo INTEGER con lista desplegable -->
+              @else if (filterItem.codigo) {
               <div>
                 @if (filterItem.codigo && loadingLists()[filterItem.codigo]) {
                 <div class="flex items-center justify-center py-3">
@@ -590,8 +659,79 @@
                   required
                 />
               </div>
-              } @case ('INTEGER') { @if (filterItem.codigo) {
+              } @case ('INTEGER') {
+              <!-- Campo INTEGER con año (Requerido) -->
+              @if (isYearField(filterItem.filtro.campo)) {
+              <div>
+                <div class="relative">
+                  <select
+                    class="w-full px-4 py-3 bg-transparent border-2 border-red-500/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40 appearance-none cursor-pointer"
+                    [value]="filterValues()[filterItem.filtro.campo] || ''"
+                    (change)="updateSelectValue(filterItem.filtro.campo, $event)"
+                    required
+                  >
+                    <option value="" disabled class="bg-gray-800 text-red-300">
+                      Seleccione un año *
+                    </option>
+                    @for (year of getYearOptions(); track year) {
+                    <option [value]="year" class="bg-gray-800 text-white">
+                      {{ year }}
+                    </option>
+                    }
+                  </select>
+                  <svg
+                    class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 pointer-events-none"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+              }
+              <!-- Campo INTEGER con mes (Requerido) -->
+              @else if (isMonthField(filterItem.filtro.campo)) {
+              <div>
+                <div class="relative">
+                  <select
+                    class="w-full px-4 py-3 bg-transparent border-2 border-red-500/70 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40 appearance-none cursor-pointer"
+                    [value]="filterValues()[filterItem.filtro.campo] || ''"
+                    (change)="updateSelectValue(filterItem.filtro.campo, $event)"
+                    required
+                  >
+                    <option value="" disabled class="bg-gray-800 text-red-300">
+                      Seleccione un mes *
+                    </option>
+                    @for (month of getMonthOptions(); track month.value) {
+                    <option [value]="month.value" class="bg-gray-800 text-white">
+                      {{ month.label }}
+                    </option>
+                    }
+                  </select>
+                  <svg
+                    class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 pointer-events-none"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+              }
               <!-- Campo INTEGER con lista desplegable -->
+              @else if (filterItem.codigo) {
               <div>
                 @if (filterItem.codigo && loadingLists()[filterItem.codigo]) {
                 <div class="flex items-center justify-center py-3">
