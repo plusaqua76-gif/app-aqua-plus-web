@@ -481,7 +481,7 @@ export class ReportsCreate {
     });
 
     // Asegurar que siempre se envíen parámetros de paginación
-    // aqui se envia el page y size siempre mi pez
+    // Primera llamada para obtener el total
     if (!requestBody['p_page']) {
       requestBody['p_page'] = this.DEFAULT_PAGE;
     }
@@ -489,6 +489,7 @@ export class ReportsCreate {
       requestBody['p_size'] = this.DEFAULT_PAGE_SIZE;
     }
 
+    // Primera llamada: obtener metadata y total de registros
     this.resportsService
       .generateReportWithFilters('reportes', nombreSp, requestBody)
       .subscribe({
@@ -517,6 +518,7 @@ export class ReportsCreate {
             );
             return;
           }
+
           if (response.rows.length === 0) {
             this.reportData.set([]);
             this.reportColumns.set([]);
@@ -527,67 +529,38 @@ export class ReportsCreate {
             );
             return;
           }
-          let columns: { field: string; header: string; type: 'text' }[] = [];
-          const excludedHeaders = this.EXCLUDED_HEADERS;
 
-          if (
-            response.headers &&
-            Array.isArray(response.headers) &&
-            response.headers.length > 0
-          ) {
-            const firstRow = response.rows[0];
-            const fieldKeys = Object.keys(firstRow);
+          if (response.total && response.total > this.DEFAULT_PAGE_SIZE) {
+            const fullRequestBody = { ...requestBody };
+            fullRequestBody['p_size'] = response.total;
+            fullRequestBody['p_page'] = 1;
 
-            const filteredHeaders = response.headers.filter(
-              (header: string) => !excludedHeaders.includes(header)
-            );
+            this.resportsService
+              .generateReportWithFilters('reportes', nombreSp, fullRequestBody)
+              .subscribe({
+                next: (fullApiResponse) => {
+                  let fullResponse;
+                  if (Array.isArray(fullApiResponse) && fullApiResponse.length > 0) {
+                    fullResponse = fullApiResponse[0];
+                  } else if (fullApiResponse?.response) {
+                    fullResponse = fullApiResponse.response;
+                  } else {
+                    fullResponse = fullApiResponse;
+                  }
 
-            columns = filteredHeaders.map((header: string) => {
-              const normalizedField = header
-                .toLowerCase()
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')
-                .replace(/\s+/g, '_');
-
-              const matchingField = fieldKeys.find(
-                (field) =>
-                  field.toLowerCase() === normalizedField ||
-                  field.toLowerCase().includes(normalizedField) ||
-                  normalizedField.includes(field.toLowerCase())
-              );
-
-              const finalField = matchingField || normalizedField;
-
-              return {
-                field: finalField,
-                header: String(header),
-                type: 'text' as const,
-              };
-            });
+                  if (fullResponse?.rows && Array.isArray(fullResponse.rows)) {
+                    this.processReportResponse(fullResponse);
+                  }
+                },
+                error: (error) => {
+                  console.error('Error al obtener todos los registros:', error);
+                  this.processReportResponse(response);
+                }
+              });
           } else {
-            const firstRow = response.rows[0];
-            const fieldKeys = Object.keys(firstRow);
-
-            const excludedFields = this.EXCLUDED_FIELDS;
-            const filteredFields = fieldKeys.filter(
-              (key) => !excludedFields.includes(key.toLowerCase())
-            );
-
-            columns = filteredFields.map((key) => ({
-              field: key,
-              header: this.formatFieldName(key),
-              type: 'text' as const,
-            }));
+            // Si son pocos registros, usar la primera respuesta
+            this.processReportResponse(response);
           }
-
-          this.reportColumns.set(columns);
-          this.reportData.set(response.rows);
-          this.reportTotalRecords.set(response.total || response.rows.length);
-
-          this.toastService.success(
-            'Éxito',
-            `Reporte generado correctamente. ${response.rows.length} registros encontrados.`
-          );
         },
         error: (error) => {
           this.reportData.set([]);
@@ -727,5 +700,117 @@ export class ReportsCreate {
       ...current,
       [fieldName]: [],
     }));
+  }
+
+  private processReportResponse(response: any): void {
+    let columns: { field: string; header: string; type: 'text' }[] = [];
+    const excludedHeaders = this.EXCLUDED_HEADERS;
+
+    if (
+      response.headers &&
+      Array.isArray(response.headers) &&
+      response.headers.length > 0
+    ) {
+      const firstRow = response.rows[0];
+      const fieldKeys = Object.keys(firstRow);
+
+      const filteredHeaders = response.headers.filter(
+        (header: string) => !excludedHeaders.includes(header)
+      );
+
+      columns = filteredHeaders.map((header: string) => {
+        const normalizedField = header
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/\s+/g, '_');
+
+        const matchingField = fieldKeys.find(
+          (field) =>
+            field.toLowerCase() === normalizedField ||
+            field.toLowerCase().includes(normalizedField) ||
+            normalizedField.includes(field.toLowerCase())
+        );
+
+        const finalField = matchingField || normalizedField;
+
+        return {
+          field: finalField,
+          header: String(header),
+          type: 'text' as const,
+        };
+      });
+    } else {
+      const firstRow = response.rows[0];
+      const fieldKeys = Object.keys(firstRow);
+
+      const excludedFields = this.EXCLUDED_FIELDS;
+      const filteredFields = fieldKeys.filter(
+        (key) => !excludedFields.includes(key.toLowerCase())
+      );
+
+      columns = filteredFields.map((key) => ({
+        field: key,
+        header: this.formatFieldName(key),
+        type: 'text' as const,
+      }));
+    }
+
+    this.reportColumns.set(columns);
+    this.reportData.set(response.rows);
+    this.reportTotalRecords.set(response.rows.length);
+
+    this.toastService.success(
+      'Éxito',
+      `Reporte generado correctamente. ${response.rows.length} registros encontrados.`
+    );
+  }
+
+  isYearField(campo: string): boolean {
+    const campoLower = campo.toLowerCase();
+    return campoLower.includes('año') || campoLower.includes('ano') || campoLower.includes('year');
+  }
+
+
+  isMonthField(campo: string): boolean {
+    const campoLower = campo.toLowerCase();
+    return campoLower.includes('mes') || campoLower.includes('month');
+  }
+
+  getYearOptions(): number[] {
+    const currentYear = new Date().getFullYear();
+    const years: number[] = [];
+    for (let i = currentYear - 10; i <= currentYear + 5; i++) {
+      years.push(i);
+    }
+    return years.reverse();
+  }
+
+
+  getMonthOptions(): Array<{ value: number; label: string }> {
+    return [
+      { value: 1, label: 'Enero' },
+      { value: 2, label: 'Febrero' },
+      { value: 3, label: 'Marzo' },
+      { value: 4, label: 'Abril' },
+      { value: 5, label: 'Mayo' },
+      { value: 6, label: 'Junio' },
+      { value: 7, label: 'Julio' },
+      { value: 8, label: 'Agosto' },
+      { value: 9, label: 'Septiembre' },
+      { value: 10, label: 'Octubre' },
+      { value: 11, label: 'Noviembre' },
+      { value: 12, label: 'Diciembre' }
+    ];
+  }
+
+
+  updateSelectValue(campo: string, event: any): void {
+    const target = event.target as HTMLSelectElement;
+    const currentValues = this.filterValues();
+    this.filterValues.set({
+      ...currentValues,
+      [campo]: target.value ? Number(target.value) : '',
+    });
   }
 }

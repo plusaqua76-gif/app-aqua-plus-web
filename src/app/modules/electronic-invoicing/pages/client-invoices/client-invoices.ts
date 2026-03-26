@@ -107,6 +107,10 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       {{ formatDateTime(row.fechaCreacion) }}
     </ng-template>
 
+    <ng-template #conceptoTpl let-row>
+      {{ getConceptoValue(row.codigoConcepto) }}
+    </ng-template>
+
 
     <app-table-dynamic
       [title]="title()"
@@ -116,7 +120,8 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       [loading]="serverInvoiceData.isLoading()"
       [actionTemplate]="actionsTemplate"
       [columnTemplates]="{
-        fechaCreacion: fechaCreacionTpl
+        fechaCreacion: fechaCreacionTpl,
+        codigoConcepto: conceptoTpl
       }"
       [showAddButton]="true"
       [addButtonText]="'Nueva Factura Electrónica'"
@@ -229,6 +234,7 @@ export class ClientInvoices {
 
   // Template references
   readonly fechaCreacionTpl = viewChild<TemplateRef<any>>('fechaCreacionTpl');
+  readonly conceptoTpl = viewChild<TemplateRef<any>>('conceptoTpl');
 
   showPdfPopup = signal(false);
   selectedInvoiceForView = signal<any>(null);
@@ -244,6 +250,7 @@ export class ClientInvoices {
     { field: 'numero', header: 'Factura', type: 'text' as const },
     { field: 'factura.codigo', header: 'Código Factura', type: 'text' as const },
     { field: 'estadoLegal', header: 'Estado Legal', type: 'text' as const },
+    { field: 'codigoConcepto', header: 'Concepto', type: 'text' as const, template: 'conceptoTpl' },
     { field: 'cliente.nombre', header: 'Cliente', type: 'text' as const },
     { field: 'cliente.numeroCedula', header: 'Cédula', type: 'text' as const },
     { field: 'fechaCreacion', header: 'Fecha Emisión', type: 'date' as const, template: 'fechaCreacionTpl' },
@@ -418,5 +425,17 @@ createCreditNote(invoice: any) {
       console.error('Error formateando fecha:', error);
       return '';
     }
+  }
+
+  getConceptoValue(code: string): string {
+    const conceptos: Record<string, string> = {
+      '1': 'Devolución parcial de los bienes y/o no aceptación parcial del servicio',
+      '2': 'Anulación de factura electrónica',
+      '3': 'Rebaja o descuento parcial o total',
+      '4': 'Ajuste de precio',
+      '5': 'Descuento comercial por pronto pago',
+      '6': 'Descuento comercial por volumen de ventas'
+    };
+    return conceptos[code] || '';
   }
 }
