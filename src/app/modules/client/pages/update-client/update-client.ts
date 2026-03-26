@@ -269,6 +269,20 @@ export class UpdateClient implements OnInit {
     },
   });
 
+    statusCounter = rxResource({
+    params: () => ({ code: 'EST_MEDIDOR' }),
+    stream: ({ params }) => {
+      const { code } = params;
+      if (!code) return of(null);
+
+      return this.counterService.typeAforo(code).pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
+    }
+  });
+
   readonly employeeData = computed(
     () => this.dataEmployee.value()?.response || [],
   );
@@ -277,6 +291,12 @@ export class UpdateClient implements OnInit {
   );
   readonly availableAforos = computed(() => {
     const data = this.typesAforos.value();
+    if (!data?.response || data?.success === false) return [];
+    return Array.isArray(data.response) ? data.response : [data.response];
+  });
+
+  readonly availableStatusCounter = computed(() => {
+    const data = this.statusCounter.value();
     if (!data?.response || data?.success === false) return [];
     return Array.isArray(data.response) ? data.response : [data.response];
   });
