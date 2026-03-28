@@ -123,9 +123,6 @@ debtColumns = signal([
 
     constructor() {
     effect(() => {
-      console.log("la data mi negro", this.debtData());
-    })
-    effect(() => {
       const data = this.exportDataForTable();
       const isLoading = this.isLoadingExportData();
       if (data && data.length > 0 && !isLoading) {

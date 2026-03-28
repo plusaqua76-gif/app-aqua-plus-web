@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from "@angular/common/http";
 import { computed, inject, Injectable, PLATFORM_ID, signal } from "@angular/core";
 import { rxResource } from "@angular/core/rxjs-interop";
 import { catchError, of } from "rxjs";
-import { environment } from "../../../../environments/environment.test";
+import { environment } from "../../../../environments/environment";
 import { IPaginatedResponse } from "@interfaces/IpaginatedResponse";
 import { IEmpleadoEmpresaResponse } from "@interfaces/Iemployee";
 
