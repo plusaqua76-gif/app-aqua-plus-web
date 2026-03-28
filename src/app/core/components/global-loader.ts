@@ -20,7 +20,6 @@ import { Loader } from '../../shared/components/loader';
 })
 export class GlobalLoader {
   private readonly loaderService = inject(LoaderService);
-
   protected readonly isVisible = computed(() => this.loaderService.state().isLoading);
   protected readonly message = computed(() => this.loaderService.state().message || '');
 }

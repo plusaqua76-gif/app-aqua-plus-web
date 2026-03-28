@@ -1337,7 +1337,6 @@ export class UpdateClient implements OnInit {
 
     // Marcar el formulario como modificado
     this.updateForm.markAsDirty();
-    console.log('Tarifas aplicadas al contador ID:', contadorId, this.tempSelectedTarifas());
 
     this.closeTarifasModal();
     this.toast.info(

@@ -214,7 +214,7 @@ export class Bill  {
     { field: 'fechaFin', header: 'Fecha Vencimiento', type: 'date' as const },
     { field: 'estadoNombre', header: 'Estado', type: 'text' as const },
     // { field: 'tipoPagoNombre', header: 'Tipo Pago', type: 'text' as const }, lo comente por qeu no nos srive para nada
-    { field: 'precio', header: 'Precio', type: 'currency' as const },
+    { field: 'precio', header: 'Valor', type: 'currency' as const },
   ]);
 
   readonly userData = computed(() => {
