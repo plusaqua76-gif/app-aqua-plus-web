@@ -822,7 +822,7 @@ export class Header {
 
   readonly userId = computed(() => {
     const data = this.userData();
-    return data?.empresaId || null;
+    return data?.id || null;
   });
 
   readonly usuario = computed(() => {
