@@ -1657,75 +1657,15 @@
 
                 <div class="flex-1 min-w-0">
                   <!-- Header con nombre y estado -->
-                  <div class="flex items-center justify-between mb-4">
-                    <h4 class="text-white text-lg font-semibold tracking-wide">
-                      {{ tarifa.nombre }}
-                    </h4>
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <h4 class="text-white text-lg font-semibold tracking-wide">
+                        {{ tarifa.nombre }}
+                      </h4>
+                      <span class="text-xs font-mono text-slate-400">{{ tarifa.codigo }}</span>
+                    </div>
                     <div [class]="isTarifaSelected(tarifa.id) ? 'w-2.5 h-2.5 bg-green-500 rounded-full' : 'w-2.5 h-2.5 bg-slate-600 rounded-full'"></div>
                   </div>
-
-                  <!-- Descripción si existe -->
-                  @if (tarifa.descripcion) {
-                    <p class="text-xs text-slate-400 mb-3 leading-relaxed">
-                      {{ tarifa.descripcion }}
-                    </p>
-                  }
-
-                  <!-- Tags de información -->
-                  <div class="flex flex-wrap items-center gap-2 mb-6">
-                    <!-- Tipo de Concepto -->
-                    @if (tarifa.tipoConcepto) {
-                      <span class="text-xs px-3 py-1 rounded-full bg-slate-800 text-slate-300">
-                        {{ tarifa.tipoConcepto.descripcion }}
-                      </span>
-                    }
-
-                    <!-- Tipo de Uso -->
-                    @if (tarifa.tipoUso) {
-                      <span class="text-xs px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                        {{ tarifa.tipoUso.nombre }}
-                      </span>
-                    }
-
-                    <!-- Indicador de cálculo MC -->
-                    @if (tarifa.indCalcularMc) {
-                      <span class="text-xs px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                        Calcula MC
-                      </span>
-                    }
-                  </div>
-
-                  <!-- Divider -->
-                  <div class="border-t border-slate-800 mb-4"></div>
-
-                  <!-- Valor único (cuando NO es por estrato) -->
-                  @if (!tarifa.porEstrato || !tarifa.estratos || tarifa.estratos.length === 0) {
-                    <p class="text-xs text-slate-400 mb-3 tracking-wide">
-                      VALOR
-                    </p>
-                    <div class="bg-slate-800/50 rounded-xl p-3">
-                      <p class="text-white font-semibold text-lg">
-                        {{ tarifa.valor | currency:'COP':'symbol-narrow':'1.0-0' }}
-                      </p>
-                    </div>
-                  }
-
-                  <!-- Valores por estrato -->
-                  @if (tarifa.porEstrato && tarifa.estratos && tarifa.estratos.length > 0) {
-                    <p class="text-xs text-slate-400 mb-3 tracking-wide">
-                      VALORES POR ESTRATO
-                    </p>
-                    <div class="grid grid-cols-3 gap-3">
-                      @for (estrato of tarifa.estratos; track estrato.id) {
-                        <div class="bg-slate-800/50 rounded-xl p-3 text-center">
-                          <p class="text-xs text-slate-400">Estrato {{ estrato.estrato }}</p>
-                          <p class="text-white font-semibold">
-                            {{ estrato.valor | currency:'COP':'symbol-narrow':'1.0-0' }}
-                          </p>
-                        </div>
-                      }
-                    </div>
-                  }
                 </div>
               </label>
             }

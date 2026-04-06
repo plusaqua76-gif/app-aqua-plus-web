@@ -41,12 +41,22 @@ export interface IConceptType {
   codigo: string;
 }
 
+export interface ITipoUso {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+  codigo?: string;
+}
+
 export interface IConceptRate {
   id: number;
   tipoTarifa: IrateTypes;
   tipoConcepto: IConceptType;
+  tipoUso?: ITipoUso;
   valor?: number;
   indCalcularMc: boolean;
+  indAplicarRango?: boolean;
+  valorRango?: number;
   porEstrato?: boolean;
   estratos?: Istratum[];
 }

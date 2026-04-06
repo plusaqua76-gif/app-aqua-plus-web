@@ -1502,8 +1502,8 @@ mostrardata = this.consumptionParamsData().forEach(param => {
 
     const params: any[] = [
       buildParam('CONBAS', codigos[0], `0-${min}`),
-      buildParam('CONCOM', codigos[1], `${min}-${max}`),
-      buildParam('CONSUN', codigos[2], `${max}+`),
+      buildParam('CONCOM', codigos[1], `${min + 1}-${max}`),
+      buildParam('CONSUN', codigos[2], `${max + 1}+`),
     ];
 
     forkJoin(
