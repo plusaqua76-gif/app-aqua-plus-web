@@ -132,97 +132,73 @@ import { ToastService } from '@services/toast.service';
             } @else {
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @for (conceptRate of conceptRatesData(); track conceptRate.id) {
-                  <div class="group relative rounded-2xl border border-gray-600/50 bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-5 flex flex-col hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-500 hover:-translate-y-1">
+                  <div class="group relative flex flex-col gap-0 p-6 rounded-2xl border transition-all duration-300 shadow-md bg-slate-900 border-slate-800 hover:bg-slate-900/90 hover:border-slate-700 hover:shadow-xl">
 
-                    <!-- Header -->
-                    <div class="mb-4">
-                      <h3 class="text-xl font-bold text-white mb-2">
+                    <!-- Header: nombre + indicador activo -->
+                    <div class="flex items-center justify-between mb-4">
+                      <h4 class="text-white text-lg font-semibold tracking-wide">
                         {{ conceptRate.tipoTarifa.nombre }}
-                      </h3>
-                      <p class="text-sm text-gray-400">
+                      </h4>
+                      <div class="w-2.5 h-2.5 bg-green-500 rounded-full flex-shrink-0"></div>
+                    </div>
+
+                    <!-- Descripción del concepto -->
+                    <p class="text-xs text-slate-400 mb-3 leading-relaxed">
+                      {{ conceptRate.tipoConcepto.descripcion }}
+                    </p>
+
+                    <!-- Tags -->
+                    <div class="flex flex-wrap items-center gap-2 mb-6">
+                      <span class="text-xs px-3 py-1 rounded-full bg-slate-800 text-slate-300">
                         {{ conceptRate.tipoConcepto.descripcion }}
-                      </p>
+                      </span>
+
+                      @if (conceptRate.tipoUso) {
+                        <span class="text-xs px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                          {{ conceptRate.tipoUso.nombre }}
+                        </span>
+                      }
+
+                      @if (conceptRate.indCalcularMc) {
+                        <span class="text-xs px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                          Calcula MC
+                        </span>
+                      }
                     </div>
 
                     <!-- Divider -->
-                    <div class="h-px bg-gradient-to-r from-transparent via-gray-600/50 to-transparent mb-3"></div>
+                    <div class="border-t border-slate-800 mb-4"></div>
 
-                    <!-- IndCalcularMc Badge (if true) -->
-                    @if (conceptRate.indCalcularMc) {
-                      <div class="mb-3">
-                        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500/10 to-cyan-600/10 border border-cyan-500/30">
-                          <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                          </svg>
-                          <span class="text-xs font-medium text-cyan-300">
-                            Calcula M³ automáticamente
-                          </span>
-                        </div>
-                      </div>
-                    }
-
-                    <!-- Price Section -->
+                    <!-- Sección de valor -->
                     <div class="flex-1">
                       @if (conceptRate.porEstrato && conceptRate.estratos && conceptRate.estratos.length > 0) {
-                        <!-- Estratos Layout -->
-                        <div class="space-y-2">
-                          <div class="flex items-center gap-2 mb-3">
-                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                            </svg>
-                            <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Por Estrato</span>
-                          </div>
-
-                          <div class="bg-gray-800/50 rounded-xl p-3 border border-gray-700/50">
-                            @for (estrato of conceptRate.estratos; track estrato.id) {
-                              <div class="flex items-center justify-between py-2 border-b border-gray-700/30 last:border-0">
-                                <div class="flex items-center gap-2">
-                                  <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 border border-emerald-500/30 flex items-center justify-center">
-                                    <span class="text-xs font-bold text-emerald-300">{{estrato.estrato}}</span>
-                                  </div>
-                                  <span class="text-xs text-gray-400 font-medium">Estrato {{estrato.estrato}}</span>
-                                </div>
-                                <div class="text-right">
-                                  <div class="text-base font-bold text-emerald-400">
-                                    $ {{ estrato.valor | number:'1.2-2' }}
-                                  </div>
-                                  <span class="text-[10px] text-gray-500 uppercase">COP</span>
-                                </div>
-                              </div>
-                            }
-                          </div>
+                        <p class="text-xs text-slate-400 mb-3 tracking-wide">VALORES POR ESTRATO</p>
+                        <div class="grid grid-cols-3 gap-2">
+                          @for (estrato of conceptRate.estratos; track estrato.id) {
+                            <div class="bg-slate-800/50 rounded-xl p-3 text-center">
+                              <p class="text-xs text-slate-400">Estrato {{ estrato.estrato }}</p>
+                              <p class="text-white font-semibold text-sm">
+                                {{ estrato.valor | currency:'COP':'symbol-narrow':'1.0-0' }}
+                              </p>
+                            </div>
+                          }
                         </div>
                       } @else if (conceptRate.valor) {
-                        <!-- Single Value Layout -->
-                        <div class="relative">
-                          <div class="flex items-center gap-2 mb-2">
-                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Valor Tarifa</span>
-                          </div>
-
-                          <div class="bg-gradient-to-br from-emerald-900/60 to-emerald-500/0 rounded-xl p-4 border border-transparent">
-                            <div class="flex items-baseline gap-2">
-                              <span class="text-3xl font-black text-gray-500]">
-                                $ {{ conceptRate.valor | number:'1.2-2' }}
-                              </span>
-                            </div>
-                            <span class="text-xs text-emerald-300/60 uppercase tracking-wider mt-1 block">COP</span>
-                          </div>
+                        <p class="text-xs text-slate-400 mb-3 tracking-wide">VALOR</p>
+                        <div class="bg-slate-800/50 rounded-xl p-3">
+                          <p class="text-white font-semibold text-lg">
+                            {{ conceptRate.valor | currency:'COP':'symbol-narrow':'1.0-0' }}
+                          </p>
                         </div>
                       } @else {
-                        <div class="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50 text-center">
-                          <svg class="w-8 h-8 text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                          </svg>
-                          <span class="text-sm text-gray-500">Sin valor configurado</span>
+                        <div class="bg-slate-800/30 rounded-xl p-4 text-center">
+                          <span class="text-sm text-slate-500">Sin valor configurado</span>
                         </div>
                       }
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="flex gap-2 mt-4">
+                    <!-- Botones de acción -->
+                    <div class="flex gap-2 mt-5">
                       <button
                         (click)="editConceptRate(conceptRate.id)"
                         class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 hover:border-blue-500/50 rounded-xl text-blue-400 font-medium text-sm transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/20"
@@ -259,7 +235,7 @@ import { ToastService } from '@services/toast.service';
 
         <div class="flex min-h-full items-center justify-center p-4">
           <div class="modal-animate relative w-full max-w-md bg-gradient-to-br from-red-950/95 via-gray-950/90 to-black/95 backdrop-blur-xl border border-red-500/30 rounded-2xl shadow-2xl shadow-red-500/20 transition-all">
-            
+
             <!-- Icono de advertencia -->
             <div class="flex justify-center pt-8 pb-4">
               <div class="rounded-full bg-red-500/10 p-4 border-2 border-red-500/30">
