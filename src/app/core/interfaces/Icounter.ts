@@ -6,6 +6,7 @@ export interface ICounter {
     id: number;
     cliente: IPerson;
     tipoContador: ITypeCounter;
+    nuid: string;
     descripcion: IAddress;
     serial: string;
     activo: string;

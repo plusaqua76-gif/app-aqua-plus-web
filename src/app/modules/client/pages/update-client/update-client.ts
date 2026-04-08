@@ -434,6 +434,7 @@ export class UpdateClient implements OnInit {
         contador.serial || '',
       ],
       nuid: [contador.nuid || null],
+      ruta: [contador.ruta || ''],
       tipoContador: [
         contador.tipoContador?.id,
       ],
@@ -1516,6 +1517,8 @@ export class UpdateClient implements OnInit {
       'idDepartamento': { backendKey: 'idDepartamento', transform: (val) => Number(val) },
       'idCiudad': { backendKey: 'idCiudad', transform: (val) => Number(val) },
       'idCorregimiento': { backendKey: 'idCorregimiento', transform: (val) => val ? Number(val) : null },
+      'ruta': { backendKey: 'ruta' },
+      'nuid': { backendKey: 'nuid', transform: (val) => val ? Number(val) : null },
     };
 
     Object.keys(control.controls).forEach((key) => {
@@ -1523,7 +1526,7 @@ export class UpdateClient implements OnInit {
 
       if (['aforosContador', 'aforoContadorNombre', 'aforosContadorData', 'idEmpresaClienteContador', 'isNewCounter',
            'departamentoNombre', 'ciudadNombre', 'corregimientoNombre', 'tipoContadorNombre',
-           'tipoUsoNombre', 'estadoContadorNombre', 'nuid', 'porEstrato'].includes(key)) {
+           'tipoUsoNombre', 'estadoContadorNombre', 'porEstrato'].includes(key)) {
         return;
       }
 
@@ -1724,6 +1727,8 @@ export class UpdateClient implements OnInit {
   private initializeCounterForm(): void {
     this.counterForm = this.fb.group({
       serial: [''],
+      nuid: [''],
+      ruta: [''],
       tipoContador: [''],
       tipoUso: [''],
       estadoContador: [''],
@@ -1877,6 +1882,8 @@ export class UpdateClient implements OnInit {
         switchMap((addressResponse) => {
           const counterPayload: any = {
             serial: formData.serial,
+            nuid: formData.nuid ? Number(formData.nuid) : null,
+            ruta: formData.ruta || null,
             tipoContador: { id: Number(formData.tipoContador) },
             tipoUso: { id: Number(formData.tipoUso) },
             descripcion: { id: addressResponse.response.id },
@@ -1909,6 +1916,7 @@ export class UpdateClient implements OnInit {
               id: counter.id,
               serial: counter.serial || formData.serial,
               nuid: counter.nuid || null,
+              ruta: counter.ruta || formData.ruta || null,
               tipoContador: {
                 id: counter.tipoContador?.id,
                 nombre: counter.tipoContador?.nombre,
