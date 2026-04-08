@@ -99,7 +99,7 @@ export interface IContador {
   aforoContador?: IAforoContador[];
   empleadoEmpresaId?: number;
   empleadoNombre?: string;
-  // Tarifas específicas por contador
+  ruta?: string;
   tarifasContadores?: ITarifa[];
   tiposTarifaFaltantes?: ITipoTarifaFaltante[];
 }

@@ -285,6 +285,8 @@ export class CreateClient implements OnInit {
     this.counterForm = this.fb.group({
       tipoContador: ['', Validators.required],
       serial: ['', Validators.required],
+      nuid: [''],
+      ruta: [''],
       idDepartamento: [{ value: '', disabled: true }, Validators.required],
       idCiudad: [{ value: '', disabled: true }, Validators.required],
       idCorregimiento: [''],
@@ -684,7 +686,8 @@ export class CreateClient implements OnInit {
             tipoContador: { id: Number(formData.tipoContador) },
             descripcion: { id: addressResponse.response.id },
             serial: formData.serial,
-            nuid: this.generateNuid(),
+            nuid: formData.nuid ? Number(formData.nuid) : this.generateNuid(),
+            ruta: formData.ruta || null,
             estrato: Number(formData.estrato),
             digitos: Number(formData.digitosContador),
             activo: true,

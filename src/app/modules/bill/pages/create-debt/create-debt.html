@@ -186,17 +186,25 @@
                       (click)="selectCounter(counter)"
                       class="w-full p-3 text-left rounded-lg border border-gray-300 dark:border-gray-600 bg-white/10 dark:bg-gray-800/30 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-500/50 transition-all"
                     >
-                      <div class="flex flex-col gap-1">
-                        <span class="text-sm font-semibold text-gray-900 dark:text-white">
-                          Serial: {{ counter.contador.serial }}
-                        </span>
-                        <span class="text-xs text-gray-600 dark:text-gray-400">
-                          {{ counter.contador.tipoContador.nombre }}
-                        </span>
-                        <span class="text-xs text-gray-500 dark:text-gray-500">
-                          {{ counter.contador.descripcion.descripcion }}
-                        </span>
-                      </div>
+                    <div class="relative flex flex-col gap-1">
+
+                      <span class="absolute top-0 right-0 text-xl font-semibold text-gray-900 dark:text-white">
+                        NUID: {{ counter.contador.nuid }}
+                      </span>
+
+                      <span class="text-sm font-semibold text-gray-900 dark:text-white">
+                        Serial: {{ counter.contador.serial }}
+                      </span>
+
+                      <span class="text-xs text-gray-600 dark:text-gray-400">
+                        {{ counter.contador.tipoContador.nombre }}
+                      </span>
+
+                      <span class="text-xs text-gray-500 dark:text-gray-500">
+                        {{ counter.contador.descripcion.descripcion }}
+                      </span>
+
+                    </div>
                     </button>
                   }
                 </div>

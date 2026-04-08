@@ -151,7 +151,7 @@ import {
         </div>
 
         <!-- User Section -->
-        <div class="flex items-center gap-2 flex-shrink-0">
+        <div class="flex items-center gap-3 flex-shrink-0">
           <!-- Input file oculto -->
           <input
             #fileInput
@@ -160,38 +160,61 @@ import {
             class="hidden"
             (change)="onFileSelected($event)"
           />
+          <div class="relative h-10 w-10 flex-shrink-0">
+
+            <div
+              class="absolute top-0 left-0 flex flex-col z-50"
+              (mouseenter)="openActionsMenu()"
+              (mouseleave)="closeActionsMenu()"
+            >
+          <button
+            type="button"
+            class="flex items-center justify-center w-10 h-10
+                  bg-white/10 dark:bg-slate-800/20
+                  backdrop-blur-[35px] border border-white/20
+                  text-white rounded-full shadow-md"
+          >
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+
+
           <button
             type="button"
             (click)="triggerFileInput()"
-            class="group flex items-center w-12 hover:w-[11.5rem] h-12 px-3 hover:px-5 bg-gray-900 text-white rounded-full overflow-hidden transition-all duration-700 ease-in-out flex-shrink-0 cursor-pointer"
+            class="group/item flex items-center w-9 hover:w-[9rem] px-2 hover:px-3
+                  bg-white/10 dark:bg-slate-800/20
+                  backdrop-blur-[35px] border border-white/20
+                  text-white rounded-full overflow-hidden cursor-pointer
+                  transition-all duration-300 ease-out"
+            [style.height]="isActionsDropdownOpen() ? '2.25rem' : '0'"
+            [style.margin-top]="isActionsDropdownOpen() ? '0.4rem' : '0'"
+            [style.opacity]="isActionsDropdownOpen() ? '1' : '0'"
+            [class.pointer-events-none]="!isActionsDropdownOpen()"
           >
-            <!-- Icono -->
-            <div
-              class="flex items-center justify-center min-w-[24px] transition-transform duration-700 ease-in-out group-hover:-translate-x-1"
-            >
-              <svg
-                class="w-6 h-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2M12 4v12m0-12 4 4m-4-4L8 8"
-                />
+            <div class="flex items-center justify-center min-w-[20px]
+                        transition-transform duration-300 ease-in-out
+                        group-hover/item:-translate-x-1">
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2M12 4v12m0-12 4 4m-4-4L8 8"/>
               </svg>
             </div>
 
-            <!-- Texto -->
-            <span
-              class="ml-2 whitespace-nowrap opacity-0 -translate-x-3 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-700 ease-in-out text-sm font-medium"
-            >
+            <span class="ml-2 whitespace-nowrap opacity-0 -translate-x-3
+                        group-hover/item:opacity-100 group-hover/item:translate-x-0
+                        transition-all duration-300 ease-in-out
+                        text-xs font-medium">
               Cargar colillas
             </span>
           </button>
+
+
+
+            </div>
+          </div>
           <button
             #dropdownButton
             id="dropdownAvatarNameButton"
@@ -807,7 +830,8 @@ export class Header {
   isProcessResultPopupOpen = signal<boolean>(false);
   processResult = signal<ApiResponseValidacionColillas | null>(null);
 
-
+  isActionsDropdownOpen = signal<boolean>(false);
+  private actionsMenuTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -855,6 +879,21 @@ export class Header {
 
   openDropdown(): void {
     this.isDropdownOpen.set(true);
+  }
+
+  openActionsMenu(): void {
+    if (this.actionsMenuTimer) {
+      clearTimeout(this.actionsMenuTimer);
+      this.actionsMenuTimer = null;
+    }
+    this.isActionsDropdownOpen.set(true);
+  }
+
+  closeActionsMenu(): void {
+    this.actionsMenuTimer = setTimeout(() => {
+      this.isActionsDropdownOpen.set(false);
+      this.actionsMenuTimer = null;
+    }, 150);
   }
 
   logout() {
