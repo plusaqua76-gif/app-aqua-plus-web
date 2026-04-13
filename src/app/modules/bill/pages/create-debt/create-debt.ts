@@ -7,7 +7,10 @@ import { ToastService } from '@services/toast.service';
 import { PqrEnterprisesService } from '../../../pqr-client/services/pqr-enterprices.service';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { of, catchError, startWith, map, Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
+import { CounterService } from '../../../client/service/couter.service';
+import { IParametroGeneral } from '@interfaces/INovelty/IClienteNovedad';
 import { TipoDeudaService } from '../../service/tipoDeuda.service';
+import { ITipoDeuda } from '@interfaces/IdeudaFactura';
 import { DeudaService } from '../../service/deuda.service';
 import { IDeudaCliente } from '@interfaces/IdeudaFactura';
 import { Router } from '@angular/router';
@@ -34,6 +37,7 @@ export class CreateDebt  {
   private readonly enterpriseClientCounterService = inject(EnterpriseClientCounterService);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly plazoPagoService = inject(PlazoPagoService);
+  private readonly counterService = inject(CounterService);
   private readonly tipoDeudaService = inject(TipoDeudaService);
   private readonly deudaService = inject(DeudaService);
   private readonly fb = inject(FormBuilder);
@@ -64,6 +68,8 @@ export class CreateDebt  {
     facturaId: [null],
     fechaDeuda: [new Date().toISOString().split('T')[0], [Validators.required]],
     valor: ['', [Validators.required, Validators.min(0.01), Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
+    estDeudaId: [null, []],
+    fechaCobro: [null],
     descripcion: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(500)]]
   });
 
@@ -95,6 +101,24 @@ export class CreateDebt  {
 
   constructor() {
     this.initClientSearch();
+    effect(() => {
+      const esPagoConAcuerdo = this.esPagoConAcuerdo();
+      const plazoPagoControl = this.deudaForm.get('plazoPagoId');
+      const fechaCobroControl = this.deudaForm.get('fechaCobro');
+      if (esPagoConAcuerdo) {
+        plazoPagoControl?.clearValidators();
+        plazoPagoControl?.setValue(null);
+        plazoPagoControl?.updateValueAndValidity({ emitEvent: false });
+        fechaCobroControl?.setValidators([Validators.required]);
+        fechaCobroControl?.updateValueAndValidity({ emitEvent: false });
+      } else {
+        plazoPagoControl?.setValidators([Validators.required]);
+        plazoPagoControl?.updateValueAndValidity({ emitEvent: false });
+        fechaCobroControl?.clearValidators();
+        fechaCobroControl?.setValue(null);
+        fechaCobroControl?.updateValueAndValidity({ emitEvent: false });
+      }
+    });
   }
 
   plazopago = rxResource({
@@ -113,6 +137,17 @@ export class CreateDebt  {
         return of({ success: false, response: [], message: 'Error al cargar tipos de deuda' });
       })
     )
+  })
+
+  estDeuda = rxResource({
+    params: () => ({ code: 'EST_DEUDA' }),
+    stream: ({ params }) => {
+      const { code } = params;
+      if (!code) return of(null);
+      return this.counterService.typeAforo(code).pipe(
+        catchError(() => of(null))
+      );
+    }
   })
 
   // Obtener contadores del cliente seleccionado
@@ -202,6 +237,24 @@ export class CreateDebt  {
     ),
     { initialValue: null }
   );
+
+  // Estado de deuda reactivo
+  private estDeudaIdControl = toSignal(
+    this.deudaForm.get('estDeudaId')!.valueChanges.pipe(
+      startWith(this.deudaForm.get('estDeudaId')?.value)
+    ),
+    { initialValue: null }
+  );
+
+  // True cuando se selecciona Acuerdo de Pago (con o sin factura)
+  readonly esPagoConAcuerdo = computed(() => {
+    const selectedId = this.estDeudaIdControl();
+    if (!selectedId) return false;
+    const options = this.estDeuda.value()?.response as IParametroGeneral[] | undefined;
+    if (!options) return false;
+    const selected = options.find(o => o.id === Number(selectedId));
+    return selected?.codigo === 'PACOFA' || selected?.codigo === 'PASINFA';
+  });
 
   readonly valorFormulario = computed(() => this.valorControl());
 
@@ -432,15 +485,21 @@ export class CreateDebt  {
     }
 
     // Buscar los objetos completos para las relaciones
-    const tipoDeudaSeleccionado = this.tipodeuda.value()?.response?.find(
-      tipo => tipo.id === Number(formValue.tipoDeudaId)
+    const tipoDeudaSeleccionado = (this.tipodeuda.value()?.response as ITipoDeuda[] | undefined)?.find(
+      (tipo: ITipoDeuda) => tipo.id === Number(formValue.tipoDeudaId)
+    );
+
+    const estDeudaSeleccionado = (this.estDeuda.value()?.response as IParametroGeneral[] | undefined)?.find(
+      (est: IParametroGeneral) => est.id === Number(formValue.estDeudaId)
     );
 
     const plazoPagoSeleccionado = this.plazopago.value()?.response?.find(
       plazo => formValue.plazoPagoId && plazo.nombre === formValue.plazoPagoId
     );
 
-    if (!tipoDeudaSeleccionado || !plazoPagoSeleccionado) {
+    const esPagoConAcuerdo = this.esPagoConAcuerdo();
+
+    if (!tipoDeudaSeleccionado || (!esPagoConAcuerdo && !plazoPagoSeleccionado)) {
       this.toastService.error('Error', 'No se pudieron obtener los datos necesarios');
       this.procesandoDeuda.set(false);
       return;
@@ -462,11 +521,12 @@ export class CreateDebt  {
     const valorTotal = valorBase + valorInteres;
 
     // Construir objeto deuda con payload limpio y correcto
-    const deuda: Partial<IDeudaCliente> = {
+    const deuda: Partial<IDeudaCliente> & { fechaCobro?: Date } = {
       empresaClienteContador: { id: contadorSeleccionado.id },
       tipoDeuda: { id: tipoDeudaSeleccionado.id },
-      plazoPago: plazoPagoSeleccionado.nombre,
+      ...(plazoPagoSeleccionado ? { plazoPago: plazoPagoSeleccionado.nombre } : {}),
       fechaDeuda: new Date(formValue.fechaDeuda!),
+      ...(esPagoConAcuerdo && formValue.fechaCobro ? { fechaCobro: new Date(formValue.fechaCobro) } : {}),
       valor: valorTotal, // Enviar como número, no string
       descripcion: formValue.descripcion!,
       activo: true,
