@@ -349,30 +349,24 @@
                 </option>
               }
             </select>
-            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
+
           </div>
           @if (deudaForm.get('tipoDeudaId')?.invalid && deudaForm.get('tipoDeudaId')?.touched) {
             <p class="mt-1 text-sm text-red-600">Debe seleccionar un tipo de deuda</p>
           }
         </div>
 
-        <!-- Plazo de Pago -->
+        <!-- Estado de Deuda -->
         <div>
-          <label for="plazoPago" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
-            Plazo de Pago <span class="text-red-500">*</span>
+          <label for="estDeuda" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+            Estado de Deuda
           </label>
           <div class="relative">
             <select
-              id="plazoPago"
-              formControlName="plazoPagoId"
+              id="estDeuda"
+              formControlName="estDeudaId"
               class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
-              [class.border-red-500]="deudaForm.get('plazoPagoId')?.invalid && deudaForm.get('plazoPagoId')?.touched"
-              required
-              placeholder="Seleccione un plazo de pago...">
+              [class.border-red-500]="deudaForm.get('estDeudaId')?.invalid && deudaForm.get('estDeudaId')?.touched">
               <option
                 value=""
                 disabled
@@ -380,20 +374,72 @@
                 hidden
                 class="text-gray-400 dark:text-gray-500"
               >
-                @if (plazopago.isLoading()) { Cargando plazos de pago... } @else {
-                Seleccione el plazo de pago... }
+                @if (estDeuda.isLoading()) { Cargando estados de deuda... } @else {
+                Seleccione el estado de deuda... }
               </option>
-              @for (plazo of plazopago.value()?.response ?? []; track plazo.id) {
-                <option [value]="plazo.nombre" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
-                  {{ plazo.descripcion }}
+              @for (est of estDeuda.value()?.response ?? []; track est.id) {
+                <option [value]="est.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
+                  {{ est.descripcion }}
                 </option>
               }
             </select>
           </div>
-          @if (deudaForm.get('plazoPagoId')?.invalid && deudaForm.get('plazoPagoId')?.touched) {
-            <p class="mt-1 text-sm text-red-600">Debe seleccionar un plazo de pago</p>
+          @if (deudaForm.get('estDeudaId')?.invalid && deudaForm.get('estDeudaId')?.touched) {
+            <p class="mt-1 text-sm text-red-600">Debe seleccionar un estado de deuda</p>
           }
         </div>
+        @if (!esPagoConAcuerdo()) {
+          <div>
+            <label for="plazoPago" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              Plazo de Pago <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <select
+                id="plazoPago"
+                formControlName="plazoPagoId"
+                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
+                [class.border-red-500]="deudaForm.get('plazoPagoId')?.invalid && deudaForm.get('plazoPagoId')?.touched"
+                required
+                placeholder="Seleccione un plazo de pago...">
+                <option
+                  value=""
+                  disabled
+                  selected
+                  hidden
+                  class="text-gray-400 dark:text-gray-500"
+                >
+                  @if (plazopago.isLoading()) { Cargando plazos de pago... } @else {
+                  Seleccione el plazo de pago... }
+                </option>
+                @for (plazo of plazopago.value()?.response ?? []; track plazo.id) {
+                  <option [value]="plazo.nombre" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
+                    {{ plazo.descripcion }}
+                  </option>
+                }
+              </select>
+            </div>
+            @if (deudaForm.get('plazoPagoId')?.invalid && deudaForm.get('plazoPagoId')?.touched) {
+              <p class="mt-1 text-sm text-red-600">Debe seleccionar un plazo de pago</p>
+            }
+          </div>
+        } @else {
+          <div>
+            <label for="fechaCobro" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+              Fecha de Cobro <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <input
+                type="date"
+                id="fechaCobro"
+                formControlName="fechaCobro"
+                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
+                [class.border-red-500]="deudaForm.get('fechaCobro')?.invalid && deudaForm.get('fechaCobro')?.touched">
+            </div>
+            @if (deudaForm.get('fechaCobro')?.invalid && deudaForm.get('fechaCobro')?.touched) {
+              <p class="mt-1 text-sm text-red-600">Debe ingresar la fecha de cobro</p>
+            }
+          </div>
+        }
 
         <!-- Fecha de Deuda -->
         <div>
@@ -449,7 +495,7 @@
         </div>
 
         <!-- Descripción - ahora al lado del valor -->
-        <div>
+        <div class="md:col-span-2">
           <label for="descripcion" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
             Descripción <span class="text-red-500">*</span>
           </label>
