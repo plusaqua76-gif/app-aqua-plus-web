@@ -301,7 +301,7 @@ export class PrintBill {
     // Si es un array, sumar todas las deudas
     if (Array.isArray(deudaResponse)) {
       return deudaResponse.reduce((total, deuda: any) => {
-        const valorDeuda = deuda.saldoPendiente ?? deuda.valorTotal ?? deuda.valor ?? 0;
+        const valorDeuda = deuda.capitalPorCuota ?? 0;
         const valor =
           typeof valorDeuda === 'string' ? parseFloat(valorDeuda) : valorDeuda;
         return total + (isNaN(valor) ? 0 : valor);
@@ -310,7 +310,7 @@ export class PrintBill {
 
     // Si es un objeto único
     const deudaData = deudaResponse as any;
-    const valorDeuda = deudaData.saldoPendiente ?? deudaData.valorTotal ?? deudaData.valor ?? 0;
+    const valorDeuda = deudaData.capitalPorCuota ?? 0;
     const valor =
       typeof valorDeuda === 'string' ? parseFloat(valorDeuda) : valorDeuda;
     return isNaN(valor) ? 0 : valor;
@@ -569,6 +569,30 @@ export class PrintBill {
             this.valorPago < this.valorFactura()
           ) {
             this.crearDeudaPorDiferencia();
+          }
+
+          // Registrar abono por cada deuda usando capitalPorCuota del detalle de factura
+          const deudasFactura = this.billDetails.value()?.response?.deudaCliente ?? [];
+          const usuario = this.nombreUsuario() || 'Sistema';
+          if (deudasFactura.length > 0) {
+            const items: IAbonoItem[] = deudasFactura
+              .filter((deuda) => (deuda.capitalPorCuota ?? 0) > 0)
+              .map((deuda) => ({
+                deudaCliente: { id: deuda.id },
+                valor: deuda.capitalPorCuota,
+              }));
+
+            if (items.length > 0) {
+              const abonoMultiple: IAbonoMultiple = {
+                usuarioCreacion: usuario,
+                items,
+              };
+              this.abonoService.saveAbonoMultiple(abonoMultiple).subscribe({
+                next: () => this.clienteDeudas.reload?.(),
+                error: (err) =>
+                  console.warn('Error al registrar abono al pagar factura:', err),
+              });
+            }
           }
 
           this.toast.success(

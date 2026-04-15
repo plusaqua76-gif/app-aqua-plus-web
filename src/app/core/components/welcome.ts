@@ -806,7 +806,7 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
               class="reveal-up mt-10 max-md:flex-col flex place-items-center gap-4"
             >
               <a
-                href="https://wa.me/573203284505?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
+                href="https://wa.me/573183298041?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="btn !w-[170px] max-lg:!w-[160px] !rounded-xl !py-4 max-lg:!py-2 flex gap-2 group !bg-transparent !text-black dark:!text-white transition-colors
@@ -937,7 +937,7 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
             >
               <div class="reveal-up w-[350px] h-[540px] flex max-md:w-full">
                 <a
-                  href="https://wa.me/573203284505?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
+                  href="https://wa.me/573183298041?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
                 target="_blank"
                 rel="noopener noreferrer"
                   class="group cursor-pointer relative p-10 transition-all duration-500 overflow-hidden gap-5 flex
@@ -991,7 +991,7 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
               <div class="reveal-up w-[350px] h-[540px] flex max-md:w-full">
                 <a
 
-                href="https://wa.me/573203284505?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
+                href="https://wa.me/573183298041?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
                 target="_blank"
                 rel="noopener noreferrer"
                   class="group cursor-pointer relative p-10 transition-all duration-500 overflow-hidden gap-5 flex
@@ -1044,7 +1044,7 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
 
               <div class="reveal-up w-[350px] h-[540px] flex max-md:w-full">
                 <a
-                href="https://wa.me/573203284505?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
+                href="https://wa.me/573183298041?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
                 target="_blank"
                 rel="noopener noreferrer"
                   class="group cursor-pointer relative p-10 transition-all duration-500 overflow-hidden gap-5 flex
@@ -1098,7 +1098,7 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
               class="reveal-up w-full md:h-[350px] max-md:min-h-[350px] flex"
             >
               <a
-                href="https://wa.me/573203284505?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
+                href="https://wa.me/573183298041?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="group cursor-pointer relative p-10 transition-all duration-500 overflow-hidden gap-5 flex
@@ -1194,7 +1194,7 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
           >
             <div class="reveal-up h-[240px] w-[450px] max-md:w-full">
               <a
-                href="https://wa.me/573203284505?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
+                href="https://wa.me/573183298041?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="flex w-full h-full gap-8 rounded-xl
@@ -1226,7 +1226,7 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
 
             <div class="reveal-up h-[240px] w-[450px] max-md:w-full">
               <a
-                href="https://wa.me/573203284505?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
+                href="https://wa.me/573183298041?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="flex w-full h-full gap-8 rounded-xl
@@ -1257,7 +1257,7 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
 
             <div class="reveal-up h-[240px] w-[450px] max-md:w-full">
               <a
-                href="https://wa.me/573203284505?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
+                href="https://wa.me/573183298041?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="flex w-full h-full gap-8 rounded-xl hover:shadow-lg duration-300
@@ -1288,7 +1288,7 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
 
             <div class="reveal-up h-[240px] w-[450px] max-md:w-full">
               <a
-                href="https://wa.me/573203284505?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
+                href="https://wa.me/573183298041?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="flex w-full dark:shadow-[#171717] h-full gap-8 rounded-xl  hover:shadow-lg duration-300
@@ -1319,7 +1319,7 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
 
             <div class="reveal-up h-[240px] w-[450px] max-md:w-full">
               <a
-                href="https://wa.me/573203284505?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
+                href="https://wa.me/573183298041?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="flex w-full h-full gap-8 rounded-xl dark:shadow-[#171717] hover:shadow-lg duration-300
@@ -1350,7 +1350,7 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
 
             <div class="reveal-up h-[240px] w-[450px] max-md:w-full">
               <a
-                href="https://wa.me/573203284505?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
+                href="https://wa.me/573183298041?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20AquaPlus"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="flex w-full h-full gap-8 rounded-xl
