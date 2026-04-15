@@ -301,7 +301,7 @@ export class PrintBill {
     // Si es un array, sumar todas las deudas
     if (Array.isArray(deudaResponse)) {
       return deudaResponse.reduce((total, deuda: any) => {
-        const valorDeuda = deuda.valorTotal || deuda.valor || 0;
+        const valorDeuda = deuda.saldoPendiente ?? deuda.valorTotal ?? deuda.valor ?? 0;
         const valor =
           typeof valorDeuda === 'string' ? parseFloat(valorDeuda) : valorDeuda;
         return total + (isNaN(valor) ? 0 : valor);
@@ -310,7 +310,7 @@ export class PrintBill {
 
     // Si es un objeto único
     const deudaData = deudaResponse as any;
-    const valorDeuda = deudaData.valorTotal || deudaData.valor || 0;
+    const valorDeuda = deudaData.saldoPendiente ?? deudaData.valorTotal ?? deudaData.valor ?? 0;
     const valor =
       typeof valorDeuda === 'string' ? parseFloat(valorDeuda) : valorDeuda;
     return isNaN(valor) ? 0 : valor;
@@ -1061,6 +1061,7 @@ export class PrintBill {
   }
 
   getValorDeuda(deuda: any): number {
+    if (deuda.saldoPendiente != null) return deuda.saldoPendiente;
     if (deuda.valorTotal) return deuda.valorTotal;
     if (typeof deuda.valor === 'string') return parseFloat(deuda.valor) || 0;
     return deuda.valor || 0;
