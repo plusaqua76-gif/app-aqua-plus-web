@@ -208,7 +208,7 @@ export class PrintBill {
 
   // Loading separado solo para deudas (opcional)
   isLoadingDeudas = computed(() => {
-    return this.clienteDeudas.isLoading();
+    return this.billDetails.isLoading();
   });
 
   // Computed para verificar si hay errores críticos (solo servicios esenciales)
@@ -222,7 +222,7 @@ export class PrintBill {
 
   // Computed para verificar errores en deudas (no crítico)
   hasDeudaErrors = computed(() => {
-    return !!this.clienteDeudas.error();
+    return !!this.billDetails.error();
   });
 
   // Computed para verificar si los datos están listos y sin errores
@@ -270,11 +270,12 @@ export class PrintBill {
     const billData = this.billDetails.value()?.response;
     if (!billData?.totalesTarifas?.total) return 0;
 
-    const valor =
-      typeof billData.totalesTarifas.total === 'string'
-        ? parseFloat(billData.totalesTarifas.total)
-        : billData.totalesTarifas.total;
-    return valor || 0;
+const valor =
+  typeof billData.totalesTarifas.totalConDeuda === 'string'
+    ? parseFloat(billData.totalesTarifas.totalConDeuda) || 0
+    : billData.totalesTarifas.totalConDeuda;
+
+return valor || 0;
   });
 
   selectedStatus = computed(() => {
@@ -284,64 +285,18 @@ export class PrintBill {
   });
 
   valorDeuda = computed(() => {
-    // Si hay error o está cargando, asumir sin deudas (no es crítico)
-    if (this.clienteDeudas.error() || this.clienteDeudas.isLoading()) {
-      if (this.clienteDeudas.error()) {
-        console.warn(
-          'Error en clienteDeudas (no crítico):',
-          this.clienteDeudas.error()
-        );
-      }
-      return 0; // Sin deudas por defecto
-    }
-
-    const deudaResponse = this.clienteDeudas.value()?.response;
-    if (!deudaResponse) return 0; // Sin deudas
-
-    // Si es un array, sumar todas las deudas
-    if (Array.isArray(deudaResponse)) {
-      return deudaResponse.reduce((total, deuda: any) => {
-        const valorDeuda = deuda.capitalPorCuota ?? 0;
-        const valor =
-          typeof valorDeuda === 'string' ? parseFloat(valorDeuda) : valorDeuda;
-        return total + (isNaN(valor) ? 0 : valor);
-      }, 0);
-    }
-
-    // Si es un objeto único
-    const deudaData = deudaResponse as any;
-    const valorDeuda = deudaData.capitalPorCuota ?? 0;
-    const valor =
-      typeof valorDeuda === 'string' ? parseFloat(valorDeuda) : valorDeuda;
-    return isNaN(valor) ? 0 : valor;
+    const deudas = this.billDetails.value()?.response?.deudaCliente ?? [];
+    return deudas.reduce((total, deuda) => total + (deuda.capitalPorCuota ?? 0), 0);
   });
 
   deudaInfo = computed(() => {
-    try {
-      const deudaResponse = this.clienteDeudas.value()?.response;
-      // Si la respuesta es null (404 manejado), retornar null
-      if (deudaResponse === null) {
-        return null;
-      }
-      const deudaData = Array.isArray(deudaResponse)
-        ? deudaResponse[0]
-        : deudaResponse;
-      return deudaData || null;
-    } catch (error) {
-      return null;
-    }
+    const deudas = this.billDetails.value()?.response?.deudaCliente ?? [];
+    return deudas[0] ?? null;
   });
 
-  // Nuevo computed para obtener todas las deudas
+  // Obtiene todas las deudas desde el detalle de la factura (tiene capitalPorCuota)
   todasLasDeudas = computed(() => {
-    if (this.clienteDeudas.error() || this.clienteDeudas.isLoading()) {
-      return [];
-    }
-
-    const deudaResponse = this.clienteDeudas.value()?.response;
-    if (!deudaResponse) return [];
-
-    return Array.isArray(deudaResponse) ? deudaResponse : [deudaResponse];
+    return this.billDetails.value()?.response?.deudaCliente ?? [];
   });
 
   // Computed para contar el número de deudas
@@ -1085,6 +1040,7 @@ export class PrintBill {
   }
 
   getValorDeuda(deuda: any): number {
+    if (deuda.capitalPorCuota != null) return deuda.capitalPorCuota;
     if (deuda.saldoPendiente != null) return deuda.saldoPendiente;
     if (deuda.valorTotal) return deuda.valorTotal;
     if (typeof deuda.valor === 'string') return parseFloat(deuda.valor) || 0;
