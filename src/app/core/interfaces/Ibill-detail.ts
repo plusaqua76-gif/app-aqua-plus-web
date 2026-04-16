@@ -128,8 +128,11 @@ export interface IDeudaCliente {
   abonosRealizados: number;
   cuotasCanceladas: number;
   cuotasPendientes: number;
+  capitalPorCuota: number;
   deudaTotal: number;
   nuevoSaldo: number;
+  tasaInteres: number;
+  interesTotal: number;
 }
 
 export interface ITotalesTarifas {

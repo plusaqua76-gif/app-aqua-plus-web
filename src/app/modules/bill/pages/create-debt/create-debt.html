@@ -535,9 +535,9 @@
         </div>
 
         <!-- Desglose de interés - ahora en toda la fila debajo -->
-        @if (valorFormulario() > 0 && tasaInteres() > 0) {
+        @if (valorFormulario() > 0 ) {
           <div class="md:col-span-2">
-            <div class="w-full py-3 px-5 rounded-xl border border-white/20 bg-white/10 dark:bg-slate-700/30 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-700/40">
+            <!-- <div class="w-full py-3 px-5 rounded-xl border border-white/20 bg-white/10 dark:bg-slate-700/30 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-700/40">
               <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-2">
                   <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -561,13 +561,13 @@
                   </span>
                 </div>
               </div>
-            </div>
+            </div> -->
           </div>
         }
       </div>
 
       <!-- Loading States -->
-      @if (plazopago.isLoading() || tipodeuda.isLoading() || parametroInteres.isLoading()) {
+      @if (plazopago.isLoading() || tipodeuda.isLoading()) {
         <div class="flex items-center justify-center py-8">
           <div class="flex items-center space-x-3 text-blue-600 dark:text-blue-400">
             <svg class="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -580,7 +580,7 @@
       }
 
       <!-- Alerta si no hay tasa de interés configurada -->
-      @if (!parametroInteres.isLoading() && tasaInteres() === 0) {
+      <!-- @if (!parametroInteres.isLoading() && tasaInteres() === 0) {
         <div class="flex items-start gap-3 p-4 rounded-xl bg-yellow-50/50 dark:bg-yellow-900/20 border border-yellow-200/50 dark:border-yellow-700/30 mb-6">
           <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -592,12 +592,11 @@
             </p>
           </div>
         </div>
-      }
+      } -->
 
-      <!-- Resumen de la deuda con cuotas -->
-      @if (valorFormulario() > 0 && numeroMeses() > 0) {
+
+      <!-- @if (valorFormulario() > 0 && numeroMeses() > 0) {
         <div class="mt-6 p-6 rounded-xl border border-white/20 bg-white/10 dark:bg-slate-700/30 backdrop-blur-md hover:bg-white/15 dark:hover:bg-slate-700/40 transition-all duration-300">
-          <!-- Header -->
           <div class="flex items-center gap-3 mb-5 pb-4 border-b border-white/20 dark:border-slate-600/30">
             <div class="p-3 rounded-lg bg-blue-500/20 dark:bg-blue-500/30 border border-blue-500/30">
               <svg class="w-6 h-6 text-blue-700 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -610,7 +609,6 @@
             </div>
           </div>
 
-          <!-- Información general -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div class="relative p-4 rounded-xl border border-white/20 bg-white/10 dark:bg-slate-700/30 backdrop-blur-md hover:bg-white/15 dark:hover:bg-slate-700/40 transition-transform duration-300 ease-in-out overflow-hidden group hover:scale-105">
               <div class="relative z-20 w-full">
@@ -641,7 +639,6 @@
             </div>
           </div>
 
-          <!-- Plan de pagos -->
           <div class="space-y-4">
             <div class="flex items-center gap-3 mb-3">
               <div class="p-2 rounded-lg bg-blue-500/20 dark:bg-blue-500/30 border border-blue-500/30">
@@ -654,7 +651,6 @@
               </h4>
             </div>
 
-            <!-- Tabla de cuotas -->
             <div class="overflow-hidden rounded-xl border border-white/20 bg-white/10 dark:bg-slate-700/30 backdrop-blur-md">
               <table class="w-full text-sm">
                 <thead class="bg-white/20 dark:bg-slate-600/30 border-b border-white/20 dark:border-slate-600/30">
@@ -700,7 +696,6 @@
               </table>
             </div>
 
-            <!-- Nota informativa -->
             <div class="flex items-start gap-3 p-4 rounded-xl border border-blue-500/30 bg-blue-50/50 dark:bg-blue-900/20 backdrop-blur-md">
               <div class="p-2 rounded-lg bg-blue-500/20 dark:bg-blue-500/30 border border-blue-500/30 flex-shrink-0">
                 <svg class="w-5 h-5 text-blue-700 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -718,7 +713,6 @@
           </div>
         </div>
       } @else if (valorFormulario() > 0 || numeroMeses() > 0) {
-        <!-- Mensaje de ayuda cuando faltan datos -->
         <div class="mt-6 p-6 rounded-xl bg-gradient-to-br from-gray-50/80 to-gray-100/80 dark:from-gray-800/20 dark:to-gray-900/20 border border-gray-200/50 dark:border-gray-700/30 backdrop-blur-sm">
           <div class="flex items-start gap-3">
             <div class="p-2 rounded-lg bg-gray-500/20 dark:bg-gray-500/30">
@@ -745,10 +739,9 @@
             </div>
           </div>
         </div>
-      }
+      } -->
 
-      <!-- Botones de acción con estilo similar a la tabla -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-white/10 dark:border-slate-700/30">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-2 pt-6 border-t border-white/10 dark:border-slate-700/30">
         <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

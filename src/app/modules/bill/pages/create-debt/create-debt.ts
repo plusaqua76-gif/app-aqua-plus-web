@@ -191,35 +191,35 @@ export class CreateDebt  {
   });
 
   // Parámetro de interés de mora
-  parametroInteres = rxResource({
-    params: () => ({
-      empresaId: this.empresaId()
-    }),
-    stream: ({ params }) => {
-      const { empresaId } = params;
-      if (!empresaId) {
-        return of(null);
-      }
-      return this.counterEnterpriceService.getParamsEnterprice(empresaId, 'INTERES_DEUDA').pipe(
-        catchError(error => {
-          console.error('Error loading interest parameter:', error);
-          return of(null);
-        })
-      );
-    }
-  });
+  // parametroInteres = rxResource({
+  //   params: () => ({
+  //     empresaId: this.empresaId()
+  //   }),
+  //   stream: ({ params }) => {
+  //     const { empresaId } = params;
+  //     if (!empresaId) {
+  //       return of(null);
+  //     }
+  //     return this.counterEnterpriceService.getParamsEnterprice(empresaId, 'INTERES_DEUDA').pipe(
+  //       catchError(error => {
+  //         console.error('Error loading interest parameter:', error);
+  //         return of(null);
+  //       })
+  //     );
+  //   }
+  // });
 
   // Tasa de interés como número
-  readonly tasaInteres = computed(() => {
-    const paramResponse = this.parametroInteres.value();
-    if (!paramResponse) return 0;
+  // readonly tasaInteres = computed(() => {
+  //   const paramResponse = this.parametroInteres.value();
+  //   if (!paramResponse) return 0;
 
-    const param = Array.isArray(paramResponse.response)
-      ? paramResponse.response[0]
-      : paramResponse.response;
+  //   const param = Array.isArray(paramResponse.response)
+  //     ? paramResponse.response[0]
+  //     : paramResponse.response;
 
-    return param?.valorParametro ? Number(param.valorParametro) : 0;
-  });
+  //   return param?.valorParametro ? Number(param.valorParametro) : 0;
+  // });
 
   // Valor del formulario reactivo
   private valorControl = toSignal(
@@ -264,16 +264,16 @@ export class CreateDebt  {
   });
 
   // Cálculo del interés
-  readonly valorInteres = computed(() => {
-    const valor = this.valorFormulario();
-    const tasa = this.tasaInteres();
-    return valor * (tasa / 100);
-  });
+  // readonly valorInteres = computed(() => {
+  //   const valor = this.valorFormulario();
+  //   const tasa = this.tasaInteres();
+  //   return valor * (tasa / 100);
+  // });
 
   // Total con interés
-  readonly totalConInteres = computed(() => {
-    return this.valorFormulario() + this.valorInteres();
-  });
+  // readonly totalConInteres = computed(() => {
+  //   return this.valorFormulario() + this.valorInteres();
+  // });
 
   // Plazo de pago seleccionado (reactivo)
   readonly plazoSeleccionado = computed(() => {
@@ -303,18 +303,18 @@ export class CreateDebt  {
   });
 
   // Valor de cada cuota
-  readonly valorCuota = computed(() => {
-    const total = this.totalConInteres();
-    const meses = this.numeroMeses();
-    return meses > 0 ? total / meses : 0;
-  });
+  // readonly valorCuota = computed(() => {
+  //   const total = this.totalConInteres();
+  //   const meses = this.numeroMeses();
+  //   return meses > 0 ? total / meses : 0;
+  // });
 
   // Interés por cuota
-  readonly interesPorCuota = computed(() => {
-    const interes = this.valorInteres();
-    const meses = this.numeroMeses();
-    return meses > 0 ? interes / meses : 0;
-  });
+  // readonly interesPorCuota = computed(() => {
+  //   const interes = this.valorInteres();
+  //   const meses = this.numeroMeses();
+  //   return meses > 0 ? interes / meses : 0;
+  // });
 
   // Capital por cuota
   readonly capitalPorCuota = computed(() => {
@@ -516,9 +516,9 @@ export class CreateDebt  {
 
     // Calcular el valor total con interés
     const valorBase = Number(formValue.valor);
-    const tasaInteres = this.tasaInteres();
-    const valorInteres = valorBase * (tasaInteres / 100);
-    const valorTotal = valorBase + valorInteres;
+    // const tasaInteres = this.tasaInteres();
+    // const valorInteres = valorBase * (tasaInteres / 100);
+    // const valorTotal = valorBase + valorInteres;
 
     // Construir objeto deuda con payload limpio y correcto
     const deuda: Partial<IDeudaCliente> & { fechaCobro?: Date } = {
@@ -527,7 +527,7 @@ export class CreateDebt  {
       ...(plazoPagoSeleccionado ? { plazoPago: plazoPagoSeleccionado.nombre } : {}),
       fechaDeuda: new Date(formValue.fechaDeuda!),
       ...(esPagoConAcuerdo && formValue.fechaCobro ? { fechaCobro: new Date(formValue.fechaCobro) } : {}),
-      valor: valorTotal, // Enviar como número, no string
+      valor: valorBase, // Enviar como número, no string
       descripcion: formValue.descripcion!,
       activo: true,
       usuarioCreacion: usuario
@@ -547,11 +547,11 @@ export class CreateDebt  {
           : '';
         this.toastService.success(
           'Deuda Creada',
-          `La deuda por valor de $${valorTotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (incluye interés del ${tasaInteres}%)${mensajeFactura} ha sido creada exitosamente`
+          `La deuda por valor de $${valorBase.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${mensajeFactura} ha sido creada exitosamente`
         );
         this.resetForm();
         this.procesandoDeuda.set(false);
-      },
+      },  
       error: (error) => {
         console.error('Error al crear deuda:', error);
         this.procesandoDeuda.set(false);

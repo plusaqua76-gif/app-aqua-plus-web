@@ -270,11 +270,12 @@ export class PrintBill {
     const billData = this.billDetails.value()?.response;
     if (!billData?.totalesTarifas?.total) return 0;
 
-    const valor =
-      typeof billData.totalesTarifas.total === 'string'
-        ? parseFloat(billData.totalesTarifas.total)
-        : billData.totalesTarifas.total;
-    return valor || 0;
+const valor =
+  typeof billData.totalesTarifas.totalConDeuda === 'string'
+    ? parseFloat(billData.totalesTarifas.totalConDeuda) || 0
+    : billData.totalesTarifas.totalConDeuda;
+
+return valor || 0;
   });
 
   selectedStatus = computed(() => {
@@ -283,64 +284,27 @@ export class PrintBill {
     return billData?.factura?.estadoNombre || null;
   });
 
+  // Suma de valorMes de cada deuda del cliente (cuota mensual a mostrar en pantalla)
   valorDeuda = computed(() => {
-    // Si hay error o está cargando, asumir sin deudas (no es crítico)
-    if (this.clienteDeudas.error() || this.clienteDeudas.isLoading()) {
-      if (this.clienteDeudas.error()) {
-        console.warn(
-          'Error en clienteDeudas (no crítico):',
-          this.clienteDeudas.error()
-        );
-      }
-      return 0; // Sin deudas por defecto
-    }
-
+    if (this.clienteDeudas.error() || this.clienteDeudas.isLoading()) return 0;
     const deudaResponse = this.clienteDeudas.value()?.response;
-    if (!deudaResponse) return 0; // Sin deudas
-
-    // Si es un array, sumar todas las deudas
-    if (Array.isArray(deudaResponse)) {
-      return deudaResponse.reduce((total, deuda: any) => {
-        const valorDeuda = deuda.valorTotal || deuda.valor || 0;
-        const valor =
-          typeof valorDeuda === 'string' ? parseFloat(valorDeuda) : valorDeuda;
-        return total + (isNaN(valor) ? 0 : valor);
-      }, 0);
-    }
-
-    // Si es un objeto único
-    const deudaData = deudaResponse as any;
-    const valorDeuda = deudaData.valorTotal || deudaData.valor || 0;
-    const valor =
-      typeof valorDeuda === 'string' ? parseFloat(valorDeuda) : valorDeuda;
-    return isNaN(valor) ? 0 : valor;
+    if (!deudaResponse) return 0;
+    const lista = Array.isArray(deudaResponse) ? deudaResponse : [deudaResponse];
+    return lista.reduce((total, deuda: any) => total + (deuda.valorMes ?? 0), 0);
   });
 
   deudaInfo = computed(() => {
-    try {
-      const deudaResponse = this.clienteDeudas.value()?.response;
-      // Si la respuesta es null (404 manejado), retornar null
-      if (deudaResponse === null) {
-        return null;
-      }
-      const deudaData = Array.isArray(deudaResponse)
-        ? deudaResponse[0]
-        : deudaResponse;
-      return deudaData || null;
-    } catch (error) {
-      return null;
-    }
+    if (this.clienteDeudas.error() || this.clienteDeudas.isLoading()) return null;
+    const deudaResponse = this.clienteDeudas.value()?.response;
+    if (!deudaResponse) return null;
+    return Array.isArray(deudaResponse) ? deudaResponse[0] : deudaResponse;
   });
 
-  // Nuevo computed para obtener todas las deudas
+  // Todas las deudas del cliente (con valorMes, saldoPendiente, etc.)
   todasLasDeudas = computed(() => {
-    if (this.clienteDeudas.error() || this.clienteDeudas.isLoading()) {
-      return [];
-    }
-
+    if (this.clienteDeudas.error() || this.clienteDeudas.isLoading()) return [];
     const deudaResponse = this.clienteDeudas.value()?.response;
     if (!deudaResponse) return [];
-
     return Array.isArray(deudaResponse) ? deudaResponse : [deudaResponse];
   });
 
@@ -569,6 +533,30 @@ export class PrintBill {
             this.valorPago < this.valorFactura()
           ) {
             this.crearDeudaPorDiferencia();
+          }
+
+          // Registrar abono por cada deuda usando capitalPorCuota del detalle de factura
+          const deudasFactura = this.billDetails.value()?.response?.deudaCliente ?? [];
+          const usuario = this.nombreUsuario() || 'Sistema';
+          if (deudasFactura.length > 0) {
+            const items: IAbonoItem[] = deudasFactura
+              .filter((deuda) => (deuda.capitalPorCuota ?? 0) > 0)
+              .map((deuda) => ({
+                deudaCliente: { id: deuda.id },
+                valor: deuda.capitalPorCuota,
+              }));
+
+            if (items.length > 0) {
+              const abonoMultiple: IAbonoMultiple = {
+                usuarioCreacion: usuario,
+                items,
+              };
+              this.abonoService.saveAbonoMultiple(abonoMultiple).subscribe({
+                next: () => this.clienteDeudas.reload?.(),
+                error: (err) =>
+                  console.warn('Error al registrar abono al pagar factura:', err),
+              });
+            }
           }
 
           this.toast.success(
@@ -1061,6 +1049,9 @@ export class PrintBill {
   }
 
   getValorDeuda(deuda: any): number {
+    // Mostrar valorMes (cuota mensual) como valor principal de la deuda
+    if (deuda.valorMes != null) return deuda.valorMes;
+    if (deuda.saldoPendiente != null) return deuda.saldoPendiente;
     if (deuda.valorTotal) return deuda.valorTotal;
     if (typeof deuda.valor === 'string') return parseFloat(deuda.valor) || 0;
     return deuda.valor || 0;
