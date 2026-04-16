@@ -208,7 +208,7 @@ export class PrintBill {
 
   // Loading separado solo para deudas (opcional)
   isLoadingDeudas = computed(() => {
-    return this.billDetails.isLoading();
+    return this.clienteDeudas.isLoading();
   });
 
   // Computed para verificar si hay errores críticos (solo servicios esenciales)
@@ -222,7 +222,7 @@ export class PrintBill {
 
   // Computed para verificar errores en deudas (no crítico)
   hasDeudaErrors = computed(() => {
-    return !!this.billDetails.error();
+    return !!this.clienteDeudas.error();
   });
 
   // Computed para verificar si los datos están listos y sin errores
@@ -284,19 +284,28 @@ return valor || 0;
     return billData?.factura?.estadoNombre || null;
   });
 
+  // Suma de valorMes de cada deuda del cliente (cuota mensual a mostrar en pantalla)
   valorDeuda = computed(() => {
-    const deudas = this.billDetails.value()?.response?.deudaCliente ?? [];
-    return deudas.reduce((total, deuda) => total + (deuda.capitalPorCuota ?? 0), 0);
+    if (this.clienteDeudas.error() || this.clienteDeudas.isLoading()) return 0;
+    const deudaResponse = this.clienteDeudas.value()?.response;
+    if (!deudaResponse) return 0;
+    const lista = Array.isArray(deudaResponse) ? deudaResponse : [deudaResponse];
+    return lista.reduce((total, deuda: any) => total + (deuda.valorMes ?? 0), 0);
   });
 
   deudaInfo = computed(() => {
-    const deudas = this.billDetails.value()?.response?.deudaCliente ?? [];
-    return deudas[0] ?? null;
+    if (this.clienteDeudas.error() || this.clienteDeudas.isLoading()) return null;
+    const deudaResponse = this.clienteDeudas.value()?.response;
+    if (!deudaResponse) return null;
+    return Array.isArray(deudaResponse) ? deudaResponse[0] : deudaResponse;
   });
 
-  // Obtiene todas las deudas desde el detalle de la factura (tiene capitalPorCuota)
+  // Todas las deudas del cliente (con valorMes, saldoPendiente, etc.)
   todasLasDeudas = computed(() => {
-    return this.billDetails.value()?.response?.deudaCliente ?? [];
+    if (this.clienteDeudas.error() || this.clienteDeudas.isLoading()) return [];
+    const deudaResponse = this.clienteDeudas.value()?.response;
+    if (!deudaResponse) return [];
+    return Array.isArray(deudaResponse) ? deudaResponse : [deudaResponse];
   });
 
   // Computed para contar el número de deudas
@@ -1040,7 +1049,8 @@ return valor || 0;
   }
 
   getValorDeuda(deuda: any): number {
-    if (deuda.capitalPorCuota != null) return deuda.capitalPorCuota;
+    // Mostrar valorMes (cuota mensual) como valor principal de la deuda
+    if (deuda.valorMes != null) return deuda.valorMes;
     if (deuda.saldoPendiente != null) return deuda.saldoPendiente;
     if (deuda.valorTotal) return deuda.valorTotal;
     if (typeof deuda.valor === 'string') return parseFloat(deuda.valor) || 0;
