@@ -97,9 +97,9 @@
                     >
                   </div>
                   <div class="client-info-item">
-                    <span class="label">CÓDIGO CLIENTE:</span>
+                    <span class="label">NUID:</span>
                     <span class="value"
-                      >{{ billData()?.cliente?.codigo || '' }}</span
+                      >{{ billData()?.contador?.nuid || '' }}</span
                     >
                   </div>
                   <div class="client-info-item">
@@ -116,7 +116,7 @@
                   <div class="consumption-item">
                     <div class="item-label">PERIODO</div>
                     <div class="item-value">
-                      {{ getMonthName(billData()?.factura?.fechaEmision) }}
+                      {{ billData()?.factura?.periodo || '' }}
                     </div>
                   </div>
                   <div class="consumption-item">
@@ -814,17 +814,22 @@
                  {{ billData()?.contador?.direccion?.descripcion || '' }}
               </span>
             </div>
+                        <div class="usuario-item">
+              <span class="usuario-label">NUID:</span>
+              <span class="usuario-value">{{ billData()?.contador?.nuid || '' }}</span>
+            </div>
             <div class="usuario-item">
               <span class="usuario-label">N° Factura:</span>
               <span class="usuario-value">{{ billData()?.factura?.codigo || '' }}</span>
             </div>
             <div class="usuario-item">
-              <span class="usuario-label">PERIODO FACTURADO:</span>
+              <span class="usuario-label">PERIODO:</span>
               <span class="usuario-value">
                 {{ formatDate(billData()?.factura?.fechaEmision) || '' }} - {{
                 formatDate(billData()?.factura?.fechaFin) || '' }}
               </span>
             </div>
+
                         <div class="usuario-item">
               <span class="usuario-label">FECHA DE EMISIÓN:</span>
               <span class="usuario-value">
