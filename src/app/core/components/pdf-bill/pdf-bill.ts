@@ -189,27 +189,28 @@ export class PdfBill {
     } ${dir.descripcion || ''}`;
   }
 
-  getMonthName(dateString: string | undefined): string {
-    if (!dateString) return '';
+getMonthName(dateString: string | undefined): string {
+  if (!dateString || dateString.length !== 6) return '';
 
-    const date = new Date(dateString);
-    const monthNames = [
-      'Enero',
-      'Febrero',
-      'Marzo',
-      'Abril',
-      'Mayo',
-      'Junio',
-      'Julio',
-      'Agosto',
-      'Septiembre',
-      'Octubre',
-      'Noviembre',
-      'Diciembre',
-    ];
+  const month = parseInt(dateString.substring(4, 6), 10);
 
-    return monthNames[date.getMonth()];
-  }
+  const monthNames = [
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre',
+  ];
+
+  return monthNames[month - 1] || '';
+}
 
   private reorganizarTarifasConPosicionamiento(tarifas: any[]): any[] {
     const tarifasCopia = [...tarifas];

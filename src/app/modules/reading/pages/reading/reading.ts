@@ -112,7 +112,6 @@ export class Reading {
 
   readingColumns = signal([
     { field: 'contador.serial', header: 'Contador', type: 'text' as const, template: 'contadorTpl' },
-    { field: 'nombreCompleto', header: 'Nombre', type: 'text' as const, template: 'nombreCompletoTpl' },
     { field: 'lectura', header: 'Lectura(m³)', type: 'number' as const },
     { field: 'fechaLectura', header: 'Fecha Lectura', type: 'date' as const, template: 'fechaTpl' },
     { field: 'consumoAnormal', header: 'Consumo Anormal', type: 'text' as const, template: 'consumoAnormalTpl' },

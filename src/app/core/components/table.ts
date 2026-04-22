@@ -843,10 +843,31 @@ export class TableComponent {
     return dataSource.map(row => {
       const exportRow: any = {};
       this.columns().forEach(col => {
-        exportRow[col.header] = row[col.field] ?? '';
+        const value = this.getNestedValue(row, col.field);
+        if (col.type === 'date') {
+          exportRow[col.header] = this.formatDateForExport(value);
+        } else {
+          exportRow[col.header] = value ?? '';
+        }
       });
       return exportRow;
     });
+  }
+
+  private formatDateForExport(dateValue: any): string {
+    if (!dateValue) return '';
+    try {
+      const dateStr = String(dateValue).split('T')[0];
+      const [year, month, day] = dateStr.split('-');
+      const date = new Date(Number(year), Number(month) - 1, Number(day));
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+    } catch {
+      return String(dateValue);
+    }
   }
 
   exportAsCSV() {

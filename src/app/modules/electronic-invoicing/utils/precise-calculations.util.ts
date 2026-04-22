@@ -69,34 +69,36 @@ export interface ItemCalculationResult {
 export function calcularItemPreciso(input: ItemCalculationInput): ItemCalculationResult {
   const precioUnitario = new PreciseDecimal(input.precioUnitario);
   const cantidad = new PreciseDecimal(input.cantidad);
-  const valorBruto = precioUnitario.multiply(cantidad).toDecimalPlaces(2);
-  const descuento = valorBruto
+
+  const valorBrutoRaw = precioUnitario.multiply(cantidad).toNumber();
+  const descuentoRaw = new PreciseDecimal(valorBrutoRaw)
     .multiply(input.descuentoPorcentaje)
     .divide(100)
-    .toDecimalPlaces(2);
-  const cargo = valorBruto
+    .toNumber();
+  const cargoRaw = new PreciseDecimal(valorBrutoRaw)
     .multiply(input.cargoPorcentaje)
     .divide(100)
-    .toDecimalPlaces(2);
-  const baseGravable = valorBruto
-    .plus(cargo.toNumber())
-    .minus(descuento.toNumber())
-    .toDecimalPlaces(2);
-  const iva = baseGravable
+    .toNumber();
+  const baseGravableRaw = valorBrutoRaw + cargoRaw - descuentoRaw;
+  const ivaRaw = new PreciseDecimal(baseGravableRaw)
     .multiply(input.ivaPorcentaje)
     .divide(100)
-    .toDecimalPlaces(2);
-  const total = baseGravable
-    .plus(iva.toNumber())
-    .toDecimalPlaces(2);
+    .toNumber();
+
+  const valorBruto = new PreciseDecimal(valorBrutoRaw).toDecimalPlaces(2).toNumber();
+  const descuento = new PreciseDecimal(descuentoRaw).toDecimalPlaces(2).toNumber();
+  const cargo = new PreciseDecimal(cargoRaw).toDecimalPlaces(2).toNumber();
+  const baseGravable = new PreciseDecimal(baseGravableRaw).toDecimalPlaces(2).toNumber();
+  const iva = new PreciseDecimal(ivaRaw).toDecimalPlaces(2).toNumber();
+  const total = new PreciseDecimal(baseGravableRaw + ivaRaw).toDecimalPlaces(2).toNumber();
 
   return {
-    valorBruto: valorBruto.toNumber(),
-    descuento: descuento.toNumber(),
-    cargo: cargo.toNumber(),
-    baseGravable: baseGravable.toNumber(),
-    iva: iva.toNumber(),
-    total: total.toNumber()
+    valorBruto,
+    descuento,
+    cargo,
+    baseGravable,
+    iva,
+    total
   };
 }
 

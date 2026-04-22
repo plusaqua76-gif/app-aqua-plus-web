@@ -25,9 +25,11 @@ import {
   catchError,
 } from 'rxjs';
 import { ColombianCurrencyIntegerPipe } from '@shared/pipes/colombian-currency-integer.pipe';
+import { ColombianCurrencyDecimalPipe } from '@shared/pipes/colombian-currency-decimal.pipe';
 import { EnterpriseClientCounterService } from '../../client/service/enterpriseClientCounter.service';
 import { ClientRaw } from '@interfaces/client/IclientRaw';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
+import { IEnterpriseClientCounter } from '@interfaces/IenterpriseClientCounter';
 import { ProductDian } from '@interfaces/invoice/dian-invoice';
 import { GeneralsParamsService } from '@shared/services/generals-params.service';
 import { InvoiceService } from '../services/invoice.service';
@@ -53,6 +55,7 @@ import {
     ReactiveFormsModule,
     FormsModule,
     ColombianCurrencyIntegerPipe,
+    ColombianCurrencyDecimalPipe,
   ],
   template: `
     @let empresaDian = enterpriceDian(); @let resolutionDianData = resolutionDian();
@@ -275,6 +278,94 @@ import {
             </div>
           </div>
 
+          <!-- Contador -->
+          @if (selectedClient()) {
+          <div class="pb-4 sm:pb-6 border-b border-gray-700/50">
+            <h3 class="text-sm font-semibold text-blue-400 mb-3 uppercase tracking-wide">
+              Contador
+            </h3>
+            @if (countersClient.isLoading()) {
+            <div class="flex items-center gap-2 p-4 bg-gray-800/30 rounded-lg">
+              <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+              <span class="text-sm text-gray-400">Cargando contadores...</span>
+            </div>
+            } @else if (countersClient.error()) {
+            <div class="p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
+              <p class="text-sm text-red-400">Error al cargar contadores</p>
+            </div>
+            } @else if ((countersClient.value()?.response ?? []).length > 0) {
+              @if (!selectedCounter()) {
+              <div class="mb-3 relative">
+                <input
+                  type="text"
+                  [value]="counterSearchTerm()"
+                  (input)="counterSearchTerm.set($any($event.target).value)"
+                  placeholder="Buscar por dirección..."
+                  class="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-600/70 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-sm"
+                />
+                <svg class="w-4 h-4 text-gray-400 absolute right-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <div class="space-y-2 max-h-60 overflow-y-auto">
+                @for (counter of filteredCounters(); track counter.id) {
+                <button
+                  type="button"
+                  (click)="selectCounter(counter)"
+                  class="w-full p-3 text-left rounded-lg border border-gray-600/70 bg-gray-800/30 hover:bg-blue-900/20 hover:border-blue-500/50 transition-all"
+                >
+                <div class="flex justify-between items-start">
+                      <div class="flex flex-col gap-1">
+                        <span class="text-sm font-semibold text-white">
+                          SERIAL: {{ counter.contador.serial }}
+                        </span>
+                        <span class="text-xs text-gray-400">
+                          {{ counter.contador.tipoContador.nombre }}
+                        </span>
+                        <span class="text-xs text-gray-300">
+                          {{ counter.contador.descripcion.descripcion }}
+                        </span>
+                      </div>
+                      <span class="text-sm font-semibold text-white">
+                        NUID: {{ counter.contador.nuid }}
+                      </span>
+                    </div>
+                </button>
+                } @empty {
+                <div class="p-3 text-sm text-gray-500 text-center">
+                  No se encontraron contadores con esa dirección
+                </div>
+                }
+              </div>
+              } @else {
+              <div class="p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                <div class="flex justify-between items-start">
+                  <div class="flex-1">
+                    <p class="text-white font-semibold text-sm">NUID: {{ selectedCounter()?.contador?.serial }}</p>
+                    <p class="text-xs text-gray-400">{{ selectedCounter()?.contador?.tipoContador?.nombre }}</p>
+                    <p class="text-xs text-gray-300">{{ selectedCounter()?.contador?.descripcion?.descripcion }}</p>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="clearCounter()"
+                    class="text-red-400 hover:text-red-300 p-1"
+                    title="Cambiar contador"
+                  >
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              }
+            } @else {
+            <div class="p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+              <p class="text-sm text-yellow-400">Este cliente no tiene contadores registrados</p>
+            </div>
+            }
+          </div>
+          }
+
           <!-- Detalle de la Factura -->
           <div [formGroup]="invoiceForm">
             <div class="flex items-center justify-between mb-4">
@@ -411,17 +502,11 @@ import {
                       </td>
                       <td class="py-3 px-3">
                         <input
-                          type="text"
-                          [value]="
-                            item.get('precioUnitario')?.value
-                              | colombianCurrencyInteger
-                          "
-                          (input)="
-                            onNumberInput($event, $any(item), 'precioUnitario')
-                          "
+                          type="number"
+                          formControlName="precioUnitario"
                           min="0"
                           step="0.01"
-                          placeholder="$0"
+                          placeholder="0"
                           class="w-24 text-right bg-gray-800/50 border border-gray-600/50 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                         />
                       </td>
@@ -432,9 +517,9 @@ import {
                           formControlName="iva"
                           class="w-16 text-center bg-gray-800/50 border border-gray-600/50 rounded px-1 py-1 text-white text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                         >
-                          <option value="0">0%</option>
-                          <option value="5">5%</option>
-                          <option value="19" selected>19%</option>
+                          <option [value]="0">0%</option>
+                          <option [value]="5">5%</option>
+                          <option [value]="19">19%</option>
                         </select>
                       </td>
 
@@ -452,7 +537,7 @@ import {
                       <td
                         class="py-3 px-3 text-right text-white font-semibold text-sm"
                       >
-                        {{ item.get('total')?.value | colombianCurrencyInteger }}
+                        {{ item.get('total')?.value | colombianCurrencyDecimal }}
                       </td>
 
                       <!-- Eliminar -->
@@ -964,7 +1049,7 @@ import {
                   <div class="flex justify-between text-sm">
                     <span class="text-gray-400">Subtotal:</span>
                     <span class="text-white font-medium">{{
-                      calculateTotals().subtotal | colombianCurrencyInteger
+                      calculateTotals().subtotal | colombianCurrencyDecimal
                     }}</span>
                   </div>
 
@@ -973,7 +1058,7 @@ import {
                     <span class="text-green-400">Descuentos:</span>
                     <span class="text-green-400 font-medium"
                       >-{{
-                        calculateTotals().totalDescuentos | colombianCurrencyInteger
+                        calculateTotals().totalDescuentos | colombianCurrencyDecimal
                       }}</span
                     >
                   </div>
@@ -982,7 +1067,7 @@ import {
                     <span class="text-orange-400">Cargos:</span>
                     <span class="text-orange-400 font-medium"
                       >+{{
-                        calculateTotals().totalCargos | colombianCurrencyInteger
+                        calculateTotals().totalCargos | colombianCurrencyDecimal
                       }}</span
                     >
                   </div>
@@ -991,7 +1076,7 @@ import {
                   <div class="flex justify-between text-sm">
                     <span class="text-gray-400">Total IVA:</span>
                     <span class="text-purple-400 font-medium">{{
-                      calculateTotals().totalIva | colombianCurrencyInteger
+                      calculateTotals().totalIva | colombianCurrencyDecimal
                     }}</span>
                   </div>
 
@@ -1002,7 +1087,7 @@ import {
                       >Total a Pagar:</span
                     >
                     <span class="text-slate-400 font-bold text-2xl">{{
-                      calculateTotals().total | colombianCurrencyInteger
+                      calculateTotals().total | colombianCurrencyDecimal
                     }}</span>
                   </div>
 
@@ -1267,6 +1352,11 @@ export class CreateInvoiceComponent {
   selectedClient = signal<ClientRaw | null>(null);
   showResults = signal(false);
   isSearching = signal(false);
+
+  // Contador
+  selectedCounter = signal<IEnterpriseClientCounter | null>(null);
+  counterSearchTerm = signal('');
+
   showCreateProductModal = signal(false);
   activeItemIndex = signal<number | null>(null);
   newProductForm!: FormGroup;
@@ -1290,6 +1380,29 @@ export class CreateInvoiceComponent {
   readonly usuario = computed(() => {
     const data = this.userData();
     return data?.nombre || '';
+  });
+
+  countersClient = rxResource({
+    params: () => ({
+      idEmpresa: this.empresaId(),
+      idPersona: this.selectedClient()?.id || null,
+    }),
+    stream: ({ params }) => {
+      const { idEmpresa, idPersona } = params;
+      if (!idEmpresa || !idPersona) return of(null);
+      return this.clientService
+        .getCountersByEmpresaPersona(idEmpresa, idPersona)
+        .pipe(catchError(() => of(null)));
+    },
+  });
+
+  readonly filteredCounters = computed(() => {
+    const counters = this.countersClient.value()?.response ?? [];
+    const term = this.counterSearchTerm().toLowerCase().trim();
+    if (!term) return counters;
+    return counters.filter((c) =>
+      c.contador.descripcion?.descripcion?.toLowerCase().includes(term)
+    );
   });
 
   UnitCodes = rxResource({
@@ -1502,6 +1615,7 @@ export class CreateInvoiceComponent {
     this.selectedClient.set(cliente);
     this.showResults.set(false);
     this.searchTerm = cliente.nombreCompleto || '';
+    this.clearCounter();
   }
 
   clearClient(): void {
@@ -1509,6 +1623,16 @@ export class CreateInvoiceComponent {
     this.searchTerm = '';
     this.searchResults.set([]);
     this.showResults.set(false);
+    this.clearCounter();
+  }
+
+  selectCounter(counter: IEnterpriseClientCounter): void {
+    this.selectedCounter.set(counter);
+  }
+
+  clearCounter(): void {
+    this.selectedCounter.set(null);
+    this.counterSearchTerm.set('');
   }
 
   private initForm(): void {
@@ -1600,9 +1724,9 @@ export class CreateInvoiceComponent {
   }
 
   private calculateItemTotal(itemForm: FormGroup): void {
-    const cantidad = itemForm.get('cantidad')?.value || 0;
-    const precioUnitario = itemForm.get('precioUnitario')?.value || 0;
-    const iva = itemForm.get('iva')?.value || 0;
+    const cantidad = +(itemForm.get('cantidad')?.value || 0);
+    const precioUnitario = +(itemForm.get('precioUnitario')?.value || 0);
+    const iva = +(itemForm.get('iva')?.value || 0);
 
     const resultado = calcularItemPreciso({
       precioUnitario: precioUnitario,
@@ -1625,13 +1749,6 @@ export class CreateInvoiceComponent {
   } {
     const itemsCalculados: ItemCalculationResult[] = [];
 
-    let subtotalBruto = 0;
-    this.items.controls.forEach((item) => {
-      const cantidad = item.get('cantidad')?.value || 0;
-      const precioUnitario = item.get('precioUnitario')?.value || 0;
-      subtotalBruto += cantidad * precioUnitario;
-    });
-
     const descuentosGlobales = this.invoiceForm.get('descuentos')?.value || [];
     let descuentoPorcentajeTotal = 0;
     let cargoPorcentajeTotal = 0;
@@ -1646,9 +1763,9 @@ export class CreateInvoiceComponent {
     });
 
     this.items.controls.forEach((item) => {
-      const cantidad = item.get('cantidad')?.value || 0;
-      const precioUnitario = item.get('precioUnitario')?.value || 0;
-      const iva = item.get('iva')?.value || 0;
+      const cantidad = +(item.get('cantidad')?.value || 0);
+      const precioUnitario = +(item.get('precioUnitario')?.value || 0);
+      const iva = +(item.get('iva')?.value || 0);
       const resultado = calcularItemPreciso({
         precioUnitario: precioUnitario,
         cantidad: cantidad,
@@ -1693,7 +1810,7 @@ export class CreateInvoiceComponent {
     this.activeItemIndex.set(null);
     this.newProductForm.reset({
       codigoUnidad: 'MTQ',
-      iva: 19,  
+      iva: 19,
     });
   }
 
@@ -1876,11 +1993,6 @@ export class CreateInvoiceComponent {
       return null;
     }
 
-    let subtotalTotal = 0;
-    formValue.items.forEach((item: any) => {
-      subtotalTotal += (item.cantidad || 0) * (item.precioUnitario || 0);
-    });
-
     let descuentoPorcentaje = 0;
     let cargoPorcentaje = 0;
 
@@ -1915,6 +2027,7 @@ export class CreateInvoiceComponent {
     const request: any = {
       idEmpresa: empresaId,
       idCliente: cliente.id,
+      ...(this.selectedCounter() ? { empresaClienteContadorId: this.selectedCounter()!.id } : {}),
       productos: productos,
     };
 
@@ -2253,7 +2366,7 @@ export class CreateInvoiceComponent {
     const request = this.buildInvoiceRequest();
 
     if (!request) {
-     console.error('Error al construir la solicitud de factura');
+      console.error('Error al construir la solicitud de factura');
       return;
     }
 
@@ -2319,8 +2432,8 @@ export class CreateInvoiceComponent {
     const input = event.target as HTMLInputElement;
     const rawValue = input.value;
 
-    const numericValue = rawValue.replace(/[^0-9]/g, '');
-    const parsedValue = numericValue ? parseInt(numericValue, 10) : 0;
+    const numericValue = rawValue.replace(/[^0-9.]/g, '');
+    const parsedValue = numericValue ? parseFloat(numericValue) : 0;
 
     itemForm.get(fieldName)?.setValue(parsedValue, { emitEvent: true });
   }
@@ -2329,8 +2442,8 @@ export class CreateInvoiceComponent {
     const input = event.target as HTMLInputElement;
     const rawValue = input.value;
 
-    const numericValue = rawValue.replace(/[^0-9]/g, '');
-    const parsedValue = numericValue ? parseInt(numericValue, 10) : 0;
+    const numericValue = rawValue.replace(/[^0-9.]/g, '');
+    const parsedValue = numericValue ? parseFloat(numericValue) : 0;
 
     this.invoiceForm
       .get('totalAnticipado')
