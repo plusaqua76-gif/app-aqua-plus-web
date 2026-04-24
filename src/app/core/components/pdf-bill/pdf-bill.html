@@ -116,7 +116,7 @@
                   <div class="consumption-item">
                     <div class="item-label">PERIODO</div>
                     <div class="item-value">
-                      {{ billData()?.factura?.periodo || '' }}
+                      {{ getMonthName(billData()?.factura?.periodo) || '' }}
                     </div>
                   </div>
                   <div class="consumption-item">
@@ -825,12 +825,11 @@
             <div class="usuario-item">
               <span class="usuario-label">PERIODO:</span>
               <span class="usuario-value">
-                {{ formatDate(billData()?.factura?.fechaEmision) || '' }} - {{
-                formatDate(billData()?.factura?.fechaFin) || '' }}
+               {{ billData()?.factura?.periodo || '' }}
               </span>
             </div>
 
-                        <div class="usuario-item">
+              <div class="usuario-item">
               <span class="usuario-label">FECHA DE EMISIÓN:</span>
               <span class="usuario-value">
                 {{ formatDate(billData()?.factura?.fechaEmision) || '' }}
