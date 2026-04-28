@@ -66,6 +66,7 @@ export interface IFactura {
   iva: number | null;
   codigo: string;
   precio: number;
+  periodo: string;
   lectura: ILectura;
   fechaFin: string;
   consumoReal: number;
@@ -105,6 +106,7 @@ export interface IContador {
   serial: string;
   estrato: number;
   direccion: IDireccion;
+  nuid: number;
   idPersona?: number;
   tipoContadorNombre: string;
   codConvenio?: string;
