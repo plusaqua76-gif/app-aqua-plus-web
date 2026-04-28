@@ -1,6 +1,8 @@
 <div class="pdf-container">
   <div class="bill-content">
     <!-- Letrero de estado dinámico -->
+    @let totalAcueducto = billData()?.valoresMetrosCubicos?.totalAcueducto ?? 0;
+    @let totalAlcantarillado = billData()?.valoresMetrosCubicos?.totalAlcantarillado ?? 0;
     @if (selectedStatus()) {
     <div class="suspension-notice">
       <div class="suspension-banner">
@@ -85,9 +87,9 @@
                     >
                   </div>
                   <div class="client-info-item">
-                    <span class="label">MATRÍCULA CONTADOR:</span>
+                    <span class="label">RUTA:</span>
                     <span class="value">
-                      {{ billData()?.contador?.matriculaContador }}</span
+                      {{ billData()?.contador?.ruta }}</span
                     >
                   </div>
                   <div class="client-info-item">
@@ -122,7 +124,7 @@
                   <div class="consumption-item">
                     <div class="item-label">LECTURA</div>
                     <div class="item-value">
-                      {{ billData()?.factura?.lectura?.lectura || '' }} m³
+                      {{ billData()?.factura?.lecturaActual || '' }} m³
                     </div>
                   </div>
                   <div class="consumption-item">
@@ -158,8 +160,7 @@
                   <div class="consumption-item">
                     <div class="item-label bg-amber-500">FACTURADO:</div>
                     <div class="item-value">
-                      {{ billData()?.factura?.lectura?.precio |
-                      colombianCurrency }}
+                      {{ totalAcueducto + totalAlcantarillado | colombianCurrency }}
                     </div>
                   </div>
                 </div>
@@ -175,9 +176,6 @@
             </div>
 <div class="tarifas-consumo-section">
   <div class="tarifas-consumo-table">
-
-    @let totalAcueducto = billData()?.valoresMetrosCubicos?.totalAcueducto ?? 0;
-    @let totalAlcantarillado = billData()?.valoresMetrosCubicos?.totalAlcantarillado ?? 0;
 
     <!-- ================= HEADER ACUEDUCTO ================= -->
 
@@ -797,8 +795,8 @@
               </span>
             </div>
             <div class="usuario-item">
-              <span class="usuario-label">MATRÍCULA CONTADOR:</span>
-              <span class="usuario-value">{{ billData()?.contador?.matriculaContador || '' }}</span>
+              <span class="usuario-label">SERIAL CONTADOR:</span>
+              <span class="usuario-value">{{ billData()?.contador?.serial || '' }}</span>
             </div>
             <div class="usuario-item">
               <span class="usuario-label">RUTA:</span>
