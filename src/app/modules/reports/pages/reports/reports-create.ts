@@ -725,12 +725,18 @@ export class ReportsCreate {
           .replace(/[\u0300-\u036f]/g, '')
           .replace(/\s+/g, '_');
 
-        const matchingField = fieldKeys.find(
-          (field) =>
-            field.toLowerCase() === normalizedField ||
-            field.toLowerCase().includes(normalizedField) ||
-            normalizedField.includes(field.toLowerCase())
-        );
+        const matchingField = fieldKeys.find((field) => {
+          const normalizedKey = field
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/\s+/g, '_');
+          return (
+            normalizedKey === normalizedField ||
+            normalizedKey.includes(normalizedField) ||
+            normalizedField.includes(normalizedKey)
+          );
+        });
 
         const finalField = matchingField || normalizedField;
 
