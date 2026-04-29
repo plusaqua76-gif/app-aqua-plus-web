@@ -235,7 +235,7 @@ export interface TableColumn {
             <tr class="bg-slate-600/30 dark:bg-slate-800/20 backdrop-blur-xl border-t border-white/10">
               @for (column of columns(); track column) {
                 <th scope="col" class="px-3 sm:px-6 py-3">
-                  <div class="relative">
+                  <div class="relative min-w-[123px]">
                     @if (column.type === 'date') {
                       <!-- Usar el componente app-datepicker en modo compacto -->
                       <app-datepicker
@@ -255,7 +255,7 @@ export interface TableColumn {
                       <!-- Input normal con estilo del datepicker -->
                       <input
                         type="text"
-                        class="w-full ps-7 pe-3 py-2.5 text-sm bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/30 dark:border-slate-600/30 rounded-xl text-gray-800 dark:text-white placeholder-gray-500/50 dark:placeholder-gray-400/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:bg-white/30 dark:hover:bg-slate-700/30 shadow-xs"
+                        class="w-full min-w-[120px] ps-7 pe-3 py-2.5 text-sm bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/30 dark:border-slate-600/30 rounded-xl text-gray-800 dark:text-white placeholder-gray-500/50 dark:placeholder-gray-400/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:bg-white/30 dark:hover:bg-slate-700/30 shadow-xs"
                         (input)="onColumnFilterInput(column.field, $event)"
                         [value]="columnFilters()[column.field] || ''"
                       />
