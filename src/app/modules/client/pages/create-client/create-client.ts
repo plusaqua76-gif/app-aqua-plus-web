@@ -664,7 +664,7 @@ export class CreateClient implements OnInit {
       return;
     }
 
-    const formData = this.counterForm.value;
+    const formData = this.counterForm.getRawValue();
     const usuarioCreacion = this.usuarioCreacion();
     const aforosSeleccionados = this.selectedAforosForNewCounter();
 
@@ -690,6 +690,7 @@ export class CreateClient implements OnInit {
             ruta: formData.ruta || null,
             estrato: Number(formData.estrato),
             digitos: Number(formData.digitosContador),
+            tipoUso: {id:formData.idTipoUso ? Number(formData.idTipoUso) : null,},
             activo: true,
             usuarioCreacion: usuarioCreacion,
           };
