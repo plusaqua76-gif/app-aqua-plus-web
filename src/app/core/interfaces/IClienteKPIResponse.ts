@@ -22,6 +22,7 @@ export interface IClienteKPIResumen {
   clientesAlDia: IClienteKPIClientesAlDia;
   clientesNuevos: number;
   clientesActivos: number;
+  matriculasActivas: number;
 }
 
 export interface IClienteKPIApiResponse {

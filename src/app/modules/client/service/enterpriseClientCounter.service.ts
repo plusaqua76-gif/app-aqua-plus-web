@@ -181,4 +181,23 @@ export class EnterpriseClientCounterService {
       .set('idPersona', idPersona.toString());
     return this.http.get<ApiResponse<IEnterpriseClientCounter[]>>(url, { params });
   }
+
+  getClientInfoByEmpresaClienteContadorId(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}/cliente`);
+  }
+
+  getContadoresPaginatedByEmpresaClienteContadorId(
+    id: number,
+    params: IPaginationParams
+  ): Observable<any> {
+    let httpParams = new HttpParams()
+      .set('page', params.page.toString())
+      .set('size', params.size.toString());
+
+    if (params.filters?.['serial']) {
+      httpParams = httpParams.set('numeroContador', params.filters['serial']);
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/${id}/contadores`, { params: httpParams });
+  }
 }
