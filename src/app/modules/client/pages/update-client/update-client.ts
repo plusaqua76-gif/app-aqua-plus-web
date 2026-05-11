@@ -16,6 +16,9 @@ import {
   FormsModule,
   Validators,
 } from '@angular/forms';
+import { TableComponent, TableColumn, Action as TableAction } from '../../../../core/components/table';
+import { IPaginatedResponse, IPaginationParams } from '../../../../core/interfaces/IpaginatedResponse';
+import { Observable, catchError, EMPTY, of, forkJoin, switchMap } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastService } from '@services/toast.service';
 import { PersonService } from '../../service/person.service';
@@ -27,14 +30,12 @@ import { ITipoDocumento } from '@interfaces/Iuser';
 import { LocationService } from '@shared/services/location.service';
 import { EmpleadoService } from '../../../employee/service/empleado.service';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { catchError, EMPTY, of, forkJoin } from 'rxjs';
 import { EnterpriseClientCounterService } from '../../service/enterpriseClientCounter.service';
 import { IClienteDetalle } from '@interfaces/client/IclientDetail';
 import { TypeCounterService } from '../../../counter/service/typeCounter.service';
 import { ITypeCounter } from '@interfaces/ItypeCounter';
 import { ConceptRateService } from '../../../fee/services/concept-rate.service';
 import { CounterService } from '../../service/couter.service';
-import { switchMap } from 'rxjs';
 import { error } from 'node:console';
 import { ConfigurationMasiveBillService } from '../../../electronic-invoicing/services/configuration-masive-bill.service';
 import { filter } from 'rxjs/operators';
@@ -45,7 +46,7 @@ import { RateTypeService } from '../../../fee/services/rate-type.service';
 
 @Component({
   selector: 'app-update-client',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, Checkbox, PopupComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, Checkbox, PopupComponent, TableComponent],
   templateUrl: './update-client.html',
   providers: [DatePipe],
 })
@@ -120,6 +121,22 @@ export class UpdateClient implements OnInit {
   searchSerialValue = signal<string>('');
   isSearchingCounter = signal<boolean>(false);
 
+  // === NUEVA ARQUITECTURA: Tabs + Tabla de contadores ===
+  activeTab = signal<'cliente' | 'contadores'>('cliente');
+  contadoresPagination = signal<IPaginationParams>({ page: 0, size: 5 });
+
+  // Modal de edición de contador
+  editingCounter = signal<any>(null);
+  isEditCounterModalOpen = signal<boolean>(false);
+  editCounterForm!: FormGroup;
+  editCounterCities = signal<ICity[]>([]);
+  editCounterCorregimientos = signal<ICorregimiento[]>([]);
+  editCounterAforosDropdownOpen = signal<boolean>(false);
+  editCounterAforosSearchTerm = signal<string>('');
+
+  // Mapa contadorId -> idEmpresaClienteContador (para tarifas)
+  contadorEmpresaClienteMap = signal<Map<number, number>>(new Map());
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
@@ -192,9 +209,22 @@ export class UpdateClient implements OnInit {
     }),
     stream: ({ params: { empresaClienteContadorId } }) =>
       empresaClienteContadorId
-        ? this.enterpriseClientCounterService.getClientByEmpresaClienteContadorId(
+        ? this.enterpriseClientCounterService.getClientInfoByEmpresaClienteContadorId(
             empresaClienteContadorId,
-          )
+          ).pipe(catchError(() => of(null)))
+        : EMPTY,
+  });
+
+  dataContadores = rxResource({
+    params: () => ({
+      id: this.empresaClienteContadorId(),
+      pagination: this.contadoresPagination(),
+    }),
+    stream: ({ params: { id, pagination } }) =>
+      id
+        ? this.enterpriseClientCounterService
+            .getContadoresPaginatedByEmpresaClienteContadorId(id, pagination)
+            .pipe(catchError(() => of(null)))
         : EMPTY,
   });
 
@@ -290,6 +320,45 @@ export class UpdateClient implements OnInit {
   readonly clientData = computed(
     () => this.dataClient.value()?.response || null,
   );
+
+  readonly mappedContadoresData = computed((): IPaginatedResponse<any> | null => {
+    const data = this.dataContadores.value();
+    if (!data?.response) return null;
+    const r = data.response;
+
+    return {
+      success: true,
+      message: '',
+      code: 200,
+      totalCount: r.totalElements ?? 0,
+      pageSize: r.pageSize ?? 5,
+      currentPage: r.pageNumber ?? 0,
+      totalPages: r.totalPages ?? 0,
+      response: (r.contadores || []).map((c: any) => ({
+        id: c.id,
+        idEmpresaClienteContador: c.idEmpresaClienteContador,
+        serial: c.serial || '',
+        tipoContadorNombre: c.tipoContador?.nombre || '',
+        estadoNombre: c.estadoContador?.descripcion || '',
+        tipoUsoNombre: c.tipoUso?.nombre || '',
+        empleadoNombre: c.empleadoNombre || '',
+        corregimientoNombre: c.descripcion?.corregimiento?.nombre || '',
+        estrato: c.estrato,
+        activo: c.activo,
+        _raw: c,
+      })),
+    };
+  });
+
+  readonly contadorColumns = signal<TableColumn[]>([
+    { field: 'serial', header: 'Serial', type: 'text' },
+    { field: 'tipoContadorNombre', header: 'Tipo Contador', type: 'text' },
+    { field: 'estadoNombre', header: 'Estado', type: 'text' },
+    { field: 'tipoUsoNombre', header: 'Tipo Uso', type: 'text' },
+    { field: 'empleadoNombre', header: 'Empleado', type: 'text' },
+    { field: 'corregimientoNombre', header: 'Corregimiento', type: 'text' },
+    { field: 'estrato', header: 'Estrato', type: 'number' },
+  ]);
   readonly availableAforos = computed(() => {
     const data = this.typesAforos.value();
     if (!data?.response || data?.success === false) return [];
@@ -350,6 +419,20 @@ export class UpdateClient implements OnInit {
       }
     });
 
+    // Actualizar mapa contadorId -> idEmpresaClienteContador cuando cargan los contadores
+    effect(() => {
+      const data = this.dataContadores.value();
+      if (data?.response?.contadores) {
+        const newMap = new Map<number, number>();
+        data.response.contadores.forEach((c: any) => {
+          if (c.id && c.idEmpresaClienteContador) {
+            newMap.set(c.id, c.idEmpresaClienteContador);
+          }
+        });
+        this.contadorEmpresaClienteMap.set(newMap);
+      }
+    });
+
     // Effect para actualizar nombres de aforos cuando availableAforos esté cargado
     effect(() => {
       const aforos = this.availableAforos();
@@ -379,6 +462,7 @@ export class UpdateClient implements OnInit {
   ngOnInit(): void {
     this.initializeForm();
     this.initializeCounterForm();
+    this.initializeEditCounterForm();
     this.loadInitialData();
     this.setupFormValueChanges();
     this.setupCounterFormValueChanges();
@@ -777,13 +861,13 @@ export class UpdateClient implements OnInit {
     }
   }
 
-  private loadClientFromApiData(clienteData: IClienteDetalle): void {
+  private loadClientFromApiData(clienteData: any): void {
     if (!clienteData?.persona) return;
 
-    const { persona, empleadoEmpresaId, correo, telefono } = clienteData;
+    const { persona, correo, telefono } = clienteData;
     const { direccion } = persona;
-    const primerContador = clienteData.contadores?.[0];
-    const departamento = primerContador?.descripcion?.departamento;
+    // Usar departamento de la dirección del cliente (no del contador)
+    const departamento = direccion?.departamento;
 
     this.clienteUbicacionActual.set({
       departamento: departamento?.nombre || '',
@@ -791,7 +875,6 @@ export class UpdateClient implements OnInit {
       corregimiento: direccion?.corregimiento?.nombre || null,
       direccion: direccion?.descripcion || '',
     });
-
 
     if (clienteData.codigosResidenciaFiscal) {
       const codigosArray = clienteData.codigosResidenciaFiscal.split(';').filter((c: string) => c.trim());
@@ -810,18 +893,12 @@ export class UpdateClient implements OnInit {
       correo: correo || '',
       direccion: direccion?.descripcion || '',
       codigosResidenciaFiscal: clienteData.codigosResidenciaFiscal || '',
-      // Pre-cargar ubicación si está disponible
       idDepartamento: departamento?.id || '',
       idCiudad: direccion?.ciudad?.id || '',
       idCorregimiento: direccion?.corregimiento?.id || '',
     };
 
     this.updateForm.patchValue(formValues, { emitEvent: false });
-
-    // Cargar contadores en el FormArray
-    if (clienteData.contadores && clienteData.contadores.length > 0) {
-      this.loadContadoresInForm(clienteData.contadores);
-    }
 
     // Marcar formulario como pristine después de cargar datos iniciales
     setTimeout(() => this.updateForm.markAsPristine(), 200);
@@ -1199,8 +1276,7 @@ export class UpdateClient implements OnInit {
       .subscribe({
         next: (response) => {
           this.toast.success('Éxito', 'Contador inactivado correctamente');
-          // Recargar los datos del cliente para reflejar el cambio
-          this.dataClient.reload();
+          this.dataContadores.reload();
         },
         error: (err) => {
           console.error('Error inactivando contador:', err);
@@ -1243,7 +1319,7 @@ export class UpdateClient implements OnInit {
       next: (response) => {
         this.toast.success('Éxito', 'Contador asignado correctamente');
         this.closeAssignCounterModal();
-        this.dataClient.reload();
+        this.dataContadores.reload();
       },
       error: (err) => {
         console.error('Error asignando contador:', err);
@@ -1255,6 +1331,251 @@ export class UpdateClient implements OnInit {
   }
 
   // ==================== GESTIÓN DE TARIFAS ====================
+
+  // Confirmación de inactivación desde la tabla de contadores
+  confirmDeleteCounterFromRow(row: any): void {
+    this.counterToDelete.set({
+      index: -1,
+      id: row.id,
+      serial: row.serial,
+      idEmpresaClienteContador: row.idEmpresaClienteContador,
+    });
+    this.showDeleteConfirmCounter.set(true);
+  }
+
+  // Abrir modal de tarifas desde la tabla (recibe la fila de la tabla)
+  openTarifasModalFromRow(row: any): void {
+    const contadorId = row.id;
+    const idEmpresaClienteContador = row.idEmpresaClienteContador;
+    const contadorData = row._raw;
+
+    // Actualizar el mapa contadorId -> idEmpresaClienteContador
+    const currentMap = new Map(this.contadorEmpresaClienteMap());
+    currentMap.set(contadorId, idEmpresaClienteContador);
+    this.contadorEmpresaClienteMap.set(currentMap);
+
+    this.selectedCounterForTarifas.set(contadorId);
+
+    const tarifasGuardadas = this.tarifasPorContador().get(contadorId);
+    let tarifasACargar: number[];
+
+    if (tarifasGuardadas && tarifasGuardadas.length > 0) {
+      tarifasACargar = [...tarifasGuardadas];
+    } else {
+      const fromTarifasContadores = (contadorData.tarifasContadores || [])
+        .filter((tc: any) => tc.aplica)
+        .map((tc: any) => tc.tipoTarifa?.id)
+        .filter((id: number | undefined) => id !== undefined) as number[];
+
+      const fromFaltantes = (contadorData.tiposTarifaFaltantes || [])
+        .map((t: any) => t.id)
+        .filter((id: number | undefined) => id !== undefined) as number[];
+
+      tarifasACargar = [...new Set([...fromTarifasContadores, ...fromFaltantes])];
+    }
+
+    this.selectedTarifas.set([...tarifasACargar]);
+    this.tempSelectedTarifas.set([...tarifasACargar]);
+    this.originalTarifas.set([...tarifasACargar]);
+    this.isTarifasModalOpen.set(true);
+  }
+
+  // === MODAL EDICIÓN DE CONTADOR ===
+
+  private initializeEditCounterForm(): void {
+    this.editCounterForm = this.fb.group({
+      serial: [''],
+      nuid: [''],
+      tipoContador: [''],
+      tipoUso: [''],
+      estadoContador: [''],
+      estrato: ['', [Validators.min(1), Validators.max(6)]],
+      digitos: [''],
+      fechaInstalacion: [''],
+      idEmpleadoEmpresa: [''],
+      idDepartamento: [''],
+      idCiudad: [''],
+      idCorregimiento: [''],
+      descripcion: [''],
+      aforosContador: [[]],
+      aforosContadorData: [[]],
+    });
+
+    this.editCounterForm.get('idDepartamento')?.valueChanges.subscribe((deptId) => {
+      const numericId = deptId ? Number(deptId) : null;
+      if (numericId) {
+        this.locationService.getCiudades(numericId).subscribe({
+          next: (r) => {
+            this.editCounterCities.set(r.response);
+            this.editCounterForm.patchValue({ idCiudad: '', idCorregimiento: '' }, { emitEvent: false });
+            this.editCounterCorregimientos.set([]);
+          },
+        });
+      }
+    });
+
+    this.editCounterForm.get('idCiudad')?.valueChanges.subscribe((cityId) => {
+      const numericId = cityId ? Number(cityId) : null;
+      if (numericId) {
+        this.locationService.getCorregimientos(numericId).subscribe({
+          next: (r) => {
+            this.editCounterCorregimientos.set(r.response);
+            this.editCounterForm.patchValue({ idCorregimiento: '' }, { emitEvent: false });
+          },
+        });
+      }
+    });
+  }
+
+  openEditCounterModal(row: any): void {
+    const counter = row._raw;
+    this.editingCounter.set(counter);
+
+    const deptId = counter.descripcion?.departamento?.id;
+    const cityId = counter.descripcion?.ciudad?.id;
+
+    if (deptId) {
+      this.locationService.getCiudades(Number(deptId)).subscribe({
+        next: (r) => this.editCounterCities.set(r.response),
+      });
+    }
+    if (cityId) {
+      this.locationService.getCorregimientos(Number(cityId)).subscribe({
+        next: (r) => this.editCounterCorregimientos.set(r.response),
+      });
+    }
+
+    this.editCounterForm.reset({
+      serial: counter.serial || '',
+      nuid: counter.nuid || '',
+      tipoContador: counter.tipoContador?.id || '',
+      tipoUso: counter.tipoUso?.id || '',
+      estadoContador: counter.estadoContador?.id || '',
+      estrato: counter.estrato || '',
+      digitos: counter.digitos || '',
+      fechaInstalacion: counter.fechaInstalacion || '',
+      idEmpleadoEmpresa: counter.empleadoEmpresaId || '',
+      idDepartamento: deptId || '',
+      idCiudad: cityId || '',
+      idCorregimiento: counter.descripcion?.corregimiento?.id || '',
+      descripcion: counter.descripcion?.descripcion || '',
+      aforosContador: (counter.aforoContador || []).map((a: any) => a.id),
+      aforosContadorData: counter.aforoContador || [],
+    });
+
+    this.isEditCounterModalOpen.set(true);
+  }
+
+  closeEditCounterModal(): void {
+    this.isEditCounterModalOpen.set(false);
+    this.editingCounter.set(null);
+    this.editCounterCities.set([]);
+    this.editCounterCorregimientos.set([]);
+    this.editCounterAforosDropdownOpen.set(false);
+    this.editCounterAforosSearchTerm.set('');
+  }
+
+  saveEditCounter(): void {
+    const counter = this.editingCounter();
+    if (!counter) return;
+
+    const formData = this.editCounterForm.getRawValue();
+    const originalAforosData: any[] = formData.aforosContadorData || [];
+    const currentAforoIds: number[] = formData.aforosContador || [];
+
+    const aforosToDelete = originalAforosData
+      .filter((a: any) => !currentAforoIds.includes(a.id) && a.idAforoContador)
+      .map((a: any) => a.idAforoContador as number);
+
+    const aforosToAdd = currentAforoIds
+      .filter((id: number) => !originalAforosData.some((a: any) => a.id === id))
+      .map((aforoId: number) => ({ idContador: counter.id, idAforo: aforoId }));
+
+    const counterPayload: any = { id: counter.id };
+    if (formData.serial !== undefined) counterPayload.serial = formData.serial;
+    if (formData.tipoContador) counterPayload.idTipoContador = Number(formData.tipoContador);
+    if (formData.tipoUso) counterPayload.idTipoUso = String(formData.tipoUso);
+    if (formData.estadoContador) counterPayload.idEstadoContador = Number(formData.estadoContador);
+    if (formData.estrato) counterPayload.estrato = Number(formData.estrato);
+    if (formData.digitos) counterPayload.digitos = Number(formData.digitos);
+    if (formData.idEmpleadoEmpresa) counterPayload.idEmpleado = Number(formData.idEmpleadoEmpresa);
+    if (formData.idDepartamento) counterPayload.idDepartamento = Number(formData.idDepartamento);
+    if (formData.idCiudad) counterPayload.idCiudad = Number(formData.idCiudad);
+    if (formData.idCorregimiento) counterPayload.idCorregimiento = Number(formData.idCorregimiento);
+    if (formData.descripcion) counterPayload.descripcionDireccion = formData.descripcion;
+
+    const payload: any = {
+      idEmpresaClienteContador: counter.idEmpresaClienteContador,
+      usuarioCambio: this.usuarioModificacion(),
+      contadores: [counterPayload],
+    };
+
+    if (aforosToAdd.length > 0) {
+      payload.aforosContador = aforosToAdd;
+    }
+
+    const requests: Observable<any>[] = aforosToDelete.map((id: number) =>
+      this.counterService.deleteAforoContador(id)
+    );
+    requests.push(this.enterpriseClientCounterService.updateClient(payload));
+
+    forkJoin(requests).subscribe({
+      next: () => {
+        this.toast.success('Éxito', 'Contador actualizado correctamente');
+        this.closeEditCounterModal();
+        this.dataContadores.reload();
+      },
+      error: () => {
+        this.toast.error('Error', 'No se pudo actualizar el contador');
+      },
+    });
+  }
+
+  toggleEditCounterAforosDropdown(): void {
+    this.editCounterAforosDropdownOpen.set(!this.editCounterAforosDropdownOpen());
+    if (!this.editCounterAforosDropdownOpen()) {
+      this.editCounterAforosSearchTerm.set('');
+    }
+  }
+
+  closeEditCounterAforosDropdown(): void {
+    this.editCounterAforosDropdownOpen.set(false);
+    this.editCounterAforosSearchTerm.set('');
+  }
+
+  onEditCounterAforoSelect(aforoId: number): void {
+    const currentAforos: number[] = this.editCounterForm.get('aforosContador')?.value || [];
+    const isSelected = currentAforos.includes(aforoId);
+    const newAforos = isSelected
+      ? currentAforos.filter((id) => id !== aforoId)
+      : [...currentAforos, aforoId];
+    this.editCounterForm.get('aforosContador')?.setValue(newAforos);
+  }
+
+  isEditCounterAforoSelected(aforoId: number): boolean {
+    return (this.editCounterForm.get('aforosContador')?.value || []).includes(aforoId);
+  }
+
+  getEditCounterAforosSelectedCount(): number {
+    return (this.editCounterForm.get('aforosContador')?.value || []).length;
+  }
+
+  getEditCounterFilteredAforos(): any[] {
+    const term = this.editCounterAforosSearchTerm().toLowerCase().trim();
+    const aforos = this.availableAforos();
+    if (!term) return aforos;
+    return aforos.filter((a) => this.getAforoFullInfo(a).toLowerCase().includes(term));
+  }
+
+  onContadoresPaginationChange(params: IPaginationParams): void {
+    this.contadoresPagination.set(params);
+  }
+
+  onContadorTableAction(event: TableAction): void {
+    if (event.action === 'add') {
+      this.openAddCounterModal();
+    }
+  }
 
   openTarifasModal(counterIndex: number): void {
     // Editar tarifas de un contador específico
@@ -1323,24 +1644,33 @@ export class UpdateClient implements OnInit {
       return;
     }
 
-    // Guardar las tarifas seleccionadas para este contador (usa ID, no índice)
-    const currentMap = new Map(this.tarifasPorContador());
-    currentMap.set(contadorId, [...this.tempSelectedTarifas()]);
-    this.tarifasPorContador.set(currentMap);
+    const idEmpresaClienteContador = this.contadorEmpresaClienteMap().get(contadorId);
+    if (!idEmpresaClienteContador) {
+      this.toast.error('Error', 'No se encontró el ID de empresa-cliente-contador');
+      return;
+    }
 
-    // Agregar el ID del contador al Set de contadores modificados
-    const currentSet = new Set(this.contadoresConTarifasModificadas());
-    currentSet.add(contadorId);
-    this.contadoresConTarifasModificadas.set(currentSet);
+    const tarifasContador = this.todasLasTarifas().map((tarifa) => ({
+      idTipoTarifa: tarifa.id,
+      aplica: this.tempSelectedTarifas().includes(tarifa.id),
+    }));
 
-    // Marcar el formulario como modificado
-    this.updateForm.markAsDirty();
+    const payload = {
+      idEmpresaClienteContador,
+      usuarioCambio: this.usuarioModificacion(),
+      tarifasContador,
+    };
 
-    this.closeTarifasModal();
-    this.toast.info(
-      'Información',
-      'Tarifas configuradas. Recuerde guardar los cambios del cliente para aplicarlas',
-    );
+    this.enterpriseClientCounterService.updateClient(payload).subscribe({
+      next: () => {
+        this.toast.success('Éxito', 'Tarifas actualizadas correctamente');
+        this.closeTarifasModal();
+        this.dataContadores.reload();
+      },
+      error: () => {
+        this.toast.error('Error', 'No se pudieron actualizar las tarifas');
+      },
+    });
   }
 
   onTarifaSelect(tarifaId: number): void {
@@ -1569,15 +1899,25 @@ export class UpdateClient implements OnInit {
       // Incluir si está dirty (sin contar aforos) O si es un contador nuevo O si cambió el empleado
       if (!isCounterDirty && !isNewCounter && !isEmpleadoDirty) return;
 
-      // Si es contador nuevo, enviar ID y idEmpleado
+      // Si es contador nuevo, enviar ID y idEmpleado para vincularlo al cliente
       if (isNewCounter) {
-        const payload: any = { id: contador.id };
+        const linkPayload: any = { id: contador.id };
 
         if (contador.idEmpleadoEmpresa) {
-          payload.idEmpleado = Number(contador.idEmpleadoEmpresa);
+          linkPayload.idEmpleado = Number(contador.idEmpleadoEmpresa);
         }
 
-        newCounters.push(payload);
+        newCounters.push(linkPayload);
+
+        // Si además tiene campos sucios (ej. nuid diferente al devuelto por el backend),
+        // incluirlos también como actualización para que sean persistidos
+        if (isCounterDirty) {
+          const updatePayload = this.mapDirtyCounterFields(control, contador);
+          if (Object.keys(updatePayload).length > 1) {
+            modifiedCounters.push(updatePayload);
+          }
+        }
+
         return;
       }
 
@@ -1912,64 +2252,29 @@ export class UpdateClient implements OnInit {
           if (counter && counter.id) {
             this.toast.success('Éxito', 'Contador creado correctamente');
 
-            const newCounter = {
-              id: counter.id,
-              serial: counter.serial || formData.serial,
-              nuid: counter.nuid || null,
-              ruta: counter.ruta || formData.ruta || null,
-              tipoContador: {
-                id: counter.tipoContador?.id,
-                nombre: counter.tipoContador?.nombre,
-              },
-              tipoUso: {
-                id: counter.tipoUso?.id,
-                nombre: counter.tipoUso?.nombre,
-              },
-              estadoContador: counter.estadoContador ? {
-                id: counter.estadoContador?.id,
-                descripcion: counter.estadoContador?.descripcion,
-              } : null,
-              porEstrato: counter.porEstrato || false,
-              estrato: counter.estrato,
-              digitos: counter.digitos || formData.digitos || null,
-              fechaInstalacion: counter.fechaInstalacion || formData.fechaInstalacion || null,
-              activo: counter.activo,
-              isNewCounter: true,
-              aforoContador: [],
-              empleadoEmpresaId: counter.empleadoEmpresaId || formData.idEmpleadoEmpresa || null,
-              descripcion: {
-                id: counter.descripcion?.id,
-                departamento: {
-                  id: counter.descripcion?.departamento?.id,
-                  nombre: counter.descripcion?.departamento?.nombre,
-                },
-                ciudad: {
-                  id: counter.descripcion?.ciudad?.id,
-                  nombre: counter.descripcion?.ciudad?.nombre,
-                },
-                corregimiento: counter.descripcion?.corregimiento
-                  ? {
-                      id: counter.descripcion?.corregimiento?.id,
-                      nombre: counter.descripcion?.corregimiento?.nombre,
-                    }
-                  : null,
-                descripcion: counter.descripcion?.descripcion,
-              },
+            // Vincular el contador al cliente inmediatamente
+            const linkPayload = {
+              idEmpresaClienteContador: this.empresaClienteContadorId(),
+              usuarioCambio: this.usuarioModificacion(),
+              contadoresNuevos: [{
+                id: counter.id,
+                ...(formData.idEmpleadoEmpresa ? { idEmpleado: Number(formData.idEmpleadoEmpresa) } : {}),
+              }],
             };
 
-            const contadorFormGroup = this.createCounterFormGroup(newCounter);
-            this.contadoresFormArray.push(contadorFormGroup);
-            this.contadoresFormArray.markAsDirty();
-            this.updateForm.markAsDirty();
-
-            const newIndex = this.contadoresFormArray.length - 1;
-            this.setupCounterValueChangesForIndex(newIndex);
-
-            this.closeAddCounterModal();
-            this.toast.info(
-              'Información',
-              'Recuerde guardar los cambios del cliente para aplicar el nuevo contador',
-            );
+            this.enterpriseClientCounterService.updateClient(linkPayload).subscribe({
+              next: () => {
+                this.toast.success('Éxito', 'Contador vinculado al cliente correctamente');
+                this.closeAddCounterModal();
+                this.dataContadores.reload();
+              },
+              error: (err) => {
+                const errorMessage = err?.error?.message || 'No se pudo vincular el contador';
+                this.toast.error('Error', errorMessage);
+                this.closeAddCounterModal();
+                this.dataContadores.reload();
+              },
+            });
           } else {
           }
         },

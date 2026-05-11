@@ -137,8 +137,18 @@ import { IClienteKPIResponse } from '@interfaces/IClienteKPIResponse';
           <p class="text-sm/5 text-slate-400">
             {{ kpiData?.titulo || 'Sin datos' }}
           </p>
-          <div class="text-3xl font-extrabold tracking-tight">
-            {{ kpiData?.valor ?? 0 | number }}
+          <div class="flex items-center gap-3">
+            <div class="text-3xl font-extrabold tracking-tight">
+              {{ kpiData?.valor ?? 0 | number }}
+            </div>
+            @if (kpiData?.valorSecundario !== undefined) {
+              <div class="border-l border-slate-600 pl-3">
+                <p class="text-xs text-slate-400">{{ kpiData?.labelSecundario }}</p>
+                <div class="text-xl font-bold tracking-tight text-teal-400">
+                  {{ kpiData?.valorSecundario | number }}
+                </div>
+              </div>
+            }
           </div>
           }
         </div>
@@ -449,6 +459,8 @@ export class KpiCardComponent implements OnInit, OnDestroy {
           descripcion: 'total registrados',
           icono: 'users',
           progreso: Math.min((resumen.clientesActivos / 200) * 100, 100),
+          valorSecundario: resumen.matriculasActivas,
+          labelSecundario: 'Matrículas',
         };
     }
   }
