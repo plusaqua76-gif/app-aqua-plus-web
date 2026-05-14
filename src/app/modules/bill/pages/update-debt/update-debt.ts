@@ -34,6 +34,7 @@ export class UpdateDebt {
   protected isBrowser = isPlatformBrowser(this.platformId);
   protected enterpriseClientCounterService = inject(EnterpriseClientCounterService);
   protected facturaService = inject(FacturaService);
+  protected tipoDeudaService = inject(TipoDeudaService);
 
   id = signal<number>(+this.route.snapshot.paramMap.get('id')!);
 
@@ -84,6 +85,16 @@ export class UpdateDebt {
         })
       );
     }
+  });
+
+  // Lista de tipos de deuda
+  tipodeuda = rxResource({
+    stream: () => this.tipoDeudaService.getAllTipoDeuda().pipe(
+      catchError(error => {
+        console.error('Error loading debt types:', error);
+        return of(null);
+      })
+    )
   });
 
   // Búsqueda de facturas por código
@@ -160,7 +171,7 @@ export class UpdateDebt {
   initializeForm(): void {
     this.registerForm = this.fb.group({
       empresaClienteContador: [null],
-      tipoDeuda: [null],
+      tipoDeudaId: [null],
       factura: [null],
       plazoPago: [null],
       fechaDeuda: [''],
@@ -176,7 +187,7 @@ export class UpdateDebt {
     const plazoPagoValue = data.plazoPago?.nombre || data.plazoPago || 0;
     this.registerForm.patchValue({
       empresaClienteContador: data.empresaClienteContador,
-      tipoDeuda: data.tipoDeuda,
+      tipoDeudaId: data.tipoDeuda?.id ?? null,
       factura: data.factura,
       plazoPago: plazoPagoValue,
       fechaDeuda: fechaFormateada,
@@ -250,10 +261,17 @@ export class UpdateDebt {
       return;
     }
 
+    const tipoDeudaId = this.registerForm.value.tipoDeudaId;
+    if (!tipoDeudaId) {
+      this.toast.error('Error', 'Debe seleccionar un tipo de deuda.');
+      return;
+    }
+
     // Construir el objeto deuda actualizado
     const deuda = {
       ...data,
       empresaClienteContador: { id: contadorSeleccionado.id },
+      tipoDeuda: { id: Number(tipoDeudaId) },
       fechaDeuda: this.registerForm.value.fechaDeuda || data.fechaDeuda,
       valor: parseFloat(this.registerForm.value.valor) || data.valor,
       descripcion: this.registerForm.value.descripcion || data.descripcion,

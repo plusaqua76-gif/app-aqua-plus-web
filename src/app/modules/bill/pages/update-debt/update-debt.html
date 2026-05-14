@@ -121,23 +121,25 @@
           }
         </div>
 
-        <!-- Campo: Tipo de Deuda (solo lectura) -->
+        <!-- Campo: Tipo de Deuda -->
         <div class="md:col-span-2">
           <label for="tipoDeuda" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
             Tipo de Deuda
           </label>
           <div class="relative">
-            <input
-              type="text"
-              [value]="debtData()?.tipoDeuda?.nombre || ''"
-              readonly
-              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
-            />
-            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-            </div>
+            <select
+              id="tipoDeuda"
+              formControlName="tipoDeudaId"
+              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer">
+              <option value="" disabled hidden class="text-gray-400 dark:text-gray-500">
+                @if (tipodeuda.isLoading()) { Cargando tipos de deuda... } @else { Seleccione el tipo de deuda... }
+              </option>
+              @for (tipo of tipodeuda.value()?.response ?? []; track tipo.id) {
+                <option [value]="tipo.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">
+                  {{ tipo.nombre }}
+                </option>
+              }
+            </select>
           </div>
         </div>
 
