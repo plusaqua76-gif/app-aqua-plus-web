@@ -80,7 +80,7 @@
     @if (activeTab() === 'cliente') {
     @if (updateForm && clientData()?.persona && !dataClient.isLoading()) {
     <!-- Formulario -->
-    <form [formGroup]="updateForm" (ngSubmit)="onSubmit()" class="p-6 sm:p-8">
+    <form [formGroup]="updateForm" (ngSubmit)="onSubmit()" class="pt-6 sm:p-8">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Campo: Tipo de Documento -->
 
@@ -827,7 +827,7 @@
 
     @if (activeTab() === 'contadores') {
     <!-- Tab de contadores con tabla -->
-    <div class="p-6 sm:p-8">
+    <div class="pt-0 sm:px-8 sm:pb-8">
 
       <!-- Templates para la tabla de contadores -->
       <ng-template #contadorActionsTemplate let-row>
@@ -912,19 +912,19 @@
         (secondaryButtonAction)="openAssignCounterModal()"
       ></app-table-dynamic>
     </div>
-    } <!-- end @if activeTab === 'contadores' -->
+    }
 
   </div>
 </div>
 
 <!-- Modal para editar contador -->
 @if (isEditCounterModalOpen() && editingCounter()) {
-<div class="fixed inset-0 z-50 overflow-y-auto">
+<div class="fixed inset-0 z-[1000] overflow-y-auto">
   <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" (click)="closeEditCounterModal()"></div>
-  <div class="flex min-h-full items-center justify-center p-4">
-    <div class="relative w-full max-w-4xl bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl">
+  <div class="flex min-h-full items-start justify-center p-4 pt-20">
+    <div class="relative w-full max-w-4xl bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl flex flex-col max-h-[calc(100vh-5.5rem)]">
       <!-- Header del modal -->
-      <div class="flex items-center justify-between p-6 border-b border-white/10 dark:border-slate-700/30">
+      <div class="flex-shrink-0 flex items-center justify-between p-6 border-b border-white/10 dark:border-slate-700/30">
         <h3 class="text-xl font-bold text-gray-700 dark:text-gray-200 flex items-center gap-3">
           <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -938,7 +938,7 @@
         </button>
       </div>
       <!-- Cuerpo del modal -->
-      <div class="p-6" [formGroup]="editCounterForm">
+      <div class="p-6 overflow-y-auto flex-1" [formGroup]="editCounterForm">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
           <!-- Serial -->
@@ -951,6 +951,12 @@
           <div>
             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">NUID</label>
             <input type="number" formControlName="nuid" placeholder="NUID del contador" class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all"/>
+          </div>
+
+          <!-- Ruta -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Ruta</label>
+            <input type="text" formControlName="ruta" placeholder="Ruta del contador" class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all"/>
           </div>
 
           <!-- Tipo Contador -->
@@ -1063,20 +1069,19 @@
                 (click)="toggleEditCounterAforosDropdown()"
                 class="w-full inline-flex items-center justify-between px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all"
               >
-                <span>
-                  @if (getEditCounterAforosSelectedCount() > 0) {
-                    {{ getEditCounterAforosSelectedCount() }} aforo(s) seleccionado(s)
-                  } @else {
-                    <span class="text-gray-400">Seleccionar aforos...</span>
-                  }
+                <span
+                  class="truncate"
+                  [ngClass]="getEditCounterAforosSelectedCount() === 0 ? 'text-gray-400' : 'text-gray-900 dark:text-white'"
+                >
+                  {{ getEditCounterAforosLabel() }}
                 </span>
-                <svg class="w-4 h-4 transition-transform" [class.rotate-180]="editCounterAforosDropdownOpen()" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 shrink-0 ml-2 transition-transform" [class.rotate-180]="editCounterAforosDropdownOpen()" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
                 </svg>
               </button>
 
               @if (editCounterAforosDropdownOpen()) {
-              <div class="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+              <div class="absolute z-[1100] w-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg max-h-60 overflow-y-auto">
                 <div class="p-2 border-b border-gray-200 dark:border-slate-700">
                   <input
                     type="text"
@@ -1087,11 +1092,13 @@
                   />
                 </div>
                 @for (aforo of getEditCounterFilteredAforos(); track aforo.id) {
-                <div
-                  (click)="onEditCounterAforoSelect(aforo.id)"
-                  class="flex items-center gap-2 px-4 py-2.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
-                  [class.bg-blue-50]="isEditCounterAforoSelected(aforo.id)"
-                >
+                  <div
+                    (click)="onEditCounterAforoSelect(aforo.id)"
+                    class="flex items-center gap-2 px-4 py-2.5 cursor-pointer transition-colors"
+                    [ngClass]="isEditCounterAforoSelected(aforo.id)
+                      ? 'bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60'
+                      : 'hover:bg-gray-100 dark:hover:bg-slate-700'"
+                  >
                   <div class="w-4 h-4 rounded border-2 flex items-center justify-center transition-all" [class.bg-blue-500]="isEditCounterAforoSelected(aforo.id)" [class.border-blue-500]="isEditCounterAforoSelected(aforo.id)" [class.border-gray-300]="!isEditCounterAforoSelected(aforo.id)">
                     @if (isEditCounterAforoSelected(aforo.id)) {
                     <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -1113,7 +1120,7 @@
       </div>
 
       <!-- Footer del modal -->
-      <div class="flex justify-end gap-3 p-6 border-t border-white/10 dark:border-slate-700/30">
+      <div class="flex-shrink-0 flex justify-end gap-3 p-6 border-t border-white/10 dark:border-slate-700/30">
         <button type="button" (click)="closeEditCounterModal()" class="px-5 py-2.5 rounded-xl border border-gray-400/30 bg-gray-500/10 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-500/20 transition-all">
           Cancelar
         </button>

@@ -279,9 +279,10 @@ export class UpdateClient implements OnInit {
   searchSerialResult = rxResource({
     params: () => ({
       serial: this.searchSerialValue(),
+      idEmpresa: this.empresaId(),
       isModalOpen: this.isAssignCounterModalOpen(),
     }),
-    stream: ({ params: { serial, isModalOpen } }) => {
+    stream: ({ params: { serial, idEmpresa, isModalOpen } }) => {
       if (!serial || !isModalOpen || serial.length < 3) {
         this.isSearchingCounter.set(false);
         return of(null);
@@ -289,7 +290,7 @@ export class UpdateClient implements OnInit {
 
       this.isSearchingCounter.set(true);
       return this.enterpriseClientCounterService
-        .getClientBySerial(serial)
+        .getClientBySerial(serial,idEmpresa)
         .pipe(
           catchError((error) => {
             console.error('Error buscando contador:', error);
@@ -344,6 +345,8 @@ export class UpdateClient implements OnInit {
         empleadoNombre: c.empleadoNombre || '',
         corregimientoNombre: c.descripcion?.corregimiento?.nombre || '',
         estrato: c.estrato,
+        nuid: c.nuid ?? '',
+        ruta: c.ruta ?? '',
         activo: c.activo,
         _raw: c,
       })),
@@ -352,7 +355,8 @@ export class UpdateClient implements OnInit {
 
   readonly contadorColumns = signal<TableColumn[]>([
     { field: 'serial', header: 'Serial', type: 'text' },
-    { field: 'tipoContadorNombre', header: 'Tipo Contador', type: 'text' },
+    { field: 'nuid', header: 'NUID', type: 'text' },
+    { field: 'ruta', header: 'Ruta', type: 'text' },
     { field: 'estadoNombre', header: 'Estado', type: 'text' },
     { field: 'tipoUsoNombre', header: 'Tipo Uso', type: 'text' },
     { field: 'empleadoNombre', header: 'Empleado', type: 'text' },
@@ -913,6 +917,12 @@ export class UpdateClient implements OnInit {
   }
 
   onSubmit(): void {
+    // Validar formulario antes de continuar
+    if (this.updateForm.invalid) {
+      this.toast.error('Error', 'Por favor corrija los errores del formulario antes de guardar');
+      return;
+    }
+
     // Verificar si hay cambios
     const formDirty = this.updateForm.dirty;
     const tarifasDirty = this.hasTarifasChanged();
@@ -1260,13 +1270,15 @@ export class UpdateClient implements OnInit {
   }
 
   private deleteCounter(index: number, contadorId: number, idEmpresaClienteContador: number): void {
-    if (!idEmpresaClienteContador) {
+    // Fallback al ID de la ruta si el contador no tiene idEmpresaClienteContador propio
+    const eccId = idEmpresaClienteContador || this.empresaClienteContadorId();
+    if (!eccId) {
       this.toast.error('Error', 'No se pudo obtener el ID de empresa-cliente-contador');
       return;
     }
 
     const payload = {
-      idEmpresaClienteContador: idEmpresaClienteContador,
+      idEmpresaClienteContador: eccId,
       usuarioCambio: this.usuarioModificacion(),
       activo: false,
     };
@@ -1386,6 +1398,7 @@ export class UpdateClient implements OnInit {
     this.editCounterForm = this.fb.group({
       serial: [''],
       nuid: [''],
+      ruta: [''],
       tipoContador: [''],
       tipoUso: [''],
       estadoContador: [''],
@@ -1445,9 +1458,15 @@ export class UpdateClient implements OnInit {
       });
     }
 
-    this.editCounterForm.reset({
+    // Reset primero sin emitir eventos para no disparar los valueChanges en cascada
+    this.editCounterForm.reset({}, { emitEvent: false });
+
+    // Luego patchear con emitEvent: false para que las suscripciones a valueChanges
+    // no borren los valores de ciudad/corregimiento recién cargados
+    this.editCounterForm.patchValue({
       serial: counter.serial || '',
       nuid: counter.nuid || '',
+      ruta: counter.ruta || '',
       tipoContador: counter.tipoContador?.id || '',
       tipoUso: counter.tipoUso?.id || '',
       estadoContador: counter.estadoContador?.id || '',
@@ -1461,7 +1480,7 @@ export class UpdateClient implements OnInit {
       descripcion: counter.descripcion?.descripcion || '',
       aforosContador: (counter.aforoContador || []).map((a: any) => a.id),
       aforosContadorData: counter.aforoContador || [],
-    });
+    }, { emitEvent: false });
 
     this.isEditCounterModalOpen.set(true);
   }
@@ -1475,61 +1494,153 @@ export class UpdateClient implements OnInit {
     this.editCounterAforosSearchTerm.set('');
   }
 
-  saveEditCounter(): void {
-    const counter = this.editingCounter();
-    if (!counter) return;
+saveEditCounter(): void {
+  const counter = this.editingCounter();
+  if (!counter) return;
 
-    const formData = this.editCounterForm.getRawValue();
-    const originalAforosData: any[] = formData.aforosContadorData || [];
-    const currentAforoIds: number[] = formData.aforosContador || [];
+  const formData = this.editCounterForm.getRawValue();
 
-    const aforosToDelete = originalAforosData
-      .filter((a: any) => !currentAforoIds.includes(a.id) && a.idAforoContador)
-      .map((a: any) => a.idAforoContador as number);
+  const originalAforosData: any[] = formData.aforosContadorData || [];
+  const currentAforoIds: number[] = formData.aforosContador || [];
 
-    const aforosToAdd = currentAforoIds
-      .filter((id: number) => !originalAforosData.some((a: any) => a.id === id))
-      .map((aforoId: number) => ({ idContador: counter.id, idAforo: aforoId }));
+  const aforosToDelete = originalAforosData
+    .filter((a: any) => !currentAforoIds.includes(a.id) && a.idAforoContador)
+    .map((a: any) => a.idAforoContador as number);
 
-    const counterPayload: any = { id: counter.id };
-    if (formData.serial !== undefined) counterPayload.serial = formData.serial;
-    if (formData.tipoContador) counterPayload.idTipoContador = Number(formData.tipoContador);
-    if (formData.tipoUso) counterPayload.idTipoUso = String(formData.tipoUso);
-    if (formData.estadoContador) counterPayload.idEstadoContador = Number(formData.estadoContador);
-    if (formData.estrato) counterPayload.estrato = Number(formData.estrato);
-    if (formData.digitos) counterPayload.digitos = Number(formData.digitos);
-    if (formData.idEmpleadoEmpresa) counterPayload.idEmpleado = Number(formData.idEmpleadoEmpresa);
-    if (formData.idDepartamento) counterPayload.idDepartamento = Number(formData.idDepartamento);
-    if (formData.idCiudad) counterPayload.idCiudad = Number(formData.idCiudad);
-    if (formData.idCorregimiento) counterPayload.idCorregimiento = Number(formData.idCorregimiento);
-    if (formData.descripcion) counterPayload.descripcionDireccion = formData.descripcion;
+  const aforosToAdd = currentAforoIds
+    .filter((id: number) => !originalAforosData.some((a: any) => a.id === id))
+    .map((aforoId: number) => ({ idContador: counter.id, idAforo: aforoId }));
 
+  // Detectar cambio de empleado por separado (NO va dentro de contadores[])
+  const empleadoVal = formData.idEmpleadoEmpresa;
+  const empleadoCambio =
+    empleadoVal && Number(empleadoVal) !== (counter.empleadoEmpresaId ?? null)
+      ? Number(empleadoVal)
+      : null;
+
+  // Build payload comparando SOLO campos cambiados contra los valores originales
+  // SIN incluir el empleado (se maneja aparte)
+  const counterPayload: any = { id: counter.id };
+
+  const orig = counter;
+
+  const serialVal = formData.serial;
+  if (serialVal !== null && serialVal !== undefined && serialVal !== '' && serialVal !== (orig.serial || '')) {
+    counterPayload.serial = serialVal;
+  }
+
+  const nuidVal = formData.nuid;
+  if (nuidVal !== null && nuidVal !== undefined && nuidVal !== '' && Number(nuidVal) !== (orig.nuid ?? null)) {
+    counterPayload.nuid = Number(nuidVal);
+  }
+
+  const rutaVal = formData.ruta;
+  if (rutaVal !== null && rutaVal !== undefined && rutaVal !== '' && rutaVal !== (orig.ruta || '')) {
+    counterPayload.ruta = rutaVal;
+  }
+
+  const tipoContadorVal = formData.tipoContador;
+  if (tipoContadorVal && Number(tipoContadorVal) !== (orig.tipoContador?.id ?? null)) {
+    counterPayload.idTipoContador = Number(tipoContadorVal);
+  }
+
+  const tipoUsoVal = formData.tipoUso;
+  if (tipoUsoVal && Number(tipoUsoVal) !== (orig.tipoUso?.id ?? null)) {
+    counterPayload.idTipoUso = Number(tipoUsoVal);
+  }
+
+  const estadoVal = formData.estadoContador;
+  if (estadoVal && Number(estadoVal) !== (orig.estadoContador?.id ?? null)) {
+    counterPayload.idEstadoContador = Number(estadoVal);
+  }
+
+  const estratoVal = formData.estrato;
+  if (
+    estratoVal !== null && estratoVal !== undefined && estratoVal !== '' &&
+    Number(estratoVal) >= 1 && Number(estratoVal) <= 6 &&
+    Number(estratoVal) !== (orig.estrato ?? null)
+  ) {
+    counterPayload.estrato = Number(estratoVal);
+  }
+
+  const digitosVal = formData.digitos;
+  if (digitosVal !== null && digitosVal !== undefined && digitosVal !== '' && Number(digitosVal) !== (orig.digitos ?? null)) {
+    counterPayload.digitos = Number(digitosVal);
+  }
+
+  const deptVal = formData.idDepartamento;
+  if (deptVal && Number(deptVal) !== (orig.descripcion?.departamento?.id ?? null)) {
+    counterPayload.idDepartamento = Number(deptVal);
+  }
+
+  const cityVal = formData.idCiudad;
+  if (cityVal && Number(cityVal) !== (orig.descripcion?.ciudad?.id ?? null)) {
+    counterPayload.idCiudad = Number(cityVal);
+  }
+
+  const corrVal = formData.idCorregimiento;
+  if (corrVal && Number(corrVal) !== (orig.descripcion?.corregimiento?.id ?? null)) {
+    counterPayload.idCorregimiento = Number(corrVal);
+  }
+
+  const descVal = formData.descripcion;
+  if (descVal !== null && descVal !== undefined && descVal !== '' && descVal !== (orig.descripcion?.descripcion || '')) {
+    counterPayload.descripcionDireccion = descVal;
+  }
+
+  const hasCounterChanges = Object.keys(counterPayload).length > 1;
+  const hasAforoChanges = aforosToDelete.length > 0 || aforosToAdd.length > 0;
+  const hasEmpleadoChange = empleadoCambio !== null;
+
+  if (!hasCounterChanges && !hasAforoChanges && !hasEmpleadoChange) {
+    this.toast.info('Información', 'No hay cambios para guardar');
+    this.closeEditCounterModal();
+    return;
+  }
+
+  const requests: Observable<any>[] = aforosToDelete.map((id: number) =>
+    this.counterService.deleteAforoContador(id)
+  );
+
+  // Payload para campos del contador y/o aforos nuevos
+  if (hasCounterChanges || aforosToAdd.length > 0) {
     const payload: any = {
       idEmpresaClienteContador: counter.idEmpresaClienteContador,
       usuarioCambio: this.usuarioModificacion(),
-      contadores: [counterPayload],
     };
+
+    if (hasCounterChanges) {
+      payload.contadores = [counterPayload];
+    }
 
     if (aforosToAdd.length > 0) {
       payload.aforosContador = aforosToAdd;
     }
 
-    const requests: Observable<any>[] = aforosToDelete.map((id: number) =>
-      this.counterService.deleteAforoContador(id)
-    );
     requests.push(this.enterpriseClientCounterService.updateClient(payload));
-
-    forkJoin(requests).subscribe({
-      next: () => {
-        this.toast.success('Éxito', 'Contador actualizado correctamente');
-        this.closeEditCounterModal();
-        this.dataContadores.reload();
-      },
-      error: () => {
-        this.toast.error('Error', 'No se pudo actualizar el contador');
-      },
-    });
   }
+
+  // Payload correcto para empleado: va a nivel raíz, NO dentro de contadores[]
+  if (hasEmpleadoChange) {
+    const empleadoPayload = {
+      idEmpresaClienteContador: counter.idEmpresaClienteContador,
+      usuarioCambio: this.usuarioModificacion(),
+      idEmpleadoEmpresa: empleadoCambio,
+    };
+    requests.push(this.enterpriseClientCounterService.updateClient(empleadoPayload));
+  }
+
+  forkJoin(requests).subscribe({
+    next: () => {
+      this.toast.success('Éxito', 'Contador actualizado correctamente');
+      this.closeEditCounterModal();
+      this.dataContadores.reload();
+    },
+    error: () => {
+      this.toast.error('Error', 'No se pudo actualizar el contador');
+    },
+  });
+}
 
   toggleEditCounterAforosDropdown(): void {
     this.editCounterAforosDropdownOpen.set(!this.editCounterAforosDropdownOpen());
@@ -1823,8 +1934,8 @@ export class UpdateClient implements OnInit {
         ].includes(payloadKey)
       ) {
         payload[payloadKey] = value ? Number(value) : null;
-      } else {
-        payload[payloadKey] = value || '';
+      } else if (value !== null && value !== undefined && value !== '') {
+        payload[payloadKey] = value;
       }
     });
 
@@ -1838,7 +1949,7 @@ export class UpdateClient implements OnInit {
       'activo': { backendKey: 'activo' },
       'serial': { backendKey: 'serial' },
       'tipoContador': { backendKey: 'idTipoContador', transform: (val) => Number(val) },
-      'tipoUso': { backendKey: 'idTipoUso', transform: (val) => String(val) },
+      'tipoUso': { backendKey: 'idTipoUso', transform: (val) => Number(val) },
       'estadoContador': { backendKey: 'idEstadoContador', transform: (val) => Number(val) },
       'estrato': { backendKey: 'estrato', transform: (val) => Number(val) },
       'digitos': { backendKey: 'digitos', transform: (val) => Number(val) },
@@ -1863,7 +1974,10 @@ export class UpdateClient implements OnInit {
       if (key === 'descripcion' && fieldControl instanceof FormGroup) {
         const descripcionControl = fieldControl.get('descripcion');
         if (descripcionControl?.dirty) {
-          payload['descripcionDireccion'] = descripcionControl.value;
+          const descValue = descripcionControl.value;
+          if (descValue !== null && descValue !== undefined && descValue !== '') {
+            payload['descripcionDireccion'] = descValue;
+          }
         }
         return;
       }
@@ -1873,7 +1987,9 @@ export class UpdateClient implements OnInit {
 
         if (mapping) {
           const value = fieldControl.value;
-          payload[mapping.backendKey] = mapping.transform ? mapping.transform(value) : value;
+          if (value !== null && value !== undefined && value !== '') {
+            payload[mapping.backendKey] = mapping.transform ? mapping.transform(value) : value;
+          }
         }
       }
     });
@@ -2595,4 +2711,16 @@ getAforoNameById(aforoId: number): string {
     }
     return 'Gestionar Tarifas del Cliente';
   }
+
+
+
+getEditCounterAforosLabel(): string {
+  const selectedIds: number[] = this.editCounterForm.get('aforosContador')?.value || [];
+  if (selectedIds.length === 0) return 'Seleccionar aforos...';
+  if (selectedIds.length === 1) {
+    const aforo = this.availableAforos().find(a => a.id === selectedIds[0]);
+    return aforo ? this.getAforoFullInfo(aforo) : '1 aforo seleccionado';
+  }
+  return `${selectedIds.length} aforos seleccionados`;
+}
 }

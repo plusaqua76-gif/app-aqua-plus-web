@@ -34,10 +34,11 @@ export class EnterpriseClientCounterService {
   }
 
   getClientBySerial(
-    serial: string
+    serial: string,
+    idEmpresa: number
   ): Observable<ApiResponse<any>> {
     return this.http.get<ApiResponse<any>>(
-      `${environment.apiUrl}/contador/serial?serial=${serial}`
+      `${environment.apiUrl}/contador/serial?serial=${serial}/idEmpresa=${idEmpresa}`
     );
   }
 
@@ -194,10 +195,28 @@ export class EnterpriseClientCounterService {
       .set('page', params.page.toString())
       .set('size', params.size.toString());
 
-    if (params.filters?.['serial']) {
-      httpParams = httpParams.set('numeroContador', params.filters['serial']);
+    const filterMap: Record<string, string> = {
+      serial: 'numeroContador',
+      nuid: 'nuid',
+      ruta: 'ruta',
+      tipoContadorNombre: 'tipoContador',
+      estadoNombre: 'estado',
+      tipoUsoNombre: 'tipoUso',
+      empleadoNombre: 'empleado',
+      corregimientoNombre: 'corregimiento',
+      estrato: 'estrato',
+    };
+
+    if (params.filters) {
+      Object.entries(params.filters).forEach(([key, value]) => {
+        const backendKey = filterMap[key];
+        if (backendKey && value?.toString().trim()) {
+          httpParams = httpParams.set(backendKey, value.toString().trim());
+        }
+      });
     }
 
     return this.http.get<any>(`${this.apiUrl}/${id}/contadores`, { params: httpParams });
   }
+
 }
