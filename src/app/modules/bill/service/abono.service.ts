@@ -27,6 +27,18 @@ export interface IAbonoMultiple {
   items: IAbonoItem[]
 }
 
+export interface IAbonoFacturaPayload {
+  valor: number,
+  usuarioCreacion: string,
+  plazoPago?: number,
+  factura: {
+    id: number,
+    estado: {
+      id: number
+    }
+  }
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -81,6 +93,13 @@ export class AbonoService {
 
     saveAbonoMultiple(abonoMultiple: IAbonoMultiple): Observable<ApiResponse<any>> {
         return this.http.post<ApiResponse<any>>(`${this.apiUrl}`, abonoMultiple)
+    }
+
+    saveAbonoFactura(payload: IAbonoFacturaPayload): Observable<ApiResponse<any>> {
+        const url = `${environment.apiUrl}/abono-factura`;
+        return this.http.post<ApiResponse<any>>(url, payload).pipe(
+            catchError(this.handleError)
+        );
     }
 
     /**

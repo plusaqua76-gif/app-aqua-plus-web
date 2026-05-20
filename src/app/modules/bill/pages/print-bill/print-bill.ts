@@ -27,11 +27,12 @@ import {
   IAbonoMassive,
   IAbonoMultiple,
   IAbonoItem,
+  IAbonoFacturaPayload,
 } from '../../service/abono.service';
 import { TipoDeudaService } from '../../service/tipoDeuda.service';
 import { FacturaService } from '../../service/factura.service';
 import { PopupComponent } from '@shared/components/popUp';
-import { IAbonoFactura, IDeudaCliente } from '@interfaces/IdeudaFactura';
+import { IAbonoFactura } from '@interfaces/IdeudaFactura';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY, of, catchError } from 'rxjs';
 import { ColombianCurrencyPipe } from '@shared/pipes/colombian-currency.pipe';
@@ -490,7 +491,56 @@ return valor || 0;
       return;
     }
 
-    // Determinar el nuevo estado basado en el tipo de pago
+    // Flujo de pago parcial: consumir el nuevo endpoint /api/v1/abono-factura
+    if (this.tipoPago === 'parcial') {
+      if (!this.valorPago || this.valorPago <= 0) {
+        this.toast.error('Error', 'El valor del abono debe ser mayor a 0');
+        this.procesandoPago.set(false);
+        return;
+      }
+      if (this.valorPago > this.valorFactura()) {
+        this.toast.error(
+          'Error',
+          'El valor del abono no puede superar el saldo pendiente de la factura'
+        );
+        this.procesandoPago.set(false);
+        return;
+      }
+
+      const payload: IAbonoFacturaPayload = {
+        valor: this.valorPago,
+        usuarioCreacion: this.nombreUsuario() || 'Sistema',
+        plazoPago: 1,
+        factura: {
+          id: billId,
+          estado: { id: 17 },
+        },
+      };
+
+      this.abonoService.saveAbonoFactura(payload).subscribe({
+        next: () => {
+          this.toast.success(
+            'Abono Registrado',
+            `Abono parcial de $${montoPagado.toLocaleString('es-CO')} registrado correctamente`
+          );
+          this.billDetails.reload?.();
+          this.clienteDeudas.reload?.();
+          this.procesandoPago.set(false);
+          this.closeConfirmPagoPopup();
+        },
+        error: () => {
+          this.toast.error(
+            'Error al registrar abono',
+            'No se pudo registrar el abono parcial. Intente nuevamente.'
+          );
+          this.procesandoPago.set(false);
+          this.closeConfirmPagoPopup();
+        },
+      });
+      return;
+    }
+
+    // Flujo de pago total: actualizar estado de la factura
     const estados = this.getStatus.value()?.response;
     let nuevoEstadoId = null;
 
@@ -502,11 +552,7 @@ return valor || 0;
           )
         );
 
-      const estadoEncontrado =
-        this.tipoPago === 'total'
-          ? buscarPorNombre(['pagada', 'pago', 'cancelada'])
-          : buscarPorNombre(['parcial', 'abono']);
-
+      const estadoEncontrado = buscarPorNombre(['pagada', 'pago', 'cancelada']);
       nuevoEstadoId = estadoEncontrado?.id;
     }
 
@@ -526,15 +572,7 @@ return valor || 0;
     this.facturaService
       .updateStatusBill(billId, nuevoEstadoId, nuevoEstadoNombre)
       .subscribe({
-        next: (response) => {
-          if (
-            this.tipoPago === 'parcial' &&
-            this.valorPago !== null &&
-            this.valorPago < this.valorFactura()
-          ) {
-            this.crearDeudaPorDiferencia();
-          }
-
+        next: () => {
           // Registrar abono por cada deuda usando capitalPorCuota del detalle de factura
           const deudasFactura = this.billDetails.value()?.response?.deudaCliente ?? [];
           const usuario = this.nombreUsuario() || 'Sistema';
@@ -566,12 +604,11 @@ return valor || 0;
             )} registrado correctamente. Estado actualizado a: ${nuevoEstadoNombre}`
           );
 
-          // Recargar datos después del pago exitoso
           this.billDetails.reload?.();
           this.procesandoPago.set(false);
           this.closeConfirmPagoPopup();
         },
-        error: (error) => {
+        error: () => {
           this.toast.error(
             'Error al confirmar pago',
             'No se pudo actualizar el estado de la factura. Intente nuevamente.'
@@ -1175,81 +1212,6 @@ return valor || 0;
           'No se pudo registrar el abono. Intente más tarde.'
         );
         this.procesandoAbono.set(false);
-      },
-    });
-  }
-
-  private crearDeudaPorDiferencia(): void {
-    if (this.valorPago === null) return;
-    const diferencia = this.valorFactura() - this.valorPago;
-    if (diferencia <= 0) return;
-    this.crearNuevaDeuda(diferencia);
-  }
-
-  private crearNuevaDeuda(diferencia: number): void {
-    const billDetails = this.billDetails.value()?.response;
-    if (!billDetails) {
-      this.toast.error('Error', 'No se encontró información de la factura');
-      return;
-    }
-
-    const tiposDeuda = this.tiposDeuda.value()?.response;
-    const tipoDeudaFacturaVencida =
-      tiposDeuda?.find(
-        (tipo) =>
-          tipo.nombre.toLowerCase().includes('factura') ||
-          tipo.nombre.toLowerCase().includes('vencida')
-      ) || tiposDeuda?.[0];
-
-    if (!tipoDeudaFacturaVencida) {
-      this.toast.error('Error', 'No se encontró tipo de deuda disponible');
-      return;
-    }
-
-    // Obtener el primer plazo de pago disponible
-    const plazoPagos = this.plazoPagos.value()?.response;
-    const plazoPagoDefault = plazoPagos?.[0];
-
-    if (!plazoPagoDefault) {
-      this.toast.error('Error', 'No se encontró plazo de pago disponible');
-      return;
-    }
-
-    const empresaClienteContadorId = this.empresaClienteContadorId();
-    if (!empresaClienteContadorId) {
-      this.toast.error('Error', 'No se encontró información del cliente');
-      return;
-    }
-
-    const deuda: Partial<IDeudaCliente> = {
-      fechaDeuda: new Date(),
-      valor: diferencia, // Enviar como número, no string
-      descripcion: `Deuda por saldo pendiente de factura tras pago parcial. Valor adeudado: $${diferencia.toLocaleString(
-        'es-CO'
-      )}`,
-      activo: true,
-      factura: { id: Number(this.route.snapshot.paramMap.get('id')) },
-      empresaClienteContador: { id: empresaClienteContadorId },
-      tipoDeuda: { id: tipoDeudaFacturaVencida.id },
-      plazoPago: plazoPagoDefault.id,
-      usuarioCreacion: this.nombreUsuario()
-    };
-
-    this.deudaService.saveDeuda(deuda as IDeudaCliente).subscribe({
-      next: (response) => {
-        this.toast.success(
-          'Nueva Deuda Registrada',
-          `Se registró una nueva deuda de $${diferencia.toLocaleString(
-            'es-CO'
-          )} por el saldo pendiente de la factura`
-        );
-        this.clienteDeudas.reload?.();
-      },
-      error: (error) => {
-        this.toast.error(
-          'Error al crear deuda',
-          'No se pudo crear la deuda por el saldo pendiente. La operación continuará sin crear la deuda.'
-        );
       },
     });
   }
