@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import {
-  Colilla,
+  ColillasPayload,
   ApiResponseValidacionColillas,
 } from '@interfaces/bill/colilla';
 import { Observable } from 'rxjs';
@@ -15,18 +15,18 @@ export class FacturaColillasPagosService {
   readonly baseUrl = environment.apiUrl;
 
   getValidationsBill(
-    data: Colilla[],
+    payload: ColillasPayload,
   ): Observable<ApiResponseValidacionColillas> {
     return this.http.post<ApiResponseValidacionColillas>(
       `${this.baseUrl}/factura/validar-pagos`,
-      data,
+      payload,
     );
   }
 
-  processPayments(data: Colilla[]): Observable<ApiResponseValidacionColillas> {
+  processPayments(payload: ColillasPayload): Observable<ApiResponseValidacionColillas> {
     return this.http.post<ApiResponseValidacionColillas>(
       `${this.baseUrl}/factura/procesar-pagos`,
-      data,
+      payload,
     );
   }
 }
