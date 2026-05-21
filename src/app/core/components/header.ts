@@ -22,7 +22,8 @@ import * as XLSX from 'xlsx';
 import { PopupComponent } from '@shared/components/popUp';
 import { FacturaColillasPagosService } from '@services/factura-colillas-pagos.service';
 import {
-  Colilla,
+  PagoItem,
+  ColillasPayload,
   ApiResponseValidacionColillas,
   DetalleValidacionColilla,
 } from '@interfaces/bill/colilla';
@@ -824,7 +825,7 @@ export class Header {
 
   // Para el popup de confirmación de procesamiento
   isConfirmProcessPopupOpen = signal<boolean>(false);
-  colillasToProcess = signal<Colilla[]>([]);
+  colillasToProcess = signal<PagoItem[]>([]);
 
   // Para el resultado del procesamiento
   isProcessResultPopupOpen = signal<boolean>(false);
@@ -947,21 +948,22 @@ export class Header {
       return;
     }
 
+    const sessionData = this.userData();
+    const idEmpresa = Number(sessionData?.empresaId ?? 0);
+    const usuarioCreacion: string = sessionData?.nombre ?? '';
 
-    const colillas: Colilla[] = data.map((row: any) => ({
-      idEmpresa: Number(row.idEmpresa || row.IdEmpresa || 0),
-      idFactura: Number(row.idFactura || row.IdFactura || 0),
-      valorFactura: Number(row.valorFactura || row.ValorFactura || 0),
-      fechaVencimiento: row.fechaVencimiento || row.FechaVencimiento || '',
-      valorPago: Number(row.valorPago || row.ValorPago || 0),
+    const pagos: PagoItem[] = data.map((row: any) => ({
+      idFactura: Number(row.idFactura || row.IdFactura || row.IDFACTURA || 0),
+      valorPago: Number(row.valorPago || row.ValorPago || row.VALORPAGO || 0),
     }));
 
-
-    this.colillasToProcess.set(colillas);
+    this.colillasToProcess.set(pagos);
     this.isValidationPopupOpen.set(true);
     this.validationResult.set(null);
 
-    this.colillasService.getValidationsBill(colillas).subscribe({
+    const payload: ColillasPayload = { idEmpresa, usuarioCreacion, pagos };
+
+    this.colillasService.getValidationsBill(payload).subscribe({
       next: (response) => {
         this.validationResult.set(response);
       },
@@ -995,19 +997,25 @@ export class Header {
   }
 
   confirmProcessPayments(): void {
-    const colillas = this.colillasToProcess();
+    const pagos = this.colillasToProcess();
 
-    if (!colillas || colillas.length === 0) {
+    if (!pagos || pagos.length === 0) {
       console.error('No hay colillas para procesar');
       return;
     }
+
+    const sessionData = this.userData();
+    const payload: ColillasPayload = {
+      idEmpresa: Number(sessionData?.empresaId ?? 0),
+      usuarioCreacion: sessionData?.nombre ?? '',
+      pagos,
+    };
 
     this.isConfirmProcessPopupOpen.set(false);
     this.isProcessResultPopupOpen.set(true);
     this.processResult.set(null);
 
-
-    this.colillasService.processPayments(colillas).subscribe({
+    this.colillasService.processPayments(payload).subscribe({
       next: (response) => {
         this.processResult.set(response);
       },

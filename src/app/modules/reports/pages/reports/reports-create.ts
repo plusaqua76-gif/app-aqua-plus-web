@@ -714,38 +714,26 @@ export class ReportsCreate {
       const firstRow = response.rows[0];
       const fieldKeys = Object.keys(firstRow);
 
-      const filteredHeaders = response.headers.filter(
-        (header: string) => !excludedHeaders.includes(header)
-      );
-
-      columns = filteredHeaders.map((header: string) => {
-        const normalizedField = header
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .replace(/\s+/g, '_');
-
-        const matchingField = fieldKeys.find((field) => {
-          const normalizedKey = field
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .replace(/\s+/g, '_');
-          return (
-            normalizedKey === normalizedField ||
-            normalizedKey.includes(normalizedField) ||
-            normalizedField.includes(normalizedKey)
-          );
-        });
-
-        const finalField = matchingField || normalizedField;
-
-        return {
-          field: finalField,
-          header: String(header),
-          type: 'text' as const,
-        };
-      });
+      columns = (response.headers as string[])
+        .map((header: string, index: number) => {
+          if (excludedHeaders.includes(header)) return null;
+          const field =
+            fieldKeys[index] ??
+            header
+              .toLowerCase()
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .replace(/\s+/g, '_');
+          return {
+            field,
+            header: String(header),
+            type: 'text' as const,
+          };
+        })
+        .filter(
+          (col): col is { field: string; header: string; type: 'text' } =>
+            col !== null
+        );
     } else {
       const firstRow = response.rows[0];
       const fieldKeys = Object.keys(firstRow);

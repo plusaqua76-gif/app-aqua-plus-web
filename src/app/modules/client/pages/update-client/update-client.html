@@ -1,4 +1,4 @@
-<!-- Formulario de edición de cliente con estilos consistentes con la tabla -->
+﻿<!-- Formulario de edición de cliente con estilos consistentes con la tabla -->
 <div class="px-4 sm:px-6 lg:px-8 py-6">
   <!-- Header con estilo similar al de la tabla -->
   <div class="mb-6">
@@ -33,13 +33,54 @@
     </div>
   </div>
 
+    <!-- Navegación por tabs -->
+    <div class="flex px-6 pt-6 pb-0 dark:border-slate-700/30">
+      <button
+        type="button"
+        (click)="activeTab.set('cliente')"
+        class="relative px-5 py-2.5 text-sm font-semibold rounded-t-xl border transition-all duration-300 focus:outline-none overflow-hidden group"
+        [ngClass]="activeTab() === 'cliente'
+          ? 'bg-gradient-to-br from-blue-500/20 to-blue-600/30 border-blue-500/50 text-blue-600 dark:text-blue-300 backdrop-blur-md shadow-lg shadow-blue-500/10'
+          : 'bg-white/5 dark:bg-slate-800/20 border-white/10 dark:border-slate-700/30 text-gray-500 dark:text-gray-400 hover:bg-white/10 dark:hover:bg-slate-700/30 hover:text-gray-700 dark:hover:text-gray-200 backdrop-blur-sm'"
+      >
+        <span class="relative z-10 flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+          Información del Cliente
+        </span>
+        @if (activeTab() === 'cliente') {
+          <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full"></span>
+        }
+      </button>
+      <button
+        type="button"
+        (click)="activeTab.set('contadores')"
+        class="relative px-5 py-2.5 text-sm font-semibold rounded-t-xl border transition-all duration-300 focus:outline-none overflow-hidden group"
+        [ngClass]="activeTab() === 'contadores'
+          ? 'bg-gradient-to-br from-blue-500/20 to-blue-600/30 border-blue-500/50 text-blue-600 dark:text-blue-300 backdrop-blur-md shadow-lg shadow-blue-500/10'
+          : 'bg-white/5 dark:bg-slate-800/20 border-white/10 dark:border-slate-700/30 text-gray-500 dark:text-gray-400 hover:bg-white/10 dark:hover:bg-slate-700/30 hover:text-gray-700 dark:hover:text-gray-200 backdrop-blur-sm'"
+      >
+        <span class="relative z-10 flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+          </svg>
+          Contadores
+        </span>
+        @if (activeTab() === 'contadores') {
+          <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full"></span>
+        }
+      </button>
+    </div>
+
   <!-- Contenedor principal con estilo glassmorphism similar a la tabla -->
   <div
-    class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30"
+    class="relative shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30"
   >
-    @if (updateForm && clientData() && !dataClient.isLoading()) {
+    @if (activeTab() === 'cliente') {
+    @if (updateForm && clientData()?.persona && !dataClient.isLoading()) {
     <!-- Formulario -->
-    <form [formGroup]="updateForm" (ngSubmit)="onSubmit()" class="p-6 sm:p-8">
+    <form [formGroup]="updateForm" (ngSubmit)="onSubmit()" class="pt-6 sm:p-8">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Campo: Tipo de Documento -->
 
@@ -689,787 +730,6 @@
         </div>
       </div> -->
 
-      <!-- Sección de Contadores -->
-      @if (clientData()?.contadores) {
-      <div class="mt-8">
-        <div class="mb-6 pb-4 border-b border-white/10 dark:border-slate-700/30 flex items-center justify-between">
-          <div>
-            <h2 class="text-xl font-bold text-gray-700 dark:text-gray-200 flex items-center gap-3">
-              <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
-              </svg>
-              Información de Contadores
-            </h2>
-            <!-- <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              Contadores asociados a este cliente ({{ clientData()?.contadores.length }} contador{{ clientData()?.contadores.length === 1 ? '' : 'es' }})
-            </p> -->
-          </div>
-
-          <!-- Botones para agregar contadores -->
-          <div class="flex items-center gap-3">
-            <button
-              type="button"
-              (click)="openAssignCounterModal()"
-              class="flex items-center gap-2 px-4 py-2 rounded-xl border border-green-500/50 bg-green-500/10 backdrop-blur-md text-green-600 dark:text-green-400 hover:bg-green-500/20 hover:border-green-500/70 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all duration-300"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-              </svg>
-              Asignar Contador Existente
-            </button>
-
-            <button
-              type="button"
-              (click)="openAddCounterModal()"
-              class="flex items-center gap-2 px-4 py-2 rounded-xl border border-blue-500/50 bg-blue-500/10 backdrop-blur-md text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 hover:border-blue-500/70 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-              </svg>
-              Crear Contador
-            </button>
-          </div>
-        </div>
-
-        <div class="space-y-6" formArrayName="contadores">
-          @for (contadorControl of contadoresFormArray.controls; track contadorControl.value.id; let i = $index) {
-          <div class="relative p-6 rounded-xl border border-white/20 dark:border-slate-700/30 bg-white/10 dark:bg-slate-800/20 backdrop-blur-md" [formGroupName]="i">
-            <!-- Header del contador -->
-            <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/10 dark:border-slate-700/30">
-              <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
-                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-                </svg>
-                Contador Serial: {{ contadorControl.value.serial || 'Sin serial' }}
-              </h3>
-              <div class="flex items-center gap-2">
-                @if (contadorControl.value.activo) {
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                  <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                  </svg>
-                  Activo
-                </span>
-                } @else {
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-                  <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                  </svg>
-                  Inactivo
-                </span>
-                }
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <!-- Serial del Contador -->
-              <div>
-                <label for="serial_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Serial del Contador
-                </label>
-                <div class="relative">
-                  <input
-                    type="text"
-                    id="serial_{{i}}"
-                    formControlName="serial"
-                    placeholder="Ingrese el serial"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
-                  />
-                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
-                    </svg>
-                  </div>
-                </div>
-                @if (contadorControl.get('serial')?.invalid && contadorControl.get('serial')?.touched) {
-                <p class="text-red-500 text-sm mt-1">El serial es requerido</p>
-                }
-              </div>
-
-              <!-- NUID del Contador -->
-              <div>
-                <label for="nuid_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  NUID
-                </label>
-                <div class="relative">
-                  <input
-                    type="number"
-                    id="nuid_{{i}}"
-                    formControlName="nuid"
-                    placeholder="NUID del contador"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
-                  />
-                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Estado del Contador -->
-              <div>
-                <label for="estadoContador_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Estado del Contador
-                </label>
-                <div class="relative">
-                  <select
-                    id="estadoContador_{{i}}"
-                    formControlName="estadoContador"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
-                  >
-                    <option value="">Seleccione un estado (opcional)</option>
-                    @for (estado of availableStatusCounter(); track estado.id) {
-                    <option
-                      [value]="estado.id"
-                      class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
-                    >
-                      {{ estado.descripcion }}
-                    </option>
-                    }
-                  </select>
-                </div>
-              </div>
-
-              <!-- Tipo de Contador -->
-              <div>
-                <label for="tipoContador_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Tipo de Contador
-                </label>
-                <div class="relative">
-                  <select
-                    id="tipoContador_{{i}}"
-                    formControlName="tipoContador"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
-                    required
-                  >
-                    <option value="" disabled>Seleccione tipo de contador</option>
-                    @for (tipo of loadTypeCounter.value()?.response ; track $index) {
-                    <option
-                      [value]="tipo.id"
-                      class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
-                    >
-                      {{ tipo.nombre }}
-                    </option>
-                    }
-                  </select>
-                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-                    </svg>
-                  </div>
-                </div>
-                @if (contadorControl.get('tipoContador')?.invalid && contadorControl.get('tipoContador')?.touched) {
-                <p class="text-red-500 text-sm mt-1">El tipo de contador es requerido</p>
-                }
-              </div>
-
-              <!-- Aforo del Contador (Multiselect) -->
-                            <div>
-                <label
-                  for="tipoUso_{{i}}"
-                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
-                >
-                  Tipo Uso
-                </label>
-                <select
-                  id="tipoUso_{{i}}"
-                  formControlName="tipoUso"
-                  class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
-                >
-                  <option value="" disabled>Seleccione tipo de uso</option>
-                  @for (tipo of typeUseData(); track $index) {
-                  <option
-                    [value]="tipo.id"
-                    class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
-                  >
-                    {{ tipo.nombre }}
-                  </option>
-                  }
-                </select>
-              </div>
-
-              <!-- Fecha de Instalación -->
-              <div>
-                <label for="fechaInstalacion_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Fecha de Instalación
-                </label>
-                <div class="relative">
-                  <input
-                    type="date"
-                    id="fechaInstalacion_{{i}}"
-                    formControlName="fechaInstalacion"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
-                  />
-                </div>
-              </div>
-
-              <!-- Estrato -->
-              <div>
-                <label for="estrato_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Estrato
-                </label>
-                <div class="relative">
-                  <input
-                    type="number"
-                    id="estrato_{{i}}"
-                    formControlName="estrato"
-                    min="0"
-                    max="6"
-                    placeholder="0"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
-                  />
-                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
-                    </svg>
-                  </div>
-                </div>
-                @if (contadorControl.get('estrato')?.invalid && contadorControl.get('estrato')?.touched) {
-                <p class="text-red-500 text-sm mt-1">El estrato debe estar entre 1 y 6</p>
-                }
-              </div>
-
-              <!-- Dígitos del Contador -->
-              <div>
-                <label for="digitos_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Dígitos del Contador
-                </label>
-                <div class="relative">
-                  <input
-                    type="number"
-                    id="digitos_{{i}}"
-                    formControlName="digitos"
-                    min="1"
-                    placeholder="Número de dígitos"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
-                  />
-                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
-                    </svg>
-                  </div>
-                </div>
-                @if (contadorControl.get('digitos')?.invalid && contadorControl.get('digitos')?.touched) {
-                <p class="text-red-500 text-sm mt-1">Los dígitos son requeridos (mínimo 1)</p>
-                }
-              </div>
-
-              <!-- Departamento del Contador -->
-              <div>
-                <label for="departamento_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Departamento
-                </label>
-                <div class="relative">
-                  <select
-                    id="departamento_{{i}}"
-                    formControlName="idDepartamento"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
-                    required
-                  >
-                    <option value="" disabled>
-                      @if (contadorControl.value.departamentoNombre) {
-                        {{ contadorControl.value.departamentoNombre }}
-                      } @else {
-                        Seleccione departamento...
-                      }
-                    </option>
-                    @for (dept of departamentos(); track dept.id) {
-                    <option
-                      [value]="dept.id"
-                      class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
-                    >
-                      {{ dept.nombre }}
-                    </option>
-                    }
-                  </select>
-                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                  </div>
-                </div>
-                @if (contadorControl.get('idDepartamento')?.invalid && contadorControl.get('idDepartamento')?.touched) {
-                <p class="text-red-500 text-sm mt-1">El departamento es requerido</p>
-                }
-              </div>
-
-              <!-- Ciudad del Contador -->
-              <div>
-                <label for="ciudad_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Ciudad
-                </label>
-                <div class="relative">
-                  <select
-                    id="ciudad_{{i}}"
-                    formControlName="idCiudad"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
-                    required
-                  >
-                    <option value="" disabled>
-                      @if (contadorControl.value.ciudadNombre) {
-                        {{ contadorControl.value.ciudadNombre }}
-                      } @else {
-                        Seleccione ciudad...
-                      }
-                    </option>
-                    @for (city of contadorCiudades()[i] || []; track city.id) {
-                    <option
-                      [value]="city.id"
-                      class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
-                    >
-                      {{ city.nombre }}
-                    </option>
-                    }
-                  </select>
-                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                    </svg>
-                  </div>
-                </div>
-                @if (contadorControl.get('idCiudad')?.invalid && contadorControl.get('idCiudad')?.touched) {
-                <p class="text-red-500 text-sm mt-1">La ciudad es requerida</p>
-                }
-              </div>
-
-              <!-- Corregimiento del Contador -->
-              <div>
-                <label for="corregimiento_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Corregimiento
-                </label>
-                <div class="relative">
-                  <select
-                    id="corregimiento_{{i}}"
-                    formControlName="idCorregimiento"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
-                  >
-                    <option value="">
-                      @if (contadorControl.value.corregimientoNombre) {
-                        {{ contadorControl.value.corregimientoNombre }}
-                      } @else {
-                        Seleccione corregimiento...
-                      }
-                    </option>
-                    @for (corr of contadorCorregimientos()[i] || []; track corr.id) {
-                    <option
-                      [value]="corr.id"
-                      class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
-                    >
-                      {{ corr.nombre }}
-                    </option>
-                    }
-                  </select>
-                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Tipo Uso -->
-              <div>
-                <label for="aforosContador_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Tipos de Aforo
-                </label>
-
-                <!-- Botón del Dropdown -->
-                <div class="relative">
-                  <button
-                    id="dropdownAforosButton_{{i}}"
-                    type="button"
-                    (click)="toggleCounterAforosDropdown(i)"
-                    class="w-full inline-flex items-center justify-between px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
-                  >
-                    <span class="flex items-center gap-2">
-                      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                      </svg>
-                      @if (getCounterAforosSelectedCount(i) > 0) {
-                        <span>{{ getCounterAforosSelectedCount(i) }} aforo(s) seleccionado(s)</span>
-                      } @else {
-                        <span class="text-gray-400 dark:text-gray-300">Seleccionar aforos...</span>
-                      }
-                    </span>
-                    <svg class="w-4 h-4 transition-transform" [class.rotate-180]="isCounterAforosDropdownOpen(i)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
-                    </svg>
-                  </button>
-
-                  <!-- Dropdown Menu -->
-                  @if (isCounterAforosDropdownOpen(i)) {
-                  <div class="absolute z-[9999] mt-2 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-xl backdrop-blur-lg">
-                    <!-- Barra de búsqueda -->
-                    <div class="bg-white/50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-slate-700 p-2 rounded-t-xl">
-                      <label for="search-aforo-{{i}}" class="sr-only">Buscar aforo</label>
-                      <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                          <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                          </svg>
-                        </div>
-                        <input
-                          type="text"
-                          id="search-aforo-{{i}}"
-                          [value]="getCounterAforosSearchTerm(i)"
-                          (input)="onCounterAforosSearchChange(i, $event)"
-                          class="bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 px-2.5 py-2 placeholder:text-gray-400 dark:placeholder:text-gray-500"
-                          placeholder="Buscar aforos..."
-                        />
-                      </div>
-                    </div>
-
-                    <!-- Lista de Checkboxes -->
-                    <ul class="max-h-60 select-none overflow-y-auto p-2 text-sm">
-                      @if (typesAforos.isLoading()) {
-                        <li class="p-4 text-center text-gray-500 dark:text-gray-400">
-                          <div class="flex justify-center">
-                            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
-                          </div>
-                        </li>
-                      } @else if (typesAforos.error()) {
-                        <li class="p-4 text-center text-red-500 dark:text-red-400">
-                          Error al cargar aforos
-                        </li>
-                      } @else {
-                        @for (aforo of getFilteredAforos(i); track aforo.id) {
-                        <li>
-                          <div class="inline-flex items-center w-full p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors">
-                            <app-checkbox
-                              [id]="'checkbox-aforo-' + i + '-' + aforo.id"
-                              [checked]="isCounterAforoSelected(i, aforo.id!)"
-                              (checkedChange)="onCounterAforoSelect(i, aforo.id!)"
-                              [widthHeight]="'20px'"
-                            ></app-checkbox>
-                            <label
-                              [for]="'checkbox-aforo-' + i + '-' + aforo.id"
-                              class="w-full ms-2 text-sm font-medium text-gray-900 dark:text-gray-200 cursor-pointer"
-                            >
-                              {{ getAforoFullInfo(aforo) }}
-                            </label>
-                          </div>
-                        </li>
-                        } @empty {
-                        <li class="p-4 text-center text-gray-500 dark:text-gray-400">
-                          No se encontraron aforos
-                        </li>
-                        }
-                      }
-                    </ul>
-
-                    <!-- Footer con acciones -->
-                    <div class="p-2 border-t border-gray-200 dark:border-slate-700 flex gap-2">
-                      <button
-                        type="button"
-                        (click)="clearCounterSelectedAforos(i)"
-                        class="flex-1 inline-flex items-center justify-center text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-xs px-3 py-2 transition-colors"
-                      >
-                        <svg class="w-4 h-4 me-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                        </svg>
-                        Limpiar
-                      </button>
-                      <button
-                        type="button"
-                        (click)="closeCounterAforosDropdown(i)"
-                        class="flex-1 inline-flex items-center justify-center text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-slate-600 hover:bg-gray-300 dark:hover:bg-slate-500 focus:ring-4 focus:ring-gray-300 dark:focus:ring-slate-700 font-medium rounded-lg text-xs px-3 py-2 transition-colors"
-                      >
-                        <svg class="w-4 h-4 me-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        Cerrar
-                      </button>
-                    </div>
-                  </div>
-                  }
-                </div>
-
-                <!-- Chips de aforos seleccionados -->
-                @if (getCounterAforosSelectedCount(i) > 0) {
-                <div class="mt-3 flex flex-wrap gap-2">
-                  @for (aforoId of contadorControl.get('aforosContador')?.value || []; track aforoId) {
-                  <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
-                    {{ getAforoNameById(aforoId) }}
-                    <button
-                      type="button"
-                      (click)="confirmDeleteAforo(i, aforoId)"
-                      class="ml-1 hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5 transition-colors"
-                      title="Eliminar aforo"
-                    >
-                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                      </svg>
-                    </button>
-                  </span>
-                  }
-                </div>
-                }
-              </div>
-
-              <!-- Empleado Asignado -->
-              <div>
-                <label
-                  for="idEmpleadoEmpresa_{{i}}"
-                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
-                >
-                  Empleado Asignado
-                </label>
-                <div class="relative">
-                  <select
-                    id="idEmpleadoEmpresa_{{i}}"
-                    formControlName="idEmpleadoEmpresa"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer invalid:text-gray-400 dark:invalid:text-gray-500"
-                  >
-                    <option value="">Seleccione un empleado...</option>
-                    @for (item of employeeData(); track $index) {
-                    <option
-                      [value]="item.id"
-                      class="text-gray-900 dark:text-white bg-white dark:bg-gray-700 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600"
-                    >
-                      {{ item.personaNombreCompleto }}
-                    </option>
-                    }
-                  </select>
-                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              <!-- descripcion -->
-              <div formGroupName="descripcion">
-                <label for="descripcionTexto_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Dirección del Contador
-                </label>
-                <div class="relative">
-                  <input
-                    type="text"
-                    id="descripcionTexto_{{i}}"
-                    formControlName="descripcion"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
-                  />
-                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                    </svg>
-                  </div>
-                </div>
-                @if (contadorControl.get('descripcion')?.get('descripcion')?.invalid && contadorControl.get('descripcion')?.get('descripcion')?.touched) {
-                <p class="text-red-500 text-sm mt-1">La dirección es requerida</p>
-                }
-              </div>
-
-                <div>
-                <label for="rutaTexto_{{i}}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
-                  Ruta del Contador
-                </label>
-                <div class="relative">
-                  <input
-                    type="text"
-                    id="rutaTexto_{{i}}"
-                    formControlName="ruta"
-                    placeholder="Ingrese la ruta del contador"
-                    class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
-                  />
-                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Sección de Tarifas del Contador -->
-            <div class="mt-6 pt-4 border-t border-white/10 dark:border-slate-700/30">
-              <h4 class="text-md font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center flex-shrink-0">
-                  <svg class="w-5 h-5 text-[#b9b7eeb9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <span>Tarifas de este Contador</span>
-              </h4>
-
-              @if (getCounterTarifas(contadorControl.value.id); as tarifas) {
-                <!-- Tarifas Activas -->
-                @if (tarifas.activas.length > 0) {
-                  <div class="mb-6">
-                    <div class="flex items-center gap-2 mb-3">
-                      <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 backdrop-blur-md">
-                        <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                        </svg>
-                        <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                          Activas ({{ tarifas.activas.length }})
-                        </span>
-                      </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      @for (tarifa of tarifas.activas; track tarifa.id) {
-                        <div class="group relative rounded-2xl border border-emerald-500/50 bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-4 hover:border-emerald-400/70 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-500 hover:-translate-y-1 overflow-hidden">
-                          <div class="relative z-10">
-                            <div class="flex items-start justify-between mb-2">
-                              <div class="flex-1">
-                                <p class="text-sm font-bold text-gray-900 dark:text-white mb-1">{{ tarifa.nombre }}</p>
-                                <!-- <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
-                                  <span class="text-xs font-mono font-semibold text-emerald-700 dark:text-emerald-300">{{ tarifa.codigo }}</span>
-                                </div> -->
-                              </div>
-                              <div class="flex-shrink-0 ml-3">
-                                <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                                  <svg class="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                  </svg>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-emerald-400/20 rotate-12 blur-xl group-hover:left-[125%] transition-all duration-1000 ease-in-out"></span>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                }
-
-                <!-- Tarifas Inactivas -->
-                @if (tarifas.inactivas.length > 0) {
-                  <div class="mb-6">
-                    <div class="flex items-center gap-2 mb-3">
-                      <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 backdrop-blur-md">
-                        <svg class="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                        </svg>
-                        <span class="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">
-                          Inactivas ({{ tarifas.inactivas.length }})
-                        </span>
-                      </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      @for (tarifa of tarifas.inactivas; track tarifa.id) {
-                        <div class="group relative rounded-2xl border border-orange-500/40 bg-white/10 dark:bg-slate-800/10 backdrop-blur-xl p-4 hover:border-orange-400/60 hover:shadow-xl hover:shadow-orange-500/10 transition-all duration-500 hover:-translate-y-1 overflow-hidden opacity-75 hover:opacity-90">
-                          <div class="relative z-10">
-                            <div class="flex items-start justify-between mb-2">
-                              <div class="flex-1">
-                                <p class="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">{{ tarifa.nombre }}</p>
-                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-500/10 border border-orange-500/30">
-                                  <span class="text-xs font-mono font-semibold text-orange-700 dark:text-orange-300">{{ tarifa.codigo }}</span>
-                                </div>
-                              </div>
-                              <div class="flex-shrink-0 ml-3">
-                                <div class="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
-                                  <svg class="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                                  </svg>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-orange-400/20 rotate-12 blur-xl group-hover:left-[125%] transition-all duration-1000 ease-in-out"></span>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                }
-
-                <!-- Tarifas Faltantes -->
-                @if (tarifas.faltantes.length > 0) {
-                  <div class="mb-6">
-                    <div class="flex items-center gap-2 mb-3">
-                      <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-500/10 border border-gray-500/30 backdrop-blur-md">
-                        <svg class="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                        </svg>
-                        <span class="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                          Faltantes ({{ tarifas.faltantes.length }})
-                        </span>
-                      </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      @for (tarifa of tarifas.faltantes; track tarifa.tipoTarifaId) {
-                        <div class="group relative rounded-2xl border border-gray-500/30 bg-white/5 dark:bg-slate-800/5 backdrop-blur-xl p-4 hover:border-gray-400/50 hover:shadow-xl hover:shadow-gray-500/10 transition-all duration-500 hover:-translate-y-1 overflow-hidden opacity-60 hover:opacity-75">
-                          <div class="relative z-10">
-                            <div class="flex items-start justify-between mb-2">
-                              <div class="flex-1">
-                                <p class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ tarifa.nombre }}</p>
-                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-500/10 border border-gray-500/30">
-                                  <span class="text-xs font-mono font-semibold text-gray-600 dark:text-gray-400">{{ tarifa.codigo }}</span>
-                                </div>
-                              </div>
-                              <div class="flex-shrink-0 ml-3">
-                                <div class="w-8 h-8 rounded-full bg-gray-500/20 flex items-center justify-center">
-                                  <svg class="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                  </svg>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-gray-400/20 rotate-12 blur-xl group-hover:left-[125%] transition-all duration-1000 ease-in-out"></span>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                }
-
-                <!-- Mensaje si no hay tarifas -->
-                @if (tarifas.activas.length === 0 && tarifas.inactivas.length === 0 && tarifas.faltantes.length === 0) {
-                  <div class="text-center py-8 px-4">
-                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gray-700/20 border border-gray-600/30 mb-4 backdrop-blur-sm">
-                      <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                      </svg>
-                    </div>
-                    <p class="text-gray-600 dark:text-gray-400 font-medium">No hay información de tarifas para este contador</p>
-                    <p class="text-gray-500 text-sm mt-2">Configure las tarifas para este contador</p>
-                  </div>
-                }
-              }
-            </div>
-
-            <!-- Botones de acción del contador -->
-            <div class="mt-4 pt-4 border-t border-white/10 dark:border-slate-700/30 flex items-center justify-between">
-              <!-- Botón de editar tarifas -->
-              <button
-                type="button"
-                (click)="openTarifasModal(i)"
-                class="relative cursor-pointer py-2 px-4 text-center inline-flex justify-center items-center gap-2 text-sm text-gray-300 rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
-              >
-                <span class="relative z-20 flex items-center gap-2">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Editar Tarifas
-                </span>
-                <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"></span>
-              </button>
-
-              <!-- Botón de inactivar contador -->
-              <button
-                type="button"
-                (click)="confirmDeleteCounter(i, contadorControl.value.id, contadorControl.value.serial, contadorControl.value.idEmpresaClienteContador)"
-                class="relative cursor-pointer py-2 px-4 text-center inline-flex justify-center items-center gap-2 text-sm text-gray-300 rounded-xl border border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-orange-500/20 transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline-1 focus:outline-orange-400/50 focus:outline-offset-2 overflow-hidden hover:scale-105"
-              >
-                <span class="relative z-20 flex items-center gap-2">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                  </svg>
-                  Inactivar Contador
-                </span>
-                <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-orange-400/20 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"></span>
-              </button>
-            </div>
-          </div>
-          }
-        </div>
-      </div>
-      }
 
       <div
         class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-white/10 dark:border-slate-700/30"
@@ -1544,75 +804,335 @@
     </form>
 
     } @else {
-    <!-- Estado de carga o sin datos -->
+    <!-- Estado de carga o sin datos - Tab Cliente -->
     <div class="flex items-center justify-center p-12">
       <div class="text-center">
         @if (dataClient.isLoading()) {
-        <svg
-          class="w-16 h-16 text-gray-400 mx-auto mb-4 animate-spin"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-          />
+        <svg class="w-16 h-16 text-gray-400 mx-auto mb-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
         </svg>
-        <p class="text-gray-600 dark:text-gray-400 font-medium">
-          Cargando datos del cliente...
-        </p>
+        <p class="text-gray-600 dark:text-gray-400 font-medium">Cargando datos del cliente...</p>
         } @else if (dataClient.error()) {
-        <svg
-          class="w-16 h-16 text-red-400 mx-auto mb-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
+        <svg class="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
-        <p class="text-red-600 dark:text-red-400 font-medium">
-          Error al cargar los datos del cliente
-        </p>
-        <p class="text-sm text-gray-500 mt-2">
-          {{ dataClient.error()?.message || 'Error desconocido' }}
-        </p>
+        <p class="text-red-600 dark:text-red-400 font-medium">Error al cargar los datos del cliente</p>
         } @else {
-        <svg
-          class="w-16 h-16 text-gray-400 mx-auto mb-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-        <p class="text-gray-600 dark:text-gray-400 font-medium">
-          Formulario no disponible
-        </p>
-        <p class="text-sm text-gray-500 mt-2">
-          Datos del cliente: {{ !!clientData() }}
-        </p>
-        <p class="text-sm text-gray-500 mt-1">
-          Formulario: {{ !!updateForm }}
-        </p>
+        <p class="text-gray-600 dark:text-gray-400 font-medium">No se encontraron datos del cliente</p>
         }
       </div>
     </div>
     }
+    } <!-- end @if activeTab === 'cliente' -->
+
+    @if (activeTab() === 'contadores') {
+    <!-- Tab de contadores con tabla -->
+    <div class="pt-0 sm:px-8 sm:pb-8">
+
+      <!-- Templates para la tabla de contadores -->
+      <ng-template #contadorActionsTemplate let-row>
+        <div class="flex items-center gap-2 flex-wrap">
+          <!-- Editar contador -->
+          <button
+            type="button"
+            (click)="openEditCounterModal(row)"
+            title="Editar contador"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-all"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+            Editar
+          </button>
+          <!-- Gestionar tarifas -->
+          <button
+            type="button"
+            (click)="openTarifasModalFromRow(row)"
+            title="Gestionar tarifas"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-500/10 border border-purple-500/30 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20 transition-all"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+            Tarifas
+          </button>
+          <!-- Inactivar contador -->
+          <button
+            type="button"
+            (click)="confirmDeleteCounterFromRow(row)"
+            title="Inactivar contador"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-orange-500/10 border border-orange-500/30 text-orange-600 dark:text-orange-400 hover:bg-orange-500/20 transition-all"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+            </svg>
+            Inactivar
+          </button>
+        </div>
+      </ng-template>
+
+      <!-- Template para columna de estado (activo/inactivo) -->
+      <ng-template #estadoColumnTemplate let-row>
+        @if (row.activo) {
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+          <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          Activo
+        </span>
+        } @else {
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+          <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          Inactivo
+        </span>
+        }
+      </ng-template>
+
+      <app-table-dynamic
+        title="Contadores"
+        [columns]="contadorColumns()"
+        [serverMode]="true"
+        [serverData]="mappedContadoresData()"
+        [loading]="dataContadores.isLoading()"
+        [actionTemplate]="contadorActionsTemplate"
+        [columnTemplates]="{ activo: estadoColumnTemplate }"
+        [showAddButton]="true"
+        [addButtonText]="'Crear Contador'"
+        [addButtonIcon]="'fa-solid fa-plus'"
+        [showSecondaryButton]="true"
+        [secondaryButtonText]="'Asignar Contador Existente'"
+        [secondaryButtonIcon]="'fa-solid fa-magnifying-glass'"
+        [showColumnFilters]="true"
+        [showExportButton]="false"
+        [hideTitle]="false"
+        (serverPaginationChange)="onContadoresPaginationChange($event)"
+        (action)="onContadorTableAction($event)"
+        (secondaryButtonAction)="openAssignCounterModal()"
+      ></app-table-dynamic>
+    </div>
+    }
+
   </div>
 </div>
+
+<!-- Modal para editar contador -->
+@if (isEditCounterModalOpen() && editingCounter()) {
+<div class="fixed inset-0 z-[1000] overflow-y-auto">
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" (click)="closeEditCounterModal()"></div>
+  <div class="flex min-h-full items-start justify-center p-4 pt-20">
+    <div class="relative w-full max-w-4xl bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl flex flex-col max-h-[calc(100vh-5.5rem)]">
+      <!-- Header del modal -->
+      <div class="flex-shrink-0 flex items-center justify-between p-6 border-b border-white/10 dark:border-slate-700/30">
+        <h3 class="text-xl font-bold text-gray-700 dark:text-gray-200 flex items-center gap-3">
+          <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          Editar Contador: {{ editingCounter()?.serial || 'Sin serial' }}
+        </h3>
+        <button type="button" (click)="closeEditCounterModal()" class="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/20 transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <!-- Cuerpo del modal -->
+      <div class="p-6 overflow-y-auto flex-1" [formGroup]="editCounterForm">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+          <!-- Serial -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Serial</label>
+            <input type="text" formControlName="serial" placeholder="Serial del contador" class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all"/>
+          </div>
+
+          <!-- NUID -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">NUID</label>
+            <input type="number" formControlName="nuid" placeholder="NUID del contador" class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all"/>
+          </div>
+
+          <!-- Ruta -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Ruta</label>
+            <input type="text" formControlName="ruta" placeholder="Ruta del contador" class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all"/>
+          </div>
+
+          <!-- Tipo Contador -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Tipo de Contador</label>
+            <select formControlName="tipoContador" class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all appearance-none cursor-pointer">
+              <option value="">Seleccione tipo...</option>
+              @for (tipo of loadTypeCounter.value()?.response; track $index) {
+              <option [value]="tipo.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">{{ tipo.nombre }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Estado Contador -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Estado</label>
+            <select formControlName="estadoContador" class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all appearance-none cursor-pointer">
+              <option value="">Seleccione estado...</option>
+              @for (estado of availableStatusCounter(); track estado.id) {
+              <option [value]="estado.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">{{ estado.descripcion }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Tipo Uso -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Tipo Uso</label>
+            <select formControlName="tipoUso" class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all appearance-none cursor-pointer">
+              <option value="">Seleccione tipo uso...</option>
+              @for (tipo of typeUseData(); track $index) {
+              <option [value]="tipo.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">{{ tipo.nombre }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Estrato -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Estrato</label>
+            <input type="number" formControlName="estrato" min="1" max="6" placeholder="Estrato (1-6)" class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all"/>
+          </div>
+
+          <!-- Dígitos -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Dígitos</label>
+            <input type="number" formControlName="digitos" min="1" placeholder="Número de dígitos" class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all"/>
+          </div>
+
+          <!-- Fecha Instalación -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Fecha de Instalación</label>
+            <input type="date" formControlName="fechaInstalacion" class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all"/>
+          </div>
+
+          <!-- Empleado -->
+          <div>
+            <label for="editCounterEmpleado" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Empleado</label>
+            <select id="editCounterEmpleado" formControlName="idEmpleadoEmpresa" class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all appearance-none cursor-pointer">
+              <option value="">Sin empleado asignado</option>
+              @for (emp of employeeData(); track emp.id) {
+              <option [value]="emp.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">{{ emp.personaNombreCompleto }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Departamento -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Departamento</label>
+            <select formControlName="idDepartamento" class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all appearance-none cursor-pointer">
+              <option value="">Seleccione departamento...</option>
+              @for (dept of departamentos(); track dept.id) {
+              <option [value]="dept.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">{{ dept.nombre }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Ciudad -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Ciudad</label>
+            <select formControlName="idCiudad" class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all appearance-none cursor-pointer">
+              <option value="">Seleccione ciudad...</option>
+              @for (city of editCounterCities(); track city.id) {
+              <option [value]="city.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">{{ city.nombre }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Corregimiento -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Corregimiento</label>
+            <select formControlName="idCorregimiento" class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all appearance-none cursor-pointer">
+              <option value="">Seleccione corregimiento...</option>
+              @for (corr of editCounterCorregimientos(); track corr.id) {
+              <option [value]="corr.id" class="text-gray-900 dark:text-white bg-white dark:bg-gray-700">{{ corr.nombre }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Descripción dirección -->
+          <div class="lg:col-span-2">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Descripción Dirección</label>
+            <input type="text" formControlName="descripcion" placeholder="Dirección del contador" class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all"/>
+          </div>
+
+          <!-- Tipos de Aforo multiselect -->
+          <div class="lg:col-span-3">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Tipos de Aforo</label>
+            <div class="relative">
+              <button
+                type="button"
+                (click)="toggleEditCounterAforosDropdown()"
+                class="w-full inline-flex items-center justify-between px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all"
+              >
+                <span
+                  class="truncate"
+                  [ngClass]="getEditCounterAforosSelectedCount() === 0 ? 'text-gray-400' : 'text-gray-900 dark:text-white'"
+                >
+                  {{ getEditCounterAforosLabel() }}
+                </span>
+                <svg class="w-4 h-4 shrink-0 ml-2 transition-transform" [class.rotate-180]="editCounterAforosDropdownOpen()" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
+                </svg>
+              </button>
+
+              @if (editCounterAforosDropdownOpen()) {
+              <div class="absolute z-[1100] w-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                <div class="p-2 border-b border-gray-200 dark:border-slate-700">
+                  <input
+                    type="text"
+                    [value]="editCounterAforosSearchTerm()"
+                    (input)="editCounterAforosSearchTerm.set($any($event.target).value)"
+                    placeholder="Buscar aforo..."
+                    class="w-full px-3 py-2 text-sm bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                @for (aforo of getEditCounterFilteredAforos(); track aforo.id) {
+                  <div
+                    (click)="onEditCounterAforoSelect(aforo.id)"
+                    class="flex items-center gap-2 px-4 py-2.5 cursor-pointer transition-colors"
+                    [ngClass]="isEditCounterAforoSelected(aforo.id)
+                      ? 'bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60'
+                      : 'hover:bg-gray-100 dark:hover:bg-slate-700'"
+                  >
+                  <div class="w-4 h-4 rounded border-2 flex items-center justify-center transition-all" [class.bg-blue-500]="isEditCounterAforoSelected(aforo.id)" [class.border-blue-500]="isEditCounterAforoSelected(aforo.id)" [class.border-gray-300]="!isEditCounterAforoSelected(aforo.id)">
+                    @if (isEditCounterAforoSelected(aforo.id)) {
+                    <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    }
+                  </div>
+                  <span class="text-sm text-gray-900 dark:text-white">{{ getAforoFullInfo(aforo) }}</span>
+                </div>
+                } @empty {
+                <div class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">No se encontraron aforos</div>
+                }
+              </div>
+              }
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Footer del modal -->
+      <div class="flex-shrink-0 flex justify-end gap-3 p-6 border-t border-white/10 dark:border-slate-700/30">
+        <button type="button" (click)="closeEditCounterModal()" class="px-5 py-2.5 rounded-xl border border-gray-400/30 bg-gray-500/10 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-500/20 transition-all">
+          Cancelar
+        </button>
+        <button type="button" (click)="saveEditCounter()" class="px-5 py-2.5 rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300 font-semibold hover:bg-blue-500/20 transition-all">
+          Guardar Cambios
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+}
 
 <!-- Modal para editar tarifas -->
 @if (isTarifasModalOpen()) {
@@ -2355,10 +1875,12 @@
 @if (isAssignCounterModalOpen()) {
 <div class="fixed inset-0 z-50 overflow-y-auto">
   <!-- Backdrop con blur -->
-  <div
-    class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+  <button
+    type="button"
+    class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity w-full cursor-default"
     (click)="closeAssignCounterModal()"
-  ></div>
+    aria-label="Cerrar modal"
+  ></button>
 
   <!-- Modal container -->
   <div class="flex min-h-full items-start justify-center p-4 pt-20">

@@ -7,6 +7,19 @@ export interface Colilla {
     usuarioCreacion?: string;
 }
 
+/** Un ítem individual que proviene del Excel: solo idFactura y valorPago */
+export interface PagoItem {
+    idFactura: number;
+    valorPago: number;
+}
+
+/** Payload completo que espera la API (/validar-pagos y /procesar-pagos) */
+export interface ColillasPayload {
+    idEmpresa: number;
+    usuarioCreacion: string;
+    pagos: PagoItem[];
+}
+
 export interface EstadoColilla {
     id: number;
     nombre: string;

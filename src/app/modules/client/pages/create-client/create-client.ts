@@ -344,15 +344,16 @@ export class CreateClient implements OnInit {
   serialcode = rxResource({
     params: () => ({
       serial: this.searchSerial(),
+      idEmpresa: this.enterpriceId(),
     }),
     stream: ({ params }) => {
-      const { serial } = params;
-      if (!serial || serial.trim() === '' || serial.length < 1) {
+      const { serial, idEmpresa } = params;
+      if (!serial || !idEmpresa || serial.trim() === '' || serial.length < 1) {
         return of(null);
       }
       this.isSearching.set(true);
       return this.enterpriseClientCounterService
-        .getClientBySerial(serial.trim())
+        .getClientBySerial(serial.trim(), idEmpresa)
         .pipe(
           finalize(() => this.isSearching.set(false)),
           catchError((error) => {

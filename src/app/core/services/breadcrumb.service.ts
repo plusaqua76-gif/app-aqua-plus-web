@@ -35,7 +35,7 @@ export class BreadcrumbService {
     'update-bill': 'Actualizar Factura',
     'print-bill': 'Imprimir Factura',
     'bill-data': 'Factura',
-    'Update-debt': 'Actualizar Deuda',
+    'update-debt': 'Actualizar Deuda',
     'welcome-user': 'Bienvenida',
     'electronic-invoicing': 'Facturación Electrónica',
     'enterprice-dian': 'Empresa DIAN',

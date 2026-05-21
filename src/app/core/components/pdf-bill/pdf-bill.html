@@ -83,7 +83,7 @@
                   <div class="client-info-item">
                     <span class="label">ESTRATO:</span>
                     <span class="value">
-                      {{ billData()?.cliente?.estrato }}</span
+                      {{ billData()?.contador?.estrato }}</span
                     >
                   </div>
                   <div class="client-info-item">
@@ -844,24 +844,41 @@
 
         <!-- Tercera columna: Factura y totales -->
         <div class="bottom-column factura-column">
-          <div class="factura-info">
-            <div class="barcode-wrapper">
-              <div>Información de Pago</div>
-              <ngx-barcode6
-                [bc-format]="'CODE128'"
-                [bc-value]="billData()?.contador?.codigoBarras   || ''"
-                [bc-height]="80"
-                [bc-width]="1"
-                [bc-display-value]="true">
-              </ngx-barcode6>
+          <div class="barcode-info-header">Información de Pago</div>
+          <div class="barcode-abonos-container">
+            @if (billData()?.totalesTarifas?.abonosFactura?.length) {
+            <div class="abonos-factura-list">
+              @for (abono of billData()!.totalesTarifas.abonosFactura; track abono.id) {
+              <div class="abono-factura-row">
+                <span class="abono-label">Abono</span>
+                <span class="abono-valor">{{ abono.abono | colombianCurrency }}</span>
+                <span class="abono-fecha">{{ abono.fecha | date:'dd/MM/yyyy' }}</span>
+              </div>
+              }
+              <div class="abono-total-row">
+                <span class="abono-total-label">Total abonos</span>
+                <span class="abono-total-valor">{{ billData()!.totalesTarifas.totalAbono | colombianCurrency }}</span>
+              </div>
+            </div>
+            }
+            <div class="factura-info">
+              <div class="barcode-wrapper">
+                <ngx-barcode6
+                  [bc-format]="'CODE128'"
+                  [bc-value]="billData()?.contador?.codigoBarras   || ''"
+                  [bc-height]="80"
+                  [bc-width]="1"
+                  [bc-display-value]="true">
+                </ngx-barcode6>
+              </div>
             </div>
           </div>
 
-          <div class="payment-totals-grid">
+          <div class="payment-totals-grid mt-1">
             @for (tipo of getPrimeros3Totales(); track tipo.nombre; let i =
             $index) {
             <div
-              class="rounded-t-xl mt-[30px] text-center bg-white text-black relative overflow-hidden"
+              class="rounded-t-xl mt-[8px] text-center bg-white text-black relative overflow-hidden"
             >
               <div
                 class="h-[25px] rounded-t-xl flex items-center justify-center text-xs font-medium text-white pb-3"
@@ -897,7 +914,7 @@
             </div>
             } @if (tieneOtrosTotales()) {
             <div
-              class="rounded-t-xl mt-[30px] text-center bg-white text-black relative overflow-hidden"
+              class="rounded-t-xl mt-[8px] text-center bg-white text-black relative overflow-hidden"
             >
               <div
                 class="h-[25px] rounded-t-xl flex items-center justify-center text-xs font-medium text-white bg-[#5d6481] pb-3"
@@ -921,6 +938,12 @@
               >{{ billData()?.totalesTarifas?.totalConDeuda | colombianCurrency }}</span
             >
           </div>
+          @if (billData()?.totalesTarifas?.abonosFactura?.length) {
+          <div class="abono-realizado-card">
+            <span class="total-label">SALDO PENDIENTE:</span>
+            <span class="abono-realizado-amount">{{ billData()!.totalesTarifas.totalSaldoPendiente | colombianCurrency }}</span>
+          </div>
+          }
         </div>
       </div>
     </div>

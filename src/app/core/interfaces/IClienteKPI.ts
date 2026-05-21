@@ -7,4 +7,6 @@ export interface IClienteKPI {
   progreso: number;
   icono: string;
   descripcion: string;
+  valorSecundario?: number;
+  labelSecundario?: string;
 }
