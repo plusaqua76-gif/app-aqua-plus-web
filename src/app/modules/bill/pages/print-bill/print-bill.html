@@ -306,7 +306,7 @@
                     class="block w-full rounded-xl border border-gray-600/70 bg-transparent px-4 py-3 text-sm text-gray-100 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-400/40"
                     step="0.01"
                     min="0"
-                    [max]="valorFactura()"
+                    [max]="saldoPendiente()"
                   />
                 </div>
                 }
@@ -338,7 +338,7 @@
                   } @else {
                     <div class="space-y-1">
                       <span class="text-yellow-400">{{ getMensajeEstadoNoPermitido() }}</span>
-                      @if (tipoPago === 'parcial' && (valorPago === null || valorPago <= 0 || valorPago > valorFactura())) {
+                      @if (tipoPago === 'parcial' && (valorPago === null || valorPago <= 0 || valorPago > saldoPendiente())) {
                         <div class="text-red-400">
                           @if (valorPago === null || valorPago <= 0) {
                             Ingrese un valor mayor a 0
@@ -478,8 +478,8 @@
                   <h4 class="text-sm font-medium text-blue-400 mb-2">Resumen de Pago - Factura</h4>
                   <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
-                      <span class="text-gray-300">Valor factura:</span>
-                      <span class="text-white">${{ valorFactura().toLocaleString('es-CO') }}</span>
+                      <span class="text-gray-300">Saldo pendiente:</span>
+                      <span class="text-white">${{ saldoPendiente().toLocaleString('es-CO') }}</span>
                     </div>
                     <div class="flex justify-between">
                       <span class="text-gray-300">Tipo de pago:</span>
@@ -491,11 +491,11 @@
                         ${{ getValorAPagar().toLocaleString('es-CO') }}
                       </span>
                     </div>
-                    @if (tipoPago === 'parcial' && valorPago !== null && valorPago < valorFactura()) {
+                    @if (tipoPago === 'parcial' && valorPago !== null && valorPago < saldoPendiente()) {
                     <div class="flex justify-between border-t border-red-500/30 pt-2 mt-2">
                       <span class="text-red-300 font-medium">Deuda a generar:</span>
                       <span class="text-red-300 font-bold">
-                        ${{ (valorFactura() - valorPago).toLocaleString('es-CO') }}
+                        ${{ (saldoPendiente() - valorPago).toLocaleString('es-CO') }}
                       </span>
                     </div>
                     }
@@ -617,7 +617,7 @@
         <div class="space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-300">Valor de la factura:</span>
-            <span class="text-sm font-medium text-white">{{ valorFactura() | colombianCurrency }}</span>
+            <span class="text-sm font-medium text-white">{{ saldoPendiente() | colombianCurrency }}</span>
           </div>
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-300">Tipo de pago:</span>
@@ -629,11 +629,11 @@
           </div>
 
           <!-- Mostrar información de deuda a generar si es pago parcial -->
-          @if (tipoPago === 'parcial' && valorPago !== null && valorPago < valorFactura()) {
+          @if (tipoPago === 'parcial' && valorPago !== null && valorPago < saldoPendiente()) {
           <div class="flex justify-between items-center border-t border-red-500/30 pt-2 mt-2">
             <span class="text-sm font-medium text-red-300">Deuda a generar:</span>
             <span class="text-sm font-bold text-red-400">
-              {{ (valorFactura() - valorPago) | colombianCurrency }}
+              {{ (saldoPendiente() - valorPago) | colombianCurrency }}
             </span>
           </div>
           }
@@ -646,9 +646,9 @@
           ¿Está seguro de confirmar el pago {{ tipoPago === 'total' ? 'total' : 'parcial' }} de
           <span class="text-green-400 font-bold">${{ getValorAPagar().toLocaleString('es-CO') }}</span>?
         </p>
-        @if (tipoPago === 'parcial' && valorPago !== null && valorPago < valorFactura()) {
+        @if (tipoPago === 'parcial' && valorPago !== null && valorPago < saldoPendiente()) {
         <p class="text-xs text-red-300 mt-2">
-          Se generará una deuda de {{ (valorFactura() - valorPago) | colombianCurrency }} por el saldo pendiente.
+          Se generará una deuda de {{ (saldoPendiente() - valorPago) | colombianCurrency }} por el saldo pendiente.
         </p>
         }
       </div>

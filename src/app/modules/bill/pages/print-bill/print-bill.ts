@@ -189,7 +189,7 @@ export class PrintBill {
   radioDisabled = computed(() => {
     const estado = this.selectedStatus();
     if (!estado) return true;
-    const estadosNoPermitidos = ['PAGADA', 'PAGO PARCIAL', 'INACTIVO', 'VENCIDA'];
+    const estadosNoPermitidos = ['PAGADA', 'INACTIVO', 'VENCIDA'];
     return estadosNoPermitidos.some(e => estado.toUpperCase().includes(e.toUpperCase()));
     })
 
@@ -277,6 +277,22 @@ const valor =
     : billData.totalesTarifas.totalConDeuda;
 
 return valor || 0;
+  });
+
+  // Saldo real pendiente de pago = totalConDeuda menos los abonos ya realizados
+  saldoPendiente = computed(() => {
+    const billData = this.billDetails.value()?.response;
+    if (!billData?.totalesTarifas) return this.valorFactura();
+
+    const tarifas = billData.totalesTarifas;
+    if (tarifas.totalSaldoPendiente != null) {
+      return typeof tarifas.totalSaldoPendiente === 'string'
+        ? parseFloat(tarifas.totalSaldoPendiente) || 0
+        : tarifas.totalSaldoPendiente;
+    }
+
+    // Fallback: totalConDeuda - totalAbono
+    return Math.max(0, this.valorFactura() - (tarifas.totalAbono ?? 0));
   });
 
   selectedStatus = computed(() => {
@@ -382,7 +398,7 @@ return valor || 0;
 
   onTipoPagoChange(): void {
     if (this.tipoPago === 'total') {
-      this.valorPago = this.valorFactura();
+      this.valorPago = this.saldoPendiente();
     } else if (this.tipoPago === 'parcial') {
       this.valorPago = null;
     }
@@ -399,7 +415,7 @@ return valor || 0;
     }
 
     // Estados que NO permiten pago
-    const estadosNoPermitidos = ['PAGADA', 'PAGO PARCIAL', 'INACTIVO', 'VENCIDA'];
+    const estadosNoPermitidos = ['PAGADA', 'INACTIVO', 'VENCIDA'];
     const esEstadoNoPermitido = estadosNoPermitidos.some((estado) =>
       estadoActual.toUpperCase().includes(estado.toUpperCase())
     );
@@ -411,6 +427,7 @@ return valor || 0;
       'PENDIENTE',
       'PAGO INMEDIATO',
       'AVISO DE SUSPENSIÓN',
+      'PAGO PARCIAL'
     ];
     const estadoPermitido = estadosPermitidos.some((estado) =>
       estadoActual.toUpperCase().includes(estado.toUpperCase())
@@ -422,7 +439,7 @@ return valor || 0;
         estadoPermitido &&
         this.valorPago !== null &&
         this.valorPago > 0 &&
-        this.valorPago <= this.valorFactura()
+        this.valorPago <= this.saldoPendiente()
       );
     }
 
@@ -491,14 +508,13 @@ return valor || 0;
       return;
     }
 
-    // Flujo de pago parcial: consumir el nuevo endpoint /api/v1/abono-factura
     if (this.tipoPago === 'parcial') {
       if (!this.valorPago || this.valorPago <= 0) {
         this.toast.error('Error', 'El valor del abono debe ser mayor a 0');
         this.procesandoPago.set(false);
         return;
       }
-      if (this.valorPago > this.valorFactura()) {
+      if (this.valorPago > this.saldoPendiente()) {
         this.toast.error(
           'Error',
           'El valor del abono no puede superar el saldo pendiente de la factura'
@@ -510,7 +526,7 @@ return valor || 0;
       const payload: IAbonoFacturaPayload = {
         valor: this.valorPago,
         usuarioCreacion: this.nombreUsuario() || 'Sistema',
-        plazoPago: 1,
+        // plazoPago: 1,
         factura: {
           id: billId,
           estado: { id: 17 },
@@ -625,7 +641,7 @@ return valor || 0;
 
   getValorAPagar(): number {
     return this.tipoPago === 'total'
-      ? this.valorFactura()
+      ? this.saldoPendiente()
       : this.valorPago || 0;
   }
 
@@ -1129,7 +1145,7 @@ return valor || 0;
     const estadoActual = this.selectedStatus();
     if (!estadoActual) return 'Estado de factura no disponible';
 
-    const estadosNoPermitidos = ['PAGADA', 'PAGO PARCIAL', 'INACTIVO', 'VENCIDA'];
+    const estadosNoPermitidos = ['PAGADA', 'INACTIVO', 'VENCIDA'];
     const esEstadoNoPermitido = estadosNoPermitidos.some((estado) =>
       estadoActual.toUpperCase().includes(estado.toUpperCase())
     );

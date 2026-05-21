@@ -141,6 +141,9 @@ export interface ITotalesTarifas {
   total: number;
   porTipo: { [key: string]: number };
   totalConDeuda: number;
+  totalAbono: number;
+  abonosFactura : IAbonosFactura[];
+  totalSaldoPendiente: number;
 }
 
 export interface ILecturaHistorico {
@@ -166,6 +169,12 @@ export interface IValoresMetrosCubicos {
   totalAcueducto: number;
   totalAlcantarillado: number;
   tipoConcepto: ITipoConcepto[];
+}
+
+export interface IAbonosFactura {
+  id: number;
+  abono: number;
+  fecha: string;
 }
 
 export interface IBillDetailResponse {
