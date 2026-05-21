@@ -938,7 +938,7 @@
               >{{ billData()?.totalesTarifas?.totalConDeuda | colombianCurrency }}</span
             >
           </div>
-          @if (billData()?.totalesTarifas?.totalSaldoPendiente) {
+          @if (billData()?.totalesTarifas?.abonosFactura?.length) {
           <div class="abono-realizado-card">
             <span class="total-label">SALDO PENDIENTE:</span>
             <span class="abono-realizado-amount">{{ billData()!.totalesTarifas.totalSaldoPendiente | colombianCurrency }}</span>
