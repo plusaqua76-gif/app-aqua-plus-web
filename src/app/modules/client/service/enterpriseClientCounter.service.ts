@@ -33,14 +33,14 @@ export class EnterpriseClientCounterService {
     return this.http.get<ApiResponse<IEnterpriseClientCounter[]>>(url);
   }
 
-  getClientBySerial(
-    serial: string,
-    idEmpresa: number
-  ): Observable<ApiResponse<any>> {
-    return this.http.get<ApiResponse<any>>(
-      `${environment.apiUrl}/contador/serial?serial=${serial}/idEmpresa=${idEmpresa}`
-    );
-  }
+getClientBySerial(
+  serial: string,
+  idEmpresa: number
+): Observable<ApiResponse<any>> {
+  return this.http.get<ApiResponse<any>>(
+    `${environment.apiUrl}/contador/serial?serial=${serial}&idEmpresa=${idEmpresa}`
+  );
+}
 
   deleteEnterpriceClientCounter(id: number): Observable<ApiResponse<any>> {
     const url = `${this.apiUrl}/${id}`;
