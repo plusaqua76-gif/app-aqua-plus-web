@@ -507,6 +507,10 @@
                 <!-- <div class="consumo-value">0</div> -->
               </div>
             </div>
+            <div class="total-factura-inline">
+              <div class="total-factura-inline-label">TOTAL A PAGAR</div>
+              <div class="total-factura-inline-amount">{{ billData()?.totalesTarifas?.totalConDeuda | colombianCurrency }}</div>
+            </div>
           </div>
         </div>
         <!-- Fin del contenido de la card -->
