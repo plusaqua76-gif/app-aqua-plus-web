@@ -35,7 +35,7 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
         </button>
-        <!-- <button
+        <button
           type="button"
           (click)="openSaldoModal(row)"
           class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-emerald-600/50 text-emerald-400 hover:bg-emerald-600/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-colors duration-200"
@@ -44,7 +44,7 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-        </button> -->
+        </button>
       </div>
     </ng-template>
 
@@ -162,6 +162,32 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
               <span class="text-xs text-red-400 mt-1 block">Ingrese un valor válido mayor o igual a 0</span>
               }
             </div>
+
+            @if (saldoExistente()) {
+            <div class="col-span-2">
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Saldo Disponible</label>
+              <input type="number" formControlName="saldoDisponible" readonly
+                class="w-full px-4 py-3 bg-white/5 dark:bg-slate-700/30 border border-white/10 dark:border-slate-400/20 rounded-xl text-gray-500 dark:text-gray-400 cursor-not-allowed backdrop-blur-md"/>
+            </div>
+            }
+
+            <!-- Cuotas -->
+            <div class="col-span-1">
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">Cuotas</label>
+              <input type="number" formControlName="cuotas" min="1" step="1" placeholder="1"
+                class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 backdrop-blur-md transition-all"/>
+              @if (saldoForm.get('cuotas')?.invalid && saldoForm.get('cuotas')?.touched) {
+              <span class="text-xs text-red-400 mt-1 block">Ingrese una cantidad de cuotas válida (mínimo 1)</span>
+              }
+            </div>
+
+            <!-- Estado
+            <div class="col-span-1 flex items-end">
+              <label class="inline-flex items-center gap-2 cursor-pointer px-3 py-2 rounded-xl border border-white/20 dark:border-slate-400/30 bg-white/10 dark:bg-slate-700/50">
+                <input type="checkbox" formControlName="activo" class="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" />
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Saldo activo</span>
+              </label>
+            </div> -->
           </form>
           }
 
@@ -290,6 +316,9 @@ export class Client {
   constructor() {
     this.saldoForm = this.fb.group({
       saldoTotal: [0, [Validators.required, Validators.min(0)]],
+      saldoDisponible: [0],
+      cuotas: [1, [Validators.required, Validators.min(1)]],
+      activo: [true],
     });
 
     effect(() => {
@@ -425,7 +454,7 @@ export class Client {
   openSaldoModal(row: any): void {
     this.saldoModalRow.set(row);
     this.saldoExistente.set(null);
-    this.saldoForm.reset({ saldoTotal: 0, activo: true });
+    this.saldoForm.reset({ saldoTotal: 0, saldoDisponible: 0, cuotas: 1, activo: true });
     this.isSaldoModalOpen.set(true);
     this.isSaldoLoading.set(true);
 
@@ -437,10 +466,17 @@ export class Client {
 
     this.saldoClienteService.getSaldoByEmpresaClienteContador(id).subscribe({
       next: (saldo) => {
+        if (!saldo) {
+          this.saldoExistente.set(null);
+          this.isSaldoLoading.set(false);
+          return;
+        }
         this.saldoExistente.set(saldo);
         this.saldoForm.patchValue({
           saldoTotal: saldo.saldoTotal,
-          activo: saldo.activo,
+          saldoDisponible: saldo.saldoDisponible,
+          cuotas: saldo.cuotas ?? 1,
+          activo: saldo.saldoActivo,
         });
         this.isSaldoLoading.set(false);
       },
@@ -468,26 +504,33 @@ export class Client {
     if (!row?.empresaClienteContadorId) return;
 
     this.isSaldoSaving.set(true);
-    const { saldoTotal, activo } = this.saldoForm.value;
+    const { saldoTotal, activo, cuotas } = this.saldoForm.value;
+    const existente = this.saldoExistente();
 
-    const payload = {
-      empresaClienteContador: { id: row.empresaClienteContadorId },
-      saldoTotal,
-      saldoDisponible: saldoTotal,
-      activo,
-      usuarioCreacion: this.nombreUsuario() ?? 'sistema',
-      usuarioModificacion: this.nombreUsuario() ?? 'sistema',
-    };
+    const request$ = existente?.saldoClienteId
+      ? this.saldoClienteService.updateSaldo({
+          id: existente.saldoClienteId,
+          saldoTotal,
+          usuarioModificacion: this.nombreUsuario() ?? 'sistema',
+          fechaModificacion: new Date().toISOString(),
+        })
+      : this.saldoClienteService.createSaldo({
+          empresaClienteContador: { id: row.empresaClienteContadorId },
+          saldoTotal,
+          saldoDisponible: saldoTotal,
+          activo,
+          cuotas,
+          usuarioCreacion: this.nombreUsuario() ?? 'sistema',
+        });
 
-    this.saldoClienteService.createSaldo(payload).subscribe({
+    request$.subscribe({
       next: (res) => {
-        this.toastService.success('Éxito', 'Saldo guardado correctamente');
+        this.toastService.success('Éxito', existente ? 'Saldo actualizado correctamente' : 'Saldo guardado correctamente');
         this.saldoExistente.set(res);
         this.isSaldoSaving.set(false);
-        this.closeSaldoModal();
       },
       error: () => {
-        this.toastService.error('Error', 'No se pudo guardar el saldo');
+        this.toastService.error('Error', existente ? 'No se pudo actualizar el saldo' : 'No se pudo guardar el saldo');
         this.isSaldoSaving.set(false);
       },
     });
@@ -499,9 +542,9 @@ export class Client {
 
   deleteSaldo(): void {
     const saldo = this.saldoExistente();
-    if (!saldo?.id) return;
+    if (!saldo?.saldoClienteId) return;
 
-    this.saldoClienteService.deleteSaldo(saldo.id).subscribe({
+    this.saldoClienteService.deleteSaldo(saldo.saldoClienteId).subscribe({
       next: () => {
         this.toastService.success('Eliminado', 'Saldo eliminado correctamente');
         this.showDeleteSaldoConfirm.set(false);
