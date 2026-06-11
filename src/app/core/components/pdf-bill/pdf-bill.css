@@ -232,6 +232,12 @@
   grid-template-columns: 1fr 1fr;
 }
 
+.client-info-pair-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
 .client-info-item {
   margin: 3px 0;
   display: flex;

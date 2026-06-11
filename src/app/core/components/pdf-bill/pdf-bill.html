@@ -74,41 +74,41 @@
                   <div class="client-info-item">
                     <span class="label">NOMBRE:</span>
                     <span class="value">
-                      {{ billData()?.cliente?.primerNombre || '' }} {{
-                      billData()?.cliente?.segundoNombre || '' }} {{
-                      billData()?.cliente?.primerApellido || '' }} {{
-                      billData()?.cliente?.segundoApellido || '' }}
+                      {{ billData()?.cliente?.primerNombre || '' }}
+                      {{ billData()?.cliente?.segundoNombre || '' }}
+                      {{ billData()?.cliente?.primerApellido || '' }}
+                      {{ billData()?.cliente?.segundoApellido || '' }}
                     </span>
                   </div>
-                  <div class="client-info-item">
-                    <span class="label">ESTRATO:</span>
-                    <span class="value">
-                      {{ billData()?.contador?.estrato }}</span
-                    >
+                  <div class="client-info-pair-row">
+                    <div class="client-info-item">
+                      <span class="label">TIPO DE USO:</span>
+                      <span class="value">{{ billData()?.contador?.tipoUso || '' }}</span>
+                    </div>
+                    <div class="client-info-item">
+                      <span class="label">ESTRATO:</span>
+                      <span class="value">{{ billData()?.contador?.estrato }}</span>
+                    </div>
                   </div>
-                  <div class="client-info-item">
-                    <span class="label">RUTA:</span>
-                    <span class="value">
-                      {{ billData()?.contador?.ruta }}</span
-                    >
+                  <div class="client-info-pair-row">
+                    <div class="client-info-item">
+                      <span class="label">NUID:</span>
+                      <span class="value">{{ billData()?.contador?.nuid || '' }}</span>
+                    </div>
+                    <div class="client-info-item">
+                      <span class="label">RUTA:</span>
+                      <span class="value">{{ billData()?.contador?.ruta }}</span>
+                    </div>
                   </div>
                   <div class="client-info-item">
                     <span class="label">NÚMERO DE DOCUMENTO:</span>
-                    <span class="value"
-                      >{{ billData()?.cliente?.numeroCedula || '' }}</span
-                    >
-                  </div>
-                  <div class="client-info-item">
-                    <span class="label">NUID:</span>
-                    <span class="value"
-                      >{{ billData()?.contador?.nuid || '' }}</span
-                    >
+                    <span class="value">{{ billData()?.cliente?.numeroCedula || '' }}</span>
                   </div>
                   <div class="client-info-item">
                     <span class="label">DIRECCIÓN:</span>
                     <span class="value">
                       {{ billData()?.cliente?.direccion?.ciudadNombre || '' }},
-                      {{ billData()?.cliente?.direccion?.corregimientoNombre ||'' }}
+                      {{ billData()?.cliente?.direccion?.corregimientoNombre || '' }}
                     </span>
                   </div>
                 </div>

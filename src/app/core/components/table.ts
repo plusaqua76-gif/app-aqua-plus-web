@@ -299,6 +299,8 @@ export interface TableColumn {
                       />
                     } @else if (col.type === 'currency') {
                       {{ getNestedValue(row, col.field) | colombianCurrency }}
+                    } @else if (col.type === 'date') {
+                      {{ formatDateDisplay(getNestedValue(row, col.field)) }}
                     } @else {
                       {{ getNestedValue(row, col.field) ?? col.defaultValue ?? '' }}
                     }
@@ -1140,5 +1142,9 @@ export class TableComponent {
 
   getNestedValue(obj: any, path: string): any {
     return path.split('.').reduce((acc, part) => acc?.[part], obj);
+  }
+
+  formatDateDisplay(dateValue: any): string {
+    return this.formatDateForExport(dateValue);
   }
 }

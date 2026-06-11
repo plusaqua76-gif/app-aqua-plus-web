@@ -1,4 +1,12 @@
+export interface SaldoClienteUpdatePayload {
+  id: number;
+  saldoTotal: number;
+  usuarioModificacion: string;
+  fechaModificacion: string;
+}
+
 export interface SaldoClientePayload {
+  saldoClienteId?: number;
   empresaClienteContador: { id: number };
   saldoTotal: number;
   saldoDisponible: number;
@@ -11,14 +19,19 @@ export interface SaldoClientePayload {
 }
 
 export interface SaldoClienteResponse {
-  id: number;
-  empresaClienteContador: { id: number };
+  saldoClienteId: number;
   saldoTotal: number;
   saldoDisponible: number;
-  cuotas?: number;
+  cuotas: number;
+  saldoActivo: boolean;
+  empresaClienteContadorId: number;
+  id: number;
+  numeroCedula: string;
+  nombreCompleto: string;
+  codigo: string;
   activo: boolean;
-  usuarioCreacion: string;
-  fechaCreacion: string;
-  usuarioModificacion: string;
-  fechaModificacion: string;
+  discapacidad: boolean;
+  tipoDocumentoId: number;
+  tipoDocumentoNombre: string;
+  nuid: number;
 }
