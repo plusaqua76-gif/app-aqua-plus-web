@@ -105,6 +105,7 @@ export interface IContador {
   ruta?: string;
   serial: string;
   estrato: number;
+  tipoUso: string;
   direccion: IDireccion;
   nuid: number;
   idPersona?: number;
