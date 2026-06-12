@@ -212,8 +212,8 @@ export class Bill  {
     { field: 'consumo', header: 'Lectura', type: 'number' as const },
     { field: 'fechaEmision', header: 'Fecha emisión', type: 'date' as const },
     { field: 'fechaFin', header: 'Fecha Vencimiento', type: 'date' as const },
+    { field: 'periodo', header: 'Periodo', type: 'text' as const },
     { field: 'estadoNombre', header: 'Estado', type: 'text' as const },
-    // { field: 'tipoPagoNombre', header: 'Tipo Pago', type: 'text' as const }, lo comente por qeu no nos srive para nada
     { field: 'precio', header: 'Valor', type: 'currency' as const },
   ]);
 

@@ -108,5 +108,6 @@ export interface IfacturaResponse {
     fechaCreacion: Date;
     usuarioModificacion: string | null;
     fechaModificacion: Date | null
+    periodo: string;
 }
 
