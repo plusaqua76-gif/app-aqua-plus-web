@@ -659,7 +659,7 @@ import { LogoCarouselComponent } from './carousel-images-enterprice/logo-carouse
           <nav
             class="relative flex h-full items-center
              gap-6 text-base lg:mx-auto
-             max-lg:flex-col max-lg:h-max max-lg:gap-5 max-lg:mt-6"
+             max-lg:flex-col max-lg:h-max max-lg:gap-5 max-lg:mt-6 pt-3"
           >
             <a class="text-amber-100 hover:opacity-80 transition" href="#nosotros"
               >Nosotros</a
