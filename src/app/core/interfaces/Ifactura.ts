@@ -100,6 +100,7 @@ export interface IfacturaResponse {
     estadoNombre: string;
     fechaEmision: Date;
     fechaFin: Date;
+    periodo: string | null;
     consumo: number;
     precio: string;
     codigo: string;
