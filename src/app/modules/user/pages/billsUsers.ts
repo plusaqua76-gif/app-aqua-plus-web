@@ -33,6 +33,18 @@ import { IdEnterprice } from '../../../core/interfaces/IiEnterprice';
               d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
           </svg>
         </button>
+            <button
+              type="button"
+              (click)="selectedBillRow.set(row); goToPyment()"
+      [disabled]="isPagoDisabled(row)"
+              class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-green-600/50 text-green-400 hover:bg-green-600/10 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+              title="Pagar factura"
+            >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+        </button>
       </div>
     </ng-template>
 
@@ -114,9 +126,21 @@ import { IdEnterprice } from '../../../core/interfaces/IiEnterprice';
             <!-- Botón flotante sticky para descarga PDF -->
             <div class="floating-download-button">
               <button
+                  (click)="goToPyment()"
+                  [disabled]="!puedeRealizarPago()"
+                  class="inline-flex items-center justify-center rounded-xl border border-blue-500/70 bg-blue-500/15 px-6 py-3 text-sm font-medium text-blue-400 transition-[background-color,border-color,box-shadow] duration-300 ease-out hover:bg-blue-500/25 hover:border-blue-400/80 hover:shadow-[0_4px_16px_rgba(59,130,246,0.2)] focus:outline-none focus:ring-2 focus:ring-blue-400/40 disabled:opacity-40 disabled:cursor-not-allowed"
+                  title="Ir a pagos"
+                >
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <span class="ml-2">Pagar factura</span>
+              </button>
+              <button
                 (click)="downloadPDF()"
                 [disabled]="procesandoPDF()"
-                class="inline-flex items-center justify-center rounded-xl border border-green-600/70 bg-green-500/10 px-6 py-3 text-sm text-green-400 hover:bg-green-500/20 focus:outline-none focus:ring-2 focus:ring-green-400/40 transition-colors w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                class="inline-flex items-center justify-center rounded-xl border border-green-600/70 bg-green-500/10 px-6 py-3 text-sm text-green-400 hover:bg-green-500/20 focus:outline-none focus:ring-2 focus:ring-green-400/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Descargar factura en PDF"
               >
                 @if (procesandoPDF()) {
@@ -212,18 +236,34 @@ import { IdEnterprice } from '../../../core/interfaces/IiEnterprice';
       padding: 16px;
       display: flex;
       justify-content: center;
+      gap: 12px;
+      background: rgba(10, 12, 22, 0.70);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      transition: all 300ms ease;
     }
 
     /* Responsive para el botón flotante */
     @media (max-width: 768px) {
       .floating-download-button {
         padding: 12px;
+        gap: 8px;
+      }
+      .floating-download-button button {
+        padding: 8px 16px;
+        font-size: 0.75rem;
       }
     }
 
     @media (max-width: 480px) {
       .floating-download-button {
         padding: 8px;
+        gap: 6px;
+      }
+      .floating-download-button button {
+        padding: 6px 12px;
+        font-size: 0.7rem;
       }
     }
   `],
@@ -243,6 +283,7 @@ export class BillUsers {
   itemToDelete = signal<number | null>(null);
   showBillDetailsPopup = signal(false);
   selectedBillId = signal<number | null>(null);
+  selectedBillRow = signal<any>(null);
   procesandoPDF = signal(false);
 
   userColumns = signal([
@@ -346,22 +387,23 @@ export class BillUsers {
       if (!billId) {
         return of(null);
       }
-      return this.billDetailsService.getAllBillDetails(billId, IdEnterprice);
+      return this.billDetailsService.getAllBillDetails(IdEnterprice, billId);
     },
   });
 
   // Manejo de acciones de la tabla
   handleTableAction(event: { action: string; row?: any }): void {
     if (event.action === 'view') {
-     this.viewUser(event.row.id);
+     this.viewUser(event.row.id, event.row);
     } else if (event.action === 'delete' && event.row) {
       this.onDelete(event.row.id);
     }
   }
 
 
-  viewUser(billId: number): void {
+  viewUser(billId: number, row?: any): void {
     this.selectedBillId.set(billId);
+    this.selectedBillRow.set(row ?? null);
     this.showBillDetailsPopup.set(true);
   }
 
@@ -398,6 +440,47 @@ export class BillUsers {
   onPaginationChange(params: IPaginationParams): void {
     this.paginationParams.set(params);
   }
+
+goToPyment(): void {
+  const bill = this.selectedBillRow();
+  if (!bill) return;
+
+  const estadoActual = (bill.estadoNombre as string) || '';
+  const estadosNoPermitidos = ['PAGADA', 'INACTIVO', 'VENCIDA'];
+  const esNoPermitido = estadosNoPermitidos.some(e =>
+    estadoActual.toUpperCase().includes(e.toUpperCase())
+  );
+
+  if (esNoPermitido) {
+    this.toastService.warning(
+      'Pago no permitido',
+      `La factura no se puede pagar en estado: "${estadoActual}"`
+    );
+    return;
+  }
+
+  const estadosPermitidos = ['PENDIENTE', 'PAGO INMEDIATO', 'AVISO DE SUSPENSIÓN', 'PAGO PARCIAL'];
+  const esPermitido = estadosPermitidos.some(e =>
+    estadoActual.toUpperCase().includes(e.toUpperCase())
+  );
+
+  if (!esPermitido) {
+    this.toastService.warning(
+      'Pago no permitido',
+      `El estado "${estadoActual}" no permite realizar pagos`
+    );
+    return;
+  }
+
+  const queryParams: Record<string, string> = {};
+  if (bill) {
+    queryParams['bill'] = encodeURIComponent(JSON.stringify(bill));
+    if (bill.precio != null && bill.precio > 0) {
+      queryParams['monto'] = String(Math.round(bill.precio * 100));
+    }
+  }
+  this.router.navigate(['../pyments'], { relativeTo: this.route, queryParams });
+}
 
   async downloadPDF(): Promise<void> {
     if (!this.billDetailsResource.value()?.response) {
@@ -459,4 +542,33 @@ export class BillUsers {
       this.procesandoPDF.set(false);
     }
   }
+
+
+  readonly puedeRealizarPago = computed(() => {
+  const bill = this.selectedBillRow();
+  if (!bill) return false;
+
+  const estadoActual = bill.estadoNombre as string;
+  if (!estadoActual) return false;
+
+  const estadosNoPermitidos = ['PAGADA', 'INACTIVO', 'VENCIDA'];
+  const esNoPermitido = estadosNoPermitidos.some(e =>
+    estadoActual.toUpperCase().includes(e.toUpperCase())
+  );
+  if (esNoPermitido) return false;
+
+  const estadosPermitidos = ['PENDIENTE', 'PAGO INMEDIATO', 'AVISO DE SUSPENSIÓN', 'PAGO PARCIAL'];
+  return estadosPermitidos.some(e =>
+    estadoActual.toUpperCase().includes(e.toUpperCase())
+  );
+});
+
+isPagoDisabled(row: any): boolean {
+  const estado = (row?.estadoNombre || '').toUpperCase();
+
+  return ['PAGADA', 'INACTIVO', 'VENCIDA']
+    .some(e => estado.includes(e));
+}
+
+
 }

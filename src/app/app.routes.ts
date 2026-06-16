@@ -124,6 +124,11 @@ export const routes: Routes = [
         path: 'electronic-invoicing',
         loadChildren: () =>
           import('./modules/electronic-invoicing/electronic-invoicing.route').then((m) => m.default),
+      },
+      {
+        path: 'pyments',
+        loadChildren: () =>
+          import('./modules/pyments/pyments.route').then((m) => m.default),
       }
     ],
   },
