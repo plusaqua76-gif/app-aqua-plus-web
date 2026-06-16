@@ -2279,7 +2279,7 @@ export class CreateInvoiceComponent {
       errors.push(' Debe seleccionar un Medio de Pago');
     }
 
-    if (this.invoiceForm.get('medioPago')?.value === '2') {
+    if (this.invoiceForm.get('medioPago')?.value === '2' && !this.isCreditNoteMode()) {
       const diasPredefinidos = this.invoiceForm.get('diasPredefinidos')?.value;
       const fechaVencimiento = this.invoiceForm.get('fechaVencimiento')?.value;
 
