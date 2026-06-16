@@ -4,16 +4,13 @@ import {
   OnInit,
   PLATFORM_ID,
   signal,
-  Injector,
 } from '@angular/core';
 import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
 import { FlowbiteService } from './core/services/flowbite.service';
 import { PreconnetManager } from './core/utils/preconnet';
 import { Seo } from './core/utils/SEO';
 import { initFlowbite } from 'flowbite';
-import { isPlatformBrowser, isPlatformServer, JsonPipe } from '@angular/common';
-import { SwPush } from '@angular/service-worker';
-import { NotificationsService } from '@services/notifications.service';
+import { isPlatformBrowser } from '@angular/common';
 import { Toast } from '@shared/components/toast';
 import { GlobalLoader } from '@components/global-loader';
 
@@ -26,101 +23,38 @@ import { GlobalLoader } from '@components/global-loader';
     @if (shouldShowGlobalLoader()) {
       <app-global-loader></app-global-loader>
     }
-
-    <!-- <button (click)="subscribeToNotifications()">
-  Solicitar persmisos
-  </button>
-
-  <div>
-    <code>{{ respuesta | json }}</code>
-  </div> -->
   `,
 })
 export class App implements OnInit {
   private readonly flowbiteService = inject(FlowbiteService);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly injector = inject(Injector);
-  private readonly notificationsService = inject(NotificationsService);
   private readonly preconnetManager = inject(PreconnetManager);
   private readonly seoService = inject(Seo);
 
 constructor() {
 
-
-   // Configurar preconnect para CDNs
    this.preconnetManager.setDomainPreconnet();
-
-   // Inicializar SEO automático
    this.seoService.init();
 }
   title = 'app-aqua-plus-web';
 
-  public readonly VAPID_PUBLIC_KEY =
-    'BISU0QyUjxCRXkV_LfiBdQN8Rsi2dsNQ5xEtbSXX60O9B1R5Txt0P5pdtg4yxQvuB89PDDkodn-MxqUZYnw6YIM';
-  private swPush: SwPush | null = null;
-
-  respuesta: any;
-  err: any;
-
-  subscribeToNotifications(): void {
-    this.swPush
-      ?.requestSubscription({
-        serverPublicKey: this.VAPID_PUBLIC_KEY,
-      })
-      .then((sub) => {
-        const token = JSON.parse(JSON.stringify(sub));
-        console.log('Token de suscripción:', token);
-
-        this.notificationsService.saveToken(token).subscribe({
-          next: (res: Object) => {
-            console.log('Token guardado exitosamente:', res);
-          },
-          error: (error: any) => {
-            console.error('Error al guardar el token:', error);
-          },
-        });
-      })
-      .catch((err) => {
-        console.error('Error al suscribirse a las notificaciones:', err);
-      });
-  }
-
-  // Signal para trackear si estamos en una ruta que no debe mostrar el loader global
   private readonly currentRoute = signal('');
 
-  // Computed para determinar si mostrar el loader global
+
   shouldShowGlobalLoader = (): boolean => {
     const route = this.currentRoute();
-    // No mostrar loader global en print-bill
-    return !route.includes('/print-bill');
+    return !route.includes('/print-bill',) && !route.includes('/pagos/redirigir/') && !route.includes('/pagos/') && !route.includes('/pagos/transaccion') && !route.includes('/pagos/iniciar');
   };
 
   ngOnInit(): void {
 
-  //     if (isPlatformServer(this.platformId)) {
-  //   console.log('Ejecutando en SERVIDOR (SSR)');
-  // } else {
-  //   console.log('Ejecutando en NAVEGADOR (después de hydration)');
-  // }
-
     if (isPlatformBrowser(this.platformId)) {
-      // Cargar scripts externos de forma dinámica
       this.preconnetManager.loadExternalScripts();
-
-      // Solo inyectar SwPush en el navegador usando el injector con manejo de errores
-      this.subscribeToNotifications();
-      try {
-        this.swPush = this.injector.get(SwPush, null);
-      } catch (error) {
-        console.warn('SwPush no está disponible:', error);
-        this.swPush = null;
-      }
 
       this.flowbiteService.loadFlowbite((flowbite) => {
         initFlowbite();
       });
-
       this.router.events.subscribe((event) => {
         if (event instanceof NavigationEnd) {
           this.currentRoute.set(event.url);

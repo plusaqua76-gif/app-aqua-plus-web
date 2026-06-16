@@ -10,8 +10,9 @@ import { provideClientHydration, withEventReplay, withIncrementalHydration } fro
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 
 import { authorizationInterceptor } from './interceptors/token-interceptor';
-import { loaderInterceptor } from './interceptors/loader-interceptor';
-import { errorInterceptor } from './interceptors/error-interceptor';
+import { loaderInterceptor }        from './interceptors/loader-interceptor';
+import { errorInterceptor }         from './interceptors/error-interceptor';
+import { securityInterceptor }      from './interceptors/security-interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -20,7 +21,7 @@ export const appConfig: ApplicationConfig = {
 
     provideHttpClient(
       withFetch(),
-      withInterceptors([authorizationInterceptor, loaderInterceptor, errorInterceptor])
+      withInterceptors([authorizationInterceptor, securityInterceptor, loaderInterceptor, errorInterceptor])
     ),
 
     provideZoneChangeDetection({ eventCoalescing: true }),
