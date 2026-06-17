@@ -702,6 +702,31 @@ export class ReportsCreate {
     }));
   }
 
+
+  private normalizeReportKey(value: string): string {
+    return String(value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // tildes/diacríticos
+      .toLowerCase()
+      .replace(/[¹²³]/g, (m) => ({ '¹': '1', '²': '2', '³': '3' }[m] as string))
+      .replace(/[^a-z0-9]/g, ''); // espacios, "_", "-", símbolos, etc.
+  }
+
+
+  private buildNormalizedKeyIndex(rows: any[]): Map<string, string> {
+    const index = new Map<string, string>();
+    for (const row of rows) {
+      if (!row || typeof row !== 'object') continue;
+      for (const key of Object.keys(row)) {
+        const norm = this.normalizeReportKey(key);
+        if (norm && !index.has(norm)) {
+          index.set(norm, key);
+        }
+      }
+    }
+    return index;
+  }
+
   private processReportResponse(response: any): void {
     let columns: { field: string; header: string; type: 'text' }[] = [];
     const excludedHeaders = this.EXCLUDED_HEADERS;
@@ -711,19 +736,19 @@ export class ReportsCreate {
       Array.isArray(response.headers) &&
       response.headers.length > 0
     ) {
-      const firstRow = response.rows[0];
-      const fieldKeys = Object.keys(firstRow);
+
+      const keyIndex = this.buildNormalizedKeyIndex(response.rows);
 
       columns = (response.headers as string[])
         .map((header: string, index: number) => {
           if (excludedHeaders.includes(header)) return null;
+
+          const normalizedHeader = this.normalizeReportKey(header);
+          const matchedKey = keyIndex.get(normalizedHeader);
+
           const field =
-            fieldKeys[index] ??
-            header
-              .toLowerCase()
-              .normalize('NFD')
-              .replace(/[\u0300-\u036f]/g, '')
-              .replace(/\s+/g, '_');
+            matchedKey ?? `__sin_dato__${index}__${normalizedHeader}`;
+
           return {
             field,
             header: String(header),

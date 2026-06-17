@@ -162,6 +162,8 @@ export class FacturaService {
         return this.isValidDateFormat(value)
           ? httpParams.set('fechaFin', value)
           : httpParams;
+      case 'periodo':
+        return httpParams.set('periodo', value);
       case 'estadoNombre':
         return httpParams.set('estadoNombre', value);
       case 'tipoPagoNombre':

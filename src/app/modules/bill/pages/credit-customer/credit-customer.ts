@@ -84,7 +84,7 @@ export class CreditCustomer {
           response: response.response.map(abono => ({
             nombreCliente: abono.cliente,
             codigoFactura: abono.codigoFactura,
-            fechaAbono: new Date(abono.fechaAbono).toLocaleDateString('es-CO'),
+            fechaAbono: abono.fechaAbono,
             valorAbono: `$${abono.valorAbono.toLocaleString('es-CO')}`
           }))
         }))

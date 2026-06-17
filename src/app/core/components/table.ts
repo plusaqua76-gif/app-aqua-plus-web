@@ -13,11 +13,12 @@ import {
   inject,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subject } from 'rxjs';
+import { Subject, firstValueFrom } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { IPaginatedResponse, IPaginationParams } from '../interfaces/IpaginatedResponse';
 import { Datepicker } from '../../shared/components/datepicker';
 import { ColombianCurrencyPipe } from '../../shared/pipes/colombian-currency.pipe';
+import { EnterpriseIdService } from '@services/enterpriceId.service';
 
 export interface Action<T = any> {
   action: string;
@@ -29,6 +30,15 @@ export interface TableColumn {
   header: string;
   type?: 'text' | 'date' | 'number' | 'currency';
   defaultValue?: string;
+}
+
+interface EnterpriseHeaderData {
+  nombre: string;
+  nit: string;
+  version: string;
+  fecha: string;
+  logoBase64: string | null;
+  logoExtension: 'png' | 'jpeg' | 'gif';
 }
 
 @Component({
@@ -404,6 +414,7 @@ export interface TableColumn {
 export class TableComponent {
   pagination = input<boolean>(true);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly enterpriseIdService = inject(EnterpriseIdService);
   private readonly filterSubject = new Subject<{ field: string; value: string }>();
 
   readonly buttonFilter = signal<boolean>(false);
@@ -916,78 +927,324 @@ export class TableComponent {
     this.performExcelExport();
   }
 
-  private performExcelExport(): void {
-    const data = this.getExportData();
-    const headers = this.columns().map(col => col.header);
 
-    // Crear tabla HTML compatible con Excel
-    let excelContent = `
-      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-      <head>
-        <meta charset="utf-8">
-        <!--[if gte mso 9]>
-        <xml>
-          <x:ExcelWorkbook>
-            <x:ExcelWorksheets>
-              <x:ExcelWorksheet>
-                <x:Name>${this.title() || 'Hoja1'}</x:Name>
-                <x:WorksheetOptions>
-                  <x:DisplayGridlines/>
-                </x:WorksheetOptions>
-              </x:ExcelWorksheet>
-            </x:ExcelWorksheets>
-          </x:ExcelWorkbook>
-        </xml>
-        <![endif]-->
-        <style>
-          table { border-collapse: collapse; width: 100%; }
-          th { background-color: #4472C4; color: white; font-weight: bold; padding: 8px; border: 1px solid #ddd; }
-          td { padding: 8px; border: 1px solid #ddd; }
-          tr:nth-child(even) { background-color: #f2f2f2; }
-        </style>
-      </head>
-      <body>
-        <table>
-          <thead>
-            <tr>
-              ${headers.map(header => `<th>${this.escapeHtml(header)}</th>`).join('')}
-            </tr>
-          </thead>
-          <tbody>
-    `;
-
-    data.forEach(row => {
-      excelContent += '<tr>';
-      headers.forEach(header => {
-        const value = row[header] ?? '';
-        excelContent += `<td>${this.escapeHtml(String(value))}</td>`;
-      });
-      excelContent += '</tr>';
-    });
-
-    excelContent += `
-          </tbody>
-        </table>
-      </body>
-      </html>
-    `;
-
-    // Agregar BOM UTF-8 para caracteres especiales
-    const BOM = '\uFEFF';
-    const excelWithBOM = BOM + excelContent;
-
-    this.downloadFile(excelWithBOM, `${this.exportFileName()}.xls`, 'application/vnd.ms-excel;charset=utf-8');
+  private static readonly EXCEL_HEADER_FILL = 'FFD9D9D9';
+  private static readonly EXCEL_BORDER_COLOR = 'FF000000';
+  private excelJsPromise: Promise<any> | null = null;
+  private loadExcelJS(): Promise<any> {
+    if (!this.excelJsPromise) {
+      this.excelJsPromise = import('exceljs/dist/exceljs.min.js' as any).then(
+        (mod: any) => mod?.default ?? mod
+      );
+    }
+    return this.excelJsPromise;
   }
 
-  private escapeHtml(text: string): string {
-    const map: { [key: string]: string } = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;'
+  private async performExcelExport(): Promise<void> {
+    try {
+      const ExcelJS = await this.loadExcelJS();
+      const columns = this.columns();
+      const rows = this.getTypedExportRows();
+
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'Aqua Plus';
+      workbook.created = new Date(Date.now());
+
+      const sheet = workbook.addWorksheet(this.sanitizeSheetName(this.title() || 'Reporte'), {
+        views: [{ showGridLines: false }],
+        pageSetup: { fitToPage: true, fitToWidth: 1, fitToHeight: 0, orientation: 'landscape' },
+      });
+
+      const totalCols = columns.length;
+      const lastCol = Math.max(totalCols, 1);
+
+      sheet.columns = columns.map((col) => ({
+        width: this.computeColumnWidth(col, rows),
+      }));
+
+      const enterprise = await this.getEnterpriseHeaderData();
+      const headerEndRow = this.buildCorporateHeader(sheet, enterprise, lastCol);
+
+      const titleRowIndex = headerEndRow + 1;
+      this.buildReportTitle(sheet, titleRowIndex, lastCol);
+
+      const tableHeaderRowIndex = titleRowIndex + 1;
+      this.buildTableHeader(sheet, tableHeaderRowIndex, columns);
+
+      this.buildDataRows(sheet, tableHeaderRowIndex + 1, columns, rows);
+
+      if (enterprise.logoBase64) {
+        this.insertLogo(workbook, sheet, enterprise);
+      }
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      this.downloadBlob(
+        new Blob([buffer], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        }),
+        `${this.exportFileName()}.xlsx`
+      );
+    } catch (error) {
+      console.error('Error al generar el Excel:', error);
+      this.showExportDropdown.set(false);
+    }
+  }
+
+  private getTypedExportRows(): Array<Record<string, { value: any; type: string }>> {
+    const dataSource = this.serverMode() && this.exportData()
+      ? this.exportData()!
+      : this.filtered();
+
+    return dataSource.map((row) => {
+      const exportRow: Record<string, { value: any; type: string }> = {};
+      this.columns().forEach((col) => {
+        const raw = this.getNestedValue(row, col.field);
+        exportRow[col.field] = { value: this.coerceCellValue(raw, col), type: col.type ?? 'text' };
+      });
+      return exportRow;
+    });
+  }
+
+  private coerceCellValue(raw: any, col: TableColumn): any {
+    if (col.type === 'currency' || col.type === 'number') {
+      const num = typeof raw === 'string' ? parseFloat(raw) : raw;
+      if (raw === null || raw === undefined || raw === '' || Number.isNaN(num)) {
+        return null;
+      }
+      return num;
+    }
+    if (col.type === 'date') {
+      return this.formatDateForExport(raw);
+    }
+    return raw ?? col.defaultValue ?? '';
+  }
+
+  private buildCorporateHeader(sheet: any, enterprise: EnterpriseHeaderData, lastCol: number): number {
+    const fullBorder = this.fullBorder();
+    const baseStyle = {
+      font: { bold: true, size: 10 },
+      alignment: { horizontal: 'center', vertical: 'middle', wrapText: true } as const,
+      border: fullBorder,
     };
-    return text.replace(/[&<>"']/g, (m) => map[m]);
+
+    sheet.getRow(1).height = 26;
+    sheet.getRow(2).height = 26;
+
+    if (lastCol >= 4) {
+      const logoCol = 1;
+      const versionCol = lastCol - 1;
+      const pageCol = lastCol;
+      const nameStart = 2;
+      const nameEnd = lastCol - 2;
+
+      sheet.mergeCells(1, logoCol, 2, logoCol);
+
+      sheet.mergeCells(1, nameStart, 1, nameEnd);
+      sheet.mergeCells(2, nameStart, 2, nameEnd);
+
+      const nameCell = sheet.getCell(1, nameStart);
+      nameCell.value = enterprise.nombre || 'Empresa';
+      Object.assign(nameCell, { ...baseStyle, font: { bold: true, size: 12 } });
+
+      const nitCell = sheet.getCell(2, nameStart);
+      nitCell.value = enterprise.nit ? `NIT: ${enterprise.nit}` : 'NIT: -';
+      Object.assign(nitCell, baseStyle);
+
+      const versionCell = sheet.getCell(1, versionCol);
+      versionCell.value = `VERSIÓN: ${enterprise.version}`;
+      Object.assign(versionCell, baseStyle);
+
+      const fechaCell = sheet.getCell(2, versionCol);
+      fechaCell.value = `FECHA: ${enterprise.fecha}`;
+      Object.assign(fechaCell, baseStyle);
+
+      const pageCellTop = sheet.getCell(1, pageCol);
+      pageCellTop.value = 'PÁGINA: 1';
+      Object.assign(pageCellTop, baseStyle);
+
+      const pageCellBottom = sheet.getCell(2, pageCol);
+      pageCellBottom.value = '';
+      Object.assign(pageCellBottom, baseStyle);
+
+      this.styleCell(sheet.getCell(1, logoCol), baseStyle);
+    } else {
+      sheet.mergeCells(1, 1, 1, lastCol);
+      sheet.mergeCells(2, 1, 2, lastCol);
+      const nameCell = sheet.getCell(1, 1);
+      nameCell.value = enterprise.nombre || 'Empresa';
+      Object.assign(nameCell, { ...baseStyle, font: { bold: true, size: 12 } });
+      const infoCell = sheet.getCell(2, 1);
+      infoCell.value = `NIT: ${enterprise.nit || '-'}   |   VERSIÓN: ${enterprise.version}   |   FECHA: ${enterprise.fecha}`;
+      Object.assign(infoCell, baseStyle);
+    }
+
+    return 2;
+  }
+
+  private buildReportTitle(sheet: any, rowIndex: number, lastCol: number): void {
+    sheet.mergeCells(rowIndex, 1, rowIndex, lastCol);
+    const cell = sheet.getCell(rowIndex, 1);
+    cell.value = (this.title() || 'REPORTE').toUpperCase();
+    cell.font = { bold: true, size: 11, color: { argb: 'FF000000' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: TableComponent.EXCEL_HEADER_FILL } };
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    cell.border = this.fullBorder();
+    sheet.getRow(rowIndex).height = 22;
+  }
+
+  private buildTableHeader(sheet: any, rowIndex: number, columns: TableColumn[]): void {
+    const row = sheet.getRow(rowIndex);
+    columns.forEach((col, i) => {
+      const cell = row.getCell(i + 1);
+      cell.value = col.header;
+      cell.font = { bold: true, size: 10, color: { argb: 'FF000000' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: TableComponent.EXCEL_HEADER_FILL } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      cell.border = this.fullBorder();
+    });
+    row.height = 20;
+  }
+
+  private buildDataRows(
+    sheet: any,
+    startRow: number,
+    columns: TableColumn[],
+    rows: Array<Record<string, { value: any; type: string }>>
+  ): void {
+    rows.forEach((dataRow, r) => {
+      const excelRow = sheet.getRow(startRow + r);
+      columns.forEach((col, c) => {
+        const cell = excelRow.getCell(c + 1);
+        const item = dataRow[col.field];
+        const value = item?.value ?? '';
+        const isEstado = this.isEstadoColumn(col);
+        const isMoney = col.type === 'currency';
+        const isNumber = col.type === 'number';
+
+        cell.value = value === '' && (isMoney || isNumber) ? null : value;
+        cell.border = this.fullBorder();
+
+        if (isMoney) {
+          cell.numFmt = '$ #,##0';
+          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+          cell.font = { size: 9 };
+        } else if (isNumber) {
+          cell.numFmt = '#,##0';
+          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+          cell.font = { size: 9 };
+        } else if (isEstado) {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          cell.font = { size: 9, bold: true };
+        } else {
+          cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+          cell.font = { size: 9 };
+        }
+      });
+    });
+  }
+
+  private insertLogo(workbook: any, sheet: any, enterprise: EnterpriseHeaderData): void {
+    try {
+      const imageId = workbook.addImage({
+        base64: enterprise.logoBase64,
+        extension: enterprise.logoExtension,
+      });
+      sheet.addImage(imageId, {
+        tl: { col: 0.15, row: 0.15 },
+        ext: { width: 70, height: 60 },
+        editAs: 'oneCell',
+      });
+    } catch (error) {
+      console.warn('No se pudo insertar el logo en el Excel:', error);
+    }
+  }
+
+  private fullBorder() {
+    const side = { style: 'thin' as const, color: { argb: TableComponent.EXCEL_BORDER_COLOR } };
+    return { top: side, bottom: side, left: side, right: side };
+  }
+
+  private styleCell(cell: any, style: { font?: any; alignment?: any; border?: any; fill?: any }): void {
+    if (style.font) cell.font = style.font;
+    if (style.alignment) cell.alignment = style.alignment;
+    if (style.border) cell.border = style.border;
+    if (style.fill) cell.fill = style.fill;
+  }
+
+  private isEstadoColumn(col: TableColumn): boolean {
+    const header = (col.header || '').toLowerCase();
+    const field = (col.field || '').toLowerCase();
+    return header.includes('estado') || field.includes('estado');
+  }
+
+  private computeColumnWidth(col: TableColumn, rows: Array<Record<string, { value: any; type: string }>>): number {
+    if (col.type === 'currency') return 18;
+    if (col.type === 'number') return 14;
+    if (col.type === 'date') return 16;
+
+    let maxLen = (col.header || '').length;
+    for (const row of rows) {
+      const value = row[col.field]?.value;
+      const len = value == null ? 0 : String(value).length;
+      if (len > maxLen) maxLen = len;
+    }
+    return Math.min(Math.max(maxLen + 2, 10), 45);
+  }
+
+  private sanitizeSheetName(name: string): string {
+    return (name || 'Reporte').replace(/[\\/?*[\]:]/g, '').substring(0, 31) || 'Reporte';
+  }
+
+  private async getEnterpriseHeaderData(): Promise<EnterpriseHeaderData> {
+    const fecha = new Date(Date.now()).toLocaleDateString('es-CO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+
+    const fallback: EnterpriseHeaderData = {
+      nombre: '',
+      nit: '',
+      version: '1.0',
+      fecha,
+      logoBase64: null,
+      logoExtension: 'png',
+    };
+
+    try {
+      const info: any = await firstValueFrom(this.enterpriseIdService.getEnterpriseInfo());
+      if (!info) return fallback;
+
+      const imagen = Array.isArray(info.imagen) && info.imagen.length > 0 ? info.imagen[0] : null;
+      const base64 = imagen?.imagen ?? null;
+      const contentType: string = imagen?.contentType || (imagen?.extension ? `image/${imagen.extension}` : 'image/png');
+      let extension = contentType.split('/')[1] || 'png';
+      if (extension === 'jpg') extension = 'jpeg';
+      if (!['png', 'jpeg', 'gif'].includes(extension)) extension = 'png';
+
+      return {
+        nombre: info.nombre || '',
+        nit: info.nit || '',
+        version: info.version ? String(info.version) : '1.0',
+        fecha,
+        logoBase64: base64 ? `data:${contentType};base64,${base64}` : null,
+        logoExtension: extension as 'png' | 'jpeg' | 'gif',
+      };
+    } catch {
+      return fallback;
+    }
+  }
+
+  private downloadBlob(blob: Blob, fileName: string): void {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    this.showExportDropdown.set(false);
   }
 
   exportAsJSON() {
@@ -1068,7 +1325,7 @@ export class TableComponent {
     const tableName = this.exportFileName().toLowerCase().replace(/[^a-z0-9]/g, '_');
 
     let sqlContent = `-- SQL Export for ${this.title() || 'Table'}\n`;
-    sqlContent += `-- Generated on ${new Date().toISOString()}\n\n`;
+    sqlContent += `-- Generated on ${new Date(Date.now()).toISOString()}\n\n`;
 
     sqlContent += `CREATE TABLE ${tableName} (\n`;
     sqlContent += headers.map(header =>
