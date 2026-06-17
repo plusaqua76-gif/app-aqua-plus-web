@@ -27,6 +27,7 @@
         "@tailwindcss/postcss": "^4.1.8",
         "@types/crypto-js": "^4.2.2",
         "apexcharts": "^3.46.0",
+        "exceljs": "^4.4.0",
         "crypto-js": "^4.2.0",
         "express": "^5.1.0",
         "flowbite": "^3.1.2",
