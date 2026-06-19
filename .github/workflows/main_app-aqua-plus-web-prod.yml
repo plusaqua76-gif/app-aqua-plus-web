@@ -1,0 +1,67 @@
+# Build Once, Deploy Anywhere - Angular SSR to Azure (PRODUCTION Environment)
+
+name: Deploy to PRODUCTION - app-aqua-plus-web-prod
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Angular SSR (PRODUCTION)
+        run: |
+          rm -rf dist
+          npm run build -- --configuration production
+
+      - name: Install production dependencies only
+        run: npm ci --omit=dev
+
+      - name: Prepare deployment package
+        run: |
+          mkdir deploy
+          cp -r dist deploy/dist
+          cp package.json deploy/package.json
+          cp -r node_modules deploy/node_modules
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_13FFE1A52AC8493186D25485A42E2231 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0D8A9E5888704B12B3CC580CCE82C0A0 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_94745A0832814300AFC99A181290D578 }}
+
+      - name: Deploy to Azure Web App (PRODUCTION)
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'app-aqua-plus-web-prod'
+          slot-name: 'Production'
+          package: deploy
+
+      - name: Deployment Summary
+        run: |
+          echo "Deployment to PRODUCTION completed successfully"
+          echo "URL: https://app-aqua-plus-web-prod.azurewebsites.net"
+          echo "Environment: PRODUCTION"
+          echo "API: https://app-aqua-plus-api.azurewebsites.net/api/v1"
+
