@@ -41,6 +41,7 @@
               "canvg",
               "jspdf",
               "html2canvas",
+              "exceljs",
               "@babel/runtime/helpers/asyncToGenerator",
               "@babel/runtime/helpers/defineProperty",
               "@babel/runtime/helpers/typeof",

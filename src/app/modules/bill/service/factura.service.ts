@@ -181,10 +181,6 @@ export class FacturaService {
     }
   }
 
-  /**
-   * Maneja filtros numéricos que pueden ser valores exactos o rangos
-   * Ejemplos: "100", ">100", "<500", "100-500"
-   */
   private handleNumericRangeFilter(
     httpParams: HttpParams,
     value: string,

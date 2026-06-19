@@ -29,6 +29,7 @@ import { DocumentAzureBlobService } from '../../../fee/services/document-azure-b
 import { DocumentUpload } from '@interfaces/document-azure-blob/document';
 import { UserAccessService } from '../../services/bill-users.service';
 import { UserService } from '../../../auth/service/user.service';
+import { WompiService } from '@services/wompi.service';
 
 @Component({
   selector: 'app-profile',
@@ -840,6 +841,152 @@ import { UserService } from '../../../auth/service/user.service';
               </p>
             </div>
           }
+
+          <!-- Wompi Configuration Card -->
+          @if (enterprise) {
+            <div
+              class="relative overflow-hidden shadow-2xl rounded-3xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 mt-6"
+            >
+              <div class="px-8 py-6">
+                <!-- Header -->
+                <div class="flex items-center gap-3 mb-6">
+                  <img
+                    src="/images/pyment/logoWompi.png"
+                    alt="Wompi"
+                    class="h-8 object-contain"
+                  />
+                  <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                      Configuración de Pagos Wompi
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      Ingresa las claves de tu cuenta Wompi para habilitar los pagos en línea
+                    </p>
+                  </div>
+                </div>
+
+                <form [formGroup]="wompiForm" class="space-y-4">
+                  <!-- Clave Pública -->
+                  <div>
+                    <label
+                      for="clavePublica"
+                      class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
+                    >
+                      Clave Pública <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="clavePublica"
+                      type="text"
+                      formControlName="clavePublica"
+                      autocomplete="off"
+                      class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 font-mono text-sm"
+                      placeholder="pub_test_xxxxxxxxxxxxxxxxxxxxxxxx"
+                    />
+                    @if (wompiForm.get('clavePublica')?.invalid && wompiForm.get('clavePublica')?.touched) {
+                      <p class="mt-1 text-sm text-red-500">La clave pública es requerida</p>
+                    }
+                  </div>
+
+                  <!-- Clave Privada -->
+                  <div>
+                    <label
+                      for="clavePrivada"
+                      class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
+                    >
+                      Clave Privada <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                      <input
+                        id="clavePrivada"
+                        [type]="showWompiPrivada() ? 'text' : 'password'"
+                        formControlName="clavePrivada"
+                        autocomplete="new-password"
+                        class="w-full px-4 py-3 pr-12 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 font-mono text-sm"
+                        placeholder="prv_test_xxxxxxxxxxxxxxxxxxxxxxxx"
+                      />
+                      <button
+                        type="button"
+                        (click)="showWompiPrivada.set(!showWompiPrivada())"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                      >
+                        @if (showWompiPrivada()) {
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                          </svg>
+                        } @else {
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                          </svg>
+                        }
+                      </button>
+                    </div>
+                    @if (wompiForm.get('clavePrivada')?.invalid && wompiForm.get('clavePrivada')?.touched) {
+                      <p class="mt-1 text-sm text-red-500">La clave privada es requerida</p>
+                    }
+                  </div>
+
+                  <!-- Secreto de Integridad -->
+                  <div>
+                    <label
+                      for="secretoIntegridad"
+                      class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
+                    >
+                      Secreto de Integridad <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                      <input
+                        id="secretoIntegridad"
+                        [type]="showWompiSecreto() ? 'text' : 'password'"
+                        formControlName="secretoIntegridad"
+                        autocomplete="new-password"
+                        class="w-full px-4 py-3 pr-12 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 font-mono text-sm"
+                        placeholder="Ingresa el secreto de integridad"
+                      />
+                      <button
+                        type="button"
+                        (click)="showWompiSecreto.set(!showWompiSecreto())"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                      >
+                        @if (showWompiSecreto()) {
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                          </svg>
+                        } @else {
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                          </svg>
+                        }
+                      </button>
+                    </div>
+                    @if (wompiForm.get('secretoIntegridad')?.invalid && wompiForm.get('secretoIntegridad')?.touched) {
+                      <p class="mt-1 text-sm text-red-500">El secreto de integridad es requerido</p>
+                    }
+                  </div>
+
+                  <!-- Save Button -->
+                  <div class="flex items-center justify-center pt-2">
+                    <button
+                      type="button"
+                      (click)="saveWompiConfig()"
+                      [disabled]="isSavingWompi() || wompiForm.invalid"
+                      class="px-8 py-3 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-medium rounded-xl hover:border-blue-500/50 transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
+                    >
+                      @if (isSavingWompi()) {
+                        <div class="flex items-center gap-2">
+                          <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                          Guardando...
+                        </div>
+                      } @else {
+                        Guardar Claves Wompi
+                      }
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          }
         </div>
       }
     </div>
@@ -848,6 +995,7 @@ import { UserService } from '../../../auth/service/user.service';
 })
 export class Profile {
   updateForm!: FormGroup;
+  wompiForm!: FormGroup;
   isUpdatingImage = signal<boolean>(false);
   selectedImageFile = signal<File | null>(null);
   imagePreview = signal<string | null>(null);
@@ -860,11 +1008,15 @@ export class Profile {
   citiesLoading = signal<boolean>(false);
   corregimientosLoading = signal<boolean>(false);
   isUpdating = signal<boolean>(false);
+  isSavingWompi = signal<boolean>(false);
+  showWompiPrivada = signal<boolean>(false);
+  showWompiSecreto = signal<boolean>(false);
 
   private readonly fb = inject(FormBuilder);
   private readonly locationService = inject(LocationService);
   private readonly toast = inject(ToastService);
   private readonly userService = inject(UserService);
+  private readonly wompiService = inject(WompiService);
 
 
 
@@ -944,25 +1096,6 @@ export class Profile {
     }
   })
 
-  //  asi es como se hace correctamente el rxresource
-  //   serverAccountData = rxResource({
-  //   params: () => ({
-  //     enterpriseId: this.enterpriseId(),
-  //     pagination: this.paginationParams(),
-  //     filters: this.filters(),
-  //   }),
-  //   stream: ({ params }) => {
-  //     const { enterpriseId, pagination, filters } = params;
-  //     if (!enterpriseId) {
-  //       return of(null);
-  //     }
-  //     return this.accountsService.getAllAccountsByIdPaginated(
-  //       enterpriseId,
-  //       pagination,
-  //       filters,
-  //     );
-  //   },
-  // });
 
   enterpriseInfo = rxResource({
     stream: () => this.enterpriseIdService.getEnterpriseInfo(),
@@ -972,6 +1105,7 @@ export class Profile {
 
   constructor() {
     this.initializeForm();
+    this.initializeWompiForm();
 
     effect(() => {
       const enterpriseResponse = this.dataEnterprice.value();
@@ -982,6 +1116,7 @@ export class Profile {
       if (enterprise) {
         this.updateFormWithEnterpriseData(enterprise);
         this.loadDepartments();
+        this.loadWompiConfig(enterprise.id);
       }
     });
 
@@ -1037,6 +1172,71 @@ export class Profile {
         this.updateForm.patchValue({ idCorregimiento: '' });
       }
     });
+  }
+
+  private initializeWompiForm(): void {
+    this.wompiForm = this.fb.group({
+      clavePublica: ['', [Validators.required]],
+      clavePrivada: ['', [Validators.required]],
+      secretoIntegridad: ['', [Validators.required]],
+    });
+  }
+
+  private loadWompiConfig(idEmpresa: number): void {
+    if (!idEmpresa) return;
+    this.wompiService.obtenerConfigWompi(idEmpresa).subscribe({
+      next: (res) => {
+        if (res.success && res.response) {
+          this.wompiForm.patchValue({
+            clavePublica: res.response.clavePublica || '',
+            clavePrivada: res.response.clavePrivada || '',
+            secretoIntegridad: res.response.secretoIntegridad || '',
+          });
+        }
+      },
+      error: () => {},
+    });
+  }
+
+  saveWompiConfig(): void {
+    if (this.wompiForm.invalid) {
+      this.wompiForm.markAllAsTouched();
+      this.toast.error('Error', 'Complete todos los campos de configuración Wompi');
+      return;
+    }
+
+    const enterpriseResponse = this.dataEnterprice.value();
+    const enterprise =
+      enterpriseResponse && 'response' in enterpriseResponse
+        ? enterpriseResponse.response
+        : null;
+
+    if (!enterprise?.id) {
+      this.toast.error('Error', 'No se pudo obtener el ID de la empresa');
+      return;
+    }
+
+    const { clavePublica, clavePrivada, secretoIntegridad } = this.wompiForm.value;
+
+    this.isSavingWompi.set(true);
+    this.wompiService
+      .guardarConfigWompi({
+        idEmpresa: enterprise.id,
+        clavePublica,
+        clavePrivada,
+        secretoIntegridad,
+        usuarioCreacion: this.nombreUsuario(),
+      })
+      .subscribe({
+        next: () => {
+          this.toast.success('Éxito', 'Configuración Wompi guardada correctamente');
+          this.isSavingWompi.set(false);
+        },
+        error: () => {
+          this.toast.error('Error', 'Error al guardar la configuración Wompi');
+          this.isSavingWompi.set(false);
+        },
+      });
   }
 
   private updateFormWithEnterpriseData(enterprise: any): void {

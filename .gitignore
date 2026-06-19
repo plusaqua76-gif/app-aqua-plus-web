@@ -48,3 +48,8 @@ mkcert.exe
 
 # Local development tools
 mkcert*
+
+# Environment files
+src/environments/environment.ts
+src/environments/environment.prod.ts
+src/environments/environment.test.ts

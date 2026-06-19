@@ -110,7 +110,7 @@ const PARAM_KEYS = {
           <!-- Card 1: Días de Vigencia -->
           <div
             class="group animated-bg relative overflow-hidden rounded-xl border border-[#312f62a3] bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-6 hover:shadow-2xl transition-all duration-300"
-           >
+          >
             <!-- Animated circles -->
             <div
               class="group-hover:-top-3 bg-transparent -top-12 -right-12 absolute shadow-blue-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
@@ -147,30 +147,62 @@ const PARAM_KEYS = {
               </div>
 
               <div>
-                <label
-                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
-                >
-                  Días de vigencia de la factura
-                </label>
-                <div class="relative">
-                  <input
-                    type="number"
-                    [(ngModel)]="diasVigencia"
-                    min="1"
-                    max="365"
-                    placeholder="días"
-                    class="w-full px-4 py-3.5 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 text-lg font-medium"
-                  />
-                  <div
-                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm font-medium"
-                  >
-                    días
+
+
+                <!-- Calculadora de fechas -->
+                <div class="mt-4 p-4 rounded-xl bg-white/5 dark:bg-slate-700/30 border border-white/10 dark:border-slate-400/20">
+                  <p class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wider">
+                    <i class="fas fa-calendar-check mr-1 text-blue-400"></i>
+                    Calcular desde fechas
+                  </p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                    Los días de vigencia son el período entre el
+                    <strong class="text-gray-700 dark:text-gray-300">inicio del ciclo de facturación</strong>
+                    y la
+                    <strong class="text-gray-700 dark:text-gray-300">fecha de corte</strong>.
+                  </p>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                        <i class="fas fa-play-circle mr-1 text-green-400"></i>
+                        Inicio facturación
+                      </label>
+                      <input
+                        type="date"
+                        [(ngModel)]="fechaInicioFacturacion"
+                        (ngModelChange)="calcularDiasVigencia()"
+                        [max]="fechaCorte"
+                        class="w-full px-3 py-2 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-lg text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-200 [color-scheme:dark]"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                        <i class="fas fa-stop-circle mr-1 text-red-400"></i>
+                        Fecha de corte
+                      </label>
+                      <input
+                        type="date"
+                        [(ngModel)]="fechaCorte"
+                        (ngModelChange)="calcularDiasVigencia()"
+                        [min]="fechaInicioFacturacion"
+                        class="w-full px-3 py-2 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-lg text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-200 [color-scheme:dark]"
+                      />
+                    </div>
                   </div>
+                  @if (diasCalculados > 0) {
+                    <div class="mt-3 flex items-center gap-2 p-2.5 rounded-lg bg-blue-500/15 border border-blue-500/25">
+                      <i class="fas fa-check-circle text-blue-400 flex-shrink-0"></i>
+                      <span class="text-sm text-blue-300 font-semibold">{{ diasCalculados }} días calculados</span>
+                      <span class="text-xs text-gray-400 ml-1">y aplicados al campo superior</span>
+                    </div>
+                  }
+                  @if (errorFechas) {
+                    <div class="mt-3 flex items-center gap-2 p-2.5 rounded-lg bg-red-500/15 border border-red-500/25">
+                      <i class="fas fa-exclamation-circle text-red-400 flex-shrink-0"></i>
+                      <span class="text-xs text-red-300">{{ errorFechas }}</span>
+                    </div>
+                  }
                 </div>
-                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  <i class="fas fa-info-circle mr-1"></i>
-                  Número de días desde la emisión hasta el vencimiento
-                </p>
               </div>
             </div>
           </div>
@@ -192,7 +224,6 @@ const PARAM_KEYS = {
             <div
               class="group-hover:-top-32 bg-transparent top-8 right-8 absolute shadow-blue-800 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-12 h-12"
             ></div>
-
 
             <div class="relative z-10">
               <div class="flex items-start gap-4 mb-6">
@@ -436,7 +467,8 @@ const PARAM_KEYS = {
                 </div>
                 <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
                   <i class="fas fa-info-circle mr-1"></i>
-                  Número de periodos anteriores para facturación mes atrasado (0 para facturación mes actual)
+                  Número de periodos anteriores para facturación mes atrasado (0
+                  para facturación mes actual)
                 </p>
               </div>
             </div>
@@ -598,34 +630,53 @@ const PARAM_KEYS = {
                   <div class="space-y-4">
                     <!-- Estado Inicial: Emisión de Factura -->
                     <div class="flex items-center gap-4">
-                      <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg">
+                      <div
+                        class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg"
+                      >
                         <i class="fas fa-file-invoice"></i>
                       </div>
                       <div class="flex-1">
-                        <p class="text-sm font-bold text-gray-800 dark:text-white">Día 0: Emisión de Factura</p>
-                        <p class="text-xs text-gray-600 dark:text-gray-400">La factura se genera y se envía al cliente</p>
+                        <p
+                          class="text-sm font-bold text-gray-800 dark:text-white"
+                        >
+                          Día 0: Emisión de Factura
+                        </p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400">
+                          La factura se genera y se envía al cliente
+                        </p>
                       </div>
                     </div>
 
                     <!-- Flecha hacia abajo -->
                     <div class="flex justify-center">
-                      <i class="fas fa-arrow-down text-gray-400 dark:text-gray-500 text-2xl"></i>
+                      <i
+                        class="fas fa-arrow-down text-gray-400 dark:text-gray-500 text-2xl"
+                      ></i>
                     </div>
 
                     <!-- Estado 1: PENDIENTE -->
-                    <div class="flex items-center gap-4 p-4 rounded-xl bg-gray-900 border border-white/20 dark:border-slate-400/30 backdrop-blur-md hover:bg-white/15 dark:hover:bg-slate-600/40 transition-all duration-300">
-                      <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg">
+                    <div
+                      class="flex items-center gap-4 p-4 rounded-xl bg-gray-900 border border-white/20 dark:border-slate-400/30 backdrop-blur-md hover:bg-white/15 dark:hover:bg-slate-600/40 transition-all duration-300"
+                    >
+                      <div
+                        class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg"
+                      >
                         1
                       </div>
                       <div class="flex-1">
-                        <p class="text-sm font-bold text-green-800 dark:text-green-300 mb-1">
+                        <p
+                          class="text-sm font-bold text-green-800 dark:text-green-300 mb-1"
+                        >
                           <i class="fas fa-clock mr-1"></i>
                           Estado: PENDIENTE
                         </p>
                         <p class="text-xs text-gray-700 dark:text-gray-300">
-                          <strong>Condición:</strong> Días transcurridos menores o iguales a Días de Vigencia
+                          <strong>Condición:</strong> Días transcurridos menores
+                          o iguales a Días de Vigencia
                         </p>
-                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        <p
+                          class="text-xs text-gray-600 dark:text-gray-400 mt-1"
+                        >
                           Cliente puede pagar sin recargos
                         </p>
                       </div>
@@ -633,24 +684,38 @@ const PARAM_KEYS = {
 
                     <!-- Flecha condicional -->
                     <div class="flex flex-col items-center">
-                      <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Si días son mayores a Días de Vigencia</p>
-                      <i class="fas fa-arrow-down text-gray-400 dark:text-gray-500 text-2xl"></i>
+                      <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                        Si días son mayores a Días de Vigencia
+                      </p>
+                      <i
+                        class="fas fa-arrow-down text-gray-400 dark:text-gray-500 text-2xl"
+                      ></i>
                     </div>
 
                     <!-- Estado 2: VENCIDA -->
-                    <div class="flex items-center gap-4 p-4 rounded-xl bg-gray-900 border border-white/20 dark:border-slate-400/30 backdrop-blur-md hover:bg-white/15 dark:hover:bg-slate-600/40 transition-all duration-300">
-                      <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg">
+                    <div
+                      class="flex items-center gap-4 p-4 rounded-xl bg-gray-900 border border-white/20 dark:border-slate-400/30 backdrop-blur-md hover:bg-white/15 dark:hover:bg-slate-600/40 transition-all duration-300"
+                    >
+                      <div
+                        class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg"
+                      >
                         2
                       </div>
                       <div class="flex-1">
-                        <p class="text-sm font-bold text-orange-800 dark:text-orange-300 mb-1">
+                        <p
+                          class="text-sm font-bold text-orange-800 dark:text-orange-300 mb-1"
+                        >
                           <i class="fas fa-exclamation-triangle mr-1"></i>
                           Estado: VENCIDA
                         </p>
                         <p class="text-xs text-gray-700 dark:text-gray-300">
-                          <strong>Condición:</strong> Días mayores a Días de Vigencia Y menores o iguales a Periodos para Aviso Suspensión
+                          <strong>Condición:</strong> Días mayores a Días de
+                          Vigencia Y menores o iguales a Periodos para Aviso
+                          Suspensión
                         </p>
-                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        <p
+                          class="text-xs text-gray-600 dark:text-gray-400 mt-1"
+                        >
                           Se aplican intereses de mora
                         </p>
                       </div>
@@ -658,24 +723,38 @@ const PARAM_KEYS = {
 
                     <!-- Flecha condicional -->
                     <div class="flex flex-col items-center">
-                      <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Si días son mayores a Periodos Aviso Suspensión</p>
-                      <i class="fas fa-arrow-down text-gray-400 dark:text-gray-500 text-2xl"></i>
+                      <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                        Si días son mayores a Periodos Aviso Suspensión
+                      </p>
+                      <i
+                        class="fas fa-arrow-down text-gray-400 dark:text-gray-500 text-2xl"
+                      ></i>
                     </div>
 
                     <!-- Estado 3: AVISO SUSPENSIÓN -->
-                    <div class="flex items-center gap-4 p-4 rounded-xl bg-gray-900 border border-white/20 dark:border-slate-400/30 backdrop-blur-md hover:bg-white/15 dark:hover:bg-slate-600/40 transition-all duration-300">
-                      <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg">
+                    <div
+                      class="flex items-center gap-4 p-4 rounded-xl bg-gray-900 border border-white/20 dark:border-slate-400/30 backdrop-blur-md hover:bg-white/15 dark:hover:bg-slate-600/40 transition-all duration-300"
+                    >
+                      <div
+                        class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg"
+                      >
                         3
                       </div>
                       <div class="flex-1">
-                        <p class="text-sm font-bold text-red-800 dark:text-red-300 mb-1">
+                        <p
+                          class="text-sm font-bold text-red-800 dark:text-red-300 mb-1"
+                        >
                           <i class="fas fa-exclamation-circle mr-1"></i>
                           Estado: AVISO SUSPENSIÓN
                         </p>
                         <p class="text-xs text-gray-700 dark:text-gray-300">
-                          <strong>Condición:</strong> Días mayores a Periodos Aviso Suspensión Y menores o iguales a Periodos Pago Inmediato
+                          <strong>Condición:</strong> Días mayores a Periodos
+                          Aviso Suspensión Y menores o iguales a Periodos Pago
+                          Inmediato
                         </p>
-                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        <p
+                          class="text-xs text-gray-600 dark:text-gray-400 mt-1"
+                        >
                           Riesgo de suspensión del servicio
                         </p>
                       </div>
@@ -683,24 +762,37 @@ const PARAM_KEYS = {
 
                     <!-- Flecha condicional -->
                     <div class="flex flex-col items-center">
-                      <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Si días son mayores a Periodos Pago Inmediato</p>
-                      <i class="fas fa-arrow-down text-gray-400 dark:text-gray-500 text-2xl"></i>
+                      <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                        Si días son mayores a Periodos Pago Inmediato
+                      </p>
+                      <i
+                        class="fas fa-arrow-down text-gray-400 dark:text-gray-500 text-2xl"
+                      ></i>
                     </div>
 
                     <!-- Estado 4: PAGO INMEDIATO -->
-                    <div class="flex items-center gap-4 p-4 rounded-xl bg-gray-900 border border-white/20 dark:border-slate-400/30 backdrop-blur-md hover:bg-white/15 dark:hover:bg-slate-600/40 transition-all duration-300">
-                      <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg">
+                    <div
+                      class="flex items-center gap-4 p-4 rounded-xl bg-gray-900 border border-white/20 dark:border-slate-400/30 backdrop-blur-md hover:bg-white/15 dark:hover:bg-slate-600/40 transition-all duration-300"
+                    >
+                      <div
+                        class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg"
+                      >
                         4
                       </div>
                       <div class="flex-1">
-                        <p class="text-sm font-bold text-rose-800 dark:text-rose-300 mb-1">
+                        <p
+                          class="text-sm font-bold text-rose-800 dark:text-rose-300 mb-1"
+                        >
                           <i class="fas fa-bolt mr-1"></i>
                           Estado: PAGO INMEDIATO
                         </p>
                         <p class="text-xs text-gray-700 dark:text-gray-300">
-                          <strong>Condición:</strong> Días mayores a Periodos Pago Inmediato
+                          <strong>Condición:</strong> Días mayores a Periodos
+                          Pago Inmediato
                         </p>
-                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        <p
+                          class="text-xs text-gray-600 dark:text-gray-400 mt-1"
+                        >
                           Suspensión del servicio - Acción crítica requerida
                         </p>
                       </div>
@@ -810,6 +902,10 @@ export class BillValidityParameters {
 
   showGuidePopup = signal(false);
   diasVigencia: number = 0;
+  fechaInicioFacturacion: string = '';
+  fechaCorte: string = '';
+  diasCalculados: number = 0;
+  errorFechas: string = '';
   periodosFacturados: number = 0;
   periodosNoPagosVencida: number = 0;
   periodosPagoInmediato: number = 0;
@@ -863,51 +959,57 @@ export class BillValidityParameters {
 
   private cargarParametros(empresaId: number): void {
     forkJoin({
-      diasVigencia: this.counterEnterpriceService.getParamsEnterprice(
-        empresaId,
-        PARAM_KEYS.DIAS_VIGENCIA,
-      ).pipe(catchError(() => of({ response: null }))),
-      periodosFacturados: this.counterEnterpriceService.getParamsEnterprice(
-        empresaId,
-        PARAM_KEYS.PERIODOS_FACTURADOS,
-      ).pipe(catchError(() => of({ response: null }))),
-      periodosVencida: this.counterEnterpriceService.getParamsEnterprice(
-        empresaId,
-        PARAM_KEYS.PERIODOS_VENCIDA,
-      ).pipe(catchError(() => of({ response: null }))),
-      periodosInmediato: this.counterEnterpriceService.getParamsEnterprice(
-        empresaId,
-        PARAM_KEYS.PERIODOS_INMEDIATO,
-      ).pipe(catchError(() => of({ response: null }))),
-      interesDeuda: this.counterEnterpriceService.getParamsEnterprice(
-        empresaId,
-        PARAM_KEYS.INTERES_DEUDA,
-      ).pipe(catchError(() => of({ response: null }))),
-      periodosAnteriores: this.counterEnterpriceService.getParamsEnterprice(
-        empresaId,
-        PARAM_KEYS.PERIODOS_ANT,
-      ).pipe(catchError(() => of({ response: null }))),
+      diasVigencia: this.counterEnterpriceService
+        .getParamsEnterprice(empresaId, PARAM_KEYS.DIAS_VIGENCIA)
+        .pipe(catchError(() => of({ response: null }))),
+      periodosFacturados: this.counterEnterpriceService
+        .getParamsEnterprice(empresaId, PARAM_KEYS.PERIODOS_FACTURADOS)
+        .pipe(catchError(() => of({ response: null }))),
+      periodosVencida: this.counterEnterpriceService
+        .getParamsEnterprice(empresaId, PARAM_KEYS.PERIODOS_VENCIDA)
+        .pipe(catchError(() => of({ response: null }))),
+      periodosInmediato: this.counterEnterpriceService
+        .getParamsEnterprice(empresaId, PARAM_KEYS.PERIODOS_INMEDIATO)
+        .pipe(catchError(() => of({ response: null }))),
+      interesDeuda: this.counterEnterpriceService
+        .getParamsEnterprice(empresaId, PARAM_KEYS.INTERES_DEUDA)
+        .pipe(catchError(() => of({ response: null }))),
+      periodosAnteriores: this.counterEnterpriceService
+        .getParamsEnterprice(empresaId, PARAM_KEYS.PERIODOS_ANT)
+        .pipe(catchError(() => of({ response: null }))),
     }).subscribe({
       next: (params) => {
         // El response puede ser un objeto o array, manejar ambos casos
-        const diasParam = params.diasVigencia.response && (Array.isArray(params.diasVigencia.response)
-          ? params.diasVigencia.response[0]
-          : params.diasVigencia.response);
-        const periodosParam = params.periodosFacturados.response && (Array.isArray(params.periodosFacturados.response)
-          ? params.periodosFacturados.response[0]
-          : params.periodosFacturados.response);
-        const vencidaParam = params.periodosVencida.response && (Array.isArray(params.periodosVencida.response)
-          ? params.periodosVencida.response[0]
-          : params.periodosVencida.response);
-        const inmediatoParam = params.periodosInmediato.response && (Array.isArray(params.periodosInmediato.response)
-          ? params.periodosInmediato.response[0]
-          : params.periodosInmediato.response);
-        const interesParam = params.interesDeuda.response && (Array.isArray(params.interesDeuda.response)
-          ? params.interesDeuda.response[0]
-          : params.interesDeuda.response);
-        const anterioresParam = params.periodosAnteriores.response && (Array.isArray(params.periodosAnteriores.response)
-          ? params.periodosAnteriores.response[0]
-          : params.periodosAnteriores.response);
+        const diasParam =
+          params.diasVigencia.response &&
+          (Array.isArray(params.diasVigencia.response)
+            ? params.diasVigencia.response[0]
+            : params.diasVigencia.response);
+        const periodosParam =
+          params.periodosFacturados.response &&
+          (Array.isArray(params.periodosFacturados.response)
+            ? params.periodosFacturados.response[0]
+            : params.periodosFacturados.response);
+        const vencidaParam =
+          params.periodosVencida.response &&
+          (Array.isArray(params.periodosVencida.response)
+            ? params.periodosVencida.response[0]
+            : params.periodosVencida.response);
+        const inmediatoParam =
+          params.periodosInmediato.response &&
+          (Array.isArray(params.periodosInmediato.response)
+            ? params.periodosInmediato.response[0]
+            : params.periodosInmediato.response);
+        const interesParam =
+          params.interesDeuda.response &&
+          (Array.isArray(params.interesDeuda.response)
+            ? params.interesDeuda.response[0]
+            : params.interesDeuda.response);
+        const anterioresParam =
+          params.periodosAnteriores.response &&
+          (Array.isArray(params.periodosAnteriores.response)
+            ? params.periodosAnteriores.response[0]
+            : params.periodosAnteriores.response);
 
         if (diasParam && diasParam.valorParametro !== undefined) {
           this.diasVigencia = Number(diasParam.valorParametro);
@@ -942,6 +1044,26 @@ export class BillValidityParameters {
         );
       },
     });
+  }
+
+  calcularDiasVigencia(): void {
+    this.errorFechas = '';
+    this.diasCalculados = 0;
+
+    if (!this.fechaInicioFacturacion || !this.fechaCorte) return;
+
+    const inicio = new Date(this.fechaInicioFacturacion);
+    const corte = new Date(this.fechaCorte);
+
+    if (corte <= inicio) {
+      this.errorFechas = 'La fecha de corte debe ser posterior al inicio de facturación.';
+      return;
+    }
+
+    const diffTime = corte.getTime() - inicio.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    this.diasCalculados = diffDays;
+    this.diasVigencia = diffDays;
   }
 
   abrirGuia(): void {
