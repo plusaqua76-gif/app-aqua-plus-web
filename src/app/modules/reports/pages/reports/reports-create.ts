@@ -704,14 +704,60 @@ export class ReportsCreate {
 
 
   private normalizeReportKey(value: string): string {
-    return String(value ?? '')
+    let normalized = String(value ?? '')
+      .toLowerCase()
+      .replace(/ñ/g, 'ni')
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '') // tildes/diacríticos
-      .toLowerCase()
       .replace(/[¹²³]/g, (m) => ({ '¹': '1', '²': '2', '³': '3' }[m] as string))
       .replace(/[^a-z0-9]/g, ''); // espacios, "_", "-", símbolos, etc.
+
+
+    if (normalized === 'ano') {
+      normalized = 'anio';
+    }
+
+    return normalized;
   }
 
+  private normalizeReportHeader(value: string): string {
+    return this.normalizeReportKey(
+      String(value ?? '')
+        .replace(/\([^)]*\)/g, ' ')
+        .replace(/\b(de|la|el|del|los|las)\b/gi, ' ')
+    );
+  }
+
+  private resolveRowKeyForHeader(
+    header: string,
+    keyIndex: Map<string, string>
+  ): string | undefined {
+    const candidates = [
+      this.normalizeReportKey(header),
+      this.normalizeReportHeader(header),
+    ];
+
+    for (const norm of candidates) {
+      const match = keyIndex.get(norm);
+      if (match) return match;
+    }
+
+    const headerNorm = candidates[0];
+    let bestMatch: string | undefined;
+    let bestScore = 0;
+
+    for (const [norm, key] of keyIndex.entries()) {
+      if (headerNorm === norm || headerNorm.includes(norm) || norm.includes(headerNorm)) {
+        const score = Math.min(headerNorm.length, norm.length);
+        if (score > bestScore && score >= 6) {
+          bestScore = score;
+          bestMatch = key;
+        }
+      }
+    }
+
+    return bestMatch;
+  }
 
   private buildNormalizedKeyIndex(rows: any[]): Map<string, string> {
     const index = new Map<string, string>();
@@ -740,17 +786,14 @@ export class ReportsCreate {
       const keyIndex = this.buildNormalizedKeyIndex(response.rows);
 
       columns = (response.headers as string[])
-        .map((header: string, index: number) => {
+        .map((header: string) => {
           if (excludedHeaders.includes(header)) return null;
 
-          const normalizedHeader = this.normalizeReportKey(header);
-          const matchedKey = keyIndex.get(normalizedHeader);
-
-          const field =
-            matchedKey ?? `__sin_dato__${index}__${normalizedHeader}`;
+          const matchedKey = this.resolveRowKeyForHeader(header, keyIndex);
+          if (!matchedKey) return null;
 
           return {
-            field,
+            field: matchedKey,
             header: String(header),
             type: 'text' as const,
           };
@@ -759,6 +802,22 @@ export class ReportsCreate {
           (col): col is { field: string; header: string; type: 'text' } =>
             col !== null
         );
+
+      const usedFields = new Set(columns.map((col) => col.field));
+      for (const key of keyIndex.values()) {
+        if (
+          usedFields.has(key) ||
+          this.EXCLUDED_FIELDS.includes(key.toLowerCase())
+        ) {
+          continue;
+        }
+        columns.push({
+          field: key,
+          header: this.formatFieldName(key),
+          type: 'text' as const,
+        });
+        usedFields.add(key);
+      }
     } else {
       const firstRow = response.rows[0];
       const fieldKeys = Object.keys(firstRow);
@@ -783,6 +842,11 @@ export class ReportsCreate {
       'Éxito',
       `Reporte generado correctamente. ${response.rows.length} registros encontrados.`
     );
+  }
+
+  isPeriodoField(campo: string): boolean {
+    const campoLower = campo.toLowerCase();
+    return campoLower === 'p_periodo' || campoLower.endsWith('_periodo');
   }
 
   isYearField(campo: string): boolean {
@@ -830,6 +894,36 @@ export class ReportsCreate {
     this.filterValues.set({
       ...currentValues,
       [campo]: target.value ? Number(target.value) : '',
+    });
+  }
+
+  getSelectedPeriodoMonth(campo: string): number | '' {
+    const value = this.filterValues()[campo];
+    if (value === null || value === undefined || value === '') return '';
+
+    const str = String(value);
+    if (str.length < 6) return '';
+
+    const month = Number.parseInt(str.slice(-2), 10);
+    return month >= 1 && month <= 12 ? month : '';
+  }
+
+  updatePeriodoValue(campo: string, event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    const month = target.value ? Number(target.value) : null;
+    const currentValues = this.filterValues();
+
+    if (!month) {
+      this.filterValues.set({ ...currentValues, [campo]: '' });
+      return;
+    }
+
+    const year = new Date().getFullYear();
+    const periodo = `${year}${String(month).padStart(2, '0')}`;
+
+    this.filterValues.set({
+      ...currentValues,
+      [campo]: periodo,
     });
   }
 }
