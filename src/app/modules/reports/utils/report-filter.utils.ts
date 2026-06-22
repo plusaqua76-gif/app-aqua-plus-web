@@ -21,6 +21,7 @@ export function formatFieldName(fieldName: string): string {
     .split(' ')
     .map((word) => {
       if (!word) return '';
+      if (word.toLowerCase() === 'anio') return 'Año';
       return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     })
     .filter((word) => word.length > 0) // Filtrar palabras vacías
