@@ -704,12 +704,20 @@ export class ReportsCreate {
 
 
   private normalizeReportKey(value: string): string {
-    return String(value ?? '')
+    let normalized = String(value ?? '')
+      .toLowerCase()
+      .replace(/ñ/g, 'ni')
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '') // tildes/diacríticos
-      .toLowerCase()
       .replace(/[¹²³]/g, (m) => ({ '¹': '1', '²': '2', '³': '3' }[m] as string))
       .replace(/[^a-z0-9]/g, ''); // espacios, "_", "-", símbolos, etc.
+
+
+    if (normalized === 'ano') {
+      normalized = 'anio';
+    }
+
+    return normalized;
   }
 
   private normalizeReportHeader(value: string): string {
@@ -836,6 +844,11 @@ export class ReportsCreate {
     );
   }
 
+  isPeriodoField(campo: string): boolean {
+    const campoLower = campo.toLowerCase();
+    return campoLower === 'p_periodo' || campoLower.endsWith('_periodo');
+  }
+
   isYearField(campo: string): boolean {
     const campoLower = campo.toLowerCase();
     return campoLower.includes('año') || campoLower.includes('ano') || campoLower.includes('year');
@@ -881,6 +894,36 @@ export class ReportsCreate {
     this.filterValues.set({
       ...currentValues,
       [campo]: target.value ? Number(target.value) : '',
+    });
+  }
+
+  getSelectedPeriodoMonth(campo: string): number | '' {
+    const value = this.filterValues()[campo];
+    if (value === null || value === undefined || value === '') return '';
+
+    const str = String(value);
+    if (str.length < 6) return '';
+
+    const month = Number.parseInt(str.slice(-2), 10);
+    return month >= 1 && month <= 12 ? month : '';
+  }
+
+  updatePeriodoValue(campo: string, event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    const month = target.value ? Number(target.value) : null;
+    const currentValues = this.filterValues();
+
+    if (!month) {
+      this.filterValues.set({ ...currentValues, [campo]: '' });
+      return;
+    }
+
+    const year = new Date().getFullYear();
+    const periodo = `${year}${String(month).padStart(2, '0')}`;
+
+    this.filterValues.set({
+      ...currentValues,
+      [campo]: periodo,
     });
   }
 }
