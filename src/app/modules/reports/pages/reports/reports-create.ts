@@ -712,6 +712,44 @@ export class ReportsCreate {
       .replace(/[^a-z0-9]/g, ''); // espacios, "_", "-", símbolos, etc.
   }
 
+  private normalizeReportHeader(value: string): string {
+    return this.normalizeReportKey(
+      String(value ?? '')
+        .replace(/\([^)]*\)/g, ' ')
+        .replace(/\b(de|la|el|del|los|las)\b/gi, ' ')
+    );
+  }
+
+  private resolveRowKeyForHeader(
+    header: string,
+    keyIndex: Map<string, string>
+  ): string | undefined {
+    const candidates = [
+      this.normalizeReportKey(header),
+      this.normalizeReportHeader(header),
+    ];
+
+    for (const norm of candidates) {
+      const match = keyIndex.get(norm);
+      if (match) return match;
+    }
+
+    const headerNorm = candidates[0];
+    let bestMatch: string | undefined;
+    let bestScore = 0;
+
+    for (const [norm, key] of keyIndex.entries()) {
+      if (headerNorm === norm || headerNorm.includes(norm) || norm.includes(headerNorm)) {
+        const score = Math.min(headerNorm.length, norm.length);
+        if (score > bestScore && score >= 6) {
+          bestScore = score;
+          bestMatch = key;
+        }
+      }
+    }
+
+    return bestMatch;
+  }
 
   private buildNormalizedKeyIndex(rows: any[]): Map<string, string> {
     const index = new Map<string, string>();
@@ -740,17 +778,14 @@ export class ReportsCreate {
       const keyIndex = this.buildNormalizedKeyIndex(response.rows);
 
       columns = (response.headers as string[])
-        .map((header: string, index: number) => {
+        .map((header: string) => {
           if (excludedHeaders.includes(header)) return null;
 
-          const normalizedHeader = this.normalizeReportKey(header);
-          const matchedKey = keyIndex.get(normalizedHeader);
-
-          const field =
-            matchedKey ?? `__sin_dato__${index}__${normalizedHeader}`;
+          const matchedKey = this.resolveRowKeyForHeader(header, keyIndex);
+          if (!matchedKey) return null;
 
           return {
-            field,
+            field: matchedKey,
             header: String(header),
             type: 'text' as const,
           };
@@ -759,6 +794,22 @@ export class ReportsCreate {
           (col): col is { field: string; header: string; type: 'text' } =>
             col !== null
         );
+
+      const usedFields = new Set(columns.map((col) => col.field));
+      for (const key of keyIndex.values()) {
+        if (
+          usedFields.has(key) ||
+          this.EXCLUDED_FIELDS.includes(key.toLowerCase())
+        ) {
+          continue;
+        }
+        columns.push({
+          field: key,
+          header: this.formatFieldName(key),
+          type: 'text' as const,
+        });
+        usedFields.add(key);
+      }
     } else {
       const firstRow = response.rows[0];
       const fieldKeys = Object.keys(firstRow);
