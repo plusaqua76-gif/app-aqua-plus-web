@@ -77,3 +77,20 @@ export interface SaveClientResponse {
   empresaClienteContadorIds: number[];
   notice?: string;
 }
+
+export interface TarifaContadorUpdate {
+  idTipoTarifa: number;
+  idTipoConcepto: number;
+  aplica: boolean;
+}
+
+export interface UpdateClientPayload {
+  idEmpresaClienteContador: number;
+  usuarioCambio: string;
+  tarifasContador?: TarifaContadorUpdate[];
+  contadores?: Record<string, unknown>[];
+  contadoresNuevos?: Record<string, unknown>[];
+  aforosContador?: Record<string, unknown>[];
+  idEmpleadoEmpresa?: number;
+  [key: string]: unknown;
+}

@@ -10,13 +10,18 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DomSanitizer } from '@angular/platform-browser';
 import { InvoiceService } from '../../services/invoice.service';
 import { ToastService } from '@services/toast.service';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { of, catchError } from 'rxjs';
+import { of, catchError, firstValueFrom } from 'rxjs';
 import { TableComponent } from '@components/table';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
+import {
+  getInvoiceEstadoLegalBadgeClass,
+  getInvoiceEstadoLegalDisplayLabel,
+  INVOICE_ESTADO_LEGAL_FILTER_OPTIONS,
+} from '../../../../core/utils/invoice-estado-legal.util';
 
 @Component({
   selector: 'app-client-invoices',
@@ -81,17 +86,17 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
               d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
           </svg>
         </button>
-        <!-- <button
+        <button
           type="button"
           (click)="handleTableAction({ action: 'download', row })"
           class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-green-600/50 text-green-500 hover:bg-green-600/10 focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-colors duration-200 cursor-pointer"
           title="Descargar factura"
-         >
+        >
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-        </button> -->
+        </button>
         <button
           type="button"
           (click)="handleTableAction({ action: 'create-credit-note', row })"
@@ -114,6 +119,15 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       {{ getConceptoValue(row.codigoConcepto) }}
     </ng-template>
 
+    <ng-template #clienteNombreTpl let-row>
+      {{ getClienteNombreCompleto(row.cliente) }}
+    </ng-template>
+
+    <ng-template #estadoLegalTpl let-row>
+      <span [ngClass]="getEstadoLegalBadgeClass(row.estadoLegal)">
+        {{ getEstadoLegalLabel(row.estadoLegal) }}
+      </span>
+    </ng-template>
 
     <app-table-dynamic
       [title]="title()"
@@ -124,7 +138,9 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       [actionTemplate]="actionsTemplate"
       [columnTemplates]="{
         fechaCreacion: fechaCreacionTpl,
-        codigoConcepto: conceptoTpl
+        codigoConcepto: conceptoTpl,
+        'cliente.nombre': clienteNombreTpl,
+        estadoLegal: estadoLegalTpl
       }"
       [showAddButton]="true"
       [addButtonText]="'Nueva Factura Electrónica'"
@@ -132,8 +148,11 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       [showExportButton]="true"
       [exportFileName]="exportFileName()"
       [showColumnFilters]="true"
+      [exportData]="exportDataForTable()"
+      [isLoadingExportData]="isLoadingExportData()"
       (action)="handleTableAction($event)"
       (serverPaginationChange)="onPaginationChange($event)"
+      (exportAllDataRequest)="handleExportRequest($event)"
       [showSecondaryButton]="true"
       [secondaryButtonText]="'Configuración '"
       (secondaryButtonAction)="handleTableAction({ action: 'view-enterprise-dian' })"
@@ -241,6 +260,19 @@ export class ClientInvoices {
 
   showPdfPopup = signal(false);
   selectedInvoiceForView = signal<any>(null);
+  exportDataForTable = signal<any[] | null>(null);
+  isLoadingExportData = signal(false);
+  isDownloadingPdf = signal(false);
+
+  constructor() {
+    effect(() => {
+      const data = this.exportDataForTable();
+      const isLoading = this.isLoadingExportData();
+      if (data && data.length > 0 && !isLoading) {
+        setTimeout(() => this.exportDataForTable.set(null), 2000);
+      }
+    });
+  }
 
   cachedPdfUrl = computed(() => {
     const base64 = this.documentInvoiceDian.value()?.response?.file?.content;
@@ -252,9 +284,16 @@ export class ClientInvoices {
   invoiceColumns = signal([
     { field: 'numero', header: 'Factura', type: 'text' as const },
     { field: 'factura.codigo', header: 'Código Factura', type: 'text' as const },
-    { field: 'estadoLegal', header: 'Estado Legal', type: 'text' as const },
+    {
+      field: 'estadoLegal',
+      header: 'Estado Legal',
+      type: 'text' as const,
+      filterOptions: INVOICE_ESTADO_LEGAL_FILTER_OPTIONS,
+      filterPlaceholder: 'Todos',
+      filterVariant: 'badge' as const,
+    },
     { field: 'codigoConcepto', header: 'Concepto', type: 'text' as const, template: 'conceptoTpl' },
-    { field: 'cliente.nombre', header: 'Cliente', type: 'text' as const },
+    { field: 'cliente.nombre', header: 'Cliente', type: 'text' as const, template: 'clienteNombreTpl' },
     { field: 'cliente.numeroCedula', header: 'Cédula', type: 'text' as const },
     { field: 'fechaCreacion', header: 'Fecha Emisión', type: 'date' as const, template: 'fechaCreacionTpl' },
     { field: 'factura.consumo', header: 'Consumo', type: 'text' as const },
@@ -374,6 +413,74 @@ createCreditNote(invoice: any) {
     this.paginationParams.set(params);
   }
 
+  async handleExportRequest(event: { totalCount: number; currentParams: IPaginationParams }): Promise<void> {
+    const enterpriseId = this.enterpriseId();
+    if (!enterpriseId) {
+      this.toastService.error('Error', 'No se pudo obtener el ID de la empresa');
+      return;
+    }
+
+    this.isLoadingExportData.set(true);
+    this.toastService.info('Preparando exportación', `Cargando ${event.totalCount} registros...`);
+
+    try {
+      const exportParams: IPaginationParams = {
+        ...event.currentParams,
+        page: 0,
+        size: event.totalCount,
+      };
+
+      const response = await firstValueFrom(
+        this.invoiceService.getClientInvoicesPaginated(enterpriseId, exportParams),
+      );
+
+      if (response?.response && Array.isArray(response.response)) {
+        const transformedData = response.response.map((invoice) =>
+          this.transformInvoiceForExport(invoice),
+        );
+        this.exportDataForTable.set(transformedData);
+        this.toastService.success('Datos cargados', `${transformedData.length} registros listos para exportar`);
+      } else {
+        throw new Error('No se recibieron datos del servidor');
+      }
+    } catch (error) {
+      console.error('Error al cargar datos para exportación:', error);
+      this.toastService.error('Error', 'No se pudieron cargar los datos para exportar');
+      this.exportDataForTable.set(null);
+    } finally {
+      this.isLoadingExportData.set(false);
+    }
+  }
+
+  private transformInvoiceForExport(invoice: any) {
+    return {
+      ...invoice,
+      cliente: {
+        ...invoice.cliente,
+        nombre: this.getClienteNombreCompleto(invoice.cliente),
+      },
+      codigoConcepto: this.getConceptoValue(invoice.codigoConcepto) || invoice.codigoConcepto,
+      estadoLegal: this.getEstadoLegalLabel(invoice.estadoLegal),
+      fechaCreacion: this.formatDateTime(invoice.fechaCreacion),
+    };
+  }
+
+  getClienteNombreCompleto(cliente: any): string {
+    if (!cliente) return '';
+
+    return [
+      cliente.nombre,
+      cliente.segundoNombre,
+      cliente.apellido,
+      cliente.segundoApellido,
+    ]
+      .filter((parte) => parte?.trim())
+      .join(' ');
+  }
+
+  getEstadoLegalBadgeClass = getInvoiceEstadoLegalBadgeClass;
+  getEstadoLegalLabel = getInvoiceEstadoLegalDisplayLabel;
+
   goToCreateInvoice(): void {
     this.router.navigate(['/shell/electronic-invoicing/create']);
   }
@@ -387,18 +494,59 @@ createCreditNote(invoice: any) {
     this.showPdfPopup.set(true);
   }
 
-  downloadInvoice(invoice: any): void {
-    const base64 = this.documentInvoiceDian.value()?.response?.file?.content;
-    if (!base64) {
-      this.toastService.warning('Advertencia', 'No hay documento disponible para descargar');
+  async downloadInvoice(invoice: any): Promise<void> {
+    if (!invoice?.idDian) {
+      this.toastService.warning('Advertencia', 'Esta factura no tiene documento asociado');
       return;
     }
 
+    const cachedBase64 =
+      this.selectedInvoiceForView()?.idDian === invoice.idDian
+        ? this.documentInvoiceDian.value()?.response?.file?.content
+        : null;
+
+    if (cachedBase64) {
+      this.triggerPdfDownload(cachedBase64, invoice);
+      this.toastService.success('Éxito', 'Documento descargado');
+      return;
+    }
+
+    if (this.isDownloadingPdf()) {
+      this.toastService.warning('Descarga en proceso', 'Espere a que termine la descarga actual');
+      return;
+    }
+
+    this.isDownloadingPdf.set(true);
+    this.toastService.info('Descargando', 'Obteniendo documento PDF...');
+
+    try {
+      const response = await firstValueFrom(
+        this.invoiceService.getDocumentInvoiceDian(invoice.idDian),
+      );
+      const base64 = response?.response?.file?.content;
+
+      if (!base64) {
+        this.toastService.warning('Advertencia', 'No hay documento disponible para descargar');
+        return;
+      }
+
+      this.triggerPdfDownload(base64, invoice);
+      this.toastService.success('Éxito', 'Documento descargado');
+    } catch (error) {
+      console.error('Error al descargar factura:', error);
+      this.toastService.error('Error', 'No se pudo descargar el documento');
+    } finally {
+      this.isDownloadingPdf.set(false);
+    }
+  }
+
+  private triggerPdfDownload(base64: string, invoice: any): void {
     const link = document.createElement('a');
     link.href = `data:application/pdf;base64,${base64}`;
-    link.download = `factura_${invoice.numero || invoice.idDian}.pdf`;
+    link.download = `factura_electronica_${invoice.numero || invoice.idDian}.pdf`;
+    document.body.appendChild(link);
     link.click();
-    this.toastService.success('Exito', 'Documento descargado');
+    document.body.removeChild(link);
   }
 
   closePdfPopup(): void {

@@ -109,6 +109,10 @@ export class UserAccessService {
       httpParams = httpParams.set('search', params.search);
     }
 
+    if (params.sort) {
+      httpParams = httpParams.set('sort', params.sort);
+    }
+
     // Mapear filtros específicos de la tabla a parámetros de la API
     if (params.filters) {
       httpParams = this.mapFiltersToHttpParams(httpParams, params.filters);

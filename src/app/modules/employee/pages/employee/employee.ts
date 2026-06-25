@@ -1,10 +1,8 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, inject, signal, computed, PLATFORM_ID, effect } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import {
-  Action,
-  TableComponent,
-} from '../../../../../app/core/components/table';
+import { TableComponent } from '../../../../../app/core/components/table';
+import { Action } from '@interfaces/table/Itable';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EmpleadoService } from '../../service/empleado.service';
 import { catchError, EMPTY, of, map } from 'rxjs';

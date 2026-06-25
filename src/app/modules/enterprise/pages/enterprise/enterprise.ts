@@ -1,13 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Action, TableComponent } from '@components/table';
-import { PopupComponent } from '@shared/components/popUp';
+import { Action } from '@interfaces/table/Itable';
 import { ToastService } from '@services/toast.service';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { EmpresaService } from '../../service/empresa.service';
 import { IEnterpriseResponse } from '@interfaces/Ienterprise';
+import { TableComponent } from '@components/table';
 
 @Component({
   selector: 'app-enterprise',

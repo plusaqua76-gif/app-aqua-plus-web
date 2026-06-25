@@ -1,4 +1,6 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
 import {
   Component,
   ChangeDetectionStrategy,
@@ -11,40 +13,28 @@ import {
   effect,
   DestroyRef,
   inject,
+  viewChild,
+  ViewContainerRef,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, firstValueFrom } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, take } from 'rxjs/operators';
 import { IPaginatedResponse, IPaginationParams } from '../interfaces/IpaginatedResponse';
 import { Datepicker } from '../../shared/components/datepicker';
 import { ColombianCurrencyPipe } from '../../shared/pipes/colombian-currency.pipe';
 import { EnterpriseIdService } from '@services/enterpriceId.service';
-
-export interface Action<T = any> {
-  action: string;
-  row?: T;
-}
-
-export interface TableColumn {
-  field: string;
-  header: string;
-  type?: 'text' | 'date' | 'number' | 'currency';
-  defaultValue?: string;
-}
-
-interface EnterpriseHeaderData {
-  nombre: string;
-  nit: string;
-  version: string;
-  fecha: string;
-  logoBase64: string | null;
-  logoExtension: 'png' | 'jpeg' | 'gif';
-}
+import {
+  Action,
+  EnterpriseHeaderData,
+  SelectFilterOption,
+  SortDirection,
+  TableColumn,
+} from '@interfaces/table/Itable';
 
 @Component({
   selector: 'app-table-dynamic',
   standalone: true,
-  imports: [NgTemplateOutlet, Datepicker, ColombianCurrencyPipe],
+  imports: [NgClass, NgTemplateOutlet, Datepicker, ColombianCurrencyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (title()) {
@@ -223,13 +213,22 @@ interface EnterpriseHeaderData {
             @for (column of columns(); track column) {
               <th
                 scope="col"
-                class="px-3 sm:px-6 py-4"
+                [class]="getHeaderClass(column)"
+                (click)="onColumnSort(column)"
               >
-                <span class="flex items-center text-sm font-semibold text-white uppercase tracking-wider">
+                <span class="flex items-center gap-1 text-sm font-semibold text-white uppercase tracking-wider">
                   {{ column.header }}
-                  <!-- <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4"/>
-                  </svg> -->
+                    @if (isColumnSortable(column)) {
+                      <span class="inline-flex items-center ms-1">
+                        @if (sortField() === column.field) {
+                          <i
+                            class="fa-solid {{ sortDirection() === 'asc' ? 'fa-sort-up' : 'fa-sort-down' }}">
+                          </i>
+                        } @else {
+                          <i class="fa-solid fa-sort opacity-40"></i>
+                        }
+                      </span>
+                    }
                 </span>
               </th>
             }
@@ -255,6 +254,43 @@ interface EnterpriseHeaderData {
                         [compact]="true"
                         (dateChange)="onColumnFilterChange(column.field, $event)"
                       />
+                    } @else if (hasSelectFilter(column)) {
+                      @if (isBadgeFilter(column)) {
+                        <div class="relative min-w-[148px]" [attr.data-filter-dropdown]="column.field">
+                          <button
+                            type="button"
+                            class="inline-flex w-full items-center justify-between gap-2 px-3 py-2.5 text-sm bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/30 dark:border-slate-600/30 rounded-xl text-gray-800 dark:text-white hover:bg-white/30 dark:hover:bg-slate-700/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-200 shadow-xs"
+                            (click)="toggleFilterDropdown(column.field, $event)"
+                          >
+                            <span class="min-w-0 truncate text-left">
+                              @if (getActiveFilterOption(column); as active) {
+                                <span [class]="active.badgeClass">{{ active.label }}</span>
+                              } @else {
+                                <span class="text-gray-500 dark:text-gray-400">{{ column.filterPlaceholder || 'Todos' }}</span>
+                              }
+                            </span>
+                            <svg class="w-4 h-4 shrink-0 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
+                            </svg>
+                          </button>
+                        </div>
+                      } @else {
+                      <select
+                        class="w-full min-w-[120px] px-3 py-2.5 text-sm bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/30 dark:border-slate-600/30 rounded-xl text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:bg-white/30 dark:hover:bg-slate-700/30 shadow-xs cursor-pointer appearance-none bg-[length:14px_14px] bg-[position:right_0.5rem_center] bg-no-repeat"
+                        style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%2364748b%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%272%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E');"
+                        [value]="columnFilters()[column.field] || ''"
+                        (change)="onColumnFilterSelect(column.field, $event)"
+                      >
+                        @if (column.filterPlaceholder) {
+                          <option value="">{{ column.filterPlaceholder }}</option>
+                        }
+                        @for (opt of column.filterOptions!; track opt.value) {
+                          <option [value]="opt.value" class="bg-white dark:bg-slate-800 text-gray-800 dark:text-white">
+                            {{ opt.label }}
+                          </option>
+                        }
+                      </select>
+                      }
                     } @else {
                       <!-- Icono de filtro solo para inputs normales -->
                       <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
@@ -350,71 +386,116 @@ interface EnterpriseHeaderData {
       [class.lg:mx-8]="title()"
     >
       <!-- Información de registros -->
-      <span class="font-medium text-xs sm:text-sm text-center sm:text-left sm:mb-0">
-        Mostrando {{ startEntry() }} en {{ endEntry() }} de {{ totalCount() }} registros
-      </span>
+      <p class="text-xs text-gray-500 dark:text-gray-400 text-center sm:text-left">
+        Mostrando
+        <span class="font-semibold text-gray-700 dark:text-gray-300">{{ startEntry() }}–{{ endEntry() }}</span>
+        de
+        <span class="font-semibold text-gray-700 dark:text-gray-300">{{ totalCount() }}</span>
+        registros
+      </p>
 
       <!-- Controles de paginación -->
       <div class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-        <!-- Navegación de páginas -->
-        <nav class="inline-flex items-center gap-0 bg-slate-800/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-lg sm:rounded-xl overflow-hidden border border-slate-600/50 shadow-lg">
-          <!-- Botón Anterior -->
+        <div class="flex flex-wrap items-center gap-1.5">
           <button
-            class="px-2 py-1.5 sm:px-3 sm:py-2 text-white hover:bg-slate-700/80 dark:hover:bg-slate-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border-r border-slate-600/50 backdrop-blur-sm text-xs sm:text-sm"
-            [disabled]="currentPageIndex() === 0"
+            type="button"
             (click)="prevPage()"
+            [disabled]="currentPageIndex() === 0"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-white/20 dark:border-slate-600/40
+                   text-gray-600 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-slate-700/40 transition-all
+                   disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
           >
-            ‹
+            Anterior
           </button>
 
-          <!-- Páginas numeradas (responsive) -->
           @for (i of getVisiblePages(); track i) {
             <button
-              class="px-2 py-1.5 sm:px-3 sm:py-2 min-w-[32px] sm:min-w-[40px] text-center transition-all duration-300 border-r border-slate-600/50 last:border-r-0 backdrop-blur-sm text-xs sm:text-sm"
-              [class]="i === currentPageIndex()
-                ? 'bg-blue-600/90 text-white hover:bg-blue-700/90 shadow-lg shadow-blue-500/20'
-                : 'text-white hover:bg-slate-700/80 dark:hover:bg-slate-600/80'"
+              type="button"
               (click)="goToPage(i)"
+              class="min-w-[2rem] px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all"
+              [ngClass]="i === currentPageIndex()
+                ? 'bg-blue-500/20 border-blue-500/40 text-blue-600 dark:text-blue-400'
+                : 'border-white/20 dark:border-slate-600/40 text-gray-600 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-slate-700/40'"
             >
               {{ i + 1 }}
             </button>
           }
 
-          <!-- Botón Siguiente -->
           <button
-            class="px-2 py-1.5 sm:px-3 sm:py-2 text-white hover:bg-slate-700/80 dark:hover:bg-slate-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 backdrop-blur-sm text-xs sm:text-sm"
-            [disabled]="currentPageIndex() >= totalPages() - 1"
+            type="button"
             (click)="nextPage()"
+            [disabled]="currentPageIndex() >= totalPages() - 1"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-white/20 dark:border-slate-600/40
+                   text-gray-600 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-slate-700/40 transition-all
+                   disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
           >
-            ›
+            Siguiente
           </button>
-        </nav>
+        </div>
 
         <!-- Selector de filas por página -->
         <div class="flex items-center gap-2 text-xs sm:text-sm">
-          <!-- <span class="text-gray-600 dark:text-gray-300 whitespace-nowrap font-medium">
-            Filas:
-          </span> -->
           <select
-            class="px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl bg-gray-800/60 dark:bg-gray-800/60 backdrop-blur-sm text-white border border-gray-600/50 text-xs sm:text-sm min-w-[60px] sm:min-w-[70px] focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 cursor-pointer hover:bg-gray-700/70 shadow-lg appearance-none bg-[length:14px_14px] sm:bg-[length:16px_16px] bg-[position:right_0.4rem_center] sm:bg-[position:right_0.5rem_center] bg-no-repeat"
-            style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23ffffff%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%272%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E');"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-white/20 dark:border-slate-600/40
+                   bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl text-gray-600 dark:text-gray-300
+                   hover:bg-white/30 dark:hover:bg-slate-700/40 focus:outline-none focus:ring-2 focus:ring-blue-500/40
+                   transition-all cursor-pointer min-w-[60px] sm:min-w-[70px] appearance-none bg-no-repeat
+                   bg-[length:14px_14px] bg-[position:right_0.5rem_center]"
+            style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%2364748b%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%272%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E');"
             [value]="currentPageSize()"
             (change)="onPageSizeChange($event)"
           >
             @for (opt of pageSizeOptions; track opt) {
-              <option [value]="opt" class="bg-gray-800 text-white">{{ opt }}</option>
+              <option [value]="opt" class="bg-white dark:bg-slate-800 text-gray-800 dark:text-white">{{ opt }}</option>
             }
           </select>
         </div>
       </div>
     </div>
 }
+
+    <ng-template #badgeFilterDropdownTpl let-column="column">
+      <div
+        class="w-52 rounded-xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 overflow-hidden shadow-xl"
+        data-filter-dropdown-menu
+        [attr.data-filter-dropdown]="column.field"
+      >
+        <ul class="p-2 text-left text-sm font-medium text-gray-700 dark:text-gray-300 max-h-64 overflow-y-auto">
+          @if (column.filterPlaceholder) {
+            <li>
+              <button
+                type="button"
+                class="inline-flex w-full items-center rounded-lg px-3 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-slate-700/40 transition-all duration-200"
+                (click)="onColumnFilterSelectValue(column.field, '')"
+              >
+                {{ column.filterPlaceholder }}
+              </button>
+            </li>
+          }
+          @for (opt of column.filterOptions; track opt.value) {
+            <li>
+              <button
+                type="button"
+                class="inline-flex w-full items-center rounded-lg px-3 py-2.5 hover:bg-white/20 dark:hover:bg-slate-700/40 transition-all duration-200"
+                (click)="onColumnFilterSelectValue(column.field, opt.value)"
+              >
+                <span [class]="opt.badgeClass || ''">{{ opt.label }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      </div>
+    </ng-template>
   `,
 })
 export class TableComponent {
   pagination = input<boolean>(true);
   private readonly destroyRef = inject(DestroyRef);
   private readonly enterpriseIdService = inject(EnterpriseIdService);
+  private readonly overlay = inject(Overlay);
+  private readonly vcr = inject(ViewContainerRef);
+  private readonly badgeFilterDropdownTpl = viewChild<TemplateRef<{ column: TableColumn }>>('badgeFilterDropdownTpl');
+  private filterOverlayRef: OverlayRef | null = null;
   private readonly filterSubject = new Subject<{ field: string; value: string }>();
 
   readonly buttonFilter = signal<boolean>(false);
@@ -439,6 +520,7 @@ export class TableComponent {
   // Inputs para sincronización de estado externo
   externalFilters = input<Record<string, string> | null>(null);
   externalFiltersVisible = input<boolean | null>(null);
+  externalSort = input<string | null>(null);
   exportData = input<any[] | null>(null);
   isLoadingExportData = input<boolean>(false);
 
@@ -451,15 +533,20 @@ export class TableComponent {
   exportAllDataRequest = output<{totalCount: number; currentParams: IPaginationParams}>();
   readonly showExportDropdown = signal<boolean>(false);
   private readonly pendingExportFormat = signal<'csv' | 'excel' | 'json' | 'txt' | 'sql' | null>(null);
+  readonly openFilterDropdown = signal<string | null>(null);
 
   private readonly search = signal<string>('');
   readonly columnFilters = signal<Record<string, string>>({});
+  readonly sortField = signal<string | null>(null);
+  readonly sortDirection = signal<SortDirection>('asc');
 
   readonly pageSizeOptions = [5, 10, 25, 50];
   readonly pageSize = signal<number>(this.pageSizeOptions[0]);
   readonly pageIndex = signal<number>(0);
 
   constructor() {
+    this.destroyRef.onDestroy(() => this.closeFilterDropdown());
+
     // Configurar el debounce para los filtros
     this.filterSubject
       .pipe(
@@ -486,6 +573,23 @@ export class TableComponent {
       const extVisible = this.externalFiltersVisible();
       if (extVisible !== null) {
         this.buttonFilter.set(extVisible);
+      }
+    });
+
+    effect(() => {
+      const extSort = this.externalSort();
+      if (extSort === null) return;
+
+      if (!extSort) {
+        this.sortField.set(null);
+        this.sortDirection.set('asc');
+        return;
+      }
+
+      const [field, direction] = extSort.split(',');
+      if (field && (direction === 'asc' || direction === 'desc')) {
+        this.sortField.set(field);
+        this.sortDirection.set(direction);
       }
     });
 
@@ -586,6 +690,95 @@ export class TableComponent {
 
     // Enviar al subject para aplicar debounce
     this.filterSubject.next({ field: column, value });
+  }
+
+  onColumnFilterSelect(column: string, event: Event) {
+    const value = (event.target as HTMLSelectElement | null)?.value ?? '';
+    this.onColumnFilterSelectValue(column, value);
+  }
+
+  onColumnFilterSelectValue(column: string, value: string) {
+    this.closeFilterDropdown();
+
+    this.columnFilters.update(filters => {
+      const newFilters = { ...filters, [column]: value };
+      this.filtersChange.emit(newFilters);
+      return newFilters;
+    });
+
+    this.applyColumnFilter(column, value);
+  }
+
+  hasSelectFilter(column: TableColumn): boolean {
+    return (column.filterOptions?.length ?? 0) > 0;
+  }
+
+  isBadgeFilter(column: TableColumn): boolean {
+    return column.filterVariant === 'badge';
+  }
+
+  toggleFilterDropdown(field: string, event: Event) {
+    event.stopPropagation();
+
+    if (this.openFilterDropdown() === field && this.filterOverlayRef?.hasAttached()) {
+      this.closeFilterDropdown();
+      return;
+    }
+
+    const column = this.columns().find((c) => c.field === field && this.isBadgeFilter(c));
+    const template = this.badgeFilterDropdownTpl();
+    if (!column || !template) return;
+
+    this.closeFilterDropdown();
+    this.openFilterDropdown.set(field);
+
+    const target = event.currentTarget as HTMLElement;
+    const positionStrategy = this.overlay
+      .position()
+      .flexibleConnectedTo(target)
+      .withPositions([
+        {
+          originX: 'start',
+          originY: 'bottom',
+          overlayX: 'start',
+          overlayY: 'top',
+          offsetY: 6,
+        },
+        {
+          originX: 'start',
+          originY: 'top',
+          overlayX: 'start',
+          overlayY: 'bottom',
+          offsetY: -6,
+        },
+      ]);
+
+    this.filterOverlayRef = this.overlay.create({
+      positionStrategy,
+      scrollStrategy: this.overlay.scrollStrategies.reposition(),
+      hasBackdrop: true,
+      backdropClass: 'cdk-overlay-transparent-backdrop',
+    });
+
+    this.filterOverlayRef
+      .backdropClick()
+      .pipe(take(1))
+      .subscribe(() => this.closeFilterDropdown());
+
+    const portal = new TemplatePortal(template, this.vcr, { column });
+    this.filterOverlayRef.attach(portal);
+  }
+
+  closeFilterDropdown(): void {
+    this.filterOverlayRef?.dispose();
+    this.filterOverlayRef = null;
+    this.openFilterDropdown.set(null);
+  }
+
+  getActiveFilterOption(column: TableColumn): SelectFilterOption | null {
+    const value = this.columnFilters()[column.field];
+    if (!value) return null;
+    return column.filterOptions?.find((opt) => opt.value === value) ?? null;
   }
 
   onPageSizeChange(event: Event) {
@@ -696,6 +889,20 @@ export class TableComponent {
       }
     });
 
+    const field = this.sortField();
+    if (field) {
+      const direction = this.sortDirection();
+      const column = this.columns().find((col) => col.field === field);
+      result = [...result].sort((a, b) =>
+        this.compareRowValues(
+          this.getNestedValue(a, field),
+          this.getNestedValue(b, field),
+          column?.type,
+          direction,
+        ),
+      );
+    }
+
     return result;
   });
 
@@ -791,7 +998,9 @@ export class TableComponent {
 
   clearAllFilters() {
     this.columnFilters.set({});
-    // Emitir filtros vacíos
+    this.sortField.set(null);
+    this.sortDirection.set('asc');
+    this.closeFilterDropdown();
     this.filtersChange.emit({});
 
     if (this.serverMode()) {
@@ -803,7 +1012,7 @@ export class TableComponent {
         page: 0,
         size: currentSize,
         search: currentSearch || undefined,
-        filters: undefined
+        filters: undefined,
       });
     } else {
       this.pageIndex.set(0);
@@ -1369,10 +1578,92 @@ export class TableComponent {
       page: currentPage,
       size: currentSize,
       search: currentSearch || undefined,
-      filters: Object.keys(currentFilters).length > 0 ? currentFilters : undefined
+      filters: Object.keys(currentFilters).length > 0 ? currentFilters : undefined,
+      sort: this.buildSortParam(),
     };
 
+    if (!currentParams.sort) delete currentParams.sort;
+
     this.exportAllDataRequest.emit({ totalCount, currentParams });
+  }
+
+  isColumnSortable(column: TableColumn): boolean {
+    return column.sortable !== false;
+  }
+
+  getHeaderClass(column: TableColumn): string {
+    const base = 'px-3 sm:px-6 py-4';
+    return this.isColumnSortable(column)
+      ? `${base} cursor-pointer select-none hover:bg-slate-600/30`
+      : base;
+  }
+
+  onColumnSort(column: TableColumn): void {
+    if (!this.isColumnSortable(column)) return;
+
+    const field = column.field;
+    if (this.sortField() === field) {
+      this.sortDirection.update((dir) => (dir === 'asc' ? 'desc' : 'asc'));
+    } else {
+      this.sortField.set(field);
+      this.sortDirection.set('asc');
+    }
+
+    if (this.serverMode()) {
+      const serverData = this.serverData();
+      const currentSize = serverData?.pageSize || this.pageSize();
+      const currentSearch = this.search();
+      const currentFilters = this.columnFilters();
+
+      this.emitServerPaginationChange({
+        page: 0,
+        size: currentSize,
+        search: currentSearch,
+        filters: currentFilters,
+        sort: this.buildSortParam(),
+      });
+    } else {
+      this.pageIndex.set(0);
+    }
+  }
+
+  private buildSortParam(): string | undefined {
+    const field = this.sortField();
+    if (!field) return undefined;
+    return `${field},${this.sortDirection()}`;
+  }
+
+  private compareRowValues(
+    a: unknown,
+    b: unknown,
+    type: TableColumn['type'] | undefined,
+    direction: SortDirection,
+  ): number {
+    const multiplier = direction === 'asc' ? 1 : -1;
+
+    if (a == null && b == null) return 0;
+    if (a == null) return 1 * multiplier;
+    if (b == null) return -1 * multiplier;
+
+    if (type === 'number' || type === 'currency') {
+      const numA = typeof a === 'number' ? a : parseFloat(String(a));
+      const numB = typeof b === 'number' ? b : parseFloat(String(b));
+      if (Number.isNaN(numA) && Number.isNaN(numB)) return 0;
+      if (Number.isNaN(numA)) return 1 * multiplier;
+      if (Number.isNaN(numB)) return -1 * multiplier;
+      return (numA - numB) * multiplier;
+    }
+
+    if (type === 'date') {
+      const dateA = new Date(String(a)).getTime();
+      const dateB = new Date(String(b)).getTime();
+      if (Number.isNaN(dateA) && Number.isNaN(dateB)) return 0;
+      if (Number.isNaN(dateA)) return 1 * multiplier;
+      if (Number.isNaN(dateB)) return -1 * multiplier;
+      return (dateA - dateB) * multiplier;
+    }
+
+    return String(a).localeCompare(String(b), 'es', { sensitivity: 'base' }) * multiplier;
   }
 
   private emitServerPaginationChange(additionalParams: Partial<IPaginationParams> = {}): void {
@@ -1382,17 +1673,20 @@ export class TableComponent {
     const currentSize = serverData?.pageSize || this.pageSize();
     const currentSearch = this.search();
     const currentFilters = this.columnFilters();
+    const currentSort = this.buildSortParam();
 
 
     const params: IPaginationParams = {
       page: additionalParams.page ?? currentPage,
       size: additionalParams.size ?? currentSize,
       search: additionalParams.search ?? (currentSearch || undefined),
-      filters: additionalParams.filters ?? (Object.keys(currentFilters).length > 0 ? currentFilters : undefined)
+      filters: additionalParams.filters ?? (Object.keys(currentFilters).length > 0 ? currentFilters : undefined),
+      sort: additionalParams.sort ?? currentSort,
     };
 
     if (!params.search) delete params.search;
     if (!params.filters || Object.keys(params.filters).length === 0) delete params.filters;
+    if (!params.sort) delete params.sort;
 
     this.serverPaginationChange.emit(params);
   }
