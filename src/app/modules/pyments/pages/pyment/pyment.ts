@@ -72,7 +72,7 @@ export class Pyment implements OnInit, OnDestroy {
 
   readonly pseBancos = signal<PseBanco[]>([])
 
-  readonly montoCentavos = signal(4950000)
+  readonly montoCentavos = signal(0)
 
   readonly montoFormateado = computed(() =>
     new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })

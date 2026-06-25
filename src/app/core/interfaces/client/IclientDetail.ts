@@ -101,7 +101,7 @@ export interface IContador {
   empleadoNombre?: string;
   ruta?: string;
   tarifasContadores?: ITarifa[];
-  tiposTarifaFaltantes?: ITipoTarifaFaltante[];
+  tiposTarifaFaltantes?: ITiposTarifaFaltantes | ITipoTarifaFaltante[];
 }
 
 export interface ITipoTarifa {
@@ -111,9 +111,16 @@ export interface ITipoTarifa {
   codigo: string;
 }
 
+export interface ITipoConcepto {
+  id: number;
+  descripcion: string;
+  codigo: string;
+}
+
 export interface ITarifa {
   id: number;
   tipoTarifa: ITipoTarifa;
+  tipoConcepto?: ITipoConcepto;
   aplica: boolean;
 }
 
@@ -121,6 +128,12 @@ export interface ITipoTarifaFaltante {
   id: number;
   nombre: string;
   codigo: string;
+  descripcion?: string;
+}
+
+export interface ITiposTarifaFaltantes {
+  tiposTarifa: ITipoTarifaFaltante[];
+  tiposConcepto: ITipoConcepto[];
 }
 
 export interface IClienteDetalle {
@@ -133,7 +146,7 @@ export interface IClienteDetalle {
   codigosResidenciaFiscal?: string;
   // Tarifas consolidadas (opcional, puede estar en contadores individuales)
   tarifasContadores?: ITarifa[];
-  tiposTarifaFaltantes?: ITipoTarifaFaltante[];
+  tiposTarifaFaltantes?: ITiposTarifaFaltantes | ITipoTarifaFaltante[];
 }
 
 export interface IClienteDetalleApiResponse {

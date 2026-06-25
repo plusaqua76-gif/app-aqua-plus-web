@@ -46,6 +46,9 @@ export interface IPaginationParams {
 
   /** Filtros adicionales por columna */
   filters?: Record<string, string>;
+
+  /** Ordenamiento en formato Spring Pageable: "campo,asc" | "campo,desc" */
+  sort?: string;
 }
 
 /**

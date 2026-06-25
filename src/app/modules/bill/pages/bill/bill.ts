@@ -26,6 +26,16 @@ import { TableStateService } from '../../../../core/services/table-state.service
 import { DeudaService } from '../../service/deuda.service';
 import { DocumentAzureBlobService } from '../../../fee/services/document-azure-blob.service';
 import { BillBack } from '../../../../core/components/billBack/bill-back';
+import {
+  BILL_ESTADO_FILTER_OPTIONS,
+  getBillEstadoBadgeClass,
+  getBillEstadoDisplayLabel,
+} from '../../../../core/utils/bill-estado.util';
+import {
+  BILL_PERIODO_FILTER_OPTIONS,
+  getBillPeriodoLabel,
+  PERIODO_BADGE_CLASS,
+} from '../../../../core/utils/bill-periodo.util';
 
 @Component({
   selector: 'app-bill',
@@ -70,6 +80,18 @@ import { BillBack } from '../../../../core/components/billBack/bill-back';
       </div>
     </ng-template>
 
+    <ng-template #estadoTpl let-row>
+      <span [ngClass]="getEstadoBadgeClass(row.estadoNombre)">
+        {{ getEstadoLabel(row.estadoNombre) }}
+      </span>
+    </ng-template>
+
+    <ng-template #periodoTpl let-row>
+      <span [class]="periodoBadgeClass">
+        {{ getPeriodoLabel(row.periodo) }}
+      </span>
+    </ng-template>
+
     <app-table-dynamic
       [title]="title()"
       [columns]="billColumns()"
@@ -77,6 +99,7 @@ import { BillBack } from '../../../../core/components/billBack/bill-back';
       [serverData]="serverBillData.value() ?? null"
       [loading]="serverBillData.isLoading()"
       [actionTemplate]="actionsTemplate"
+      [columnTemplates]="{ estadoNombre: estadoTpl, periodo: periodoTpl }"
       [showAddButton]="true"
       [addButtonText]="'Deuda Clientes'"
       [addButtonIcon]="'fa-solid fa-file-invoice-dollar'"
@@ -88,6 +111,7 @@ import { BillBack } from '../../../../core/components/billBack/bill-back';
       [showColumnFilters]="true"
       [externalFilters]="tableState.columnFilters()"
       [externalFiltersVisible]="tableState.filtersVisible()"
+      [externalSort]="paginationParams().sort ?? null"
       [exportData]="exportDataForTable()"
       [isLoadingExportData]="isLoadingExportData()"
       (action)="handleTableAction($event)"
@@ -192,6 +216,33 @@ export class Bill  {
   protected readonly deudaService = inject(DeudaService);
   protected readonly documentService = inject(DocumentAzureBlobService);
 
+  readonly billColumns = signal([
+    { field: 'codigo', header: 'Código', type: 'text' as const },
+    { field: 'nuid', header: 'NUID', type: 'text' as const },
+    { field: 'clienteNombreCompleto', header: 'Nombre', type: 'text' as const },
+    { field: 'corregimientoNombre', header: 'Ubicación', type: 'text' as const },
+    { field: 'consumo', header: 'Lectura', type: 'number' as const },
+    { field: 'fechaEmision', header: 'Fecha emisión', type: 'date' as const },
+    { field: 'fechaFin', header: 'Fecha Vencimiento', type: 'date' as const },
+    {
+      field: 'periodo',
+      header: 'Periodo',
+      type: 'text' as const,
+      filterOptions: BILL_PERIODO_FILTER_OPTIONS,
+      filterPlaceholder: 'Todos',
+      filterVariant: 'badge' as const,
+    },
+    {
+      field: 'estadoNombre',
+      header: 'Estado',
+      type: 'text' as const,
+      filterOptions: BILL_ESTADO_FILTER_OPTIONS,
+      filterPlaceholder: 'Todos',
+      filterVariant: 'badge' as const,
+    },
+    { field: 'precio', header: 'Valor', type: 'currency' as const },
+  ]);
+
   constructor() {
     effect(() => {
       const data = this.exportDataForTable();
@@ -203,19 +254,6 @@ export class Bill  {
       }
     });
   }
-
-  billColumns = signal([
-    { field: 'codigo', header: 'Código', type: 'text' as const },
-    { field: 'nuid', header: 'NUID', type: 'text' as const },
-    { field: 'clienteNombreCompleto', header: 'Nombre', type: 'text' as const },
-    { field: 'corregimientoNombre', header: 'Ubicación', type: 'text' as const },
-    { field: 'consumo', header: 'Lectura', type: 'number' as const },
-    { field: 'fechaEmision', header: 'Fecha emisión', type: 'date' as const },
-    { field: 'fechaFin', header: 'Fecha Vencimiento', type: 'date' as const },
-    { field: 'periodo', header: 'Periodo', type: 'text' as const },
-    { field: 'estadoNombre', header: 'Estado', type: 'text' as const },
-    { field: 'precio', header: 'Valor', type: 'currency' as const },
-  ]);
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -269,18 +307,9 @@ export class Bill  {
         map(response => {
           // Transformar los datos para concatenar los nombres
           if (response?.response && Array.isArray(response.response)) {
-            response.response = response.response.map((factura: any) => ({
-              ...factura,
-              clienteNombreCompleto: [
-                factura.nombre,
-                factura.segundoNombre,
-                factura.apellido,
-                factura.segundoApellido
-              ]
-                .filter(Boolean)
-                .join(' ')
-                .trim()
-            }));
+            response.response = response.response.map((factura: any) =>
+              this.transformFacturaRow(factura)
+            );
           }
           return response;
         }),
@@ -396,18 +425,9 @@ export class Bill  {
       );
 
       if (response?.response && Array.isArray(response.response)) {
-        const transformedData = response.response.map((factura: any) => ({
-          ...factura,
-          clienteNombreCompleto: [
-            factura.nombre,
-            factura.segundoNombre,
-            factura.apellido,
-            factura.segundoApellido
-          ]
-            .filter(Boolean)
-            .join(' ')
-            .trim()
-        }));
+        const transformedData = response.response.map((factura: any) =>
+          this.transformFacturaRow(factura)
+        );
 
         this.exportDataForTable.set(transformedData);
         this.toastService.success('Datos cargados', `${transformedData.length} registros listos para exportar`);
@@ -655,4 +675,24 @@ export class Bill  {
     this.showBulkDownloadProgress.set(false);
     this.isBulkDownloading.set(false);
   }
+
+  private transformFacturaRow(factura: any) {
+    return {
+      ...factura,
+      clienteNombreCompleto: [
+        factura.nombre,
+        factura.segundoNombre,
+        factura.apellido,
+        factura.segundoApellido,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .trim(),
+    };
+  }
+
+  getEstadoBadgeClass = getBillEstadoBadgeClass;
+  getEstadoLabel = getBillEstadoDisplayLabel;
+  getPeriodoLabel = getBillPeriodoLabel;
+  readonly periodoBadgeClass = PERIODO_BADGE_CLASS;
 }

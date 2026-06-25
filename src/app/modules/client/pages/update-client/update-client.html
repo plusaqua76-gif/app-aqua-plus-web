@@ -1136,132 +1136,147 @@
 
 <!-- Modal para editar tarifas -->
 @if (isTarifasModalOpen()) {
-<div class="fixed inset-0 z-50 overflow-y-auto">
+<div class="fixed inset-0 z-[1000] overflow-y-auto">
   <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" (click)="closeTarifasModal()"></div>
-
-  <div class="flex min-h-full items-center justify-center p-4">
-    <div class="relative w-full max-w-4xl bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl">
+  <div class="flex min-h-full items-start justify-center p-4 pt-20">
+    <div class="relative w-full max-w-2xl bg-white/10 dark:bg-slate-800/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl flex flex-col max-h-[calc(100vh-5.5rem)]">
 
       <!-- Header -->
-      <div class="border-b border-white/10 px-6 py-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200">
-              {{ getTarifasModalTitle() }}
-            </h3>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Todas las tarifas están seleccionadas. Deseleccione las que NO aplican a este contador
-            </p>
-          </div>
-          <button type="button" (click)="closeTarifasModal()" class="rounded-lg p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-white/10 transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      <div class="flex-shrink-0 flex items-start justify-between p-6 border-b border-white/10 dark:border-slate-700/30">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/15 backdrop-blur-xl border border-white/20 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
             </svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Body -->
-      <div class="px-6 py-6 max-h-[60vh] overflow-y-auto">
-        @if (feeConcept.isLoading()) {
-          <div class="flex justify-center py-8">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
           </div>
-        } @else if (feeConcept.error()) {
-          <div class="text-center py-8 text-red-500">
-            <p>Error al cargar las tarifas disponibles</p>
-          </div>
-        } @else if (tarifasParaModal().length === 0) {
-          <div class="text-center py-8">
-            <p class="text-gray-600 dark:text-gray-400">No hay tarifas configuradas para esta empresa</p>
-          </div>
-        } @else {
-          <!-- Lista de tarifas con checkboxes -->
-          <div class="space-y-4">
-            @for (tarifa of tarifasParaModal(); track tarifa.id) {
-              <label
-                class="group relative flex items-start gap-4 p-6 rounded-2xl border cursor-pointer transition-all duration-300 shadow-md"
-                [class]="isTarifaSelected(tarifa.id)
-                  ? 'bg-slate-900 border-slate-700 hover:border-slate-600 hover:shadow-xl'
-                  : 'bg-slate-900 border-slate-800 hover:bg-slate-900/90 hover:border-slate-700'"
-              >
-                <!-- Checkbox personalizado -->
-                <div class="flex-shrink-0 mt-1">
-                  <app-checkbox
-                    [checked]="isTarifaSelected(tarifa.id)"
-                    (checkedChange)="onTarifaSelect(tarifa.id)"
-                    [widthHeight]="'24px'"
-                  />
-                </div>
-
-                <div class="flex-1 min-w-0">
-                  <!-- Header con nombre y estado -->
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <h4 class="text-white text-lg font-semibold tracking-wide">
-                        {{ tarifa.nombre }}
-                      </h4>
-                      <span class="text-xs font-mono text-slate-400">{{ tarifa.codigo }}</span>
-                    </div>
-                    <div [class]="isTarifaSelected(tarifa.id) ? 'w-2.5 h-2.5 bg-green-500 rounded-full' : 'w-2.5 h-2.5 bg-slate-600 rounded-full'"></div>
-                  </div>
-                </div>
-              </label>
+          <div>
+            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">Configurar tarifas</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+              Selecciona los conceptos que aplican a este contador
+            </p>
+            @if (getTarifasModalSerial()) {
+              <span class="inline-flex items-center gap-1.5 mt-2.5 px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur-xl border border-white/20 text-xs font-medium text-gray-600 dark:text-gray-300">
+                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                </svg>
+                {{ getTarifasModalSerial() }}
+              </span>
             }
           </div>
+        </div>
+        <button type="button" (click)="closeTarifasModal()" class="p-2 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-white/10 transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
 
-          <!-- Resumen de selección -->
-          <div class="mt-4 p-4 rounded-xl bg-gradient-to-br from-[#767de6]/10 to-[#b9b7ee]/5 border border-[#b9b7eeb9]/30 backdrop-blur-md">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-[#b9b7eeb9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-              </div>
-              <div class="flex-1">
-                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                  <span class="text-base font-bold text-[#767de6] dark:text-[#b9b7ee]">{{ getTarifasSeleccionadasCount() }}</span>
-                  <span class="text-gray-600 dark:text-gray-400"> de </span>
-                  <span class="font-semibold">{{ tarifasParaModal().length }}</span>
-                  <span class="text-gray-700 dark:text-gray-300"> tarifas aplicarán al contador</span>
-                </p>
-              </div>
-            </div>
+      <!-- Cuerpo -->
+      <div class="p-6 overflow-y-auto flex-1 space-y-4">
+        @if (feeConcept.isLoading() || conceptRates.isLoading()) {
+          <div class="flex justify-center py-12">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500"></div>
           </div>
+        } @else if (feeConcept.error() || conceptRates.error()) {
+          <div class="text-center py-12 text-red-500 text-sm">
+            Error al cargar las tarifas y conceptos disponibles
+          </div>
+        } @else if (tarifasParaModal().length === 0) {
+          <div class="text-center py-12 text-gray-500 dark:text-gray-400 text-sm">
+            No hay tarifas configuradas para esta empresa
+          </div>
+        } @else {
+          @for (tarifa of tarifasParaModal(); track tarifa.id) {
+            <div class="rounded-2xl backdrop-blur-xl border border-white/20 bg-white/10 dark:bg-slate-800/20 overflow-hidden">
+
+              <!-- Fila tarifa (fondo más oscuro para diferenciar de conceptos) -->
+              <label
+                class="flex items-center gap-4 px-5 py-4 cursor-pointer transition-colors bg-slate-800/45 dark:bg-slate-900/75 hover:bg-slate-800/60 dark:hover:bg-slate-900/90 border-l-[3px] border-l-purple-500/70"
+                [ngClass]="{ 'border-b border-white/10': getConceptosForTarifa(tarifa.id).length > 0 }"
+              >
+                <app-checkbox
+                  [checked]="isTarifaSelected(tarifa.id)"
+                  (checkedChange)="onTarifaSelect(tarifa.id)"
+                  [widthHeight]="'22px'"
+                />
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-gray-100 dark:text-white leading-tight">{{ tarifa.nombre }}</p>
+                  <p class="text-xs text-purple-200/70 dark:text-purple-300/60 font-mono mt-0.5">{{ tarifa.codigo }}</p>
+                </div>
+                <span
+                  class="w-2 h-2 rounded-full flex-shrink-0 transition-colors ring-2 ring-purple-500/20"
+                  [ngClass]="isTarifaSelected(tarifa.id) ? 'bg-purple-400' : 'bg-gray-500 dark:bg-slate-600'"
+                ></span>
+              </label>
+
+              <!-- Conceptos (fondo más claro) -->
+              @if (getConceptosForTarifa(tarifa.id).length > 0) {
+                <div class="divide-y divide-white/10 bg-white/5 dark:bg-slate-800/20">
+                  @for (concepto of getConceptosForTarifa(tarifa.id); track concepto.id) {
+                    <div
+                      class="flex items-center gap-4 px-5 py-3.5 transition-colors"
+                      [ngClass]="isTarifaSelected(tarifa.id)
+                        ? 'cursor-pointer hover:bg-white/5'
+                        : 'opacity-40 cursor-not-allowed'"
+                    >
+                      <app-checkbox
+                        [checked]="isConceptoSelected(tarifa.id, concepto.id)"
+                        (checkedChange)="onConceptoSelect(tarifa.id, concepto.id)"
+                        [widthHeight]="'20px'"
+                        [disabled]="!isTarifaSelected(tarifa.id)"
+                      />
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm text-gray-700 dark:text-gray-200 leading-tight">{{ concepto.descripcion }}</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 font-mono mt-0.5">{{ concepto.codigo }}</p>
+                      </div>
+                      <span
+                        class="w-2 h-2 rounded-full flex-shrink-0 transition-colors"
+                        [ngClass]="isTarifaSelected(tarifa.id) && isConceptoSelected(tarifa.id, concepto.id)
+                          ? 'bg-emerald-500'
+                          : 'bg-gray-300 dark:bg-slate-600'"
+                      ></span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
         }
       </div>
 
       <!-- Footer -->
-      <div class="border-t border-white/10 px-6 py-4">
-        <div class="flex items-center justify-end gap-3">
+      <div class="flex-shrink-0 flex items-center justify-between px-6 py-4 border-t border-white/10 dark:border-slate-700/30">
+        @if (!feeConcept.isLoading() && !conceptRates.isLoading() && tarifasParaModal().length > 0) {
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            <span class="font-semibold text-gray-700 dark:text-gray-200">{{ getConceptosSeleccionadosCount() }}</span>
+            de
+            <span class="font-semibold text-gray-700 dark:text-gray-200">{{ getTotalConceptosCount() }}</span>
+            conceptos activos
+          </p>
+        } @else {
+          <span></span>
+        }
+        <div class="flex items-center gap-3">
           <button
             type="button"
             (click)="closeTarifasModal()"
-            class="relative cursor-pointer py-2.5 px-6 text-center inline-flex justify-center items-center gap-2 text-sm font-semibold text-gray-300 rounded-xl border border-gray-500/30 bg-gradient-to-br from-gray-500/10 to-gray-500/20 transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline-1 focus:outline-gray-400/50 focus:outline-offset-2 overflow-hidden hover:scale-105"
+            class="px-5 py-2 rounded-xl border border-white/20 backdrop-blur-xl bg-white/10 text-gray-600 dark:text-gray-300 text-sm font-semibold hover:bg-white/20 transition-all"
           >
-            <span class="relative z-20 flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Cancelar
-            </span>
-            <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-gray-400/20 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"></span>
+            Cancelar
           </button>
           <button
             type="button"
             (click)="applyTarifas()"
-            class="relative cursor-pointer py-2.5 px-6 text-center inline-flex justify-center items-center gap-2 text-sm font-semibold text-gray-300 rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
+            class="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold transition-all shadow-sm shadow-purple-500/20"
           >
-            <span class="relative z-20 flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              Aplicar Cambios
-            </span>
-            <span class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"></span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Aplicar cambios
           </button>
         </div>
       </div>
+
     </div>
   </div>
 </div>

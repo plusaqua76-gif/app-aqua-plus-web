@@ -5,10 +5,10 @@ import { DeudaService } from '../../service/deuda.service';
 import { ToastService } from '@services/toast.service';
 import { TableComponent } from '@components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { map, EMPTY, catchError, of, firstValueFrom, pipe } from 'rxjs';
+import { catchError, of } from 'rxjs';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 import { ConfirmDeletePopupComponent } from '@shared/components/confirm-delete-popup';
-import { error, log } from 'node:console';
+import { TipoDeudaService } from '../../service/tipoDeuda.service';
 
 @Component({
   selector: 'app-customer-debt',
@@ -99,21 +99,39 @@ export class CustomerDebt {
   exportDataForTable = signal<any[] | null>(null);
   isLoadingExportData = signal(false);
 
-debtColumns = signal([
-  { field: 'clienteNombre', header: 'Cliente', type: 'text' as const },
-  { field: 'facturaCodigo', header: 'Factura', type: 'text' as const },
-  { field: 'fechaDeuda', header: 'Fecha deuda', type: 'date' as const },
-  { field: 'tipoDeudaNombre', header: 'Tipo deuda', type: 'text' as const },
-  { field: 'valorTotal', header: 'Valor total', type: 'currency' as const },
-  { field: 'totalAbonado', header: 'Abonado', type: 'currency' as const },
-  { field: 'saldoPendiente', header: 'Saldo pendiente', type: 'currency' as const },
-  { field: 'valorMes', header: 'Valor cuota', type: 'currency' as const },
-  { field: 'meses', header: 'N° de cuotas', type: 'text' as const }
-]);
+  readonly tipoDeudaFilterOptions = computed(() => {
+    const tipos = this.tipoDeuda.value()?.response;
+    if (!Array.isArray(tipos)) return [];
+
+    return tipos.map((tipo) => ({
+      label: tipo.nombre,
+      value: tipo.nombre,
+    }));
+  });
+
+  readonly debtColumns = computed(() => [
+    { field: 'clienteNombre', header: 'Cliente', type: 'text' as const },
+    { field: 'facturaCodigo', header: 'Factura', type: 'text' as const },
+    { field: 'fechaDeuda', header: 'Fecha deuda', type: 'date' as const },
+    {
+      field: 'tipoDeudaNombre',
+      header: 'Tipo deuda',
+      type: 'text' as const,
+      filterOptions: this.tipoDeudaFilterOptions(),
+      filterPlaceholder: 'Todos',
+      filterVariant: 'badge' as const,
+    },
+    { field: 'valorTotal', header: 'Valor total', type: 'currency' as const },
+    { field: 'totalAbonado', header: 'Abonado', type: 'currency' as const },
+    { field: 'saldoPendiente', header: 'Saldo pendiente', type: 'currency' as const },
+    { field: 'valorMes', header: 'Valor cuota', type: 'currency' as const },
+    { field: 'meses', header: 'N° de cuotas', type: 'text' as const },
+  ]);
 
 
 
   protected readonly deudaService = inject(DeudaService);
+  protected readonly tipoDeudaService = inject(TipoDeudaService);
   protected readonly toastService = inject(ToastService);
   protected readonly router = inject(Router);
   protected readonly route = inject(ActivatedRoute);
@@ -185,6 +203,15 @@ debtColumns = signal([
         return of(null);
       }));
     },
+  });
+
+  tipoDeuda = rxResource({
+    stream: () => this.tipoDeudaService.getAllTipoDeuda().pipe(
+      catchError(error => {
+        console.error('Error loading debt types:', error);
+        return of(null);
+      }),
+    ),
   });
 
   debtData = computed(() => this.serverDebtData.value() ?? null);
