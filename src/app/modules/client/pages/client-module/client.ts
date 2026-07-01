@@ -11,7 +11,8 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Action, TableComponent } from '../../../../core/components/table';
+import { TableComponent } from '../../../../core/components/table';
+import { Action } from '@interfaces/table/Itable';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ToastService } from '@services/toast.service';
 import { TableStateService } from '../../../../core/services/table-state.service';
@@ -82,6 +83,7 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
       [exportFileName]="exportFileName()"
       [externalFilters]="tableState.columnFilters()"
       [externalFiltersVisible]="tableState.filtersVisible()"
+      [externalSort]="paginationParams().sort ?? null"
       [exportData]="exportDataForTable()"
       [isLoadingExportData]="isLoadingExportData()"
       (action)="onTableAction($event)"

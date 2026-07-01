@@ -78,6 +78,10 @@ export class AbonoService {
             httpParams = httpParams.set('search', params.search);
         }
 
+        if (params.sort) {
+            httpParams = httpParams.set('sort', params.sort);
+        }
+
         if (params.filters) {
             httpParams = this.mapFiltersToHttpParams(httpParams, params.filters);
         }

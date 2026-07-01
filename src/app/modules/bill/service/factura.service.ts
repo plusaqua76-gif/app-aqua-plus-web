@@ -10,6 +10,7 @@ import {
   IPaginatedResponse,
   IPaginationParams,
 } from '@interfaces/IpaginatedResponse';
+import { toBillPeriodoApiValue } from '../../../core/utils/bill-periodo.util';
 
 export interface ReadingUpdate {
   id: number;
@@ -113,6 +114,10 @@ export class FacturaService {
       httpParams = httpParams.set('search', params.search);
     }
 
+    if (params.sort) {
+      httpParams = httpParams.set('sort', params.sort);
+    }
+
     if (params.filters) {
       httpParams = this.mapFiltersToHttpParams(httpParams, params.filters);
     }
@@ -163,7 +168,7 @@ export class FacturaService {
           ? httpParams.set('fechaFin', value)
           : httpParams;
       case 'periodo':
-        return httpParams.set('periodo', value);
+        return httpParams.set('periodo', toBillPeriodoApiValue(value));
       case 'estadoNombre':
         return httpParams.set('estadoNombre', value);
       case 'tipoPagoNombre':

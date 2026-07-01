@@ -20,6 +20,10 @@ import { catchError, of, map, forkJoin } from 'rxjs';
 import { CounterEnterpriceService } from '../../services/counter-enterprice.service';
 import { ParamKey } from '@interfaces/params-enterprice/param-key';
 import { PopupComponent } from '@shared/components/popUp';
+import {
+  getBillEstadoBadgeClass,
+  getBillEstadoDisplayLabel,
+} from '../../../../core/utils/bill-estado.util';
 
 interface BillValidityParams {
   id?: number;
@@ -60,7 +64,6 @@ const PARAM_KEYS = {
         }
       }
 
-      /* Estilos para los inputs de número */
       input[type='number']::-webkit-inner-spin-button,
       input[type='number']::-webkit-outer-spin-button {
         -webkit-appearance: none;
@@ -70,452 +73,416 @@ const PARAM_KEYS = {
       input[type='number'] {
         -moz-appearance: textfield;
       }
+
+      .state-flow-line {
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(185, 183, 238, 0.35) 20%,
+          rgba(185, 183, 238, 0.35) 80%,
+          transparent
+        );
+      }
     `,
   ],
   template: `
-    <div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8 animate-fadeIn">
-      <div #feeRateContainer class="absolute top-4 right-4 z-10 ">
-        <button
-          type="button"
-          #btnGuia
-          (click)="abrirGuia()"
-          class="relative cursor-pointer py-2 px-4 text-center inline-flex justify-center items-center gap-2 text-xs uppercase text-gray-300 rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
-          title="Ver guía de configuración"
+    <div class="animate-fadeIn">
+      <div class="px-4 sm:px-6 lg:px-8 py-6">
+        <div
+          class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30"
         >
-          <span class="relative z-20 flex items-center gap-2">
-            <i class="fas fa-question-circle"></i>
-            <span class="hidden lg:inline">Ayuda</span>
-          </span>
-          <span
-            class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"
-          ></span>
-        </button>
-      </div>
-      <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <div class="mb-8">
-          <h1
-            class="text-3xl sm:text-4xl font-bold text-gray-800 dark:text-gray-200 mb-3"
-          >
-            Configuración Empresarial
-          </h1>
-          <p class="text-gray-600 dark:text-gray-400 text-lg">
-            Configure los parámetros de tiempo y periodos para la gestión de
-            facturas
-          </p>
-        </div>
+          <div class="relative p-6 sm:p-8">
+            <div #feeRateContainer class="absolute top-4 right-4 z-10">
+              <button
+                type="button"
+                #btnGuia
+                (click)="abrirGuia()"
+                class="relative cursor-pointer py-2 px-4 text-center inline-flex justify-center items-center gap-2 text-xs uppercase text-gray-300 rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
+                title="Ver guía de configuración"
+              >
+                <span class="relative z-20 flex items-center gap-2">
+                  <i class="fas fa-question-circle"></i>
+                  <span class="hidden lg:inline">Ayuda</span>
+                </span>
+                <span
+                  class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"
+                ></span>
+              </button>
+            </div>
 
-        <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <!-- Card 1: Días de Vigencia -->
-          <div
-            class="group animated-bg relative overflow-hidden rounded-xl border border-[#312f62a3] bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-6 hover:shadow-2xl transition-all duration-300"
-          >
-            <!-- Animated circles -->
-            <div
-              class="group-hover:-top-3 bg-transparent -top-12 -right-12 absolute shadow-blue-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
-            ></div>
-            <div
-              class="group-hover:top-44 bg-transparent top-32 right-14 absolute shadow-blue-400 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
-            ></div>
-            <div
-              class="group-hover:-right-12 bg-transparent top-20 right-48 absolute shadow-sky-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-20 h-20"
-            ></div>
-            <div
-              class="group-hover:-top-32 bg-transparent top-8 right-8 absolute shadow-blue-800 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-12 h-12"
-            ></div>
+            <!-- Header -->
+            <div class="mb-8 pr-24">
+              <h1
+                class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2"
+              >
+                Configuración de vigencia y estados
+              </h1>
+              <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 max-w-3xl">
+                Defina los tiempos de facturación y los umbrales que determinan
+                cuándo una factura cambia de estado según las facturas vencidas
+                del cliente.
+              </p>
+            </div>
 
-            <div class="relative z-10">
-              <div class="flex items-start gap-4 mb-6">
-                <div
-                  class="w-14 h-14 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center flex-shrink-0"
+            <!-- ═══ SECCIÓN 1: Tiempo y ciclos ═══ -->
+            <section class="mb-8">
+              <div class="flex items-center gap-3 mb-5">
+                <span
+                  class="flex-shrink-0 w-9 h-9 rounded-lg bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center"
                 >
-                  <i
-                    class="fas fa-hourglass-half text-2xl text-[#b9b7eeb9]"
-                  ></i>
-                </div>
-                <div class="flex-1">
-                  <h3
-                    class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2"
-                  >
-                    Días de Vigencia
-                  </h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Tiempo que la factura permanece válida para pago
+                  <i class="fas fa-clock text-[#b9b7eeb9] text-sm"></i>
+                </span>
+                <div>
+                  <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    Tiempo y ciclos de facturación
+                  </h2>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Vigencia, periodos incluidos y facturación atrasada
                   </p>
                 </div>
               </div>
 
-              <div>
-
-
-                <!-- Calculadora de fechas -->
-                <div class="mt-4 p-4 rounded-xl bg-white/5 dark:bg-slate-700/30 border border-white/10 dark:border-slate-400/20">
-                  <p class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wider">
-                    <i class="fas fa-calendar-check mr-1 text-blue-400"></i>
-                    Calcular desde fechas
-                  </p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                    Los días de vigencia son el período entre el
-                    <strong class="text-gray-700 dark:text-gray-300">inicio del ciclo de facturación</strong>
-                    y la
-                    <strong class="text-gray-700 dark:text-gray-300">fecha de corte</strong>.
-                  </p>
-                  <div class="grid grid-cols-2 gap-3">
+              <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+                <!-- Días de vigencia -->
+                <div
+                  class="xl:col-span-2 rounded-xl border border-white/15 dark:border-slate-600/30 bg-white/5 dark:bg-slate-900/20 p-5"
+                >
+                  <div class="flex items-start gap-3 mb-4">
+                    <i class="fas fa-hourglass-half text-blue-400 mt-0.5"></i>
                     <div>
-                      <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                        <i class="fas fa-play-circle mr-1 text-green-400"></i>
-                        Inicio facturación
-                      </label>
+                      <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                        Días de vigencia
+                      </h3>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        Tiempo que la factura permanece en estado
+                        <span [class]="badgePendiente">Pendiente</span>
+                        antes de pasar a
+                        <span [class]="badgeVencida">Vencida</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    class="p-4 rounded-xl bg-white/5 dark:bg-slate-800/30 border border-white/10 dark:border-slate-600/20 mb-4"
+                  >
+                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-3 uppercase tracking-wider">
+                      <i class="fas fa-calculator mr-1 text-blue-400"></i>
+                      Calcular desde fechas
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                          Inicio facturación
+                        </label>
+                        <input
+                          type="date"
+                          [(ngModel)]="fechaInicioFacturacion"
+                          (ngModelChange)="calcularDiasVigencia()"
+                          [max]="fechaCorte"
+                          class="w-full px-3 py-2 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-lg text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/50 [color-scheme:dark]"
+                        />
+                      </div>
+                      <div>
+                        <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                          Fecha de corte
+                        </label>
+                        <input
+                          type="date"
+                          [(ngModel)]="fechaCorte"
+                          (ngModelChange)="calcularDiasVigencia()"
+                          [min]="fechaInicioFacturacion"
+                          class="w-full px-3 py-2 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-lg text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/50 [color-scheme:dark]"
+                        />
+                      </div>
+                    </div>
+                    @if (diasCalculados > 0) {
+                      <div
+                        class="mt-3 flex items-center gap-2 p-2 rounded-lg bg-blue-500/10 border border-blue-500/20"
+                      >
+                        <i class="fas fa-check-circle text-blue-400 text-xs"></i>
+                        <span class="text-xs text-blue-300 font-medium"
+                          >{{ diasCalculados }} días aplicados</span
+                        >
+                      </div>
+                    }
+                    @if (errorFechas) {
+                      <div
+                        class="mt-3 flex items-center gap-2 p-2 rounded-lg bg-red-500/10 border border-red-500/20"
+                      >
+                        <i class="fas fa-exclamation-circle text-red-400 text-xs"></i>
+                        <span class="text-xs text-red-300">{{ errorFechas }}</span>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="relative max-w-[8rem]">
+                    <input
+                      type="number"
+                      [(ngModel)]="diasVigencia"
+                      min="1"
+                      max="365"
+                      placeholder="15"
+                      class="w-full px-3 py-2.5 pr-10 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    />
+                    <span
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"
+                      >días</span
+                    >
+                  </div>
+                </div>
+
+                <!-- Periodos facturados + anteriores -->
+                <div class="space-y-5">
+                  <div
+                    class="rounded-xl border border-white/15 dark:border-slate-600/30 bg-white/5 dark:bg-slate-900/20 p-5"
+                  >
+                    <label
+                      class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wider"
+                    >
+                      Periodos facturados
+                    </label>
+                    <div class="relative">
                       <input
-                        type="date"
-                        [(ngModel)]="fechaInicioFacturacion"
-                        (ngModelChange)="calcularDiasVigencia()"
-                        [max]="fechaCorte"
-                        class="w-full px-3 py-2 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-lg text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-200 [color-scheme:dark]"
+                        type="number"
+                        [(ngModel)]="periodosFacturados"
+                        min="1"
+                        max="24"
+                        placeholder="1"
+                        class="w-full px-3 py-2.5 pr-16 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                       />
+                      <span
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"
+                        >periodos</span
+                      >
                     </div>
-                    <div>
-                      <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                        <i class="fas fa-stop-circle mr-1 text-red-400"></i>
-                        Fecha de corte
-                      </label>
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      Periodos incluidos en cada factura emitida
+                    </p>
+                  </div>
+
+                  <div
+                    class="rounded-xl border border-white/15 dark:border-slate-600/30 bg-white/5 dark:bg-slate-900/20 p-5"
+                  >
+                    <label
+                      class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wider"
+                    >
+                      Periodos anteriores
+                    </label>
+                    <div class="relative">
                       <input
-                        type="date"
-                        [(ngModel)]="fechaCorte"
-                        (ngModelChange)="calcularDiasVigencia()"
-                        [min]="fechaInicioFacturacion"
-                        class="w-full px-3 py-2 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-lg text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-200 [color-scheme:dark]"
+                        type="number"
+                        [(ngModel)]="periodosAnteriores"
+                        min="0"
+                        max="12"
+                        placeholder="0"
+                        class="w-full px-3 py-2.5 pr-16 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                       />
+                      <span
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"
+                        >periodos</span
+                      >
                     </div>
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      Para facturación mes atrasado. Use 0 para mes actual.
+                    </p>
                   </div>
-                  @if (diasCalculados > 0) {
-                    <div class="mt-3 flex items-center gap-2 p-2.5 rounded-lg bg-blue-500/15 border border-blue-500/25">
-                      <i class="fas fa-check-circle text-blue-400 flex-shrink-0"></i>
-                      <span class="text-sm text-blue-300 font-semibold">{{ diasCalculados }} días calculados</span>
-                      <span class="text-xs text-gray-400 ml-1">y aplicados al campo superior</span>
-                    </div>
-                  }
-                  @if (errorFechas) {
-                    <div class="mt-3 flex items-center gap-2 p-2.5 rounded-lg bg-red-500/15 border border-red-500/25">
-                      <i class="fas fa-exclamation-circle text-red-400 flex-shrink-0"></i>
-                      <span class="text-xs text-red-300">{{ errorFechas }}</span>
-                    </div>
-                  }
                 </div>
               </div>
-            </div>
-          </div>
+            </section>
 
-          <!-- Card 2: Periodos Facturados -->
-          <div
-            class="group animated-bg relative overflow-hidden rounded-xl border border-[#312f62a3] bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-6 hover:shadow-2xl transition-all duration-300"
-          >
-            <!-- Animated circles -->
-            <div
-              class="group-hover:-top-3 bg-transparent -top-12 -right-12 absolute shadow-blue-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
-            ></div>
-            <div
-              class="group-hover:top-44 bg-transparent top-32 right-14 absolute shadow-blue-400 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
-            ></div>
-            <div
-              class="group-hover:-right-12 bg-transparent top-20 right-48 absolute shadow-sky-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-20 h-20"
-            ></div>
-            <div
-              class="group-hover:-top-32 bg-transparent top-8 right-8 absolute shadow-blue-800 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-12 h-12"
-            ></div>
+            <div class="h-px state-flow-line mb-8"></div>
 
-            <div class="relative z-10">
-              <div class="flex items-start gap-4 mb-6">
-                <div
-                  class="w-14 h-14 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center flex-shrink-0"
+            <!-- ═══ SECCIÓN 2: Flujo de estados (destacada) ═══ -->
+            <section class="mb-8">
+              <div class="flex items-center gap-3 mb-4">
+                <span
+                  class="flex-shrink-0 w-9 h-9 rounded-lg bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center"
                 >
-                  <i class="fas fa-calendar-alt text-2xl text-[#b9b7eeb9]"></i>
-                </div>
-                <div class="flex-1">
-                  <h3
-                    class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2"
-                  >
-                    Periodos de Facturación
-                  </h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Configuración de ciclos de facturación
+                  <i class="fas fa-route text-[#b9b7eeb9] text-sm"></i>
+                </span>
+                <div>
+                  <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    Escalamiento por facturas vencidas
+                  </h2>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Los umbrales cuentan cuántas facturas en estado
+                    <span [class]="badgeVencida">Vencida</span> tiene el cliente
                   </p>
                 </div>
               </div>
 
-              <div>
-                <label
-                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
+              <!-- Aviso importante -->
+              <!-- Pipeline visual de estados -->
+              <div
+                class="mb-6 p-5 rounded-xl border border-white/15 dark:border-slate-600/30 bg-white/5 dark:bg-slate-900/30 overflow-x-auto"
+              >
+                <p
+                  class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4"
                 >
-                  Periodos facturados
-                </label>
-                <div class="relative">
-                  <input
-                    type="number"
-                    [(ngModel)]="periodosFacturados"
-                    min="1"
-                    max="24"
-                    placeholder="Ej: 1 periodo"
-                    class="w-full px-4 py-3.5 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 text-lg font-medium"
-                  />
-                  <div
-                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm font-medium"
-                  >
-                    periodos
-                  </div>
-                </div>
-                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  <i class="fas fa-info-circle mr-1"></i>
-                  Cantidad de periodos incluidos en cada factura
+                  Flujo de estados
                 </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card 3: Periodos No Pagos -> Vencida -->
-          <div
-            class="group animated-bg relative overflow-hidden rounded-xl border border-[#312f62a3] bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-6 hover:shadow-2xl transition-all duration-300"
-          >
-            <!-- Animated circles -->
-            <div
-              class="group-hover:-top-3 bg-transparent -top-12 -right-12 absolute shadow-blue-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
-            ></div>
-            <div
-              class="group-hover:top-44 bg-transparent top-32 right-14 absolute shadow-blue-400 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
-            ></div>
-            <div
-              class="group-hover:-right-12 bg-transparent top-20 right-48 absolute shadow-sky-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-20 h-20"
-            ></div>
-            <div
-              class="group-hover:-top-32 bg-transparent top-8 right-8 absolute shadow-blue-800 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-12 h-12"
-            ></div>
-
-            <div class="relative z-10">
-              <div class="flex items-start gap-4 mb-6">
                 <div
-                  class="w-14 h-14 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center flex-shrink-0"
+                  class="flex flex-wrap items-center gap-2 sm:gap-3 min-w-0"
                 >
-                  <i
-                    class="fas fa-exclamation-triangle text-2xl text-[#b9b7eeb9]"
-                  ></i>
-                </div>
-                <div class="flex-1">
-                  <h3
-                    class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2"
+                  <span [class]="badgePendiente">
+                    <i class="fas fa-clock mr-1"></i>
+                    {{ labelPendiente }}
+                  </span>
+                  <i class="fas fa-chevron-right text-gray-500 text-xs"></i>
+                  <span class="text-xs text-gray-400 whitespace-nowrap"
+                    >{{ diasVigencia || '?' }} días sin pago</span
                   >
-                    Estado: Aviso de Suspensión
-                  </h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Periodos impagos para marcar como aviso de suspensión
-                  </p>
+                  <i class="fas fa-chevron-right text-gray-500 text-xs"></i>
+                  <span [class]="badgeVencida">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                    {{ labelVencida }}
+                  </span>
+                  <i class="fas fa-chevron-right text-gray-500 text-xs"></i>
+                  <span class="text-xs text-gray-400 whitespace-nowrap"
+                    >{{ facturasVencidasTexto(periodosNoPagosVencida) }}</span
+                  >
+                  <i class="fas fa-chevron-right text-gray-500 text-xs"></i>
+                  <span [class]="badgeAviso">
+                    <i class="fas fa-bell mr-1"></i>
+                    {{ labelAviso }}
+                  </span>
+                  <i class="fas fa-chevron-right text-gray-500 text-xs"></i>
+                  <span class="text-xs text-gray-400 whitespace-nowrap"
+                    >{{ facturasVencidasTexto(periodosPagoInmediato) }}</span
+                  >
+                  <i class="fas fa-chevron-right text-gray-500 text-xs"></i>
+                  <span [class]="badgeInmediato">
+                    <i class="fas fa-bolt mr-1"></i>
+                    {{ labelInmediato }}
+                  </span>
                 </div>
               </div>
 
-              <div>
-                <label
-                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
+              <!-- Configuración de umbrales -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <!-- Aviso de suspensión -->
+                <div
+                  class="rounded-xl border border-white/15 dark:border-slate-600/30 bg-white/5 dark:bg-slate-900/30 p-5"
                 >
-                  Periodos no pagos para marcar aviso de suspensión
-                </label>
-                <div class="relative">
-                  <input
-                    type="number"
-                    [(ngModel)]="periodosNoPagosVencida"
-                    min="1"
-                    max="12"
-                    placeholder="Ej: 2 periodos"
-                    class="w-full px-4 py-3.5 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 text-lg font-medium"
-                  />
-                  <div
-                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm font-medium"
-                  >
-                    periodos
+                  <div class="flex items-center gap-2 mb-3">
+                    <span [class]="badgeAviso">{{ labelAviso }}</span>
                   </div>
-                </div>
-                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  <i class="fas fa-info-circle mr-1"></i>
-                  Número de periodos sin pagar para cambiar estado a vencida
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card 4: Periodos -> Pago Inmediato -->
-          <div
-            class="group animated-bg relative overflow-hidden rounded-xl border border-[#312f62a3] bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-6 hover:shadow-2xl transition-all duration-300"
-          >
-            <!-- Animated circles -->
-            <div
-              class="group-hover:-top-3 bg-transparent -top-12 -right-12 absolute shadow-blue-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
-            ></div>
-            <div
-              class="group-hover:top-44 bg-transparent top-32 right-14 absolute shadow-blue-400 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
-            ></div>
-            <div
-              class="group-hover:-right-12 bg-transparent top-20 right-48 absolute shadow-sky-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-20 h-20"
-            ></div>
-            <div
-              class="group-hover:-top-32 bg-transparent top-8 right-8 absolute shadow-blue-800 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-12 h-12"
-            ></div>
-
-            <div class="relative z-10">
-              <div class="flex items-start gap-4 mb-6">
-                <div
-                  class="w-14 h-14 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center flex-shrink-0"
-                >
-                  <i class="fas fa-bolt text-2xl text-[#b9b7eeb9]"></i>
-                </div>
-                <div class="flex-1">
-                  <h3
-                    class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2"
+                  <label
+                    class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wider"
                   >
-                    Pago Inmediato
-                  </h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Periodos impagos para requerir pago inmediato
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <label
-                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
-                >
-                  Periodos para pago inmediato
-                </label>
-                <div class="relative">
-                  <input
-                    type="number"
-                    [(ngModel)]="periodosPagoInmediato"
-                    min="1"
-                    max="12"
-                    placeholder="Ej: 3 periodos"
-                    class="w-full px-4 py-3.5 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 text-lg font-medium"
-                  />
-                  <div
-                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm font-medium"
-                  >
-                    periodos
+                    Facturas vencidas requeridas
+                  </label>
+                  <div class="relative max-w-[8rem] mb-3">
+                    <input
+                      type="number"
+                      [(ngModel)]="periodosNoPagosVencida"
+                      min="1"
+                      max="12"
+                      placeholder="2"
+                      class="w-full px-3 py-2.5 pr-10 bg-white/10 dark:bg-slate-700/50 border border-orange-500/30 rounded-xl text-gray-900 dark:text-white text-lg font-bold focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                    />
+                    <span
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400/70 text-xs font-medium"
+                      >venc.</span
+                    >
                   </div>
+
+                  <button
+                    type="button"
+                    (click)="abrirEjemplo('aviso')"
+                    [disabled]="periodosNoPagosVencida <= 0"
+                    class="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border border-orange-500/30 bg-orange-500/10 text-orange-200 hover:bg-orange-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <i class="fas fa-eye"></i>
+                    Ver ejemplo
+                  </button>
                 </div>
-                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  <i class="fas fa-info-circle mr-1"></i>
-                  Número de periodos sin pagar para requerir pago inmediato
-                </p>
-              </div>
-            </div>
-          </div>
 
-          <!-- Card 5: Periodos Anteriores -->
-          <div
-            class="group animated-bg relative overflow-hidden rounded-xl border border-[#312f62a3] bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-6 hover:shadow-2xl transition-all duration-300"
-          >
-            <!-- Animated circles -->
-            <div
-              class="group-hover:-top-3 bg-transparent -top-12 -right-12 absolute shadow-blue-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
-            ></div>
-            <div
-              class="group-hover:top-44 bg-transparent top-32 right-14 absolute shadow-blue-400 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
-            ></div>
-            <div
-              class="group-hover:-right-12 bg-transparent top-20 right-48 absolute shadow-sky-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-20 h-20"
-            ></div>
-            <div
-              class="group-hover:-top-32 bg-transparent top-8 right-8 absolute shadow-blue-800 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-12 h-12"
-            ></div>
-
-            <div class="relative z-10">
-              <div class="flex items-start gap-4 mb-6">
+                <!-- Pago inmediato -->
                 <div
-                  class="w-14 h-14 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center flex-shrink-0"
+                  class="rounded-xl border border-white/15 dark:border-slate-600/30 bg-white/5 dark:bg-slate-900/30 p-5"
                 >
-                  <i class="fas fa-history text-2xl text-[#b9b7eeb9]"></i>
-                </div>
-                <div class="flex-1">
-                  <h3
-                    class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2"
-                  >
-                    Periodos Anteriores
-                  </h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Para empresas con facturación mes atrasado
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <label
-                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
-                >
-                  Periodos de facturación anterior
-                </label>
-                <div class="relative">
-                  <input
-                    type="number"
-                    [(ngModel)]="periodosAnteriores"
-                    min="0"
-                    max="12"
-                    placeholder="Ej: 1 periodo"
-                    class="w-full px-4 py-3.5 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 text-lg font-medium"
-                  />
-                  <div
-                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm font-medium"
-                  >
-                    periodos
+                  <div class="flex items-center gap-2 mb-3">
+                    <span [class]="badgeInmediato">{{ labelInmediato }}</span>
                   </div>
-                </div>
-                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  <i class="fas fa-info-circle mr-1"></i>
-                  Número de periodos anteriores para facturación mes atrasado (0
-                  para facturación mes actual)
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card 6: Tasa de Interés -->
-          <div
-            class="group animated-bg relative overflow-hidden rounded-xl border border-[#312f62a3] bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl p-6 hover:shadow-2xl transition-all duration-300"
-          >
-            <!-- Animated circles -->
-            <div
-              class="group-hover:-top-3 bg-transparent -top-12 -right-12 absolute shadow-blue-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
-            ></div>
-            <div
-              class="group-hover:top-44 bg-transparent top-32 right-14 absolute shadow-blue-400 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-24 h-24"
-            ></div>
-            <div
-              class="group-hover:-right-12 bg-transparent top-20 right-48 absolute shadow-sky-600 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-20 h-20"
-            ></div>
-            <div
-              class="group-hover:-top-32 bg-transparent top-8 right-8 absolute shadow-blue-800 shadow-inner rounded-xl transition-all ease-in-out group-hover:duration-1000 duration-1000 w-12 h-12"
-            ></div>
-
-            <div class="relative z-10">
-              <div class="flex items-start gap-4 mb-6">
-                <div
-                  class="w-14 h-14 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center flex-shrink-0"
-                >
-                  <i class="fas fa-percent text-2xl text-[#b9b7eeb9]"></i>
-                </div>
-                <div class="flex-1">
-                  <h3
-                    class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2"
+                  <label
+                    class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wider"
                   >
-                    Tasa de Interés
-                  </h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Porcentaje de interés aplicado a deudas vencidas
+                    Facturas en Aviso de suspensión requeridas
+                  </label>
+                  <div class="relative max-w-[8rem] mb-3">
+                    <input
+                      type="number"
+                      [(ngModel)]="periodosPagoInmediato"
+                      min="1"
+                      max="12"
+                      placeholder="3"
+                      class="w-full px-3 py-2.5 pr-10 bg-white/10 dark:bg-slate-700/50 border border-sky-500/30 rounded-xl text-gray-900 dark:text-white text-lg font-bold focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                    />
+                    <span
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-sky-400/70 text-xs font-medium"
+                      >venc.</span
+                    >
+                  </div>
+
+                  <button
+                    type="button"
+                    (click)="abrirEjemplo('inmediato')"
+                    [disabled]="periodosPagoInmediato <= 0"
+                    class="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border border-sky-500/30 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <i class="fas fa-eye"></i>
+                    Ver ejemplo
+                  </button>
+                </div>
+              </div>
+
+              @if (
+                periodosNoPagosVencida > 0 &&
+                periodosPagoInmediato > 0 &&
+                periodosNoPagosVencida >= periodosPagoInmediato
+              ) {
+                <div
+                  class="mt-4 p-3 rounded-lg bg-red-500/10 border border-red-500/25 flex items-center gap-2"
+                >
+                  <i class="fas fa-exclamation-triangle text-red-400"></i>
+                  <span class="text-xs text-red-300">
+                    Pago inmediato debe requerir más facturas vencidas que aviso
+                    de suspensión (actualmente
+                    {{ periodosNoPagosVencida }} ≥
+                    {{ periodosPagoInmediato }}).
+                  </span>
+                </div>
+              }
+            </section>
+
+            <div class="h-px state-flow-line mb-8"></div>
+
+            <!-- ═══ SECCIÓN 3: Interés de mora ═══ -->
+            <section class="mb-8">
+              <div class="flex items-center gap-3 mb-5">
+                <span
+                  class="flex-shrink-0 w-9 h-9 rounded-lg bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center"
+                >
+                  <i class="fas fa-percent text-[#b9b7eeb9] text-sm"></i>
+                </span>
+                <div>
+                  <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    Interés de mora
+                  </h2>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Porcentaje mensual aplicado sobre deudas vencidas
                   </p>
                 </div>
               </div>
 
-              <div>
+              <div
+                class="max-w-xs rounded-xl border border-white/15 dark:border-slate-600/30 bg-white/5 dark:bg-slate-900/20 p-5"
+              >
                 <label
-                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
+                  class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wider"
                 >
-                  Tasa de interés de mora
+                  Tasa de interés
                 </label>
                 <div class="relative">
                   <input
@@ -524,352 +491,150 @@ const PARAM_KEYS = {
                     min="0"
                     max="100"
                     step="0.01"
-                    placeholder="Ej: 1.5"
-                    class="w-full px-4 py-3.5 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 text-lg font-medium"
+                    placeholder="1.5"
+                    class="w-full px-3 py-2.5 pr-8 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                   />
-                  <div
-                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm font-medium"
+                  <span
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"
+                    >%</span
                   >
-                    %
-                  </div>
                 </div>
-                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  <i class="fas fa-info-circle mr-1"></i>
-                  Porcentaje de interés aplicado mensualmente sobre la deuda
-                </p>
               </div>
+            </section>
+
+            <!-- Acciones -->
+            <div
+              class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-white/10 dark:border-slate-600/20"
+            >
+              <button
+                type="button"
+                (click)="resetForm()"
+                class="px-6 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-white/20 dark:hover:bg-slate-600/50 transition-all duration-200"
+              >
+                <i class="fas fa-undo mr-2"></i>
+                Restablecer
+              </button>
+
+              <button
+                type="button"
+                (click)="guardarParametros()"
+                [disabled]="!isFormValid() || guardando()"
+                class="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                @if (guardando()) {
+                  <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <span>Actualizando...</span>
+                } @else {
+                  <i class="fas fa-save"></i>
+                  <span>Guardar configuración</span>
+                }
+              </button>
             </div>
           </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="mt-8 flex items-center justify-end gap-4 pb-6">
-          <button
-            type="button"
-            (click)="resetForm()"
-            class="px-8 py-3.5 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-white/20 dark:hover:bg-slate-600/50 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg"
-          >
-            <i class="fas fa-undo mr-2"></i>
-            Restablecer
-          </button>
-
-          <button
-            type="button"
-            (click)="guardarParametros()"
-            [disabled]="!isFormValid() || guardando()"
-            class="px-8 py-3.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-3"
-          >
-            @if (guardando()) {
-              <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              <span>Actualizando...</span>
-            } @else {
-              <i class="fas fa-sync-alt"></i>
-              <span>Actualizar</span>
-            }
-          </button>
         </div>
       </div>
     </div>
 
-    <!-- Popup de Guía de Configuración con @defer -->
     @defer (on interaction(feeRateContainer)) {
       @if (showGuidePopup()) {
         <app-pop-up
           [open]="showGuidePopup"
-          [title]="'Guía de Configuración de Vigencia de Facturas'"
+          [title]="'Guía de configuración de vigencia de facturas'"
           [isConfirmation]="false"
           [maxWidth]="'max-w-5xl'"
         >
           <div class="space-y-6">
+            <div
+              class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 flex gap-3"
+            >
+              <i class="fas fa-info-circle text-amber-400 mt-0.5"></i>
+              <p class="text-sm text-gray-300 leading-relaxed">
+                Los umbrales de
+                <strong>Aviso de suspensión</strong> y
+                <strong>Pago inmediato</strong> indican cuántas facturas en
+                estado <strong>Vencida</strong> debe acumular el cliente. Un
+                valor de <strong>2</strong> significa
+                <strong>2 facturas vencidas</strong>, no la tercera factura
+                emitida.
+              </p>
+            </div>
+
             <div class="space-y-4">
-              <div class="flex items-center gap-3 mb-3">
-                <span
-                  class="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg"
-                >
-                  1
-                </span>
-                <h3 class="text-xl font-bold text-gray-800 dark:text-white">
-                  ¿Cómo funciona el sistema de estados?
-                </h3>
-              </div>
-              <div
-                class="space-y-4 text-base leading-relaxed text-gray-700 dark:text-gray-300 pl-12"
-              >
-                <p>
-                  El sistema calcula automáticamente cuántos días han pasado
-                  desde que se emitió la factura y, según los parámetros
-                  configurados, le asigna un estado. Este estado determina las
-                  acciones que se pueden tomar y las notificaciones que se
-                  envían al cliente.
-                </p>
-
-                <div
-                  class="p-5 rounded-xl bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 backdrop-blur-md"
-                >
-                  <p
-                    class="text-sm font-semibold text-gray-800 dark:text-white mb-4 tracking-wide uppercase"
-                  >
-                    Flujo de estados de la factura:
+              <h3 class="text-lg font-bold text-gray-100">
+                Flujo de estados
+              </h3>
+              <div class="space-y-3 pl-2">
+                <div class="flex items-start gap-3">
+                  <span [class]="badgePendiente">{{ labelPendiente }}</span>
+                  <p class="text-sm text-gray-400">
+                    Mientras la factura esté dentro de los
+                    {{ diasVigencia || 'N' }} días de vigencia.
                   </p>
-
-                  <!-- Diagrama de flujo -->
-                  <div class="space-y-4">
-                    <!-- Estado Inicial: Emisión de Factura -->
-                    <div class="flex items-center gap-4">
-                      <div
-                        class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg"
-                      >
-                        <i class="fas fa-file-invoice"></i>
-                      </div>
-                      <div class="flex-1">
-                        <p
-                          class="text-sm font-bold text-gray-800 dark:text-white"
-                        >
-                          Día 0: Emisión de Factura
-                        </p>
-                        <p class="text-xs text-gray-600 dark:text-gray-400">
-                          La factura se genera y se envía al cliente
-                        </p>
-                      </div>
-                    </div>
-
-                    <!-- Flecha hacia abajo -->
-                    <div class="flex justify-center">
-                      <i
-                        class="fas fa-arrow-down text-gray-400 dark:text-gray-500 text-2xl"
-                      ></i>
-                    </div>
-
-                    <!-- Estado 1: PENDIENTE -->
-                    <div
-                      class="flex items-center gap-4 p-4 rounded-xl bg-gray-900 border border-white/20 dark:border-slate-400/30 backdrop-blur-md hover:bg-white/15 dark:hover:bg-slate-600/40 transition-all duration-300"
-                    >
-                      <div
-                        class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg"
-                      >
-                        1
-                      </div>
-                      <div class="flex-1">
-                        <p
-                          class="text-sm font-bold text-green-800 dark:text-green-300 mb-1"
-                        >
-                          <i class="fas fa-clock mr-1"></i>
-                          Estado: PENDIENTE
-                        </p>
-                        <p class="text-xs text-gray-700 dark:text-gray-300">
-                          <strong>Condición:</strong> Días transcurridos menores
-                          o iguales a Días de Vigencia
-                        </p>
-                        <p
-                          class="text-xs text-gray-600 dark:text-gray-400 mt-1"
-                        >
-                          Cliente puede pagar sin recargos
-                        </p>
-                      </div>
-                    </div>
-
-                    <!-- Flecha condicional -->
-                    <div class="flex flex-col items-center">
-                      <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                        Si días son mayores a Días de Vigencia
-                      </p>
-                      <i
-                        class="fas fa-arrow-down text-gray-400 dark:text-gray-500 text-2xl"
-                      ></i>
-                    </div>
-
-                    <!-- Estado 2: VENCIDA -->
-                    <div
-                      class="flex items-center gap-4 p-4 rounded-xl bg-gray-900 border border-white/20 dark:border-slate-400/30 backdrop-blur-md hover:bg-white/15 dark:hover:bg-slate-600/40 transition-all duration-300"
-                    >
-                      <div
-                        class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg"
-                      >
-                        2
-                      </div>
-                      <div class="flex-1">
-                        <p
-                          class="text-sm font-bold text-orange-800 dark:text-orange-300 mb-1"
-                        >
-                          <i class="fas fa-exclamation-triangle mr-1"></i>
-                          Estado: VENCIDA
-                        </p>
-                        <p class="text-xs text-gray-700 dark:text-gray-300">
-                          <strong>Condición:</strong> Días mayores a Días de
-                          Vigencia Y menores o iguales a Periodos para Aviso
-                          Suspensión
-                        </p>
-                        <p
-                          class="text-xs text-gray-600 dark:text-gray-400 mt-1"
-                        >
-                          Se aplican intereses de mora
-                        </p>
-                      </div>
-                    </div>
-
-                    <!-- Flecha condicional -->
-                    <div class="flex flex-col items-center">
-                      <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                        Si días son mayores a Periodos Aviso Suspensión
-                      </p>
-                      <i
-                        class="fas fa-arrow-down text-gray-400 dark:text-gray-500 text-2xl"
-                      ></i>
-                    </div>
-
-                    <!-- Estado 3: AVISO SUSPENSIÓN -->
-                    <div
-                      class="flex items-center gap-4 p-4 rounded-xl bg-gray-900 border border-white/20 dark:border-slate-400/30 backdrop-blur-md hover:bg-white/15 dark:hover:bg-slate-600/40 transition-all duration-300"
-                    >
-                      <div
-                        class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg"
-                      >
-                        3
-                      </div>
-                      <div class="flex-1">
-                        <p
-                          class="text-sm font-bold text-red-800 dark:text-red-300 mb-1"
-                        >
-                          <i class="fas fa-exclamation-circle mr-1"></i>
-                          Estado: AVISO SUSPENSIÓN
-                        </p>
-                        <p class="text-xs text-gray-700 dark:text-gray-300">
-                          <strong>Condición:</strong> Días mayores a Periodos
-                          Aviso Suspensión Y menores o iguales a Periodos Pago
-                          Inmediato
-                        </p>
-                        <p
-                          class="text-xs text-gray-600 dark:text-gray-400 mt-1"
-                        >
-                          Riesgo de suspensión del servicio
-                        </p>
-                      </div>
-                    </div>
-
-                    <!-- Flecha condicional -->
-                    <div class="flex flex-col items-center">
-                      <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                        Si días son mayores a Periodos Pago Inmediato
-                      </p>
-                      <i
-                        class="fas fa-arrow-down text-gray-400 dark:text-gray-500 text-2xl"
-                      ></i>
-                    </div>
-
-                    <!-- Estado 4: PAGO INMEDIATO -->
-                    <div
-                      class="flex items-center gap-4 p-4 rounded-xl bg-gray-900 border border-white/20 dark:border-slate-400/30 backdrop-blur-md hover:bg-white/15 dark:hover:bg-slate-600/40 transition-all duration-300"
-                    >
-                      <div
-                        class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg"
-                      >
-                        4
-                      </div>
-                      <div class="flex-1">
-                        <p
-                          class="text-sm font-bold text-rose-800 dark:text-rose-300 mb-1"
-                        >
-                          <i class="fas fa-bolt mr-1"></i>
-                          Estado: PAGO INMEDIATO
-                        </p>
-                        <p class="text-xs text-gray-700 dark:text-gray-300">
-                          <strong>Condición:</strong> Días mayores a Periodos
-                          Pago Inmediato
-                        </p>
-                        <p
-                          class="text-xs text-gray-600 dark:text-gray-400 mt-1"
-                        >
-                          Suspensión del servicio - Acción crítica requerida
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span [class]="badgeVencida">{{ labelVencida }}</span>
+                  <p class="text-sm text-gray-400">
+                    Cuando supera los días de vigencia sin pago. Se aplican
+                    intereses de mora.
+                  </p>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span [class]="badgeAviso">{{ labelAviso }}</span>
+                  <p class="text-sm text-gray-400">
+                    Cuando el cliente acumula
+                    {{ periodosNoPagosVencida || 'N' }}
+                    {{
+                      periodosNoPagosVencida === 1
+                        ? 'factura vencida'
+                        : 'facturas vencidas'
+                    }}.
+                  </p>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span [class]="badgeInmediato">{{ labelInmediato }}</span>
+                  <p class="text-sm text-gray-400">
+                    Cuando el cliente acumula
+                    {{ periodosPagoInmediato || 'N' }}
+                    {{
+                      periodosPagoInmediato === 1
+                        ? 'factura vencida'
+                        : 'facturas vencidas'
+                    }}. Acción crítica requerida.
+                  </p>
                 </div>
               </div>
             </div>
 
-            <!-- Concepto 4: Recomendaciones -->
-            <div class="space-y-4">
-              <div class="flex items-center gap-3 mb-3">
-                <span
-                  class="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#312f62a3] to-[#004fbb00] flex items-center justify-center text-white font-bold shadow-lg"
-                >
-                  4
-                </span>
-                <h3 class="text-xl font-bold text-gray-800 dark:text-white">
-                  Recomendaciones de configuración
-                </h3>
-              </div>
-              <div
-                class="space-y-3 text-sm text-gray-700 dark:text-gray-300 pl-12 mb-4"
-              >
-                <div
-                  class="flex items-start gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700"
-                >
-                  <i
-                    class="fas fa-lightbulb text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0"
-                  ></i>
-                  <div>
-                    <p class="font-semibold text-gray-800 dark:text-white mb-1">
-                      Días de Vigencia
-                    </p>
-                    <p>
-                      Generalmente entre 10-20 días. Debe dar tiempo suficiente
-                      para que el cliente reciba y procese el pago.
-                    </p>
-                  </div>
-                </div>
-                <div
-                  class="flex items-start gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700"
-                >
-                  <i
-                    class="fas fa-lightbulb text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0"
-                  ></i>
-                  <div>
-                    <p class="font-semibold text-gray-800 dark:text-white mb-1">
-                      Periodos para Vencida
-                    </p>
-                    <p>
-                      Usualmente 1-2 periodos. Permite identificar facturas con
-                      atraso moderado.
-                    </p>
-                  </div>
-                </div>
-                <div
-                  class="flex items-start gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700"
-                >
-                  <i
-                    class="fas fa-lightbulb text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0"
-                  ></i>
-                  <div>
-                    <p class="font-semibold text-gray-800 dark:text-white mb-1">
-                      Periodos Pago Inmediato
-                    </p>
-                    <p>
-                      Típicamente 3-4 periodos. Marca el punto crítico antes de
-                      acciones legales o suspensión definitiva.
-                    </p>
-                  </div>
-                </div>
-              </div>
+            <div class="space-y-3">
+              <h3 class="text-lg font-bold text-gray-100">Recomendaciones</h3>
+              <ul class="space-y-2 text-sm text-gray-400 pl-4 list-disc">
+                <li>Días de vigencia: generalmente entre 10 y 20 días.</li>
+                <li>
+                  Aviso de suspensión: suele configurarse con 1–2 facturas
+                  vencidas.
+                </li>
+                <li>
+                  Pago inmediato: típicamente 3–4 facturas vencidas, siempre
+                  mayor que aviso de suspensión.
+                </li>
+              </ul>
             </div>
           </div>
 
-          <!-- Botón de cerrar -->
           <div
             class="flex justify-end pt-6 border-t border-white/10 dark:border-slate-400/20"
           >
@@ -889,8 +654,122 @@ const PARAM_KEYS = {
           </div>
         </app-pop-up>
       }
-    } @placeholder {
-      <!-- El contenido se carga al interactuar con el contenedor -->
+    } @placeholder {}
+
+    @if (showEjemploPopup()) {
+      <app-pop-up
+        [open]="showEjemploPopup"
+        [title]="ejemploTituloPopup()"
+        [isConfirmation]="false"
+        [maxWidth]="'max-w-2xl'"
+        [contentPadding]="'p-6 sm:p-8'"
+      >
+        <div class="space-y-5">
+          <p class="text-sm text-gray-400 leading-relaxed">
+            Vista previa del escalamiento con el valor configurado actualmente.
+          </p>
+
+          <div
+            class="p-4 sm:p-5 rounded-xl bg-white/5 dark:bg-slate-800/40 border border-white/10"
+          >
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 uppercase tracking-wider font-semibold">
+              Escalamiento
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+              @for (n of rangoFacturas(ejemploCantidadActual()); track n) {
+                @if (ejemploPopupTipo() === 'aviso') {
+                  <div
+                    class="flex flex-col items-center gap-1.5 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 min-w-[5rem]"
+                  >
+                    <i class="fas fa-file-invoice text-red-400"></i>
+                    <span class="text-[11px] text-gray-400">Factura {{ n }}</span>
+                    <span [class]="badgeVencida + ' !text-[10px] !px-2 !py-0.5'"
+                      >{{ labelVencida }}</span
+                    >
+                  </div>
+                } @else {
+                  <div
+                    class="flex flex-col items-center gap-1.5 px-3 py-2 rounded-lg bg-orange-500/10 border border-orange-500/20 min-w-[5rem]"
+                  >
+                    <i class="fas fa-file-invoice text-orange-400"></i>
+                    <span class="text-[11px] text-gray-400">Factura {{ n }}</span>
+                    <span [class]="badgeAviso + ' !text-[10px] !px-2 !py-0.5'"
+                      >{{ labelAviso }}</span
+                    >
+                  </div>
+                }
+              }
+              <i
+                class="fas fa-arrow-right text-lg mx-1"
+                [class.text-orange-400]="ejemploPopupTipo() === 'aviso'"
+                [class.text-sky-400]="ejemploPopupTipo() === 'inmediato'"
+              ></i>
+              @if (ejemploPopupTipo() === 'aviso') {
+                <div
+                  class="flex flex-col items-center gap-1.5 px-4 py-2.5 rounded-lg bg-orange-500/15 border border-orange-500/30"
+                >
+                  <i class="fas fa-bell text-orange-400 text-lg"></i>
+                  <span [class]="badgeAviso">{{ labelAviso }}</span>
+                </div>
+              } @else {
+                <div
+                  class="flex flex-col items-center gap-1.5 px-4 py-2.5 rounded-lg bg-sky-500/15 border border-sky-500/30"
+                >
+                  <i class="fas fa-bolt text-sky-400 text-lg"></i>
+                  <span [class]="badgeInmediato">{{ labelInmediato }}</span>
+                </div>
+              }
+            </div>
+
+            <p
+              class="mt-5 text-sm leading-relaxed text-center"
+              [class.text-orange-200]="ejemploPopupTipo() === 'aviso'"
+              [class.text-sky-200]="ejemploPopupTipo() === 'inmediato'"
+            >
+              Con <strong>{{ ejemploCantidadActual() }}</strong>
+              {{ ejemploFacturasPrevioTexto() }}, el cliente entra en
+              <strong>{{ ejemploEstadoDestinoLabel() }}</strong>.
+            </p>
+          </div>
+
+          <div
+            class="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 flex gap-2"
+          >
+            <i class="fas fa-lightbulb text-amber-400 text-xs mt-0.5"></i>
+            @if (ejemploPopupTipo() === 'aviso') {
+              <p class="text-xs text-gray-400 leading-relaxed">
+                Recuerde: el número indica cuántas facturas ya están en estado
+                <span [class]="badgeVencida">{{ labelVencida }}</span>, no la
+                posición de la próxima factura a emitir.
+              </p>
+            } @else {
+              <p class="text-xs text-gray-400 leading-relaxed">
+                Recuerde: el número indica cuántas facturas ya están en estado
+                <span [class]="badgeAviso">AVISO DE SUSPENSIÓN</span>, no la
+                posición de la próxima factura a emitir.
+              </p>
+            }
+          </div>
+        </div>
+
+        <div
+          class="flex justify-end pt-6 mt-2 border-t border-white/10 dark:border-slate-400/20"
+        >
+          <button
+            type="button"
+            (click)="cerrarEjemplo()"
+            class="relative cursor-pointer py-2.5 px-5 text-center inline-flex justify-center text-sm uppercase text-gray-300 rounded-xl border border-[#312f62a3] bg-gradient-to-br from-[#767de600] to-[#1a18326b] transition-transform duration-300 ease-in-out group outline-offset-2 focus:outline focus:outline-1 focus:outline-[#b9b7eeb9] focus:outline-offset-2 overflow-hidden hover:scale-105"
+          >
+            <span class="relative z-20 flex items-center gap-2">
+              <i class="fas fa-check-circle"></i>
+              Entendido
+            </span>
+            <span
+              class="absolute left-[-75%] top-0 h-full w-[50%] bg-white/10 rotate-12 z-10 blur-lg group-hover:left-[125%] transition-all duration-1000 ease-in-out"
+            ></span>
+          </button>
+        </div>
+      </app-pop-up>
     }
   `,
 })
@@ -901,6 +780,18 @@ export class BillValidityParameters {
   private readonly counterEnterpriceService = inject(CounterEnterpriceService);
 
   showGuidePopup = signal(false);
+  showEjemploPopup = signal(false);
+  ejemploPopupTipo = signal<'aviso' | 'inmediato'>('aviso');
+
+  readonly badgePendiente = getBillEstadoBadgeClass('PENDIENTE');
+  readonly badgeVencida = getBillEstadoBadgeClass('VENCIDA');
+  readonly badgeAviso = getBillEstadoBadgeClass('AVISO_DE_SUSPENSION');
+  readonly badgeInmediato = getBillEstadoBadgeClass('PAGO_INMEDIATO');
+  readonly labelPendiente = getBillEstadoDisplayLabel('PENDIENTE');
+  readonly labelVencida = getBillEstadoDisplayLabel('VENCIDA');
+  readonly labelAviso = getBillEstadoDisplayLabel('AVISO_DE_SUSPENSION');
+  readonly labelInmediato = getBillEstadoDisplayLabel('PAGO_INMEDIATO');
+
   diasVigencia: number = 0;
   fechaInicioFacturacion: string = '';
   fechaCorte: string = '';
@@ -1074,6 +965,55 @@ export class BillValidityParameters {
     this.showGuidePopup.set(false);
   }
 
+  abrirEjemplo(tipo: 'aviso' | 'inmediato'): void {
+    this.ejemploPopupTipo.set(tipo);
+    this.showEjemploPopup.set(true);
+  }
+
+  cerrarEjemplo(): void {
+    this.showEjemploPopup.set(false);
+  }
+
+  ejemploTituloPopup(): string {
+    return this.ejemploPopupTipo() === 'aviso'
+      ? `Ejemplo: ${this.labelAviso}`
+      : `Ejemplo: ${this.labelInmediato}`;
+  }
+
+  ejemploCantidadActual(): number {
+    return this.ejemploPopupTipo() === 'aviso'
+      ? this.periodosNoPagosVencida
+      : this.periodosPagoInmediato;
+  }
+
+  ejemploEstadoDestinoLabel(): string {
+    return this.ejemploPopupTipo() === 'aviso'
+      ? this.labelAviso
+      : this.labelInmediato;
+  }
+
+  ejemploFacturasPrevioTexto(): string {
+    const n = this.ejemploCantidadActual();
+    if (this.ejemploPopupTipo() === 'aviso') {
+      return n === 1 ? 'factura vencida' : 'facturas vencidas';
+    }
+    return n === 1
+      ? 'factura en aviso de suspensión'
+      : 'facturas en aviso de suspensión';
+  }
+
+  facturasVencidasTexto(cantidad: number): string {
+    if (!cantidad || cantidad <= 0) return '? facturas vencidas';
+    return cantidad === 1
+      ? '1 factura vencida'
+      : `${cantidad} facturas vencidas`;
+  }
+
+  rangoFacturas(cantidad: number): number[] {
+    const n = Math.max(0, Math.min(Math.floor(cantidad) || 0, 6));
+    return Array.from({ length: n }, (_, i) => i + 1);
+  }
+
   isFormValid(): boolean {
     return (
       this.diasVigencia > 0 &&
@@ -1090,7 +1030,7 @@ export class BillValidityParameters {
     if (!this.isFormValid()) {
       this.toastService.error(
         'Error',
-        'Por favor complete todos los campos correctamente. Los periodos para pago inmediato deben ser mayores que los de vencida.',
+        'Complete todos los campos. Pago inmediato debe requerir más facturas vencidas que aviso de suspensión.',
       );
       return;
     }
