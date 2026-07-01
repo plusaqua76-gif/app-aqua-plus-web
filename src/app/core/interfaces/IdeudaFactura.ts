@@ -28,6 +28,7 @@ export interface IDeudaClienteResponse {
     facturaId: number;
     facturaCodigo: string;
     eccId: number;
+    plazoPago: number;
     empresaId: number;
     clienteNombre: string;
     tipoDeuda: {
@@ -36,11 +37,6 @@ export interface IDeudaClienteResponse {
         descripcion: string;
         codigo: string;
     };
-    plazoPago: {
-        id: number;
-        nombre: string;
-        descripcion: string;
-    } | null;
 }
 export interface IPlazoPago {
     id: number;

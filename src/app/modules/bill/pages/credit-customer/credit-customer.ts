@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { AbonoService } from '../../service/abono.service';
 import { TableComponent } from '@components/table';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { map, EMPTY } from 'rxjs';
+import { map, EMPTY, catchError, of } from 'rxjs';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 
 @Component({
@@ -30,7 +30,7 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 export class CreditCustomer {
 
   creditCustomerColumns = signal([
-    { field: 'nombreCliente', header: 'Cliente', type: 'text' as const },
+    { field: 'cliente', header: 'Cliente', type: 'text' as const },
     { field: 'codigoFactura', header: 'Código Factura', type: 'text' as const },
     { field: 'fechaAbono', header: 'Fecha Abono', type: 'date' as const },
     { field: 'valorAbono', header: 'Valor Abono', type: 'text' as const },
@@ -73,22 +73,11 @@ export class CreditCustomer {
     stream: ({ params }) => {
       const { empresaId, pagination } = params;
       if (!empresaId) {
-        return EMPTY;
+        return of(null);
       }
-      return this.abonoService.getAllAbonoPaginated(
-        empresaId,
-        pagination
-      ).pipe(
-        map((response) => ({
-          ...response,
-          response: response.response.map(abono => ({
-            nombreCliente: abono.cliente,
-            codigoFactura: abono.codigoFactura,
-            fechaAbono: abono.fechaAbono,
-            valorAbono: `$${abono.valorAbono.toLocaleString('es-CO')}`
-          }))
-        }))
-      );
+      return this.abonoService.getAllAbonoPaginated( empresaId, pagination).pipe(
+        catchError(() => of(null))
+      )
     },
   });
 

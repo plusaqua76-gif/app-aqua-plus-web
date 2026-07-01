@@ -121,11 +121,11 @@ export class CustomerDebt {
       filterPlaceholder: 'Todos',
       filterVariant: 'badge' as const,
     },
-    { field: 'valorTotal', header: 'Valor total', type: 'currency' as const },
+    { field: 'valor', header: 'Valor total', type: 'currency' as const },
     { field: 'totalAbonado', header: 'Abonado', type: 'currency' as const },
     { field: 'saldoPendiente', header: 'Saldo pendiente', type: 'currency' as const },
     { field: 'valorMes', header: 'Valor cuota', type: 'currency' as const },
-    { field: 'meses', header: 'N° de cuotas', type: 'text' as const },
+    { field: 'plazoPago', header: 'N° de cuotas', type: 'text' as const },
   ]);
 
 
