@@ -108,15 +108,14 @@ private applyFilter(
   value: string
 ): HttpParams {
   switch (key) {
-
     case 'clienteNombre':
-      return httpParams.set('clienteNombreLike', value);
+      return httpParams.set('clienteNombre', value);
 
     case 'facturaCodigo':
-      return httpParams.set('facturaCodigoLike', value);
+      return httpParams.set('facturaCodigo', value);
 
     case 'descripcion':
-      return httpParams.set('descripcionLike', value);
+      return httpParams.set('descripcion', value);
 
     case 'fechaDeuda':
       return this.isValidDateFormat(value)
