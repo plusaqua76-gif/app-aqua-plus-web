@@ -1502,22 +1502,9 @@ export class CreateInvoiceComponent {
       });
     }
 
-    // Set client (search and select)
+    // Seleccionar cliente automáticamente (búsqueda directa, sin depender de setTimeout)
     if (data.customer) {
-      // Try to find the client
-      const customerIdentification = data.customer.identificationNumber;
-      if (customerIdentification) {
-        this.searchTerm = customerIdentification;
-        this.onSearchChange({ target: { value: customerIdentification } } as any);
-
-        // Wait a bit for search results and auto-select if found
-        setTimeout(() => {
-          const results = this.searchResults();
-          if (results.length > 0) {
-            this.selectClient(results[0]);
-          }
-        }, 1000);
-      }
+      this.loadAndSelectClientForCreditNote(data);
     }
 
     if (data.items && data.items.length > 0) {
@@ -1561,6 +1548,45 @@ export class CreateInvoiceComponent {
         this.descuentos.push(descForm);
       });
     }
+  }
+
+  private loadAndSelectClientForCreditNote(data: InvoiceDianData): void {
+    const empresaId = this.empresaId();
+    const customerIdentification = data.customer?.identificationNumber?.trim();
+    const clientId = data.idCliente || Number(data.customer?.id);
+
+    if (!empresaId || !customerIdentification) return;
+
+    this.searchTerm = customerIdentification;
+    this.isSearching.set(true);
+
+    const params: IPaginationParams = {
+      page: 0,
+      size: 10,
+      filters: { numeroCedula: customerIdentification },
+    };
+
+    this.clientService.getAllClientsByIdEnterprisePaginated(empresaId, params).subscribe({
+      next: (response) => {
+        this.isSearching.set(false);
+        const results = response?.response ?? [];
+        const match = results.find((client) => client.id === clientId) ?? results[0];
+
+        if (match) {
+          this.selectClient(match);
+          return;
+        }
+
+        this.searchResults.set([]);
+        this.showResults.set(false);
+        this.toast.warning('Cliente', 'No se encontró el cliente de la factura original');
+      },
+      error: (error) => {
+        console.error('Error buscando cliente para nota crédito:', error);
+        this.isSearching.set(false);
+        this.toast.error('Error', 'No se pudo cargar el cliente de la factura');
+      },
+    });
   }
 
   private initClientSearch(): void {
