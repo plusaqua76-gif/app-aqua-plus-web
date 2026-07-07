@@ -1344,6 +1344,8 @@ export class CreateInvoiceComponent {
   originalInvoiceId = signal<number | null>(null);
   originalInvoiceData = signal<InvoiceDianData | null>(null);
   originalInvoiceFromTable = signal<IFacturaElectronica | null>(null); // Factura con CUFE
+  /** Plazo en días de la factura original (para recalcular vencimiento en NC). */
+  private originalCreditTermDays: number | null = null;
   loadingInvoiceData = signal(false);
 
   searchTerm = '';
@@ -1475,14 +1477,22 @@ export class CreateInvoiceComponent {
   }
 
   private populateFormWithInvoiceData(data: InvoiceDianData): void {
-    // Set payment data
     if (data.payments && data.payments.length > 0) {
       const payment = data.payments[0];
       this.invoiceForm.patchValue({
         medioPago: payment.paymentForm,
         tipoDocumento: payment.paymentMethod,
-        fechaVencimiento: payment.paymentDueDate
       });
+
+      // Guardar el plazo original (emisión → vencimiento) sin copiar la fecha vieja
+      if (payment.paymentForm === '2' && payment.paymentDueDate && data.invoicePeriod?.startDate) {
+        const start = new Date(data.invoicePeriod.startDate.split('T')[0]);
+        const due = new Date(payment.paymentDueDate.split('T')[0]);
+        const days = Math.round((due.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+        if (days > 0) {
+          this.originalCreditTermDays = days;
+        }
+      }
     }
 
     // Set total anticípado
@@ -1492,22 +1502,9 @@ export class CreateInvoiceComponent {
       });
     }
 
-    // Set client (search and select)
+    // Seleccionar cliente automáticamente (búsqueda directa, sin depender de setTimeout)
     if (data.customer) {
-      // Try to find the client
-      const customerIdentification = data.customer.identificationNumber;
-      if (customerIdentification) {
-        this.searchTerm = customerIdentification;
-        this.onSearchChange({ target: { value: customerIdentification } } as any);
-
-        // Wait a bit for search results and auto-select if found
-        setTimeout(() => {
-          const results = this.searchResults();
-          if (results.length > 0) {
-            this.selectClient(results[0]);
-          }
-        }, 1000);
-      }
+      this.loadAndSelectClientForCreditNote(data);
     }
 
     if (data.items && data.items.length > 0) {
@@ -1551,6 +1548,45 @@ export class CreateInvoiceComponent {
         this.descuentos.push(descForm);
       });
     }
+  }
+
+  private loadAndSelectClientForCreditNote(data: InvoiceDianData): void {
+    const empresaId = this.empresaId();
+    const customerIdentification = data.customer?.identificationNumber?.trim();
+    const clientId = data.idCliente || Number(data.customer?.id);
+
+    if (!empresaId || !customerIdentification) return;
+
+    this.searchTerm = customerIdentification;
+    this.isSearching.set(true);
+
+    const params: IPaginationParams = {
+      page: 0,
+      size: 10,
+      filters: { numeroCedula: customerIdentification },
+    };
+
+    this.clientService.getAllClientsByIdEnterprisePaginated(empresaId, params).subscribe({
+      next: (response) => {
+        this.isSearching.set(false);
+        const results = response?.response ?? [];
+        const match = results.find((client) => client.id === clientId) ?? results[0];
+
+        if (match) {
+          this.selectClient(match);
+          return;
+        }
+
+        this.searchResults.set([]);
+        this.showResults.set(false);
+        this.toast.warning('Cliente', 'No se encontró el cliente de la factura original');
+      },
+      error: (error) => {
+        console.error('Error buscando cliente para nota crédito:', error);
+        this.isSearching.set(false);
+        this.toast.error('Error', 'No se pudo cargar el cliente de la factura');
+      },
+    });
   }
 
   private initClientSearch(): void {
@@ -1947,6 +1983,13 @@ export class CreateInvoiceComponent {
     return fechaCalculada.toISOString().split('T')[0];
   }
 
+  /** Suma días a una fecha YYYY-MM-DD y devuelve YYYY-MM-DD. */
+  private addDaysToDate(fechaIso: string, dias: number): string {
+    const fecha = new Date(fechaIso.split('T')[0] + 'T12:00:00');
+    fecha.setDate(fecha.getDate() + dias);
+    return fecha.toISOString().split('T')[0];
+  }
+
   private createDescuento(): FormGroup {
     return this.fb.group({
       valor: [null, [Validators.required, Validators.min(0), Validators.max(100)]],
@@ -2155,13 +2198,16 @@ export class CreateInvoiceComponent {
     const taxTotal = totalesPrecisos.totalImpuesto;
     const payableTotal = roundHalfUp(totalesPrecisos.totalPagar - advanceTotal, 2);
 
+    const fechaEmisionIso = formValue.fechaEmision
+      ? new Date(formValue.fechaEmision).toISOString().split('T')[0]
+      : new Date().toISOString().split('T')[0];
+
     let fechaParaEnviar = "";
     if (formValue.medioPago === '2') {
-      if (formValue.diasPredefinidos) {
-        fechaParaEnviar = this.calcularFechaISO(formValue.diasPredefinidos);
-      } else if (formValue.fechaVencimiento) {
-        fechaParaEnviar = formValue.fechaVencimiento;
-      }
+      const diasPlazo = formValue.diasPredefinidos
+        ? parseInt(formValue.diasPredefinidos, 10)
+        : (this.originalCreditTermDays ?? 30);
+      fechaParaEnviar = this.addDaysToDate(fechaEmisionIso, diasPlazo);
     }
 
     const payments = [{
@@ -2170,10 +2216,9 @@ export class CreateInvoiceComponent {
       ...(fechaParaEnviar && { paymentDueDate: fechaParaEnviar })
     }];
 
-    const today = new Date().toISOString().split('T')[0];
     const invoicePeriod = {
-      startDate: today,
-      endDate: today
+      startDate: fechaEmisionIso,
+      endDate: fechaEmisionIso
     };
 
     const facturaOriginal = this.originalInvoiceFromTable();
@@ -2185,7 +2230,7 @@ export class CreateInvoiceComponent {
     }
 
     const associatedDocuments = [{
-      date: originalInvoice.invoicePeriod?.startDate || today,
+      date: originalInvoice.invoicePeriod?.startDate || fechaEmisionIso,
       documentType: '01',
       number: originalInvoice.number || 0,
       uuid: cufeOriginal
