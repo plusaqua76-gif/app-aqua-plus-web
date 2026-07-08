@@ -2,6 +2,12 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 
+interface NavTab {
+  route: string;
+  icon: string;
+  label: string;
+}
+
 @Component({
   selector: 'app-accounting-shell',
   standalone: true,
@@ -9,48 +15,19 @@ import { Router, RouterModule } from '@angular/router';
   template: `
     <div class="px-4 sm:px-6 lg:px-8 py-6">
       <div>
-        <div class="relative overflow-hidden shadow-xl sm:rounded-2xl bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl border border-white/20 dark:border-slate-700/30">
-          <!-- Navigation Tabs -->
-          <div class="flex overflow-x-auto scrollbar-hide border-b border-white/20 dark:border-slate-700/30">
-            <button
-              type="button"
-              (click)="navigateTo('/shell/accounting/inventory')"
-              [class]="getTabClasses('/shell/accounting/inventory')"
-              class="nav-tab"
-            >
-              <i class="fas fa-warehouse"></i>
-              <span>Inventario</span>
-            </button>
-
-            <button
-              type="button"
-              (click)="navigateTo('/shell/accounting/sales')"
-              [class]="getTabClasses('/shell/accounting/sales')"
-              class="nav-tab"
-            >
-              <i class="fas fa-shopping-cart"></i>
-              <span>Ventas</span>
-            </button>
-
-            <button
-              type="button"
-              (click)="navigateTo('/shell/accounting/accounts')"
-              [class]="getTabClasses('/shell/accounting/accounts')"
-              class="nav-tab"
-            >
-              <i class="fas fa-right-left"></i>
-              <span>Movimientos</span>
-            </button>
-
-            <button
-              type="button"
-              (click)="navigateTo('/shell/accounting/accounts-list')"
-              [class]="getTabClasses('/shell/accounting/accounts-list')"
-              class="nav-tab"
-            >
-              <i class="fas fa-book"></i>
-              <span>Cuentas</span>
-            </button>
+        <div class="nav-bar relative w-fit max-w-full overflow-hidden shadow-xl sm:rounded-2xl bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl border border-white/20 dark:border-slate-700/30">
+          <div class="flex w-fit max-w-full overflow-x-auto scrollbar-hide border-b border-white/20 dark:border-slate-700/30">
+            @for (tab of navTabs; track tab.route) {
+              <button
+                type="button"
+                (click)="navigateTo(tab.route)"
+                [class]="getTabClasses(tab.route)"
+                class="nav-tab"
+              >
+                <i [class]="tab.icon"></i>
+                <span>{{ tab.label }}</span>
+              </button>
+            }
           </div>
         </div>
       </div>
@@ -68,6 +45,11 @@ import { Router, RouterModule } from '@angular/router';
     }
     .scrollbar-hide::-webkit-scrollbar {
       display: none;
+    }
+
+    .nav-bar {
+      display: inline-flex;
+      width: fit-content;
     }
 
     .nav-tab {
@@ -138,6 +120,24 @@ import { Router, RouterModule } from '@angular/router';
 export class AccountingShell {
   private readonly router = inject(Router);
 
+  readonly navTabs: NavTab[] = [
+    {
+      route: '/shell/Inventory/inventory',
+      icon: 'fas fa-warehouse',
+      label: 'Inventario',
+    },
+    {
+      route: '/shell/Inventory/sales',
+      icon: 'fas fa-shopping-cart',
+      label: 'Ventas',
+    },
+    {
+      route: '/shell/Inventory/accounts',
+      icon: 'fas fa-right-left',
+      label: 'Movimientos',
+    },
+  ];
+
   navigateTo(route: string): void {
     this.router.navigate([route]);
   }
@@ -147,9 +147,8 @@ export class AccountingShell {
 
     // Comparación exacta de ruta o verificar si es una subruta válida
     // Evita que /accounts-list active el tab de /accounts
-    const isActive = currentUrl === route ||
-                     (currentUrl.startsWith(route + '/')) ||
-                     currentUrl.includes(route.replace('/shell/accounting/', '/shell/Inventory/'));
+    const isActive =
+      currentUrl === route || currentUrl.startsWith(route + '/');
 
     return isActive ? 'active' : '';
   }

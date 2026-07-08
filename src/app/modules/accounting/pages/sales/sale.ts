@@ -159,7 +159,7 @@ export class Sale {
   }
 
   goToCreateSale(): void {
-    this.router.navigate(['/shell/accounting/sales/create']);
+    this.router.navigate(['/shell/Inventory/sales/create']);
   }
 
   onDelete(id: number): void {

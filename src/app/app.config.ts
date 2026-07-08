@@ -1,5 +1,6 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection, isDevMode, LOCALE_ID } from '@angular/core';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withPreloading } from '@angular/router';
+import { IdlePreloadingStrategy } from './core/strategies/idle-preloading.strategy';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
@@ -26,7 +27,11 @@ export const appConfig: ApplicationConfig = {
 
     provideZoneChangeDetection({ eventCoalescing: true }),
 
-    provideRouter(routes, withComponentInputBinding()),
+    provideRouter(
+      routes,
+      withComponentInputBinding(),
+      withPreloading(IdlePreloadingStrategy)
+    ),
 
     provideClientHydration(
       withIncrementalHydration(),

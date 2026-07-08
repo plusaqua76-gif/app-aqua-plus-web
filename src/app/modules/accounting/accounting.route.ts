@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 export default [
   {
     path: '',
-    redirectTo: 'inventory/main',
+    redirectTo: 'inventory',
     pathMatch: 'full',
   },
   {

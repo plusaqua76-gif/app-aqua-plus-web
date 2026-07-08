@@ -1275,36 +1275,102 @@
     </div>
     } @if (activeTab() === 'payment-points') {
     <div class="animate-fadeIn">
-      <app-payment-points></app-payment-points>
+      @defer (on viewport; prefetch on idle) {
+        <app-payment-points></app-payment-points>
+      } @placeholder {
+        <div class="min-h-[200px]"></div>
+      } @loading (minimum 300ms) {
+        <div class="flex items-center justify-center min-h-[200px]">
+          <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+      }
     </div>
     } @if (activeTab() === 'days-validity') {
     <div class="animate-fadeIn">
-      <app-transversal-rate/>
+      @defer (on viewport; prefetch on idle) {
+        <app-transversal-rate/>
+      } @placeholder {
+        <div class="min-h-[200px]"></div>
+      } @loading (minimum 300ms) {
+        <div class="flex items-center justify-center min-h-[200px]">
+          <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+      }
     </div>
     }
 
     @if (activeTab() === 'bill-validity') {
     <div class="animate-fadeIn">
-      <app-bill-validity-parameters/>
+      @defer (on viewport; prefetch on idle) {
+        <app-bill-validity-parameters/>
+      } @placeholder {
+        <div class="min-h-[200px]"></div>
+      } @loading (minimum 300ms) {
+        <div class="flex items-center justify-center min-h-[200px]">
+          <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+      }
     </div>
     }
 
    @if(activeTab() === 'app-back-fill') {
     <div class="animate-fadeIn">
-      <app-back-fill></app-back-fill>
+      @defer (on viewport; prefetch on idle) {
+        <app-back-fill></app-back-fill>
+      } @placeholder {
+        <div class="min-h-[200px]"></div>
+      } @loading (minimum 300ms) {
+        <div class="flex items-center justify-center min-h-[200px]">
+          <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+      }
     </div>
 
    }
 
     @if (activeTab() === 'counter-enterprice') {
     <div class="animate-fadeIn">
-      <app-counter-enterprice></app-counter-enterprice>
+      @defer (on viewport; prefetch on idle) {
+        <app-counter-enterprice></app-counter-enterprice>
+      } @placeholder {
+        <div class="min-h-[200px]"></div>
+      } @loading (minimum 300ms) {
+        <div class="flex items-center justify-center min-h-[200px]">
+          <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+      }
     </div>
     }
 
     @if (activeTab() === 'aforo') {
     <div class="animate-fadeIn">
-      <app-aforo></app-aforo>
+      @defer (on viewport; prefetch on idle) {
+        <app-aforo></app-aforo>
+      } @placeholder {
+        <div class="min-h-[200px]"></div>
+      } @loading (minimum 300ms) {
+        <div class="flex items-center justify-center min-h-[200px]">
+          <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+      }
     </div>
     }
   </div>

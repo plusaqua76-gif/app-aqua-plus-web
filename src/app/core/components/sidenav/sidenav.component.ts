@@ -130,7 +130,7 @@ export class SidenavComponent implements OnInit {
     'enterprise',
     'bills-users',
     'user-access',
-    'Inventory',
+    'Inventory/inventory',
     'pqr-client',
     'pqr-client/pqr-enterprice-clients',
     'configuration-roles',
@@ -138,14 +138,29 @@ export class SidenavComponent implements OnInit {
   ];
 
   /**
+   * Normaliza rutas del menú lateral hacia el módulo de inventario.
+   */
+  private normalizeRouteLink(routeLink: string): string {
+    if (routeLink === 'accounting' || routeLink === 'Inventory') {
+      return 'Inventory/inventory';
+    }
+    return routeLink;
+  }
+
+  /**
    * Transforma y ordena los elementos del menú según el orden predefinido
    */
   private transformNavItems(navItems: NavItem[]): NavItem[] {
     if (!navItems || navItems.length === 0) return [];
 
+    const normalizedItems = navItems.map((item) => ({
+      ...item,
+      routeLink: this.normalizeRouteLink(item.routeLink),
+    }));
+
     // Crear un mapa para acceso rápido a los elementos
     const itemsMap = new Map<string, NavItem>();
-    for (const item of navItems) {
+    for (const item of normalizedItems) {
       itemsMap.set(item.routeLink, item);
     }
 

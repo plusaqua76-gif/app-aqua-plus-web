@@ -1,90 +1,4 @@
 <section class="w-full bg-transparent text-gray-200">
-  @if (isLoading()) {
-    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-      <div class="bg-gray-800/90 backdrop-blur-md rounded-2xl p-8 border border-gray-600/50 shadow-2xl max-w-md w-full mx-4">
-        <div class="flex flex-col items-center space-y-6">
-          <div class="relative">
-            <div class="w-16 h-16 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin"></div>
-            <div class="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-blue-400 rounded-full animate-spin" style="animation-delay: 0.15s;"></div>
-          </div>
-          <div class="text-center">
-            <h3 class="text-lg font-semibold text-gray-200 mb-4">Cargando Información de Factura</h3>
-          </div>
-          <div class="w-full space-y-3">
-            <div class="flex items-center space-x-3">
-              @if (getStatus.isLoading()) {
-                <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <span class="text-sm text-blue-400">Cargando estados de factura...</span>
-              } @else {
-                <div class="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                  <svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                  </svg>
-                </div>
-                <span class="text-sm text-gray-300">Estados cargados</span>
-              }
-            </div>
-            <div class="flex items-center space-x-3">
-              @if (billDetails.isLoading()) {
-                <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <span class="text-sm text-blue-400">Cargando detalles de factura...</span>
-              } @else {
-                <div class="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                  <svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                  </svg>
-                </div>
-                <span class="text-sm text-gray-300">Detalles de factura cargados</span>
-              }
-            </div>
-            <div class="flex items-center space-x-3">
-              @if (clienteDeudas.isLoading()) {
-                <div class="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
-                <span class="text-sm text-yellow-400">Consultando deudas del cliente...</span>
-              } @else if (clienteDeudas.error()) {
-                <div class="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
-                  <svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                  </svg>
-                </div>
-                <span class="text-sm text-yellow-300">Sin datos de deudas (continuando...)</span>
-              } @else {
-                <div class="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                  <svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                  </svg>
-                </div>
-                <span class="text-sm text-gray-300">Consulta de deudas completada</span>
-              }
-            </div>
-
-            <div class="flex items-center space-x-3">
-              @if (tiposDeuda.isLoading()) {
-                <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <span class="text-sm text-blue-400">Cargando tipos de deuda...</span>
-              } @else {
-                <div class="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                  <svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                  </svg>
-                </div>
-                <span class="text-sm text-gray-300">Tipos de deuda cargados</span>
-              }
-            </div>
-
-          </div>
-          <div class="w-full">
-            <div class="bg-gray-700 rounded-full h-2">
-              <div class="bg-gradient-to-r from-blue-500 to-blue-400 h-2 rounded-full transition-all duration-300"
-                   [style.width]="getLoadingProgress() + '%'"></div>
-            </div>
-            <p class="text-xs text-gray-400 mt-2 text-center">{{ getLoadingProgress() }}% completado</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  }
-
   @if (hasErrors() && !isLoading()) {
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
       <div class="bg-red-800/90 backdrop-blur-md rounded-2xl p-8 border border-red-600/50 shadow-2xl max-w-md w-full mx-4">
@@ -209,17 +123,24 @@
         <div class="flipper" #billContainer>
           <!-- Parte frontal -->
           <div class="front">
-            @if (isDataReady() && billDetails.value()?.response) {
+            @defer (when billDetails.value()?.response; prefetch on immediate) {
               <app-pdf-bill
                 [selectedStatus]="selectedStatus()"
                 [billData]="billDetails.value()?.response ?? null"
                 [valorDeuda]="valorDeuda()"
                 [dataDeudaConsolidada]="getConsolidationByClienteId.value()?.response ?? null">
               </app-pdf-bill>
-            } @else if (!isLoading() && !hasErrors()) {
-              <div class="p-8 text-center text-gray-400">
-                <p>No se encontraron datos de la factura</p>
-              </div>
+            } @placeholder {
+              @if (!billDetails.isLoading() && !billDetails.value()?.response) {
+                <div class="p-8 text-center text-gray-400">
+                  <p>No se encontraron datos de la factura</p>
+                </div>
+              } @else {
+                <div class="p-12 flex flex-col items-center justify-center gap-4 text-gray-400">
+                  <div class="w-10 h-10 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin"></div>
+                  <p class="text-sm">Cargando factura...</p>
+                </div>
+              }
             }
           </div>
 
@@ -352,25 +273,47 @@
                 </div>
                 }
 
-                <button
-                  type="button"
-                  (click)="guardarEImprimir()"
-                  [disabled]="!selectedStatus() || procesandoPDF()"
-                  class="inline-flex items-center justify-center rounded-xl mt-2 border border-gray-600/70 bg-transparent px-6 py-3 text-sm font-medium text-gray-200 hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-gray-400/40 disabled:opacity-50 disabled:cursor-not-allowed w-full"
-                >
-                  @if (procesandoPDF()) {
-                    <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Procesando...
-                  } @else {
-                    <svg class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
-                    </svg>
-                    Imprimir Factura
-                  }
-                </button>
+                <div class="flex flex-col gap-2 mt-2">
+                  <button
+                    type="button"
+                    (click)="descargarFactura()"
+                    [disabled]="!selectedStatus() || procesandoPDF()"
+                    class="inline-flex items-center justify-center rounded-xl border border-gray-600/70 bg-transparent px-6 py-3 text-sm font-medium text-gray-200 hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-gray-400/40 disabled:opacity-50 disabled:cursor-not-allowed w-full"
+                  >
+                    @if (descargandoPDF()) {
+                      <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Descargando PDF...
+                    } @else {
+                      <svg class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+                      </svg>
+                      Descargar PDF
+                    }
+                  </button>
+
+                  <button
+                    type="button"
+                    (click)="imprimirFactura()"
+                    [disabled]="!selectedStatus() || procesandoPDF()"
+                    class="inline-flex items-center justify-center rounded-xl border border-gray-600/70 bg-transparent px-6 py-3 text-sm font-medium text-gray-200 hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-gray-400/40 disabled:opacity-50 disabled:cursor-not-allowed w-full"
+                  >
+                    @if (imprimiendoPDF()) {
+                      <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Preparando impresión...
+                    } @else {
+                      <svg class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                      </svg>
+                      Imprimir Factura
+                    }
+                  </button>
+                </div>
               </div>
             </div>
           </div>

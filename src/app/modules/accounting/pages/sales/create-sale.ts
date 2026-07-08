@@ -17,6 +17,10 @@ import { ToastService } from '@services/toast.service';
 import { ICreateVenta, IProductoVenta } from '@interfaces/ICreateVenta';
 import { InventarioService } from '../../service/inventario.service';
 import { ColombianCurrencyPipe } from '@shared/pipes/colombian-currency.pipe';
+import { SaleReceipt } from '@components/sale-receipt/sale-receipt';
+import { PopupComponent } from '@shared/components/popUp';
+import { PdfService } from '@services/pdf.service';
+import { ISaleReceiptData } from '@interfaces/ISaleReceipt';
 
 // Interfaz extendida para productos en venta con cálculos
 interface IProductoVentaDetalle extends IProductoVenta {
@@ -27,7 +31,15 @@ interface IProductoVentaDetalle extends IProductoVenta {
 
 @Component({
   selector: 'app-create-sale',
-  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule, ColombianCurrencyPipe],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    ReactiveFormsModule,
+    ColombianCurrencyPipe,
+    SaleReceipt,
+    PopupComponent,
+  ],
   template: `
     <!-- Formulario de creación de venta con estilos glassmorphism -->
     <div class="px-4 sm:px-6 lg:px-8 py-6">
@@ -119,6 +131,28 @@ interface IProductoVentaDetalle extends IProductoVenta {
                       </svg>
                       Este campo es requerido
                     </p>
+                  }
+                </div>
+                <!-- Método de pago -->
+                <div>
+                  <label for="metodoPago" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase">
+                    Método de Pago <span class="text-red-500">*</span>
+                  </label>
+                  <div class="relative">
+                    <select
+                      id="metodoPago"
+                      formControlName="metodoPago"
+                      class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 appearance-none cursor-pointer"
+                    >
+                      <option value="" disabled>Seleccione método de pago</option>
+                      <option value="Efectivo">Efectivo</option>
+                      <option value="Tarjeta débito/crédito">Tarjeta débito/crédito</option>
+                      <option value="Transferencia">Transferencia</option>
+                      <option value="Nequi / Daviplata">Nequi / Daviplata</option>
+                    </select>
+                  </div>
+                  @if (ventaForm.get('metodoPago')?.invalid && ventaForm.get('metodoPago')?.touched) {
+                    <p class="text-red-500 text-sm mt-2">Seleccione un método de pago</p>
                   }
                 </div>
               </div>
@@ -349,6 +383,55 @@ interface IProductoVentaDetalle extends IProductoVenta {
         </div>
       </div>
     </div>
+
+    <app-pop-up
+      [open]="showReceiptModal"
+      [isConfirmation]="false"
+      [title]="'Recibo de Venta'"
+      [maxWidth]="'max-w-md'"
+    >
+      <div class="space-y-4">
+        @if (receiptData()) {
+          <app-sale-receipt [receiptData]="receiptData()" />
+        }
+
+        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+          <button
+            type="button"
+            (click)="downloadReceiptPdf()"
+            [disabled]="procesandoPDF()"
+            class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl border border-blue-600/50 text-blue-400 hover:bg-blue-600/10 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            @if (procesandoPDF()) {
+              <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Generando PDF...
+            } @else {
+              Descargar PDF
+            }
+          </button>
+
+          <button
+            type="button"
+            (click)="printReceipt()"
+            [disabled]="procesandoPDF()"
+            class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl border border-green-600/50 text-green-400 hover:bg-green-600/10 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Imprimir
+          </button>
+
+          <button
+            type="button"
+            (click)="finishAndGoBack()"
+            class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl border border-gray-600/50 text-gray-300 hover:bg-gray-600/10"
+          >
+            Volver a la lista
+          </button>
+        </div>
+      </div>
+    </app-pop-up>
   `,
 })
 export class CreateSale implements OnInit {
@@ -356,8 +439,12 @@ export class CreateSale implements OnInit {
   productoForm!: FormGroup;
   productosVenta = signal<IProductoVentaDetalle[]>([]);
   guardandoVenta = signal<boolean>(false);
+  showReceiptModal = signal<boolean>(false);
+  receiptData = signal<ISaleReceiptData | null>(null);
+  procesandoPDF = signal<boolean>(false);
 
   protected readonly productoService = inject(ProductoService);
+  protected readonly pdfService = inject(PdfService);
   readonly inventarioService = inject(InventarioService);
   protected readonly salesService = inject(SalesService);
   protected readonly toastService = inject(ToastService);
@@ -432,6 +519,7 @@ export class CreateSale implements OnInit {
     this.ventaForm = this.fb.group({
       nombreCliente: ['', Validators.required],
       identificacion: ['', Validators.required],
+      metodoPago: ['', Validators.required],
     });
 
     this.productoForm = this.fb.group({
@@ -539,7 +627,7 @@ export class CreateSale implements OnInit {
       next: (response) => {
         this.toastService.success('Éxito', 'Venta creada correctamente');
         this.guardandoVenta.set(false);
-        this.router.navigate(['../'], { relativeTo: this.route });
+        this.openReceiptModal(formData, response?.response);
       },
       error: (error) => {
         this.toastService.error('Error', 'No se pudo crear la venta');
@@ -557,5 +645,87 @@ export class CreateSale implements OnInit {
 
   goBack(): void {
     this.router.navigate(['../'], { relativeTo: this.route });
+  }
+
+  private openReceiptModal(formData: any, saleResponse: any): void {
+    const codigo =
+      saleResponse?.codigo ||
+      (saleResponse?.id ? `VTA-${saleResponse.id}` : `VTA-${Date.now()}`);
+
+    this.receiptData.set({
+      codigo,
+      fecha: saleResponse?.fechaCreacion || new Date().toISOString(),
+      nombreCliente: formData.nombreCliente,
+      identificacion: formData.identificacion,
+      metodoPago: formData.metodoPago,
+      productos: this.productosVenta().map((producto) => ({
+        nombre: producto.nombre,
+        cantidad: producto.cantidad,
+        precioUnitario: producto.precioUnitario,
+        subtotal: producto.subtotal,
+      })),
+      total: this.totalVenta(),
+      usuarioCreacion: this.usuarioCreacion(),
+    });
+
+    this.showReceiptModal.set(true);
+  }
+
+  finishAndGoBack(): void {
+    this.showReceiptModal.set(false);
+    this.router.navigate(['../'], { relativeTo: this.route });
+  }
+
+  private getReceiptElement(): HTMLElement | null {
+    return document.querySelector('.sale-receipt-content') as HTMLElement | null;
+  }
+
+  async downloadReceiptPdf(): Promise<void> {
+    const element = this.getReceiptElement();
+    if (!element) {
+      this.toastService.error('Error', 'No se encontró el recibo para generar el PDF');
+      return;
+    }
+
+    this.procesandoPDF.set(true);
+
+    try {
+      const codigo = this.receiptData()?.codigo || 'recibo';
+      const filename = `recibo-venta-${codigo}.pdf`;
+      const isMobile = window.innerWidth <= 768;
+
+      if (isMobile) {
+        await this.pdfService.convertElementToPdfAndOpen(element);
+      } else {
+        await this.pdfService.convertElementToPdf(element, filename);
+      }
+
+      this.toastService.success('Éxito', 'Recibo generado correctamente');
+    } catch (error) {
+      console.error('Error al generar PDF del recibo:', error);
+      this.toastService.error('Error', 'No se pudo generar el PDF del recibo');
+    } finally {
+      this.procesandoPDF.set(false);
+    }
+  }
+
+  async printReceipt(): Promise<void> {
+    const element = this.getReceiptElement();
+    if (!element) {
+      this.toastService.error('Error', 'No se encontró el recibo para imprimir');
+      return;
+    }
+
+    this.procesandoPDF.set(true);
+
+    try {
+      await this.pdfService.convertElementToPdfAndPrint(element);
+      this.toastService.success('Éxito', 'Recibo enviado a impresión');
+    } catch (error) {
+      console.error('Error al imprimir recibo:', error);
+      this.toastService.error('Error', 'No se pudo imprimir el recibo');
+    } finally {
+      this.procesandoPDF.set(false);
+    }
   }
 }

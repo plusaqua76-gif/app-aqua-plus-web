@@ -18,7 +18,6 @@ import { Router, RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY, map, of } from 'rxjs';
 import { BreadcrumbService } from '@services/breadcrumb.service';
-import * as XLSX from 'xlsx';
 import { PopupComponent } from '@shared/components/popUp';
 import { FacturaColillasPagosService } from '@services/factura-colillas-pagos.service';
 import {
@@ -921,8 +920,9 @@ export class Header {
     const file = input.files[0];
     const reader = new FileReader();
 
-    reader.onload = (e: ProgressEvent<FileReader>) => {
+    reader.onload = async (e: ProgressEvent<FileReader>) => {
       try {
+        const XLSX = await import('xlsx');
         const data = e.target?.result;
         const workbook = XLSX.read(data, { type: 'binary' });
         const firstSheetName = workbook.SheetNames[0];
