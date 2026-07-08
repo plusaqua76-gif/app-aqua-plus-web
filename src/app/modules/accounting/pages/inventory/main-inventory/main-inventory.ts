@@ -1402,11 +1402,11 @@ export class MainInventory {
   }
 
   navigateToAccountsList(): void {
-    this.router.navigate(['/shell/accounting/accounts-list']);
+    this.router.navigate(['/shell/Inventory/accounts-list']);
   }
 
   navigateToMovimientos(): void {
-    this.router.navigate(['/shell/accounting/accounts']);
+    this.router.navigate(['/shell/Inventory/accounts']);
   }
 
   formatDate(dateString: string): string {

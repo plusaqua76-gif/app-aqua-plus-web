@@ -1,0 +1,168 @@
+.sale-receipt-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.sale-receipt-content {
+  width: 320px;
+  max-width: 100%;
+  background: #ffffff;
+  color: #111827;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 16px 14px;
+  box-sizing: border-box;
+  border: 1px dashed #d1d5db;
+}
+
+.sale-receipt-header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.sale-receipt-logo {
+  display: block;
+  margin: 0 auto 8px;
+  max-width: 88px;
+  max-height: 88px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.sale-receipt-company-name {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sale-receipt-company-line {
+  margin: 0;
+  font-size: 11px;
+  color: #374151;
+}
+
+.sale-receipt-divider {
+  border: none;
+  border-top: 1px dashed #9ca3af;
+  margin: 10px 0;
+}
+
+.sale-receipt-title {
+  margin: 0 0 6px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.sale-receipt-meta {
+  display: grid;
+  gap: 3px;
+  font-size: 11px;
+}
+
+.sale-receipt-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sale-receipt-meta-label {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.sale-receipt-meta-value {
+  text-align: right;
+  font-weight: 600;
+}
+
+.sale-receipt-section-title {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sale-receipt-products-header,
+.sale-receipt-product-row {
+  display: grid;
+  grid-template-columns: 1fr 42px 72px;
+  gap: 6px;
+  align-items: start;
+}
+
+.sale-receipt-products-header {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.sale-receipt-product-row {
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.sale-receipt-product-name {
+  word-break: break-word;
+}
+
+.sale-receipt-product-qty,
+.sale-receipt-product-subtotal {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.sale-receipt-totals {
+  margin-top: 8px;
+}
+
+.sale-receipt-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.sale-receipt-payment-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.sale-receipt-footer {
+  text-align: center;
+  margin-top: 8px;
+}
+
+.sale-receipt-footer p {
+  margin: 0 0 4px;
+  font-size: 11px;
+  color: #374151;
+}
+
+.sale-receipt-thanks {
+  font-weight: 700;
+  font-size: 12px !important;
+  margin-top: 6px !important;
+}
+
+@media print {
+  .sale-receipt-content {
+    border: none;
+    width: 80mm;
+    padding: 0;
+  }
+}

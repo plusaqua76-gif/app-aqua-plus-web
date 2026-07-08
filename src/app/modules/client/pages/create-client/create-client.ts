@@ -293,7 +293,7 @@ export class CreateClient implements OnInit {
       direccion: ['', Validators.required],
       estrato: ['', [Validators.required, Validators.min(1), Validators.max(6)]],
       digitosContador: ['', [Validators.required, Validators.min(1)]],
-      idTipoUso: [''],
+      idTipoUso: ['', Validators.required],
     });
   }
 

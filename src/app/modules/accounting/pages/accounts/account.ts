@@ -58,8 +58,6 @@ import { CuentasTotalesEagerInitializationService } from '../../service/cuentas-
       [serverData]="transformedAccountData()"
       [loading]="serverMovimientosData.isLoading()"
       [actionTemplate]="actionsTemplate"
-      [showAddButton]="true"
-      [addButtonText]="'Nueva Cuenta'"
       [showExportButton]="true"
       [exportFileName]="exportFileName()"
       [showColumnFilters]="true"
@@ -118,35 +116,9 @@ export class Account {
       response: rawData.response.map((movimiento) => ({
         ...movimiento,
         categoriaNombre: movimiento.categoriaCuenta?.nombre || '',
-        fechaCreacion: this.formatDate(movimiento.fechaCreacion),
       }))
     };
   });
-
-
-    formatDate(dateString: string): string {
-    if (!dateString) return '';
-
-    try {
-      const datePart = dateString.split('T')[0];
-      const [year, month, day] = datePart.split('-');
-      const date = new Date(
-        Number.parseInt(year),
-        Number.parseInt(month) - 1,
-        Number.parseInt(day),
-      );
-
-      // Formatear como DD/MM/YYYY
-      return date.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      });
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return dateString;
-    }
-  }
 
 
 
@@ -243,16 +215,16 @@ export class Account {
     if (event.action === 'add') {
       this.goToCreateAccount();
     } else if (event.action === 'edit' && event.row) {
-      this.router.navigate(['/shell/accounting/accounts/edit', event.row.id]);
+      this.router.navigate(['/shell/Inventory/accounts/edit', event.row.id]);
     } else if (event.action === 'view' && event.row) {
-      this.router.navigate(['/shell/accounting/accounts/detail', event.row.id]);
+      this.router.navigate(['/shell/Inventory/accounts/detail', event.row.id]);
     } else if (event.action === 'delete' && event.row) {
       this.onDelete(event.row.id);
     }
   }
 
   goToCreateAccount(): void {
-    this.router.navigate(['/shell/accounting/accounts/create']);
+    this.router.navigate(['/shell/Inventory/accounts/create']);
   }
 
   onDelete(id: number): void {

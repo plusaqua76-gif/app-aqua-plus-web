@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { SidenavComponent } from './sidenav/sidenav.component';
 import { BodyComponent } from './body';
 import { Header } from './header';
+import { NavProgress } from './nav-progress';
 
 interface SideNavToggle {
   screenWidth: number;
@@ -12,8 +13,9 @@ interface SideNavToggle {
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [SidenavComponent, BodyComponent, Header],
+  imports: [SidenavComponent, BodyComponent, Header, NavProgress],
   template: `
+    <app-nav-progress></app-nav-progress>
     <app-header
       [collapsed]="isSideNavCollapsed()"
       [screenWidth]="screenWidth()"

@@ -348,7 +348,11 @@ return valor || 0;
     )}`;
   });
 
-  procesandoPDF = signal(false);
+  pdfAction = signal<'download' | 'print' | null>(null);
+
+  readonly procesandoPDF = computed(() => this.pdfAction() !== null);
+  readonly descargandoPDF = computed(() => this.pdfAction() === 'download');
+  readonly imprimiendoPDF = computed(() => this.pdfAction() === 'print');
   showAbonoPopup = signal(false);
   showConfirmPagoPopup = signal(false);
   showDeudasPopup = signal(false);
@@ -645,9 +649,16 @@ return valor || 0;
       : this.valorPago || 0;
   }
 
-  async guardarEImprimir(): Promise<void> {
-    const estadoActual = this.selectedStatus();
-    if (!estadoActual) {
+  async descargarFactura(): Promise<void> {
+    await this.ejecutarAccionPdf('download');
+  }
+
+  async imprimirFactura(): Promise<void> {
+    await this.ejecutarAccionPdf('print');
+  }
+
+  private async ejecutarAccionPdf(action: 'download' | 'print'): Promise<void> {
+    if (!this.selectedStatus()) {
       this.toast.warning(
         'Advertencia',
         'No se pudo obtener el estado de la factura'
@@ -655,96 +666,98 @@ return valor || 0;
       return;
     }
 
-    this.procesandoPDF.set(true);
-
-    try {
-      await this.guardarFactura();
-      await this.downloadPDF();
-      this.toast.success('Éxito', 'Factura guardada e impresa correctamente');
-    } catch (error) {
-      console.error('Error en guardarEImprimir:', error);
-      this.toast.error('Error', 'No se pudo completar la operación');
-    } finally {
-      this.procesandoPDF.set(false);
-    }
-  }
-
-  private async guardarFactura(): Promise<void> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, 1000);
-    });
-  }
-
-  async downloadPDF(): Promise<void> {
-    const billData = this.billDetails.value()?.response;
-    if (!billData) {
-      this.toast.error('Error', 'No hay datos de factura para descargar');
+    if (this.pdfAction()) {
       return;
     }
 
-    this.procesandoPDF.set(true);
+    const billData = this.billDetails.value()?.response;
+    if (!billData) {
+      this.toast.error('Error', 'No hay datos de factura disponibles');
+      return;
+    }
+
+    const elements = this.getBillPdfElements();
+    if (!elements) {
+      return;
+    }
+
+    this.pdfAction.set(action);
 
     try {
-      const frontElement = document.querySelector(
-        '.front .bill-content'
-      ) as HTMLElement;
-      const backElement = document.querySelector(
-        '.back .bill-back-container'
-      ) as HTMLElement;
-
-      if (!frontElement) {
-        this.toast.error(
-          'Error',
-          'No se encontró el elemento de la factura (frente)'
-        );
-        this.procesandoPDF.set(false);
-        return;
-      }
-
-      if (!backElement) {
-        this.toast.error(
-          'Error',
-          'No se encontró el elemento de la factura (reverso)'
-        );
-        this.procesandoPDF.set(false);
-        return;
-      }
-
+      const { frontElement, backElement } = elements;
+      const filename = this.getBillPdfFilename(billData);
       const isMobile = window.innerWidth <= 768;
-      const facturaId = billData?.factura?.id || 'factura';
-      const empresaCodigo = billData?.empresa?.codigo || '';
-      const clienteNombre = billData?.cliente?.primerNombre || 'cliente';
-      const timestamp = new Date().getTime();
-      const filename = `factura-${empresaCodigo}-${facturaId}-${clienteNombre}-${timestamp}.pdf`;
 
-      if (isMobile) {
-        await this.pdfService.convertTwoPagesToPdfAndOpen(
+      if (action === 'download') {
+        if (isMobile) {
+          await this.pdfService.convertTwoPagesToPdfAndOpen(
+            frontElement,
+            backElement
+          );
+        } else {
+          await this.pdfService.convertTwoPagesToPdf(
+            frontElement,
+            backElement,
+            filename
+          );
+        }
+        this.toast.success(
+          'Éxito',
+          'PDF descargado correctamente con frente y reverso'
+        );
+      } else {
+        await this.pdfService.convertTwoPagesToPdfAndPrint(
           frontElement,
           backElement
         );
-      } else {
-        await this.pdfService.convertTwoPagesToPdf(
-          frontElement,
-          backElement,
-          filename
-        );
+        this.toast.success('Éxito', 'Factura enviada a impresión');
       }
-
-      this.toast.success(
-        'Éxito',
-        'PDF generado correctamente con frente y reverso'
-      );
     } catch (error) {
-      console.error('Error en downloadPDF:', error);
+      console.error(`Error al ${action === 'download' ? 'descargar' : 'imprimir'} PDF:`, error);
       this.toast.error(
         'Error',
-        'No se pudo generar el PDF. Intente nuevamente.'
+        action === 'download'
+          ? 'No se pudo descargar el PDF. Intente nuevamente.'
+          : 'No se pudo imprimir la factura. Intente nuevamente.'
       );
     } finally {
-      this.procesandoPDF.set(false);
+      this.pdfAction.set(null);
     }
+  }
+
+  private getBillPdfElements(): { frontElement: HTMLElement; backElement: HTMLElement } | null {
+    const frontElement = document.querySelector(
+      '.front .bill-content'
+    ) as HTMLElement;
+    const backElement = document.querySelector(
+      '.back .bill-back-container'
+    ) as HTMLElement;
+
+    if (!frontElement) {
+      this.toast.error(
+        'Error',
+        'No se encontró el elemento de la factura (frente)'
+      );
+      return null;
+    }
+
+    if (!backElement) {
+      this.toast.error(
+        'Error',
+        'No se encontró el elemento de la factura (reverso)'
+      );
+      return null;
+    }
+
+    return { frontElement, backElement };
+  }
+
+  private getBillPdfFilename(billData: NonNullable<ReturnType<typeof this.billDetails.value>>['response']): string {
+    const facturaId = billData?.factura?.id || 'factura';
+    const empresaCodigo = billData?.empresa?.codigo || '';
+    const clienteNombre = billData?.cliente?.primerNombre || 'cliente';
+    const timestamp = new Date().getTime();
+    return `factura-${empresaCodigo}-${facturaId}-${clienteNombre}-${timestamp}.pdf`;
   }
 
   openAbonoPopup(): void {

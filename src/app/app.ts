@@ -9,7 +9,6 @@ import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
 import { FlowbiteService } from './core/services/flowbite.service';
 import { PreconnetManager } from './core/utils/preconnet';
 import { Seo } from './core/utils/SEO';
-import { initFlowbite } from 'flowbite';
 import { isPlatformBrowser } from '@angular/common';
 import { Toast } from '@shared/components/toast';
 import { GlobalLoader } from '@components/global-loader';
@@ -40,11 +39,12 @@ constructor() {
   title = 'app-aqua-plus-web';
 
   private readonly currentRoute = signal('');
+  private initFlowbite: (() => void) | null = null;
 
 
   shouldShowGlobalLoader = (): boolean => {
     const route = this.currentRoute();
-    return !route.includes('/print-bill',) && !route.includes('/pagos/redirigir/') && !route.includes('/pagos/') && !route.includes('/pagos/transaccion') && !route.includes('/pagos/iniciar');
+    return !route.includes('/pagos/redirigir/') && !route.includes('/pagos/') && !route.includes('/pagos/transaccion') && !route.includes('/pagos/iniciar');
   };
 
   ngOnInit(): void {
@@ -53,12 +53,13 @@ constructor() {
       this.preconnetManager.loadExternalScripts();
 
       this.flowbiteService.loadFlowbite((flowbite) => {
-        initFlowbite();
+        this.initFlowbite = flowbite.initFlowbite;
+        this.initFlowbite?.();
       });
       this.router.events.subscribe((event) => {
         if (event instanceof NavigationEnd) {
           this.currentRoute.set(event.url);
-          setTimeout(() => initFlowbite(), 100);
+          setTimeout(() => this.initFlowbite?.(), 100);
         }
       });
     }

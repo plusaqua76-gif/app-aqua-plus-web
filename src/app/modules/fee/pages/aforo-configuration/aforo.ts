@@ -8,6 +8,7 @@ import { catchError, of } from 'rxjs';
 import { UseService } from '../../services/use.service';
 import { AforoInterface } from '@interfaces/Aforo/AforoInterface';
 import { CounterEnterpriceService } from '../../services/counter-enterprice.service';
+import { IParamUpdateData } from '@interfaces/Aforo/aforo';
 
 // Constantes
 const DEFAULT_TON_PROM_CRA = 0.00;
@@ -16,12 +17,7 @@ const MIN_SUSCRIPTORES = 1;
 const MIN_FRECUENCIA = 1;
 const MAX_FRECUENCIA = 7;
 
-interface ParamUpdateData {
-  key: string;
-  value: number;
-  paramData: any;
-  successMessage: string;
-}
+
 
 @Component({
   selector: 'app-aforo',
@@ -1517,7 +1513,7 @@ export class AforoComponent {
   /**
    * Método genérico para actualizar parámetros de la empresa
    */
-  private actualizarParametro(config: ParamUpdateData): void {
+  private actualizarParametro(config: IParamUpdateData): void {
     const { key, value, paramData, successMessage } = config;
     const userData = this.userData();
 

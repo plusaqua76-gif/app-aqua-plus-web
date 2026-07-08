@@ -151,11 +151,11 @@ export class Seo {
         description: 'Administración de empresas y entidades. Configuración de datos corporativos y gestión empresarial.',
         keywords: 'empresas, entidades, corporativo, gestión empresarial, configuración, AquaPlus'
       })
-    } else if (url.includes('/accounting')) {
+    } else if (url.includes('/Inventory')) {
       this.setSEO({
-        title: 'Contabilidad',
-        description: 'Módulo de contabilidad y gestión financiera. Control de ingresos, gastos y balance financiero del sistema.',
-        keywords: 'contabilidad, finanzas, ingresos, gastos, balance, gestión financiera, AquaPlus'
+        title: 'Inventario',
+        description: 'Control de inventario, ventas, movimientos y cuentas. Gestión de existencias y recursos del sistema.',
+        keywords: 'inventario, ventas, movimientos, cuentas, materiales, existencias, AquaPlus'
       })
     } else if (url.includes('/user-access')) {
       this.setSEO({
@@ -168,12 +168,6 @@ export class Seo {
         title: 'Gestión de Tarifas',
         description: 'Configuración y administración de tarifas de agua. Establecimiento de precios y estructura tarifaria.',
         keywords: 'tarifas, precios, agua, configuración, estructura tarifaria, costos, AquaPlus'
-      })
-    } else if (url.includes('/Inventory')) {
-      this.setSEO({
-        title: 'Inventario',
-        description: 'Control de inventario y materiales. Gestión de existencias, equipos y recursos del sistema.',
-        keywords: 'inventario, materiales, existencias, equipos, recursos, control, AquaPlus'
       })
     } else if (url.includes('/pqr-client')) {
       this.setSEO({

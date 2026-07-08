@@ -1,0 +1,115 @@
+<div class="sale-receipt-wrapper">
+  <div class="sale-receipt-content">
+    <header class="sale-receipt-header">
+      @if (logoSrc()) {
+        <img
+          class="sale-receipt-logo"
+          [src]="logoSrc()"
+          [alt]="enterpriseInfo.value()?.nombre || 'Logo empresa'"
+        />
+      }
+
+      <h2 class="sale-receipt-company-name">
+        {{ enterpriseInfo.value()?.nombre || 'Empresa' }}
+      </h2>
+
+      @if (enterpriseInfo.value()?.nit) {
+        <p class="sale-receipt-company-line">NIT: {{ enterpriseInfo.value()?.nit }}</p>
+      }
+
+      @if (getDireccionCompleta()) {
+        <p class="sale-receipt-company-line">{{ getDireccionCompleta() }}</p>
+      }
+
+      @if (enterpriseInfo.value()?.telefono) {
+        <p class="sale-receipt-company-line">Tel: {{ enterpriseInfo.value()?.telefono }}</p>
+      }
+    </header>
+
+    <hr class="sale-receipt-divider" />
+
+    <section>
+      <h3 class="sale-receipt-title">RECIBO DE VENTA</h3>
+
+      <div class="sale-receipt-meta">
+        <div class="sale-receipt-meta-row">
+          <span class="sale-receipt-meta-label">Recibo No.</span>
+          <span class="sale-receipt-meta-value">{{ receiptData()?.codigo }}</span>
+        </div>
+        <div class="sale-receipt-meta-row">
+          <span class="sale-receipt-meta-label">Fecha</span>
+          <span class="sale-receipt-meta-value">{{ getFecha() }}</span>
+        </div>
+        <div class="sale-receipt-meta-row">
+          <span class="sale-receipt-meta-label">Hora</span>
+          <span class="sale-receipt-meta-value">{{ getHora() }}</span>
+        </div>
+      </div>
+    </section>
+
+    <hr class="sale-receipt-divider" />
+
+    <section>
+      <h4 class="sale-receipt-section-title">Cliente</h4>
+      <div class="sale-receipt-meta">
+        <div class="sale-receipt-meta-row">
+          <span class="sale-receipt-meta-label">Nombre</span>
+          <span class="sale-receipt-meta-value">{{ receiptData()?.nombreCliente }}</span>
+        </div>
+        <div class="sale-receipt-meta-row">
+          <span class="sale-receipt-meta-label">Identificación</span>
+          <span class="sale-receipt-meta-value">{{ receiptData()?.identificacion }}</span>
+        </div>
+      </div>
+    </section>
+
+    <hr class="sale-receipt-divider" />
+
+    <section>
+      <h4 class="sale-receipt-section-title">Detalle</h4>
+
+      <div class="sale-receipt-products-header">
+        <span>Producto</span>
+        <span>Cant.</span>
+        <span>Subtotal</span>
+      </div>
+
+      @for (producto of receiptData()?.productos ?? []; track producto.nombre) {
+        <div class="sale-receipt-product-row">
+          <span class="sale-receipt-product-name">{{ producto.nombre }}</span>
+          <span class="sale-receipt-product-qty">{{ producto.cantidad }}</span>
+          <span class="sale-receipt-product-subtotal">{{ producto.subtotal | colombianCurrency }}</span>
+        </div>
+        <div class="sale-receipt-product-row">
+          <span class="sale-receipt-product-name">
+            P. unit: {{ producto.precioUnitario | colombianCurrency }}
+          </span>
+          <span></span>
+          <span></span>
+        </div>
+      }
+    </section>
+
+    <hr class="sale-receipt-divider" />
+
+    <section class="sale-receipt-totals">
+      <div class="sale-receipt-total-row">
+        <span>TOTAL</span>
+        <span>{{ receiptData()?.total | colombianCurrency }}</span>
+      </div>
+      <div class="sale-receipt-payment-row">
+        <span>Método de pago</span>
+        <span>{{ receiptData()?.metodoPago }}</span>
+      </div>
+    </section>
+
+    <hr class="sale-receipt-divider" />
+
+    <footer class="sale-receipt-footer">
+      @if (receiptData()?.usuarioCreacion) {
+        <p>Atendido por: {{ receiptData()?.usuarioCreacion }}</p>
+      }
+      <p class="sale-receipt-thanks">¡Gracias por su compra!</p>
+    </footer>
+  </div>
+</div>
