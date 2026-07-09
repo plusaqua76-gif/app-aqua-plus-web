@@ -2,14 +2,19 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { catchError, of } from 'rxjs';
 
 import { AbonoService } from '../../service/abono.service';
-import { IAbonoFactura, IDeudaAbonoQueryData, IDeudaCliente } from '@interfaces/IdeudaFactura';
-import { IAbonoReceiptData } from '@interfaces/IAbonoReceipt';
+import { IAbonoFactura } from '@interfaces/abono/IAbonoFactura';
+import { IAbonoReceiptData } from '@interfaces/abono/IAbonoReceipt';
+import { IDeudaAbonoQueryData } from '@interfaces/deuda/IDeudaAbonoQueryData';
+import { IDeudaCliente } from '@interfaces/deuda/IDeudaCliente';
 import { ToastService } from '@services/toast.service';
 import { PdfService } from '@services/pdf.service';
 import { ColombianCurrencyPipe } from '@shared/pipes/colombian-currency.pipe';
 import { AbonoReceipt } from '@components/abono-receipt/abono-receipt';
+import { CounterEnterpriceService } from '../../../fee/services/counter-enterprice.service';
 
 @Component({
   selector: 'app-create-credit',
@@ -40,58 +45,11 @@ export class CreateCredit implements OnInit {
   protected readonly router = inject(Router);
   protected readonly fb = inject(FormBuilder);
   protected readonly abonoService = inject(AbonoService);
+  protected readonly counterEnterpriceService = inject(CounterEnterpriceService);
   protected readonly toast = inject(ToastService);
   protected readonly pdfService = inject(PdfService);
   protected readonly platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
-
-  private getNumeroCuotas(debt: IDeudaCliente): number {
-    return typeof debt.plazoPago === 'number' ? Math.max(1, debt.plazoPago) : 1;
-  }
-
-  readonly cuotasResumen = computed(() => {
-    const debt = this.debtDetail();
-    if (!debt) {
-      return {
-        totalCuotas: 0,
-        valorCuota: 0,
-        cuotasPagadas: 0,
-        cuotasPendientes: 0,
-        cuotas: [] as Array<{ numero: number; valor: number; pagada: boolean }>,
-      };
-    }
-
-    const totalCuotas = this.getNumeroCuotas(debt);
-    const valorTotal = debt.valorTotal ?? debt.valor;
-    const valorCuota = debt.valorMes ?? Math.round(valorTotal / totalCuotas);
-    const abonado = debt.totalAbonado ?? 0;
-    const cuotasPagadas = valorCuota > 0 ? Math.min(totalCuotas, Math.floor(abonado / valorCuota)) : 0;
-
-    return {
-      totalCuotas,
-      valorCuota,
-      cuotasPagadas,
-      cuotasPendientes: Math.max(0, totalCuotas - cuotasPagadas),
-      cuotas: Array.from({ length: totalCuotas }, (_, index) => ({
-        numero: index + 1,
-        valor: valorCuota,
-        pagada: index < cuotasPagadas,
-      })),
-    };
-  });
-
-  readonly saldoPendiente = computed(() => {
-    const debt = this.debtDetail();
-    if (!debt) return 0;
-    if (debt.saldoPendiente != null) return debt.saldoPendiente;
-    const valorTotal = debt.valorTotal ?? debt.valor ?? 0;
-    return Math.max(0, valorTotal - (debt.totalAbonado ?? 0));
-  });
-
-  readonly valorTotalDeuda = computed(() => {
-    const debt = this.debtDetail();
-    return debt?.valorTotal ?? debt?.valor ?? 0;
-  });
 
   readonly userData = computed(() => {
     if (!this.isBrowser) return null;
@@ -105,6 +63,59 @@ export class CreateCredit implements OnInit {
   });
 
   readonly nombreUsuario = computed(() => this.userData()?.nombre || 'Sistema');
+  readonly empresaId = computed(() => this.userData()?.empresaId ?? null);
+
+  readonly parametroInteres = rxResource({
+    params: () => ({ empresaId: this.empresaId() }),
+    stream: ({ params }) => {
+      const { empresaId } = params;
+      if (!empresaId) {
+        return of(null);
+      }
+      return this.counterEnterpriceService.getParamsEnterprice(empresaId, 'INTERES_DEUDA').pipe(
+        catchError((error) => {
+          console.error('Error loading interest parameter:', error);
+          return of(null);
+        })
+      );
+    },
+  });
+
+  readonly tasaInteres = computed(() => {
+    const paramResponse = this.parametroInteres.value();
+    if (!paramResponse?.response) return null;
+
+    const param = Array.isArray(paramResponse.response)
+      ? paramResponse.response[0]
+      : paramResponse.response;
+
+    return param?.valorParametro != null ? Number(param.valorParametro) : 0;
+  });
+
+  readonly saldoPendiente = computed(() => {
+    const debt = this.debtDetail();
+    if (!debt) return 0;
+    if (debt.saldoPendiente != null) return Math.max(0, debt.saldoPendiente);
+    const valorTotal = debt.valorTotal ?? debt.valor ?? 0;
+    return Math.max(0, valorTotal - (debt.totalAbonado ?? 0));
+  });
+
+  readonly valorMes = computed(() => this.debtDetail()?.valorMes ?? 0);
+
+  readonly valorTotalDeuda = computed(() => {
+    const debt = this.debtDetail();
+    return debt?.valorTotal ?? debt?.valor ?? 0;
+  });
+
+  readonly totalAbonado = computed(() => this.debtDetail()?.totalAbonado ?? 0);
+
+  readonly plazoPago = computed(() => {
+    const debt = this.debtDetail();
+    if (!debt) return 1;
+    return typeof debt.plazoPago === 'number'
+      ? Math.max(1, debt.plazoPago)
+      : Math.max(1, Number(debt.plazoPago) || 1);
+  });
 
   ngOnInit(): void {
     this.abonoForm = this.fb.group({
@@ -112,6 +123,21 @@ export class CreateCredit implements OnInit {
     });
 
     this.loadDebtFromQueryParams();
+  }
+
+  /** Proyección post-abono para el comprobante (los query params quedan desactualizados). */
+  private proyectarCuotaDespuesAbono(
+    nuevoSaldo: number,
+    tasaInteresPercent: number
+  ): { capitalCuota: number; interesCuota: number; valorMes: number } {
+    const plazo = this.plazoPago();
+    const capitalCuota = nuevoSaldo / plazo;
+    const interesCuota = nuevoSaldo * (tasaInteresPercent / 100);
+    return {
+      capitalCuota,
+      interesCuota,
+      valorMes: capitalCuota + interesCuota,
+    };
   }
 
   private loadDebtFromQueryParams(): void {
@@ -176,7 +202,8 @@ export class CreateCredit implements OnInit {
   }
 
   abonarUnaCuota(): void {
-    this.setValorAbono(this.cuotasResumen().valorCuota);
+    const sugerido = Math.min(Math.round(this.valorMes()), this.saldoPendiente());
+    this.setValorAbono(sugerido);
   }
 
   abonarSaldoTotal(): void {
@@ -208,7 +235,7 @@ export class CreateCredit implements OnInit {
     if (valorAbono > saldo) {
       this.toast.error(
         'Valor inválido',
-        `El abono no puede superar el saldo pendiente (${saldo.toLocaleString('es-CO')}).`
+        `El abono no puede superar el saldo de capital (${saldo.toLocaleString('es-CO')}).`
       );
       return;
     }
@@ -238,20 +265,16 @@ export class CreateCredit implements OnInit {
     const debt = this.debtDetail();
     if (!debt) return;
 
-    const resumen = this.cuotasResumen();
     const saldoAnterior = this.saldoPendiente();
     const nuevoSaldo = Math.max(0, saldoAnterior - valorAbono);
-    const cuotasPagadasDespues =
-      resumen.valorCuota > 0
-        ? Math.min(resumen.totalCuotas, Math.floor((this.valorTotalDeuda() - nuevoSaldo) / resumen.valorCuota))
-        : resumen.cuotasPagadas;
+    const tasa = this.tasaInteres();
 
     const tipoDeudaNombre =
       typeof debt.tipoDeuda === 'object' && 'nombre' in debt.tipoDeuda
         ? debt.tipoDeuda.nombre
         : 'Deuda';
 
-    this.receiptData.set({
+    const receipt: IAbonoReceiptData = {
       codigo: abonoResponse?.id ? `ABO-${abonoResponse.id}` : `ABO-${Date.now()}`,
       fecha: abonoResponse?.fechaCreacion || new Date().toISOString(),
       clienteNombre: debt.clienteNombre ?? 'Cliente',
@@ -262,13 +285,19 @@ export class CreateCredit implements OnInit {
       saldoAnterior,
       saldoPendiente: nuevoSaldo,
       valorTotalDeuda: this.valorTotalDeuda(),
-      valorCuota: resumen.valorCuota,
-      numeroCuotas: resumen.totalCuotas,
-      cuotasPagadas: cuotasPagadasDespues,
-      cuotasPendientes: Math.max(0, resumen.totalCuotas - cuotasPagadasDespues),
+      numeroCuotas: this.plazoPago(),
       usuarioCreacion: this.nombreUsuario(),
-    });
+    };
 
+    if (tasa !== null) {
+      const proyectado = this.proyectarCuotaDespuesAbono(nuevoSaldo, tasa);
+      receipt.capitalCuota = proyectado.capitalCuota;
+      receipt.interesCuota = proyectado.interesCuota;
+      receipt.tasaInteresPercent = tasa;
+      receipt.valorMesProyectado = proyectado.valorMes;
+    }
+
+    this.receiptData.set(receipt);
     this.showReceiptModal.set(true);
   }
 
@@ -301,7 +330,7 @@ export class CreateCredit implements OnInit {
     this.pdfAction.set(action);
 
     try {
-      const codigo = this.receiptData()?.codigo || 'comprobante-abono';
+      const codigo = (this.receiptData()?.codigo || 'comprobante-abono').replace(/[^\w.-]/g, '_');
       const filename = `${codigo}.pdf`;
       const isMobile = window.innerWidth <= 768;
 

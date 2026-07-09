@@ -25,41 +25,50 @@
     </div>
   } @else {
     <div class="max-w-4xl mx-auto space-y-6">
-      <!-- Cuotas -->
+      <!-- Resumen de la deuda (datos del backend) -->
       <div class="relative overflow-hidden shadow-2xl rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 p-6 sm:p-8">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
           <div>
             <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200">
-              Cuotas de la deuda
+              Estado de la deuda
             </h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {{ cuotasResumen().totalCuotas }} cuotas de {{ cuotasResumen().valorCuota | colombianCurrency }}
+              {{ debtDetail()?.clienteNombre }}
+              @if (debtDetail()?.facturaCodigo) {
+                · Factura {{ debtDetail()?.facturaCodigo }}
+              }
             </p>
           </div>
           <div class="flex flex-wrap gap-2 text-xs">
             <span class="px-3 py-1 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-300 border border-blue-500/20">
-              Saldo: {{ saldoPendiente() | colombianCurrency }}
+              Capital pendiente: {{ saldoPendiente() | colombianCurrency }}
+            </span>
+            <span class="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/20">
+              Abonado: {{ totalAbonado() | colombianCurrency }}
             </span>
           </div>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          @for (cuota of cuotasResumen().cuotas; track cuota.numero) {
-            <div
-              class="rounded-xl border px-3 py-3 text-center transition-colors"
-              [class]="cuota.pagada
-                ? 'bg-green-500/10 border-green-500/30 text-green-700 dark:text-green-300'
-                : 'bg-white/10 dark:bg-slate-700/20 border-white/10 text-gray-700 dark:text-gray-200'"
-            >
-              <p class="text-[11px] uppercase tracking-wider opacity-70">Cuota {{ cuota.numero }}</p>
-              <p class="text-sm font-semibold mt-1">{{ cuota.valor | colombianCurrency }}</p>
-              <p class="text-[10px] mt-1 uppercase">
-                {{ cuota.pagada ? 'Pagada' : 'Pendiente' }}
-              </p>
-            </div>
-          }
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="rounded-xl border border-white/10 bg-white/10 dark:bg-slate-700/20 p-4">
+            <p class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400">Deuda original</p>
+            <p class="text-lg font-semibold text-gray-800 dark:text-gray-100 mt-1">
+              {{ valorTotalDeuda() | colombianCurrency }}
+            </p>
+          </div>
+          <div class="rounded-xl border border-blue-500/30 bg-blue-500/10 p-4">
+            <p class="text-[11px] uppercase tracking-wider text-blue-600 dark:text-blue-400">Valor cuota</p>
+            <p class="text-lg font-bold text-blue-700 dark:text-blue-300 mt-1">
+              {{ valorMes() | colombianCurrency }}
+            </p>
+          </div>
         </div>
+
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-4 leading-relaxed">
+          El abono reduce únicamente el capital pendiente. El interés se calcula al consultar y no se descuenta automáticamente del saldo real.
+        </p>
       </div>
+
 
       <!-- Valor a pagar -->
       <div class="relative overflow-hidden shadow-2xl rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30">
@@ -72,18 +81,18 @@
             <button
               type="button"
               (click)="abonarUnaCuota()"
-              [disabled]="cuotasResumen().valorCuota <= 0 || cuotasResumen().cuotasPendientes === 0"
-              class="px-3 py-2 text-xs font-semibold rounded-lg border border-blue-500/30 text-blue-600 dark:text-blue-300 hover:bg-blue-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              [disabled]="valorMes() <= 0 || saldoPendiente() <= 0"
+              class="px-3 py-2 text-xs font-semibold rounded-lg border border-blue-500/30 text-blue-600 dark:text-blue-300 hover:bg-blue-500/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              1 cuota ({{ cuotasResumen().valorCuota | colombianCurrency }})
+              Sugerido mes ({{ valorMes() | colombianCurrency }})
             </button>
             <button
               type="button"
               (click)="abonarSaldoTotal()"
               [disabled]="saldoPendiente() <= 0"
-              class="px-3 py-2 text-xs font-semibold rounded-lg border border-green-500/30 text-green-600 dark:text-green-300 hover:bg-green-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-3 py-2 text-xs font-semibold rounded-lg border border-green-500/30 text-green-600 dark:text-green-300 hover:bg-green-500/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              Saldo total ({{ saldoPendiente() | colombianCurrency }})
+              Capital total ({{ saldoPendiente() | colombianCurrency }})
             </button>
           </div>
 
@@ -108,7 +117,8 @@
               />
             </div>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              Solo valores enteros, sin decimales. Máximo: {{ saldoPendiente() | colombianCurrency }}
+              Solo valores enteros. Máximo: {{ saldoPendiente() | colombianCurrency }} (capital pendiente).
+              Puede abonar cualquier monto; no debe coincidir con la cuota sugerida.
             </p>
             @if (abonoForm.get('valor')?.invalid && abonoForm.get('valor')?.touched) {
               <p class="text-red-500 text-sm mt-2">

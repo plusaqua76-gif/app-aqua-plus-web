@@ -32,7 +32,7 @@ import {
 import { TipoDeudaService } from '../../service/tipoDeuda.service';
 import { FacturaService } from '../../service/factura.service';
 import { PopupComponent } from '@shared/components/popUp';
-import { IAbonoFactura } from '@interfaces/IdeudaFactura';
+import { IAbonoFactura } from '@interfaces/abono/IAbonoFactura';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY, of, catchError } from 'rxjs';
 import { ColombianCurrencyPipe } from '@shared/pipes/colombian-currency.pipe';

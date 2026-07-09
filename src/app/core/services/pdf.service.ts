@@ -37,38 +37,16 @@ export class PdfService {
 
   async convertElementToPdf(element: HTMLElement, filename: string = 'factura.pdf'): Promise<void> {
     try {
-      // Cargar librerías dinámicamente
-      const [html2canvas, jsPDF] = await Promise.all([
-        this.loadHtml2Canvas(),
-        this.loadJsPDF()
-      ]);
+      const jsPDF = await this.loadJsPDF();
+      const capture = await this.captureElement(element);
 
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        width: element.scrollWidth,
-        height: element.scrollHeight,
-        scrollX: 0,
-        scrollY: 0
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-
-      // Crear el PDF en formato A4
       const pdf = new jsPDF({
-        orientation: imgHeight > imgWidth ? 'portrait' : 'landscape',
+        orientation: capture.height > capture.width ? 'portrait' : 'landscape',
         unit: 'px',
-        format: [imgWidth, imgHeight]
+        format: [capture.width, capture.height],
       });
 
-
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-
-
+      pdf.addImage(capture.imgData, 'PNG', 0, 0, capture.width, capture.height);
       pdf.save(filename);
     } catch (error) {
       console.error('Error al generar PDF:', error);
@@ -82,34 +60,17 @@ export class PdfService {
    */
   async convertElementToPdfAndOpen(element: HTMLElement): Promise<void> {
     try {
-      // Cargar librerías dinámicamente
-      const [html2canvas, jsPDF] = await Promise.all([
-        this.loadHtml2Canvas(),
-        this.loadJsPDF()
-      ]);
-
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        width: element.scrollWidth,
-        height: element.scrollHeight
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
+      const jsPDF = await this.loadJsPDF();
+      const capture = await this.captureElement(element);
 
       const pdf = new jsPDF({
-        orientation: imgHeight > imgWidth ? 'portrait' : 'landscape',
+        orientation: capture.height > capture.width ? 'portrait' : 'landscape',
         unit: 'px',
-        format: [imgWidth, imgHeight]
+        format: [capture.width, capture.height],
       });
 
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.addImage(capture.imgData, 'PNG', 0, 0, capture.width, capture.height);
 
-      // Abrir en nueva ventana
       const pdfBlob = pdf.output('blob');
       const pdfUrl = URL.createObjectURL(pdfBlob);
       window.open(pdfUrl, '_blank');
@@ -125,34 +86,17 @@ export class PdfService {
    */
   async convertElementToPdfAndPrint(element: HTMLElement): Promise<void> {
     try {
-      // Cargar librerías dinámicamente
-      const [html2canvas, jsPDF] = await Promise.all([
-        this.loadHtml2Canvas(),
-        this.loadJsPDF()
-      ]);
-
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        width: element.scrollWidth,
-        height: element.scrollHeight
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
+      const jsPDF = await this.loadJsPDF();
+      const capture = await this.captureElement(element);
 
       const pdf = new jsPDF({
-        orientation: imgHeight > imgWidth ? 'portrait' : 'landscape',
+        orientation: capture.height > capture.width ? 'portrait' : 'landscape',
         unit: 'px',
-        format: [imgWidth, imgHeight]
+        format: [capture.width, capture.height],
       });
 
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.addImage(capture.imgData, 'PNG', 0, 0, capture.width, capture.height);
 
-      // Abrir diálogo de impresión
       pdf.autoPrint();
       const pdfBlob = pdf.output('blob');
       const pdfUrl = URL.createObjectURL(pdfBlob);
@@ -343,7 +287,7 @@ export class PdfService {
     container.style.left = '-9999px';
     container.style.top = '0';
     // Copiar el ancho del elemento original para mantener el layout
-    container.style.width = `${element.offsetWidth || element.scrollWidth}px`;
+    container.style.width = `${Math.max(element.offsetWidth, element.scrollWidth, 400)}px`;
 
     // Clonar el elemento
     const clone = element.cloneNode(true) as HTMLElement;
@@ -353,11 +297,15 @@ export class PdfService {
     clone.style.visibility = 'visible';
     clone.style.opacity = '1';
     clone.style.display = 'block';
+    clone.style.background = '#ffffff';
+    clone.style.backdropFilter = 'none';
+    clone.style.setProperty('-webkit-backdrop-filter', 'none');
 
     container.appendChild(clone);
     document.body.appendChild(container);
 
     try {
+      this.stripUnsupportedStyles(clone);
       await this.waitForImages(clone);
       await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -370,7 +318,15 @@ export class PdfService {
         width: clone.scrollWidth,
         height: clone.scrollHeight,
         windowWidth: clone.scrollWidth,
-        windowHeight: clone.scrollHeight
+        windowHeight: clone.scrollHeight,
+        onclone: (clonedDoc) => {
+          const clonedTarget =
+            clonedDoc.querySelector('.abono-receipt-content, .sale-receipt-content') ??
+            clonedDoc.body.firstElementChild;
+          if (clonedTarget instanceof HTMLElement) {
+            this.stripUnsupportedStyles(clonedTarget);
+          }
+        },
       });
 
       return {
@@ -381,6 +337,18 @@ export class PdfService {
     } finally {
       document.body.removeChild(container);
     }
+  }
+
+  private stripUnsupportedStyles(element: HTMLElement): void {
+    element.style.backdropFilter = 'none';
+    element.style.setProperty('-webkit-backdrop-filter', 'none');
+    element.style.filter = 'none';
+
+    element.querySelectorAll<HTMLElement>('*').forEach((el) => {
+      el.style.backdropFilter = 'none';
+      el.style.setProperty('-webkit-backdrop-filter', 'none');
+      el.style.filter = 'none';
+    });
   }
 
   /**

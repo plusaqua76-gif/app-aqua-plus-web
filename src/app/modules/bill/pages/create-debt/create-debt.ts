@@ -10,9 +10,9 @@ import { of, catchError, startWith, map, Subject, debounceTime, distinctUntilCha
 import { CounterService } from '../../../client/service/couter.service';
 import { IParametroGeneral } from '@interfaces/INovelty/IClienteNovedad';
 import { TipoDeudaService } from '../../service/tipoDeuda.service';
-import { ITipoDeuda } from '@interfaces/IdeudaFactura';
+import { ITipoDeuda } from '@interfaces/deuda/ITipoDeuda';
 import { DeudaService } from '../../service/deuda.service';
-import { IDeudaCliente } from '@interfaces/IdeudaFactura';
+import { IDeudaCliente } from '@interfaces/deuda/IDeudaCliente';
 import { Router } from '@angular/router';
 import { CounterEnterpriceService } from '../../../fee/services/counter-enterprice.service';
 import { ClientRaw } from '@interfaces/client/IclientRaw';

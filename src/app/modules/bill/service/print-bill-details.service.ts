@@ -4,9 +4,7 @@ import { END_POINT_SERVICE } from "../../../../environments/environment.variable
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";
-import { IPlazoPago, ITipoDeuda } from "@interfaces/IdeudaFactura";
-import { IBillDetailApiResponse, IBillDetailResponse } from "@interfaces/Ibill-detail";
-import { IBillBackResponse } from "@interfaces/bill/Ibill-back";
+import { IBillDetailResponse } from "@interfaces/Ibill-detail";
 
 @Injectable({
   providedIn: 'root',

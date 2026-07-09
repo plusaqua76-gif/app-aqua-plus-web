@@ -4,7 +4,7 @@ import { END_POINT_SERVICE } from "../../../../environments/environment.variable
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";
-import { ITipoDeuda } from "@interfaces/IdeudaFactura";
+import { ITipoDeuda } from "@interfaces/deuda/ITipoDeuda";
 
 @Injectable({
   providedIn: 'root',
