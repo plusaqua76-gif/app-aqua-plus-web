@@ -67,11 +67,12 @@ export class BreadcrumbService {
     'bills-users': 'Usuarios Facturación',
 
 
-    'accounting': 'Contabilidad',
+    'Inventory': 'Inventario',
     'inventory': 'Inventario',
     'main': 'Dashboard',
     'sales': 'Ventas',
     'accounts': 'Cuentas',
+    'accounts-list': 'Cuentas',
     'create': 'Crear',
     'update': 'Actualizar',
     'edit': 'Editar',

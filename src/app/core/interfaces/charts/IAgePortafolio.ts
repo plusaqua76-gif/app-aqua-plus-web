@@ -10,9 +10,11 @@ interface AgePortfolioChartOptions {
   chart: {
     type: 'bar';
     height: number | string;
+    width?: number | string;
     maxWidth?: string;
     fontFamily?: string;
     toolbar: { show: boolean };
+    background?: string;
   };
   plotOptions: {
     bar: {
@@ -42,7 +44,7 @@ interface AgePortfolioChartOptions {
   grid: {
     show: boolean;
     strokeDashArray: number;
-    padding: { left: number; right: number; top: number };
+    padding: { left: number; right: number; top: number; bottom?: number };
     borderColor?: string;
   };
   dataLabels: {

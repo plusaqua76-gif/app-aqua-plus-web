@@ -23,7 +23,6 @@ import { PlazoPagoService } from '../../service/print-bill-details.service';
 import { PdfService } from '@services/pdf.service';
 import { PdfBill } from '@components/pdf-bill/pdf-bill';
 import { TableStateService } from '../../../../core/services/table-state.service';
-import { DeudaService } from '../../service/deuda.service';
 import { DocumentAzureBlobService } from '../../../fee/services/document-azure-blob.service';
 import { BillBack } from '../../../../core/components/billBack/bill-back';
 import {
@@ -168,8 +167,7 @@ import {
         <div class="front">
           <app-pdf-bill
             [selectedStatus]="billDataForPdf().factura?.estadoNombre || null"
-            [billData]="billDataForPdf()"
-            [dataDeudaConsolidada]="deudaConsolidadaForPdf()">
+            [billData]="billDataForPdf()">
           </app-pdf-bill>
         </div>
         <!-- Reverso de la factura -->
@@ -189,7 +187,6 @@ export class Bill  {
   itemToDelete: number | null = null;
   isDownloading = signal(false);
   billDataForPdf = signal<any>(null);
-  deudaConsolidadaForPdf = signal<any>(null);
   backTemplateDataForPdf = signal<any>(null);
   readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
@@ -213,8 +210,11 @@ export class Bill  {
   protected readonly pdfService = inject(PdfService);
   protected readonly injector = inject(EnvironmentInjector);
   protected readonly tableState = inject(TableStateService);
-  protected readonly deudaService = inject(DeudaService);
   protected readonly documentService = inject(DocumentAzureBlobService);
+
+  readonly bulkDownloadTotalCount = computed(
+    () => this.serverBillData.value()?.totalCount ?? 0
+  );
 
   readonly billColumns = signal([
     { field: 'codigo', header: 'Código', type: 'text' as const },
@@ -281,8 +281,7 @@ export class Bill  {
     if (this.isBulkDownloading()) {
       return `Descargando... (${this.bulkDownloadProgress()}/${this.bulkDownloadTotal()})`;
     }
-    const total = this.serverBillData.value()?.response?.length || 0;
-    return `Descargar todas (${total})`;
+    return `Descargar todas (${this.bulkDownloadTotalCount()})`;
   });
 
   // Usar paginationParams del servicio de estado genérico
@@ -465,22 +464,6 @@ export class Bill  {
       const billData = billDetailsResponse.response;
       this.billDataForPdf.set(billData);
 
-      // 2. Cargar deuda
-      const empresaClienteContadorId = billData?.factura?.idEmpresaClienteContador;
-      if (empresaClienteContadorId) {
-        try {
-          const deudaResponse = await firstValueFrom(
-            this.deudaService.getConsolidationByClienteId(Number(empresaClienteContadorId)).pipe(
-              catchError(() => of({ response: null }))
-            )
-          );
-          this.deudaConsolidadaForPdf.set(deudaResponse?.response || null);
-        } catch {
-          this.deudaConsolidadaForPdf.set(null);
-        }
-      }
-
-      // 3. Cargar plantilla del reverso (opcional, no crítico)
       const empresaId = this.enterpriseId();
       if (empresaId) {
         try {
@@ -546,7 +529,6 @@ export class Bill  {
       // 7. Limpiar los datos después de la descarga
       setTimeout(() => {
         this.billDataForPdf.set(null);
-        this.deudaConsolidadaForPdf.set(null);
         this.backTemplateDataForPdf.set(null);
         if (!isBulkDownload) {
           this.isDownloading.set(false);
@@ -562,7 +544,6 @@ export class Bill  {
       }
       // Limpiar los datos en caso de error
       this.billDataForPdf.set(null);
-      this.deudaConsolidadaForPdf.set(null);
       this.backTemplateDataForPdf.set(null);
       if (!isBulkDownload) {
         this.isDownloading.set(false);
@@ -573,7 +554,7 @@ export class Bill  {
 
   // Métodos para descarga masiva
   getBulkDownloadConfirmMessage(): string {
-    const total = this.serverBillData.value()?.response?.length || 0;
+    const total = this.bulkDownloadTotalCount();
     return `Está a punto de descargar ${total} factura(s) en formato PDF. Este proceso puede tomar varios minutos dependiendo de la cantidad de facturas. ¿Desea continuar?`;
   }
 
@@ -593,8 +574,7 @@ export class Bill  {
   }
 
   confirmBulkDownload(): void {
-    const bills = this.serverBillData.value()?.response;
-    if (!bills || bills.length === 0) {
+    if (this.bulkDownloadTotalCount() === 0) {
       this.toastService.warning('No hay facturas', 'No hay facturas disponibles para descargar');
       return;
     }
@@ -602,18 +582,57 @@ export class Bill  {
     this.showBulkDownloadConfirm.set(true);
   }
 
-  async startBulkDownload(): Promise<void> {
-    const bills = this.serverBillData.value()?.response;
-    if (!bills || bills.length === 0) return;
+  private async fetchAllBillsForBulkDownload(): Promise<any[]> {
+    const enterpriseId = this.enterpriseId();
+    const totalCount = this.bulkDownloadTotalCount();
 
+    if (!enterpriseId || totalCount === 0) {
+      return [];
+    }
+
+    const response = await firstValueFrom(
+      this.facturaService.getAllBillByIdPaginated(enterpriseId, {
+        ...this.paginationParams(),
+        page: 0,
+        size: totalCount,
+      })
+    );
+
+    if (!response?.response || !Array.isArray(response.response)) {
+      return [];
+    }
+
+    return response.response.map((factura: any) => this.transformFacturaRow(factura));
+  }
+
+  async startBulkDownload(): Promise<void> {
     this.showBulkDownloadConfirm.set(false);
     this.showBulkDownloadProgress.set(true);
     this.isBulkDownloading.set(true);
     this.bulkDownloadProgress.set(0);
-    this.bulkDownloadTotal.set(bills.length);
     this.bulkDownloadErrors.set([]);
     this.shouldCancelBulkDownload = false;
 
+    let bills: any[] = [];
+
+    try {
+      bills = await this.fetchAllBillsForBulkDownload();
+    } catch (error) {
+      console.error('Error al cargar facturas para descarga masiva:', error);
+      this.toastService.error('Error', 'No se pudieron cargar las facturas para descargar');
+      this.showBulkDownloadProgress.set(false);
+      this.isBulkDownloading.set(false);
+      return;
+    }
+
+    if (bills.length === 0) {
+      this.toastService.warning('No hay facturas', 'No hay facturas disponibles para descargar');
+      this.showBulkDownloadProgress.set(false);
+      this.isBulkDownloading.set(false);
+      return;
+    }
+
+    this.bulkDownloadTotal.set(bills.length);
     this.toastService.info('Iniciando descarga masiva', `Comenzando a descargar ${bills.length} factura(s)...`);
 
     const errors: string[] = [];

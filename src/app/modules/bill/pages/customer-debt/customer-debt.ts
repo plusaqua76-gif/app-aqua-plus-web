@@ -9,6 +9,8 @@ import { catchError, of } from 'rxjs';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 import { ConfirmDeletePopupComponent } from '@shared/components/confirm-delete-popup';
 import { TipoDeudaService } from '../../service/tipoDeuda.service';
+import { IDeudaAbonoQueryData } from '@interfaces/deuda/IDeudaAbonoQueryData';
+import { IDeudaClienteResponse } from '@interfaces/deuda/IDeudaClienteResponse';
 
 @Component({
   selector: 'app-customer-debt',
@@ -29,7 +31,7 @@ import { TipoDeudaService } from '../../service/tipoDeuda.service';
         </button>
         <button
           type="button"
-          (click)="redirigirCrearAbono(row.id)"
+          (click)="redirigirCrearAbono(row)"
           class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-yellow-600/50 text-yellow-500 hover:bg-yellow-600/10 focus:outline-none focus:ring-2 focus:ring-yellow-500/40 transition-colors duration-200 cursor-pointer"
           title="Crear abono"
         >
@@ -291,9 +293,26 @@ export class CustomerDebt {
     });
   }
 
-  redirigirCrearAbono(id: number) {
-    this.router.navigate(['../create-credit', id], {
+  redirigirCrearAbono(debt: IDeudaClienteResponse) {
+    const payload: IDeudaAbonoQueryData = {
+      id: debt.id,
+      clienteNombre: debt.clienteNombre,
+      facturaCodigo: debt.facturaCodigo,
+      fechaDeuda: debt.fechaDeuda,
+      valor: debt.valor,
+      valorTotal: debt.valorTotal ?? debt.valor,
+      totalAbonado: debt.totalAbonado,
+      saldoPendiente: debt.saldoPendiente,
+      valorMes: debt.valorMes,
+      plazoPago: typeof debt.plazoPago === 'number' ? debt.plazoPago : Number(debt.plazoPago) || 1,
+      descripcion: debt.descripcion,
+      tipoDeudaNombre: debt.tipoDeudaNombre ?? debt.tipoDeuda?.nombre,
+      tipoDeudaId: debt.tipoDeuda?.id,
+    };
+
+    this.router.navigate(['../create-credit', debt.id], {
       relativeTo: this.route,
+      queryParams: { deuda: encodeURIComponent(JSON.stringify(payload)) },
     });
   }
 

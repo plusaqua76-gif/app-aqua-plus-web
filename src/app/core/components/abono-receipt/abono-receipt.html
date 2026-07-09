@@ -1,0 +1,136 @@
+<div class="abono-receipt-wrapper">
+  <div class="abono-receipt-content">
+    <header class="abono-receipt-header">
+      @if (logoSrc()) {
+        <img
+          class="abono-receipt-logo"
+          [src]="logoSrc()"
+          [attr.crossorigin]="logoSrc()?.startsWith('data:') ? null : 'anonymous'"
+          [alt]="enterpriseInfo.value()?.nombre || 'Logo empresa'"
+        />
+      }
+
+      <h2 class="abono-receipt-company-name">
+        {{ enterpriseInfo.value()?.nombre || 'Empresa' }}
+      </h2>
+
+      @if (enterpriseInfo.value()?.nit) {
+        <p class="abono-receipt-company-line">NIT {{ enterpriseInfo.value()?.nit }}</p>
+      }
+
+      @if (getDireccionCompleta()) {
+        <p class="abono-receipt-company-line">{{ getDireccionCompleta() }}</p>
+      }
+
+      <span class="abono-receipt-badge">Comprobante de abono</span>
+    </header>
+
+    <section class="abono-receipt-section">
+      <h3 class="abono-receipt-section-title">Información del comprobante</h3>
+      <div class="abono-receipt-row">
+        <span class="abono-receipt-label">No. comprobante</span>
+        <span class="abono-receipt-value">{{ receiptData()?.codigo }}</span>
+      </div>
+      <div class="abono-receipt-row">
+        <span class="abono-receipt-label">Fecha</span>
+        <span class="abono-receipt-value">{{ getFecha() }}</span>
+      </div>
+      <div class="abono-receipt-row">
+        <span class="abono-receipt-label">Hora</span>
+        <span class="abono-receipt-value">{{ getHora() }}</span>
+      </div>
+    </section>
+
+    <section class="abono-receipt-section">
+      <h3 class="abono-receipt-section-title">Cliente</h3>
+      <div class="abono-receipt-row">
+        <span class="abono-receipt-label">Nombre</span>
+        <span class="abono-receipt-value">{{ receiptData()?.clienteNombre || '—' }}</span>
+      </div>
+      @if (receiptData()?.clienteDocumentoTipo) {
+        <div class="abono-receipt-row">
+          <span class="abono-receipt-label">Tipo documento</span>
+          <span class="abono-receipt-value">{{ receiptData()?.clienteDocumentoTipo }}</span>
+        </div>
+      }
+      @if (receiptData()?.clienteIdentificacion) {
+        <div class="abono-receipt-row">
+          <span class="abono-receipt-label">Identificación</span>
+          <span class="abono-receipt-value">{{ receiptData()?.clienteIdentificacion }}</span>
+        </div>
+      }
+      @if (receiptData()?.facturaCodigo) {
+        <div class="abono-receipt-row">
+          <span class="abono-receipt-label">Factura</span>
+          <span class="abono-receipt-value">{{ receiptData()?.facturaCodigo }}</span>
+        </div>
+      }
+    </section>
+
+    <section class="abono-receipt-section">
+      <h3 class="abono-receipt-section-title">Deuda</h3>
+      <p class="abono-receipt-description">{{ receiptData()?.descripcionDeuda }}</p>
+      @if (receiptData()?.tipoDeudaNombre) {
+        <div class="abono-receipt-row">
+          <span class="abono-receipt-label">Tipo</span>
+          <span class="abono-receipt-value">{{ receiptData()?.tipoDeudaNombre }}</span>
+        </div>
+      }
+      <div class="abono-receipt-row">
+        <span class="abono-receipt-label">Valor total deuda</span>
+        <span class="abono-receipt-value">{{ receiptData()?.valorTotalDeuda | colombianCurrency }}</span>
+      </div>
+      @if (receiptData()?.numeroCuotas) {
+        <div class="abono-receipt-row">
+          <span class="abono-receipt-label">Plan de cuotas</span>
+          <span class="abono-receipt-value">{{ receiptData()?.numeroCuotas }} cuotas</span>
+        </div>
+      }
+      @if (receiptData()?.capitalCuota !== undefined) {
+        <div class="abono-receipt-row">
+          <span class="abono-receipt-label">Capital cuota (proyectado)</span>
+          <span class="abono-receipt-value">{{ receiptData()?.capitalCuota | colombianCurrency }}</span>
+        </div>
+      }
+      @if (receiptData()?.interesCuota !== undefined) {
+        <div class="abono-receipt-row">
+          <span class="abono-receipt-label">
+            Interés{{ receiptData()?.tasaInteresPercent != null ? ' (' + receiptData()?.tasaInteresPercent + '%)' : '' }}
+          </span>
+          <span class="abono-receipt-value abono-receipt-value-orange">{{ receiptData()?.interesCuota | colombianCurrency }}</span>
+        </div>
+      }
+      @if (receiptData()?.valorMesProyectado !== undefined) {
+        <div class="abono-receipt-row">
+          <span class="abono-receipt-label">Próximo pago sugerido</span>
+          <span class="abono-receipt-value abono-receipt-value-blue">{{ receiptData()?.valorMesProyectado | colombianCurrency }}</span>
+        </div>
+      }
+    </section>
+
+    <section class="abono-receipt-section">
+      <h3 class="abono-receipt-section-title">Resumen del abono</h3>
+      <div class="abono-receipt-row">
+        <span class="abono-receipt-label">Saldo capital anterior</span>
+        <span class="abono-receipt-value">{{ receiptData()?.saldoAnterior | colombianCurrency }}</span>
+      </div>
+      <div class="abono-receipt-highlight">
+        <div class="abono-receipt-highlight-row">
+          <span class="abono-receipt-highlight-label">Valor abonado</span>
+          <span class="abono-receipt-highlight-value">{{ receiptData()?.valorAbono | colombianCurrency }}</span>
+        </div>
+      </div>
+      <div class="abono-receipt-row">
+        <span class="abono-receipt-label">Nuevo saldo de capital</span>
+        <span class="abono-receipt-value">{{ receiptData()?.saldoPendiente | colombianCurrency }}</span>
+      </div>
+    </section>
+
+    <footer class="abono-receipt-footer">
+      @if (receiptData()?.usuarioCreacion) {
+        <p>Registrado por: {{ receiptData()?.usuarioCreacion }}</p>
+      }
+      <p class="abono-receipt-thanks">Gracias por su pago</p>
+    </footer>
+  </div>
+</div>
