@@ -1478,9 +1478,6 @@ export class UpdateClient implements OnInit {
       }
     });
 
-    // Los conceptos faltantes solo se asignan a tarifas que estén activas.
-    // De lo contrario, una tarifa inactiva (base=false) recibiría conceptos y el modal
-    // la reactivaría por error, provocando que se facture como activa.
     faltantes.tiposConcepto.forEach((concepto) => {
       const tempMap = new Map<number, number[]>();
       this.assignFaltanteConceptoToTarifas(concepto, tempMap);
