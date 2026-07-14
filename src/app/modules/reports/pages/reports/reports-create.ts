@@ -68,6 +68,16 @@ export class ReportsCreate {
     () => `clientes_${new Date().toISOString().split('T')[0]}`
   );
 
+  readonly reportExportFileName = computed(() => {
+    const name = this.selectedReportName().trim() || 'reporte';
+    return name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_|_$/g, '') || 'reporte';
+  });
+
   // Computed para clasificar filtros
   readonly uniqueFilters = computed(() => {
     const filters = this.filtersReports.value()?.response || [];

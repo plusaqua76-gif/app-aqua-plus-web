@@ -152,7 +152,7 @@
 
   <!-- Tabla de resultados -->
   <app-table-dynamic
-    [title]="'Resultados del Reporte'"
+    [title]="selectedReportName()"
     [hideTitle]="true"
     [columns]="reportColumns()"
     [serverMode]="false"
@@ -162,7 +162,7 @@
     [showColumnFilters]="true"
     [actionTemplate]="emptyActionsTemplate"
     [pagination]="true"
-    [exportFileName]="'reporte_resultados_' + selectedReportName()"
+    [exportFileName]="reportExportFileName()"
   >
   </app-table-dynamic>
 </div>
