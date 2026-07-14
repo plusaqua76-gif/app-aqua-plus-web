@@ -80,7 +80,8 @@ export interface SaveClientResponse {
 
 export interface TarifaContadorUpdate {
   idTipoTarifa: number;
-  idTipoConcepto: number;
+  // Opcional: cuando se omite, el cambio aplica a la entrada base (nivel tarifa).
+  idTipoConcepto?: number;
   aplica: boolean;
 }
 
