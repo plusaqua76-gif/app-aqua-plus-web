@@ -783,50 +783,102 @@ export class ReportsCreate {
     return index;
   }
 
+  private isStructuredReportHeader(
+    header: unknown
+  ): header is { campo: string; titulo?: string } {
+    return (
+      typeof header === 'object' &&
+      header !== null &&
+      'campo' in header &&
+      typeof (header as { campo: unknown }).campo === 'string'
+    );
+  }
+
+  private resolveColumnFromHeader(
+    header: string | { campo: string; titulo?: string },
+    keyIndex: Map<string, string>,
+    rows: any[]
+  ): { field: string; header: string } | null {
+    if (this.isStructuredReportHeader(header)) {
+      const { campo, titulo } = header;
+
+      if (this.EXCLUDED_FIELDS.includes(campo.toLowerCase())) return null;
+      if (titulo && this.EXCLUDED_HEADERS.includes(titulo)) return null;
+
+      const matchedKey =
+        keyIndex.get(this.normalizeReportKey(campo)) ??
+        (rows[0] && Object.prototype.hasOwnProperty.call(rows[0], campo)
+          ? campo
+          : undefined) ??
+        this.resolveRowKeyForHeader(campo, keyIndex);
+
+      if (!matchedKey) return null;
+
+      return {
+        field: matchedKey,
+        header: titulo || this.formatFieldName(campo),
+      };
+    }
+
+    if (this.EXCLUDED_HEADERS.includes(header)) return null;
+
+    const matchedKey = this.resolveRowKeyForHeader(header, keyIndex);
+    if (!matchedKey) return null;
+
+    return { field: matchedKey, header };
+  }
+
   private processReportResponse(response: any): void {
     let columns: { field: string; header: string; type: 'text' }[] = [];
-    const excludedHeaders = this.EXCLUDED_HEADERS;
 
     if (
       response.headers &&
       Array.isArray(response.headers) &&
       response.headers.length > 0
     ) {
-
       const keyIndex = this.buildNormalizedKeyIndex(response.rows);
+      const hasStructuredHeaders = response.headers.some((header: unknown) =>
+        this.isStructuredReportHeader(header)
+      );
 
-      columns = (response.headers as string[])
-        .map((header: string) => {
-          if (excludedHeaders.includes(header)) return null;
-
-          const matchedKey = this.resolveRowKeyForHeader(header, keyIndex);
-          if (!matchedKey) return null;
+      columns = response.headers
+        .map((header: string | { campo: string; titulo?: string }) => {
+          const parsed = this.resolveColumnFromHeader(
+            header,
+            keyIndex,
+            response.rows
+          );
+          if (!parsed) return null;
 
           return {
-            field: matchedKey,
-            header: String(header),
+            field: parsed.field,
+            header: parsed.header,
             type: 'text' as const,
           };
         })
         .filter(
-          (col): col is { field: string; header: string; type: 'text' } =>
+          (
+            col: { field: string; header: string; type: 'text' } | null
+          ): col is { field: string; header: string; type: 'text' } =>
             col !== null
         );
 
-      const usedFields = new Set(columns.map((col) => col.field));
-      for (const key of keyIndex.values()) {
-        if (
-          usedFields.has(key) ||
-          this.EXCLUDED_FIELDS.includes(key.toLowerCase())
-        ) {
-          continue;
+      if (!hasStructuredHeaders) {
+        const usedFields = new Set(columns.map((col) => col.field));
+        for (const key of keyIndex.values()) {
+          if (
+            usedFields.has(key) ||
+            this.EXCLUDED_FIELDS.includes(key.toLowerCase())
+          ) {
+            continue;
+          }
+          columns.push({
+            field: key,
+            header: this.formatFieldName(key),
+            type: 'text' as const,
+          });
+          usedFields.add(key);
         }
-        columns.push({
-          field: key,
-          header: this.formatFieldName(key),
-          type: 'text' as const,
-        });
-        usedFields.add(key);
       }
     } else {
       const firstRow = response.rows[0];
