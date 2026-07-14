@@ -1433,12 +1433,30 @@ export class UpdateClient implements OnInit {
     };
   }
 
+  private isTarifaActivaEnContador(contadorData: any, tarifaId: number): boolean {
+    const entries = (contadorData?.tarifasContadores || []).filter(
+      (tc: any) => tc.tipoTarifa?.id === tarifaId,
+    );
+    if (entries.length === 0) {
+      return false;
+    }
+    const baseEntries = entries.filter((tc: any) => !tc.tipoConcepto?.id);
+    if (baseEntries.length > 0) {
+      return baseEntries.some((tc: any) => tc.aplica);
+    }
+    return entries.some((tc: any) => tc.aplica);
+  }
+
   private extractActiveTarifaIds(contadorData: any): number[] {
     const faltantes = this.parseTiposTarifaFaltantes(contadorData?.tiposTarifaFaltantes);
-    const fromTarifasContadores = (contadorData?.tarifasContadores || [])
-      .filter((tc: any) => tc.aplica)
-      .map((tc: any) => tc.tipoTarifa?.id)
-      .filter((id: number | undefined) => id !== undefined) as number[];
+    const tarifaIds = new Set<number>(
+      (contadorData?.tarifasContadores || [])
+        .map((tc: any) => tc.tipoTarifa?.id)
+        .filter((id: number | undefined) => id !== undefined) as number[],
+    );
+    const fromTarifasContadores = [...tarifaIds].filter((id) =>
+      this.isTarifaActivaEnContador(contadorData, id),
+    );
     const fromFaltantes = faltantes.tiposTarifa.map((t) => t.id);
     return [...new Set([...fromTarifasContadores, ...fromFaltantes])];
   }
@@ -1446,15 +1464,28 @@ export class UpdateClient implements OnInit {
   private extractActiveConceptosMap(contadorData: any): Map<number, number[]> {
     const result = new Map<number, number[]>();
     const faltantes = this.parseTiposTarifaFaltantes(contadorData?.tiposTarifaFaltantes);
+    // Conjunto de tarifas realmente activas (respeta la entrada base + faltantes tipo-tarifa).
+    const tarifasActivas = new Set(this.extractActiveTarifaIds(contadorData));
 
     (contadorData?.tarifasContadores || []).forEach((cc: any) => {
-      if (cc.aplica && cc.tipoTarifa?.id && cc.tipoConcepto?.id) {
+      if (
+        cc.aplica &&
+        cc.tipoTarifa?.id &&
+        cc.tipoConcepto?.id &&
+        tarifasActivas.has(cc.tipoTarifa.id)
+      ) {
         this.addConceptoToMap(result, cc.tipoTarifa.id, cc.tipoConcepto.id);
       }
     });
 
     faltantes.tiposConcepto.forEach((concepto) => {
-      this.assignFaltanteConceptoToTarifas(concepto, result);
+      const tempMap = new Map<number, number[]>();
+      this.assignFaltanteConceptoToTarifas(concepto, tempMap);
+      tempMap.forEach((ids, tarifaId) => {
+        if (tarifasActivas.has(tarifaId)) {
+          ids.forEach((id) => this.addConceptoToMap(result, tarifaId, id));
+        }
+      });
     });
 
     return result;
@@ -1566,6 +1597,25 @@ export class UpdateClient implements OnInit {
     ]);
     const tarifasContador: TarifaContadorUpdate[] = [];
 
+    const originalTarifaSet = new Set(tarifasOriginales);
+    const actualTarifaSet = new Set(tarifasActuales);
+    const allTarifaIds = new Set<number>([
+      ...tarifasOriginales,
+      ...tarifasActuales,
+      ...pairs.map((p) => p.tarifaId),
+    ]);
+    allTarifaIds.forEach((tarifaId) => {
+      const originalActiva = originalTarifaSet.has(tarifaId);
+      const actualActiva = actualTarifaSet.has(tarifaId);
+      if (originalActiva !== actualActiva) {
+        tarifasContador.push({
+          idTipoTarifa: tarifaId,
+          aplica: actualActiva,
+        });
+      }
+    });
+
+    // 2) Cambios a nivel de CONCEPTO.
     pairs.forEach(({ tarifaId, conceptoId }) => {
       const originalAplica = this.isPairActive(
         tarifaId,

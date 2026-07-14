@@ -6,7 +6,9 @@ import { HttpClient, HttpParams } from "@angular/common/http";
 import { catchError, Observable, throwError } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";
 import { IFactura } from "@interfaces/Ifactura";
-import { IAbonoFactura, IAbonoFacturaResponse, IDeudaCliente } from "@interfaces/IdeudaFactura";
+import { IAbonoFactura } from "@interfaces/abono/IAbonoFactura";
+import { IAbonoFacturaResponse } from "@interfaces/abono/IAbonoFacturaResponse";
+import { IDeudaCliente } from "@interfaces/deuda/IDeudaCliente";
 import { IPaginatedResponse, IPaginationParams } from "@interfaces/IpaginatedResponse";
 
 export interface IAbonoMassive {

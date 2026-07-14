@@ -5,7 +5,8 @@ import { Router } from "@angular/router";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { catchError, Observable, throwError } from "rxjs";
 import { ApiResponse } from "@interfaces/Iresponse";
-import { IDeudaCliente, IDeudaClienteResponse } from "@interfaces/IdeudaFactura";
+import { IDeudaCliente } from "@interfaces/deuda/IDeudaCliente";
+import { IDeudaClienteResponse } from "@interfaces/deuda/IDeudaClienteResponse";
 import { IPaginatedResponse, IPaginationParams } from "@interfaces/IpaginatedResponse";
 import { IDeudaDetalle } from "@interfaces/IDeudaDetalle";
 

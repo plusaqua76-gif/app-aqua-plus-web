@@ -7,7 +7,7 @@ import { EnterpriseIdService } from '@services/enterpriceId.service';
 import { IBillDetailResponse, IPuntoPago } from '@interfaces/Ibill-detail';
 import { ColombianCurrencyPipe } from '@shared/pipes/colombian-currency.pipe';
 import { DeudaService } from '../../../modules/bill/service/deuda.service';
-import { IDeudaClienteResponse } from '@interfaces/IdeudaFactura';
+import { IDeudaClienteResponse } from '@interfaces/deuda/IDeudaClienteResponse';
 import { NgxBarcode6 } from 'ngx-barcode6';
 
 @Component({

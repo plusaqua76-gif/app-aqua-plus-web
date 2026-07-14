@@ -1,0 +1,158 @@
+.abono-receipt-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.abono-receipt-content {
+  width: 100%;
+  max-width: 28rem;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 14px;
+  line-height: 1.625;
+  padding: 28px;
+  box-sizing: border-box;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.abono-receipt-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.abono-receipt-logo {
+  display: block;
+  margin: 0 auto 12px;
+  max-width: 72px;
+  max-height: 72px;
+  object-fit: contain;
+}
+
+.abono-receipt-company-name {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.abono-receipt-company-line {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.abono-receipt-badge {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.abono-receipt-section {
+  margin-bottom: 16px;
+}
+
+.abono-receipt-section-title {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+}
+
+.abono-receipt-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+.abono-receipt-label {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.abono-receipt-value {
+  text-align: right;
+  font-weight: 600;
+  color: #111827;
+}
+
+.abono-receipt-description {
+  margin: 0 0 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f9fafb;
+  color: #374151;
+  font-size: 12px;
+}
+
+.abono-receipt-value-orange {
+  color: #c2410c;
+}
+
+.abono-receipt-value-blue {
+  color: #1d4ed8;
+}
+
+.abono-receipt-highlight {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+}
+
+.abono-receipt-highlight-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.abono-receipt-highlight-label {
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.abono-receipt-highlight-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #047857;
+}
+
+.abono-receipt-footer {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
+  text-align: center;
+}
+
+.abono-receipt-footer p {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.abono-receipt-thanks {
+  font-weight: 600;
+  color: #111827;
+}
+
+@media print {
+  .abono-receipt-content {
+    border: none;
+    border-radius: 0;
+    max-width: 100%;
+    padding: 0;
+  }
+}

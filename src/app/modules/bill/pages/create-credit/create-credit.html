@@ -1,155 +1,235 @@
-
-<<!-- Formulario de creación de crédito con estilos glassmorphism -->
+<!-- Formulario de registro de abono -->
 <div class="px-4 sm:px-6 lg:px-8 py-6">
-  <!-- Header con estilo similar al de crear cliente -->
   <div class="mb-6">
     <h1 class="text-2xl sm:text-3xl font-bold text-gray-700 dark:text-gray-200 mb-4">
       Registrar Abono
     </h1>
 
-    <!-- Breadcrumb o botón de regreso -->
     <div class="flex items-center gap-4 mb-6">
       <button
         type="button"
-        onclick="history.back()"
+        (click)="goBack()"
         class="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md text-gray-900 dark:text-white hover:bg-white/20 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300"
       >
-        <svg
-          class="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M15 19l-7-7 7-7"
-          />
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
         Volver
       </button>
     </div>
   </div>
 
-  <!-- Contenedor principal con estilo glassmorphism -->
-  <div class="relative overflow-hidden shadow-2xl sm:rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30">
-    <!-- Formulario -->
-    <form [formGroup]="abonoForm" (ngSubmit)="onSubmit()" class="p-6 sm:p-8">
-      <h2 class="text-xl font-semibold text-center mb-6 text-gray-700 dark:text-gray-200">Información del abono</h2>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Campo: Valor del abono -->
-        <div class="md:col-span-2 lg:col-span-3">
-          <label
-            for="valor"
-            class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
-          >
-            Valor del Abono <span class="text-red-500">*</span>
-          </label>
-          <div class="relative">
-            <input
-              id="valor"
-              formControlName="valor"
-              type="text"
-              placeholder="Ingrese el valor del abono..."
-              class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40"
-            />
-            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg
-                class="w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
+  @if (!debtDetail()) {
+    <div class="rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-center text-red-400">
+      No se pudo cargar la información de la deuda.
+    </div>
+  } @else {
+    <div class="max-w-4xl mx-auto space-y-6">
+      <!-- Resumen de la deuda (datos del backend) -->
+      <div class="relative overflow-hidden shadow-2xl rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 p-6 sm:p-8">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+          <div>
+            <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200">
+              Estado de la deuda
+            </h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {{ debtDetail()?.clienteNombre }}
+              @if (debtDetail()?.facturaCodigo) {
+                · Factura {{ debtDetail()?.facturaCodigo }}
+              }
+            </p>
           </div>
-          @if (abonoForm.get('valor')?.invalid && abonoForm.get('valor')?.touched) {
-          <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fill-rule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            El valor del abono es requerido
-          </p>
-          }
+          <div class="flex flex-wrap gap-2 text-xs">
+            <span class="px-3 py-1 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-300 border border-blue-500/20">
+              Capital pendiente: {{ saldoPendiente() | colombianCurrency }}
+            </span>
+            <span class="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/20">
+              Abonado: {{ totalAbonado() | colombianCurrency }}
+            </span>
+          </div>
         </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="rounded-xl border border-white/10 bg-white/10 dark:bg-slate-700/20 p-4">
+            <p class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400">Deuda original</p>
+            <p class="text-lg font-semibold text-gray-800 dark:text-gray-100 mt-1">
+              {{ valorTotalDeuda() | colombianCurrency }}
+            </p>
+          </div>
+          <div class="rounded-xl border border-blue-500/30 bg-blue-500/10 p-4">
+            <p class="text-[11px] uppercase tracking-wider text-blue-600 dark:text-blue-400">Valor cuota</p>
+            <p class="text-lg font-bold text-blue-700 dark:text-blue-300 mt-1">
+              {{ valorMes() | colombianCurrency }}
+            </p>
+          </div>
+        </div>
+
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-4 leading-relaxed">
+          El abono reduce únicamente el capital pendiente. El interés se calcula al consultar y no se descuenta automáticamente del saldo real.
+        </p>
       </div>
 
-      <!-- Botones de acción con estilo similar a crear cliente -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-white/10 dark:border-slate-700/30">
-        <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <span>Formulario de registro de abono</span>
-        </div>
 
-        <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-          <button
-            type="button"
-            onclick="history.back()"
-            class="w-full sm:w-auto bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-semibold py-3 px-6 rounded-xl hover:border-gray-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-gray-500/20 active:scale-95 flex items-center gap-3 justify-center"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-            Cancelar
-          </button>
+      <!-- Valor a pagar -->
+      <div class="relative overflow-hidden shadow-2xl rounded-2xl bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30">
+        <form [formGroup]="abonoForm" (ngSubmit)="onSubmit()" class="p-6 sm:p-8">
+          <h2 class="text-xl font-semibold text-center mb-6 text-gray-700 dark:text-gray-200">
+            Valor a pagar
+          </h2>
 
-          <button
-            type="submit"
-            [disabled]="abonoForm.invalid"
-            class="w-full sm:w-auto bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-semibold py-3 px-6 rounded-xl hover:border-blue-500/50 transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center gap-3 justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div class="flex flex-wrap gap-2 mb-6">
+            <button
+              type="button"
+              (click)="abonarUnaCuota()"
+              [disabled]="valorMes() <= 0 || saldoPendiente() <= 0"
+              class="px-3 py-2 text-xs font-semibold rounded-lg border border-blue-500/30 text-blue-600 dark:text-blue-300 hover:bg-blue-500/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5 13l4 4L19 7"
+              Sugerido mes ({{ valorMes() | colombianCurrency }})
+            </button>
+            <button
+              type="button"
+              (click)="abonarSaldoTotal()"
+              [disabled]="saldoPendiente() <= 0"
+              class="px-3 py-2 text-xs font-semibold rounded-lg border border-green-500/30 text-green-600 dark:text-green-300 hover:bg-green-500/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              Capital total ({{ saldoPendiente() | colombianCurrency }})
+            </button>
+          </div>
+
+          <div>
+            <label
+              for="valor"
+              class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 tracking-wider uppercase"
+            >
+              Valor del abono <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 pointer-events-none">$</span>
+              <input
+                id="valor"
+                formControlName="valor"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                placeholder="Ingrese un valor entero..."
+                (input)="onValorInput($event)"
+                class="w-full pl-8 pr-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300"
               />
-            </svg>
-            Guardar Abono
-          </button>
-        </div>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Solo valores enteros. Máximo: {{ saldoPendiente() | colombianCurrency }} (capital pendiente).
+              Puede abonar cualquier monto; no debe coincidir con la cuota sugerida.
+            </p>
+            @if (abonoForm.get('valor')?.invalid && abonoForm.get('valor')?.touched) {
+              <p class="text-red-500 text-sm mt-2">
+                Ingrese un valor entero mayor a cero
+              </p>
+            }
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-3 mt-8 pt-6 border-t border-white/10 dark:border-slate-700/30">
+            <button
+              type="button"
+              (click)="goBack()"
+              class="flex-1 bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/30 backdrop-blur-md text-gray-700 dark:text-gray-300 font-semibold py-3 px-6 rounded-xl transition-all duration-300"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              [disabled]="abonoForm.invalid || guardandoAbono() || saldoPendiente() <= 0"
+              class="flex-1 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 backdrop-blur-md text-blue-700 dark:text-blue-300 font-semibold py-3 px-6 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              @if (guardandoAbono()) {
+                <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Guardando...
+              } @else {
+                Guardar abono
+              }
+            </button>
+          </div>
+        </form>
       </div>
-    </form>
-  </div>
+    </div>
+  }
 </div>
 
+@if (showReceiptModal()) {
+<div class="fixed inset-0 z-[1000] overflow-y-auto">
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" (click)="closeReceiptModal()"></div>
+  <div class="flex min-h-full items-start justify-center p-4 pt-20">
+    <div class="relative w-full max-w-lg bg-white/10 dark:bg-slate-800/10 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl flex flex-col max-h-[calc(100vh-5.5rem)]">
+      <!-- Header del modal -->
+      <div class="flex-shrink-0 flex items-center justify-between p-6 border-b border-white/10 dark:border-slate-700/30">
+        <h3 class="text-xl font-bold text-gray-700 dark:text-gray-200 flex items-center gap-3">
+          <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          Comprobante de abono
+        </h3>
+        <button type="button" (click)="closeReceiptModal()" class="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/20 transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Cuerpo del modal -->
+      <div class="p-6 overflow-y-auto flex-1">
+        @if (receiptData()) {
+          <app-abono-receipt [receiptData]="receiptData()" />
+        }
+      </div>
+
+      <!-- Footer del modal -->
+      <div class="flex-shrink-0 flex flex-wrap justify-end gap-3 p-6 border-t border-white/10 dark:border-slate-700/30">
+        <button
+          type="button"
+          (click)="finishAndGoBack()"
+          class="px-5 py-2.5 rounded-xl border border-gray-400/30 bg-gray-500/10 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-500/20 transition-all"
+        >
+          Volver a deudas
+        </button>
+
+        <button
+          type="button"
+          (click)="printReceipt()"
+          [disabled]="procesandoPDF()"
+          class="px-5 py-2.5 rounded-xl border border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300 font-semibold hover:bg-green-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+        >
+          @if (imprimiendoPDF()) {
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Imprimiendo...
+          } @else {
+            Imprimir
+          }
+        </button>
+
+        <button
+          type="button"
+          (click)="downloadReceiptPdf()"
+          [disabled]="procesandoPDF()"
+          class="px-5 py-2.5 rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300 font-semibold hover:bg-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+        >
+          @if (descargandoPDF()) {
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Descargando...
+          } @else {
+            Descargar PDF
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+}

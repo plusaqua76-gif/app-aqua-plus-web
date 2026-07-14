@@ -1,20 +1,15 @@
-import { Component, computed, effect, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
-import { catchError, EMPTY, of } from 'rxjs';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
+import { catchError, of } from 'rxjs';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DeudaService } from '../../service/deuda.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EnterpriseClientCounterService } from '../../../client/service/enterpriseClientCounter.service';
 import { TipoDeudaService } from '../../service/tipoDeuda.service';
 import { FacturaService } from '../../service/factura.service';
-import { PlazoPagoService } from '../../service/plazoPago.service';
-import { IDeudaCliente, IPlazoPago, ITipoDeuda } from '@interfaces/IdeudaFactura';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { IEnterpriseClientCounter } from '@interfaces/IenterpriseClientCounter';
-import { IFactura, IfacturaResponse } from '@interfaces/Ifactura';
 import { ToastService } from '@services/toast.service';
-import { ApiResponse } from '@interfaces/Iresponse';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-update-debt',

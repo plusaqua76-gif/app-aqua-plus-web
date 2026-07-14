@@ -19,6 +19,7 @@ import { TableStateService } from '../../../../core/services/table-state.service
 import { catchError, of, firstValueFrom } from 'rxjs';
 import { PopupComponent } from '@shared/components/popUp';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
+import { IEnterpriseClientCounter } from '@interfaces/IenterpriseClientCounter';
 
 @Component({
   selector: 'app-client',
@@ -132,15 +133,92 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
             <p class="text-sm text-gray-500 dark:text-gray-400">Cliente: <span class="font-semibold text-gray-700 dark:text-gray-200">{{ saldoModalRow()?.nombreCompleto }}</span></p>
           </div>
 
-          <!-- Loading -->
-          @if (isSaldoLoading()) {
+          <!-- Selección de contador -->
+          <div class="px-6 pt-4">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase">
+              Contador <span class="text-red-500">*</span>
+            </label>
+
+            @if (countersForSaldo.isLoading()) {
+            <div class="flex items-center justify-center p-4 bg-white/5 dark:bg-gray-800/30 rounded-lg">
+              <svg class="animate-spin h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span class="text-sm text-gray-600 dark:text-gray-400">Cargando contadores...</span>
+            </div>
+            } @else if (countersForSaldo.error()) {
+            <div class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/30 rounded-lg">
+              <p class="text-sm text-red-600 dark:text-red-400">Error al cargar contadores</p>
+            </div>
+            } @else if (!countersForSaldo.value()?.response?.length) {
+            <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-500/30 rounded-lg">
+              <p class="text-sm text-yellow-700 dark:text-yellow-400">Este cliente no tiene contadores registrados</p>
+            </div>
+            } @else if (!selectedCounter()) {
+            <div class="space-y-2 max-h-48 overflow-y-auto">
+              @for (counter of countersForSaldo.value()!.response; track counter.id) {
+              <button
+                type="button"
+                (click)="selectCounterForSaldo(counter)"
+                class="w-full p-3 text-left rounded-lg border border-gray-300 dark:border-gray-600 bg-white/10 dark:bg-gray-800/30 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:border-emerald-300 dark:hover:border-emerald-500/50 transition-all"
+              >
+                <div class="relative flex flex-col gap-1">
+                  <span class="absolute top-0 right-0 text-sm font-semibold text-gray-900 dark:text-white">
+                    NUID: {{ counter.contador.nuid }}
+                  </span>
+                  <span class="text-sm font-semibold text-gray-900 dark:text-white">
+                    Serial: {{ counter.contador.serial }}
+                  </span>
+                  <span class="text-xs text-gray-600 dark:text-gray-400">
+                    {{ counter.contador.tipoContador.nombre }}
+                  </span>
+ 
+                </div>
+              </button>
+              }
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 mb-2">Seleccione el contador al que se aplicará el saldo a favor.</p>
+            } @else {
+            <div class="p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-500/30 rounded-lg">
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <p class="text-gray-900 dark:text-white font-semibold">
+                    Serial: {{ selectedCounter()?.contador?.serial }}
+                  </p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    NUID: {{ selectedCounter()?.contador?.nuid }}
+                  </p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    {{ selectedCounter()?.contador?.tipoContador?.nombre }}
+                  </p>
+                </div>
+                @if ((countersForSaldo.value()?.response?.length ?? 0) > 1) {
+                <button
+                  type="button"
+                  (click)="clearCounterForSaldo()"
+                  class="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-1"
+                  title="Cambiar contador"
+                >
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                }
+              </div>
+            </div>
+            }
+          </div>
+
+          <!-- Loading saldo -->
+          @if (selectedCounter() && isSaldoLoading()) {
           <div class="flex items-center justify-center py-12">
             <svg class="animate-spin h-8 w-8 text-emerald-500" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
             </svg>
           </div>
-          } @else {
+          } @else if (selectedCounter()) {
 
           <!-- Saldo existente badge -->
           @if (saldoExistente()) {
@@ -211,8 +289,8 @@ import { IPaginationParams } from '@interfaces/IpaginatedResponse';
                 class="px-5 py-2.5 rounded-xl border border-gray-400/30 bg-gray-500/10 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-500/20 transition-all">
                 Cancelar
               </button>
-              @if (!isSaldoLoading()) {
-              <button type="button" (click)="saveSaldo()" [disabled]="isSaldoSaving()"
+              @if (!isSaldoLoading() && !countersForSaldo.isLoading()) {
+              <button type="button" (click)="saveSaldo()" [disabled]="isSaldoSaving() || !selectedCounter()"
                 class="px-5 py-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold hover:bg-emerald-500/20 transition-all disabled:opacity-50 flex items-center gap-2">
                 @if (isSaldoSaving()) {
                 <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -256,10 +334,12 @@ export class Client {
   // Signals para modal de saldo
   isSaldoModalOpen = signal(false);
   saldoModalRow = signal<any>(null);
+  selectedCounter = signal<IEnterpriseClientCounter | null>(null);
   saldoExistente = signal<any>(null);
   isSaldoLoading = signal(false);
   isSaldoSaving = signal(false);
   showDeleteSaldoConfirm = signal(false);
+  private autoSelectCounterAttempted = signal(false);
 
   saldoForm!: FormGroup;
 
@@ -332,6 +412,27 @@ export class Client {
         }, 2000);
       }
     });
+
+    effect(() => {
+      if (!this.isSaldoModalOpen()) {
+        this.autoSelectCounterAttempted.set(false);
+        return;
+      }
+      if (this.autoSelectCounterAttempted() || this.selectedCounter()) {
+        return;
+      }
+
+      const counters = this.countersForSaldo.value()?.response;
+      if (!counters?.length || this.countersForSaldo.isLoading()) {
+        return;
+      }
+
+      this.autoSelectCounterAttempted.set(true);
+
+      if (counters.length === 1) {
+        this.selectCounterForSaldo(counters[0]);
+      }
+    });
   }
 
   readonly userData = computed(() => {
@@ -381,6 +482,28 @@ export class Client {
   });
 
   transformedData = computed(() => this.serverClientData.value() ?? null);
+
+  countersForSaldo = rxResource({
+    params: () => ({
+      open: this.isSaldoModalOpen(),
+      idEmpresa: this.enterpriseId(),
+      idPersona: this.saldoModalRow()?.id ?? null,
+    }),
+    stream: ({ params }) => {
+      const { open, idEmpresa, idPersona } = params;
+      if (!open || !idEmpresa || !idPersona) {
+        return of(null);
+      }
+      return this.enterpriseClientCounterService
+        .getCountersByEmpresaPersona(idEmpresa, idPersona)
+        .pipe(
+          catchError((error) => {
+            console.error('Error loading counters for saldo:', error);
+            return of(null);
+          })
+        );
+    },
+  });
 
   onToggle(row: any) {
     const nuevoEstado = !row.activo;
@@ -455,18 +578,40 @@ export class Client {
 
   openSaldoModal(row: any): void {
     this.saldoModalRow.set(row);
+    this.selectedCounter.set(null);
+    this.saldoExistente.set(null);
+    this.autoSelectCounterAttempted.set(false);
+    this.saldoForm.reset({ saldoTotal: 0, saldoDisponible: 0, cuotas: 1, activo: true });
+    this.isSaldoLoading.set(false);
+    this.isSaldoModalOpen.set(true);
+  }
+
+  closeSaldoModal(): void {
+    this.isSaldoModalOpen.set(false);
+    this.saldoModalRow.set(null);
+    this.selectedCounter.set(null);
+    this.saldoExistente.set(null);
+    this.autoSelectCounterAttempted.set(false);
+  }
+
+  selectCounterForSaldo(counter: IEnterpriseClientCounter): void {
+    this.selectedCounter.set(counter);
     this.saldoExistente.set(null);
     this.saldoForm.reset({ saldoTotal: 0, saldoDisponible: 0, cuotas: 1, activo: true });
-    this.isSaldoModalOpen.set(true);
+    this.loadSaldoForCounter(counter.id);
+  }
+
+  clearCounterForSaldo(): void {
+    this.selectedCounter.set(null);
+    this.saldoExistente.set(null);
+    this.autoSelectCounterAttempted.set(false);
+    this.saldoForm.reset({ saldoTotal: 0, saldoDisponible: 0, cuotas: 1, activo: true });
+  }
+
+  private loadSaldoForCounter(empresaClienteContadorId: number): void {
     this.isSaldoLoading.set(true);
 
-    const id = row?.empresaClienteContadorId;
-    if (!id) {
-      this.isSaldoLoading.set(false);
-      return;
-    }
-
-    this.saldoClienteService.getSaldoByEmpresaClienteContador(id).subscribe({
+    this.saldoClienteService.getSaldoByEmpresaClienteContador(empresaClienteContadorId).subscribe({
       next: (saldo) => {
         if (!saldo) {
           this.saldoExistente.set(null);
@@ -483,17 +628,10 @@ export class Client {
         this.isSaldoLoading.set(false);
       },
       error: () => {
-        // No existe saldo — formulario en blanco para crear
         this.saldoExistente.set(null);
         this.isSaldoLoading.set(false);
       },
     });
-  }
-
-  closeSaldoModal(): void {
-    this.isSaldoModalOpen.set(false);
-    this.saldoModalRow.set(null);
-    this.saldoExistente.set(null);
   }
 
   saveSaldo(): void {
@@ -502,8 +640,14 @@ export class Client {
       return;
     }
 
-    const row = this.saldoModalRow();
-    if (!row?.empresaClienteContadorId) return;
+    const contadorSeleccionado = this.selectedCounter();
+    if (!contadorSeleccionado?.id) {
+      this.toastService.warning(
+        'Contador requerido',
+        'Debe seleccionar un contador para asociar el saldo a favor.'
+      );
+      return;
+    }
 
     this.isSaldoSaving.set(true);
     const { saldoTotal, activo, cuotas } = this.saldoForm.value;
@@ -517,7 +661,7 @@ export class Client {
           fechaModificacion: new Date().toISOString(),
         })
       : this.saldoClienteService.createSaldo({
-          empresaClienteContador: { id: row.empresaClienteContadorId },
+          empresaClienteContador: { id: contadorSeleccionado.id },
           saldoTotal,
           saldoDisponible: saldoTotal,
           activo,

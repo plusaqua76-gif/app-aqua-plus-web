@@ -5,6 +5,10 @@ export interface IFacturasData {
     facturasPendientes: number[];
     facturasVencidas: number[];
   };
+  totalMontoPagadas?: number;
+  totalMontoPendientes?: number;
+  totalMontoVencidas?: number;
+  totalMontoRecaudado?: number;
 }
 
 export interface IFacturasSeries {

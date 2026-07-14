@@ -68,10 +68,8 @@ export const routes: Routes = [
       },
       {
         path: 'accounting',
-        loadChildren: () =>
-          import('./modules/accounting/accounting.route').then(
-            (m) => m.default
-          ),
+        redirectTo: 'Inventory/inventory',
+        pathMatch: 'full',
       },
       {
         path: 'start',

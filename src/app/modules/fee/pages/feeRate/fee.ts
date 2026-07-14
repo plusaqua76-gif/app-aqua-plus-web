@@ -59,7 +59,6 @@ import { AforoComponent } from '../aforo-configuration/aforo';
     Checkbox,
     AforoComponent
 ],
-  styleUrls: ['./fee.css'],
   templateUrl: './fee.html',
 })
 export class FeeComponent implements AfterViewInit {
