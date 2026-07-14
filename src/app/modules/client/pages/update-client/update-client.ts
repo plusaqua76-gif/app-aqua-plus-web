@@ -1433,12 +1433,38 @@ export class UpdateClient implements OnInit {
     };
   }
 
+  /**
+   * Determina si una tarifa está realmente activa en el contador.
+   * La fuente de verdad es la entrada "base" (sin tipoConcepto):
+   *  - Si existe al menos una entrada base, la tarifa está activa solo si alguna base aplica.
+   *    (Los conceptos con aplica=true se ignoran cuando la base dice aplica=false, porque son
+   *     residuales de una configuración anterior y no se facturan.)
+   *  - Si NO existe entrada base, se toma como activa si algún concepto aplica.
+   */
+  private isTarifaActivaEnContador(contadorData: any, tarifaId: number): boolean {
+    const entries = (contadorData?.tarifasContadores || []).filter(
+      (tc: any) => tc.tipoTarifa?.id === tarifaId,
+    );
+    if (entries.length === 0) {
+      return false;
+    }
+    const baseEntries = entries.filter((tc: any) => !tc.tipoConcepto?.id);
+    if (baseEntries.length > 0) {
+      return baseEntries.some((tc: any) => tc.aplica);
+    }
+    return entries.some((tc: any) => tc.aplica);
+  }
+
   private extractActiveTarifaIds(contadorData: any): number[] {
     const faltantes = this.parseTiposTarifaFaltantes(contadorData?.tiposTarifaFaltantes);
-    const fromTarifasContadores = (contadorData?.tarifasContadores || [])
-      .filter((tc: any) => tc.aplica)
-      .map((tc: any) => tc.tipoTarifa?.id)
-      .filter((id: number | undefined) => id !== undefined) as number[];
+    const tarifaIds = new Set<number>(
+      (contadorData?.tarifasContadores || [])
+        .map((tc: any) => tc.tipoTarifa?.id)
+        .filter((id: number | undefined) => id !== undefined) as number[],
+    );
+    const fromTarifasContadores = [...tarifaIds].filter((id) =>
+      this.isTarifaActivaEnContador(contadorData, id),
+    );
     const fromFaltantes = faltantes.tiposTarifa.map((t) => t.id);
     return [...new Set([...fromTarifasContadores, ...fromFaltantes])];
   }
@@ -1446,15 +1472,31 @@ export class UpdateClient implements OnInit {
   private extractActiveConceptosMap(contadorData: any): Map<number, number[]> {
     const result = new Map<number, number[]>();
     const faltantes = this.parseTiposTarifaFaltantes(contadorData?.tiposTarifaFaltantes);
+    // Conjunto de tarifas realmente activas (respeta la entrada base + faltantes tipo-tarifa).
+    const tarifasActivas = new Set(this.extractActiveTarifaIds(contadorData));
 
     (contadorData?.tarifasContadores || []).forEach((cc: any) => {
-      if (cc.aplica && cc.tipoTarifa?.id && cc.tipoConcepto?.id) {
+      if (
+        cc.aplica &&
+        cc.tipoTarifa?.id &&
+        cc.tipoConcepto?.id &&
+        tarifasActivas.has(cc.tipoTarifa.id)
+      ) {
         this.addConceptoToMap(result, cc.tipoTarifa.id, cc.tipoConcepto.id);
       }
     });
 
+    // Los conceptos faltantes solo se asignan a tarifas que estén activas.
+    // De lo contrario, una tarifa inactiva (base=false) recibiría conceptos y el modal
+    // la reactivaría por error, provocando que se facture como activa.
     faltantes.tiposConcepto.forEach((concepto) => {
-      this.assignFaltanteConceptoToTarifas(concepto, result);
+      const tempMap = new Map<number, number[]>();
+      this.assignFaltanteConceptoToTarifas(concepto, tempMap);
+      tempMap.forEach((ids, tarifaId) => {
+        if (tarifasActivas.has(tarifaId)) {
+          ids.forEach((id) => this.addConceptoToMap(result, tarifaId, id));
+        }
+      });
     });
 
     return result;
@@ -1566,6 +1608,28 @@ export class UpdateClient implements OnInit {
     ]);
     const tarifasContador: TarifaContadorUpdate[] = [];
 
+    // 1) Cambios a nivel de TARIFA (entrada base). Es la fuente de verdad del estado
+    //    activo/inactivo, por lo que debe enviarse cuando el usuario activa o inactiva
+    //    la tarifa; de lo contrario la entrada base quedaría en su valor previo.
+    const originalTarifaSet = new Set(tarifasOriginales);
+    const actualTarifaSet = new Set(tarifasActuales);
+    const allTarifaIds = new Set<number>([
+      ...tarifasOriginales,
+      ...tarifasActuales,
+      ...pairs.map((p) => p.tarifaId),
+    ]);
+    allTarifaIds.forEach((tarifaId) => {
+      const originalActiva = originalTarifaSet.has(tarifaId);
+      const actualActiva = actualTarifaSet.has(tarifaId);
+      if (originalActiva !== actualActiva) {
+        tarifasContador.push({
+          idTipoTarifa: tarifaId,
+          aplica: actualActiva,
+        });
+      }
+    });
+
+    // 2) Cambios a nivel de CONCEPTO.
     pairs.forEach(({ tarifaId, conceptoId }) => {
       const originalAplica = this.isPairActive(
         tarifaId,
