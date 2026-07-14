@@ -1597,9 +1597,6 @@ export class UpdateClient implements OnInit {
     ]);
     const tarifasContador: TarifaContadorUpdate[] = [];
 
-    // 1) Cambios a nivel de TARIFA (entrada base). Es la fuente de verdad del estado
-    //    activo/inactivo, por lo que debe enviarse cuando el usuario activa o inactiva
-    //    la tarifa; de lo contrario la entrada base quedaría en su valor previo.
     const originalTarifaSet = new Set(tarifasOriginales);
     const actualTarifaSet = new Set(tarifasActuales);
     const allTarifaIds = new Set<number>([
