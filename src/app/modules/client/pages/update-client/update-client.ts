@@ -1433,14 +1433,6 @@ export class UpdateClient implements OnInit {
     };
   }
 
-  /**
-   * Determina si una tarifa está realmente activa en el contador.
-   * La fuente de verdad es la entrada "base" (sin tipoConcepto):
-   *  - Si existe al menos una entrada base, la tarifa está activa solo si alguna base aplica.
-   *    (Los conceptos con aplica=true se ignoran cuando la base dice aplica=false, porque son
-   *     residuales de una configuración anterior y no se facturan.)
-   *  - Si NO existe entrada base, se toma como activa si algún concepto aplica.
-   */
   private isTarifaActivaEnContador(contadorData: any, tarifaId: number): boolean {
     const entries = (contadorData?.tarifasContadores || []).filter(
       (tc: any) => tc.tipoTarifa?.id === tarifaId,
