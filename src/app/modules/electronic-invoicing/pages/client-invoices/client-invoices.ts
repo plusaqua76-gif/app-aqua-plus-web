@@ -1,21 +1,24 @@
 import {
   Component,
   computed,
+  DestroyRef,
   effect,
   inject,
   PLATFORM_ID,
   signal,
   TemplateRef,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { DomSanitizer } from '@angular/platform-browser';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { InvoiceService } from '../../services/invoice.service';
 import { ToastService } from '@services/toast.service';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { of, catchError, firstValueFrom } from 'rxjs';
 import { TableComponent } from '@components/table';
+import { PopupComponent } from '@shared/components/popUp';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 import {
   getInvoiceEstadoLegalBadgeClass,
@@ -26,35 +29,35 @@ import {
 @Component({
   selector: 'app-client-invoices',
   standalone: true,
-  imports: [CommonModule, TableComponent, RouterModule],
+  imports: [CommonModule, TableComponent, RouterModule, PopupComponent],
   styles: [`
-    .pdf-content-wrapper {
-      flex: 1;
+    .pdf-document-content {
+      width: 100%;
+      min-height: 75vh;
+      max-height: 75vh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      min-height: 0;
     }
 
     .pdf-viewer-container {
-      width: 100%;
-      height: 100%;
       flex: 1;
+      width: 100%;
+      min-height: 0;
       display: flex;
-      align-items: stretch;
-      justify-content: center;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
     }
 
     .pdf-iframe {
       width: 100%;
       height: 100%;
+      min-height: 70vh;
       border: 0;
-      border-radius: 12px;
       background: white;
-      min-height: 500px;
     }
 
-    /* Estados de loading y error - centrados verticalmente */
     .state-container {
       flex: 1;
       display: flex;
@@ -63,10 +66,36 @@ import {
       min-height: 400px;
     }
 
-    /* Responsive para mobile */
+    .pdf-actions-bar {
+      position: sticky;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      padding: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      background: rgba(10, 12, 22, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
     @media (max-width: 767px) {
+      .pdf-document-content {
+        min-height: 65vh;
+        max-height: 65vh;
+      }
+
       .pdf-iframe {
-        min-height: 400px;
+        min-height: 55vh;
+      }
+
+      .pdf-actions-bar {
+        padding: 12px;
+        gap: 8px;
       }
     }
   `],
@@ -160,87 +189,112 @@ import {
     </app-table-dynamic>
 
     <!-- Popup para visualizar PDF de factura DIAN -->
-    @if (showPdfPopup()) {
-      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="closePdfPopup()">
-        <div class="bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col max-h-[95vh]" (click)="$event.stopPropagation()">
-          <!-- Modal Header -->
-          <div class="sticky top-0 bg-gradient-to-r from-[#2563eb00] to-blue-500 px-6 py-4 rounded-t-2xl flex-shrink-0 z-10">
-            <div class="flex items-center justify-between">
-              <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                <i class="fas fa-file-pdf"></i>
-                Documento Factura Electrónica DIAN
-              </h3>
+    <app-pop-up
+      [open]="showPdfPopup"
+      [isConfirmation]="false"
+      [title]="getPdfPopupTitle()"
+      [maxWidth]="'max-w-7xl'"
+      [contentPadding]="'p-2 sm:p-4'"
+      (cancelAction)="closePdfPopup()"
+    >
+      <div class="pdf-document-content">
+        @if (documentInvoiceDian.isLoading()) {
+          <div class="state-container">
+            <div class="flex flex-col justify-center items-center space-y-4">
+              <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-500/30 border-t-blue-500"></div>
+              <span class="text-white text-lg font-medium">Cargando documento...</span>
+            </div>
+          </div>
+        }
+
+        @if (documentInvoiceDian.error()) {
+          <div class="state-container">
+            <div class="flex flex-col justify-center items-center space-y-4">
+              <i class="fas fa-exclamation-triangle text-red-400 text-6xl"></i>
+              <p class="text-red-400 text-lg font-medium">Error al cargar el documento</p>
+              <p class="text-gray-400 text-sm">Por favor, intente nuevamente</p>
               <button
-                (click)="closePdfPopup()"
-                class="text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-lg"
+                type="button"
+                (click)="retryLoadDocument()"
+                class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <i class="fas fa-times text-xl"></i>
+                Reintentar
               </button>
             </div>
           </div>
+        }
 
-          <!-- Content - Área scrollable con flex-1 para ocupar todo el espacio -->
-          <div class="pdf-content-wrapper">
-            @if (documentInvoiceDian.isLoading()) {
-              <div class="state-container">
-                <div class="flex flex-col justify-center items-center space-y-4">
-                  <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-500/30 border-t-blue-500"></div>
-                  <span class="text-white text-lg font-medium">Cargando documento...</span>
-                </div>
-              </div>
-            }
-
-            @if (cachedPdfUrl()) {
-              <div class="pdf-viewer-container">
-                <iframe
-                  [src]="cachedPdfUrl()"
-                  class="pdf-iframe"
-                  title="Factura Electrónica PDF"
-                ></iframe>
-              </div>
-            }
-
-            @if (documentInvoiceDian.error()) {
-              <div class="state-container">
-                <div class="flex flex-col justify-center items-center space-y-4">
-                  <i class="fas fa-exclamation-triangle text-red-400 text-6xl"></i>
-                  <p class="text-red-400 text-lg font-medium">Error al cargar el documento</p>
-                  <p class="text-gray-400 text-sm">Por favor, intente nuevamente</p>
-                </div>
-              </div>
-            }
-
-            @if (!documentInvoiceDian.isLoading() && !cachedPdfUrl() && !documentInvoiceDian.error()) {
-              <div class="state-container">
-                <div class="flex flex-col justify-center items-center space-y-4">
-                  <i class="fas fa-file-slash text-gray-400 text-6xl"></i>
-                  <p class="text-gray-400 text-lg font-medium">No hay documento disponible</p>
-                </div>
-              </div>
-            }
+        @if (cachedPdfUrl()) {
+          <div class="pdf-viewer-container">
+            <iframe
+              [src]="cachedPdfUrl()"
+              class="pdf-iframe"
+              title="Factura Electrónica PDF"
+            ></iframe>
           </div>
 
-          <!-- Modal Footer - Sticky -->
-          <div class="sticky bottom-0 bg-white/10 dark:bg-slate-700/30 backdrop-blur-md border-t border-white/20 dark:border-slate-600/30 px-6 py-4 rounded-b-2xl flex justify-end gap-3 flex-shrink-0 z-10">
+          <div class="pdf-actions-bar">
             <button
-              (click)="downloadInvoice(selectedInvoiceForView()!)"
-              [disabled]="!cachedPdfUrl()"
-              class="px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              type="button"
+              (click)="printPdf()"
+              [disabled]="pdfAction() !== null"
+              class="inline-flex items-center justify-center rounded-xl border border-gray-500/70 bg-white/5 px-5 py-2.5 text-sm font-medium text-gray-200 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-gray-400/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Imprimir documento"
             >
-              <i class="fas fa-download"></i>
-              <span>Descargar PDF</span>
+              @if (pdfAction() === 'print') {
+                <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="ml-2">Preparando impresión...</span>
+              } @else {
+                <i class="fas fa-print"></i>
+                <span class="ml-2">Imprimir</span>
+              }
             </button>
+
             <button
-              (click)="closePdfPopup()"
-              class="px-4 py-3 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md text-gray-900 dark:text-white hover:bg-white/20 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 font-semibold flex items-center gap-2"
+              type="button"
+              (click)="downloadPdfFromPopup()"
+              [disabled]="pdfAction() !== null"
+              class="inline-flex items-center justify-center rounded-xl border border-green-600/70 bg-green-500/10 px-5 py-2.5 text-sm font-medium text-green-400 hover:bg-green-500/20 focus:outline-none focus:ring-2 focus:ring-green-400/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Descargar PDF"
             >
-              <i class="fas fa-times"></i>
-              <span>Cerrar</span>
+              @if (pdfAction() === 'download') {
+                <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="ml-2">Descargando...</span>
+              } @else {
+                <i class="fas fa-download"></i>
+                <span class="ml-2">Descargar PDF</span>
+              }
+            </button>
+
+            <button
+              type="button"
+              (click)="openPdfInNewTab()"
+              [disabled]="pdfAction() !== null"
+              class="inline-flex items-center justify-center rounded-xl border border-blue-600/70 bg-blue-500/10 px-5 py-2.5 text-sm font-medium text-blue-400 hover:bg-blue-500/20 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Abrir en nueva pestaña"
+            >
+              <i class="fas fa-external-link-alt"></i>
+              <span class="ml-2">Abrir en pestaña</span>
             </button>
           </div>
-        </div>
+        }
+
+        @if (!documentInvoiceDian.isLoading() && !cachedPdfUrl() && !documentInvoiceDian.error()) {
+          <div class="state-container">
+            <div class="flex flex-col justify-center items-center space-y-4">
+              <i class="fas fa-file-slash text-gray-400 text-6xl"></i>
+              <p class="text-gray-400 text-lg font-medium">No hay documento disponible</p>
+            </div>
+          </div>
+        }
       </div>
-    }
+    </app-pop-up>
   `,
 })
 export class ClientInvoices {
@@ -263,6 +317,11 @@ export class ClientInvoices {
   exportDataForTable = signal<any[] | null>(null);
   isLoadingExportData = signal(false);
   isDownloadingPdf = signal(false);
+  pdfAction = signal<'print' | 'download' | null>(null);
+  cachedPdfUrl = signal<SafeResourceUrl | null>(null);
+
+  private rawPdfBlobUrl: string | null = null;
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
     effect(() => {
@@ -272,14 +331,145 @@ export class ClientInvoices {
         setTimeout(() => this.exportDataForTable.set(null), 2000);
       }
     });
+
+    effect(() => {
+      const base64 = this.documentInvoiceDian.value()?.response?.file?.content;
+      const isOpen = this.showPdfPopup();
+
+      untracked(() => {
+        this.revokePdfBlobUrl();
+
+        if (base64 && isOpen) {
+          const blob = this.base64ToPdfBlob(base64);
+          this.rawPdfBlobUrl = URL.createObjectURL(blob);
+          const viewerUrl = `${this.rawPdfBlobUrl}#toolbar=1&navpanes=1&scrollbar=1&view=FitH`;
+          this.cachedPdfUrl.set(
+            this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl),
+          );
+        } else {
+          this.cachedPdfUrl.set(null);
+        }
+      });
+    });
+
+    this.destroyRef.onDestroy(() => this.revokePdfBlobUrl());
   }
 
-  cachedPdfUrl = computed(() => {
-    const base64 = this.documentInvoiceDian.value()?.response?.file?.content;
-    if (!base64) return null;
-    const dataUrl = `data:application/pdf;base64,${base64}`;
-    return this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
-  });
+  getPdfPopupTitle(): string {
+    const invoice = this.selectedInvoiceForView();
+    if (!invoice) {
+      return 'Documento Factura Electrónica DIAN';
+    }
+    const numero = invoice.numero || invoice.factura?.codigo;
+    return numero
+      ? `Factura Electrónica DIAN — ${numero}`
+      : 'Documento Factura Electrónica DIAN';
+  }
+
+  retryLoadDocument(): void {
+    this.documentInvoiceDian.reload();
+  }
+
+  private getCurrentPdfBase64(): string | null {
+    return this.documentInvoiceDian.value()?.response?.file?.content ?? null;
+  }
+
+  private base64ToPdfBlob(base64: string): Blob {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new Blob([bytes], { type: 'application/pdf' });
+  }
+
+  private revokePdfBlobUrl(): void {
+    if (this.rawPdfBlobUrl) {
+      URL.revokeObjectURL(this.rawPdfBlobUrl);
+      this.rawPdfBlobUrl = null;
+    }
+    this.cachedPdfUrl.set(null);
+  }
+
+  private getPdfFilename(invoice: any): string {
+    return `factura_electronica_${invoice?.numero || invoice?.idDian || 'documento'}.pdf`;
+  }
+
+  printPdf(): void {
+    const base64 = this.getCurrentPdfBase64();
+    if (!base64) {
+      this.toastService.warning('Advertencia', 'No hay documento disponible para imprimir');
+      return;
+    }
+
+    if (this.pdfAction()) {
+      return;
+    }
+
+    this.pdfAction.set('print');
+
+    try {
+      const blob = this.base64ToPdfBlob(base64);
+      const url = URL.createObjectURL(blob);
+      const printWindow = window.open(url, '_blank');
+
+      if (!printWindow) {
+        this.toastService.error(
+          'Error',
+          'El navegador bloqueó la ventana de impresión. Permita ventanas emergentes.',
+        );
+        URL.revokeObjectURL(url);
+        return;
+      }
+
+      printWindow.onload = () => {
+        printWindow.focus();
+        printWindow.print();
+      };
+
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      this.toastService.success('Éxito', 'Documento enviado a impresión');
+    } catch (error) {
+      console.error('Error al imprimir factura electrónica:', error);
+      this.toastService.error('Error', 'No se pudo imprimir el documento');
+    } finally {
+      this.pdfAction.set(null);
+    }
+  }
+
+  downloadPdfFromPopup(): void {
+    const invoice = this.selectedInvoiceForView();
+    if (!invoice) {
+      return;
+    }
+    void this.downloadInvoice(invoice);
+  }
+
+  openPdfInNewTab(): void {
+    const base64 = this.getCurrentPdfBase64();
+    if (!base64) {
+      this.toastService.warning('Advertencia', 'No hay documento disponible');
+      return;
+    }
+
+    const url = this.rawPdfBlobUrl ?? URL.createObjectURL(this.base64ToPdfBlob(base64));
+    const opened = window.open(url, '_blank');
+
+    if (!opened) {
+      this.toastService.error(
+        'Error',
+        'El navegador bloqueó la nueva pestaña. Permita ventanas emergentes.',
+      );
+      if (!this.rawPdfBlobUrl) {
+        URL.revokeObjectURL(url);
+      }
+      return;
+    }
+
+    if (!this.rawPdfBlobUrl) {
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    }
+  }
 
   invoiceColumns = signal([
     { field: 'numero', header: 'Factura', type: 'text' as const },
@@ -511,12 +701,13 @@ createCreditNote(invoice: any) {
       return;
     }
 
-    if (this.isDownloadingPdf()) {
+    if (this.isDownloadingPdf() || this.pdfAction()) {
       this.toastService.warning('Descarga en proceso', 'Espere a que termine la descarga actual');
       return;
     }
 
     this.isDownloadingPdf.set(true);
+    this.pdfAction.set('download');
     this.toastService.info('Descargando', 'Obteniendo documento PDF...');
 
     try {
@@ -537,19 +728,25 @@ createCreditNote(invoice: any) {
       this.toastService.error('Error', 'No se pudo descargar el documento');
     } finally {
       this.isDownloadingPdf.set(false);
+      this.pdfAction.set(null);
     }
   }
 
   private triggerPdfDownload(base64: string, invoice: any): void {
+    const blob = this.base64ToPdfBlob(base64);
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = `data:application/pdf;base64,${base64}`;
-    link.download = `factura_electronica_${invoice.numero || invoice.idDian}.pdf`;
+    link.href = url;
+    link.download = this.getPdfFilename(invoice);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 
   closePdfPopup(): void {
+    this.revokePdfBlobUrl();
+    this.pdfAction.set(null);
     this.showPdfPopup.set(false);
     this.selectedInvoiceForView.set(null);
   }
