@@ -7,6 +7,7 @@ export interface IDeudaCliente {
   id: number;
   empresaClienteContador: IEnterpriseClientCounter | { id: number };
   tipoDeuda: ITipoDeuda | { id: number; nombre?: string };
+  estado?: { id: number };
   plazoPago: number | IPlazoPago | string;
   factura?: IFactura | { id: number; codigo?: string };
   fechaDeuda: Date | string;

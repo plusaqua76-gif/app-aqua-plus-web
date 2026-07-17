@@ -69,7 +69,6 @@ export class CreateDebt  {
     fechaDeuda: [new Date().toISOString().split('T')[0], [Validators.required]],
     valor: ['', [Validators.required, Validators.min(0.01), Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
     estDeudaId: [null, []],
-    fechaCobro: [null],
     descripcion: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(500)]]
   });
 
@@ -104,19 +103,16 @@ export class CreateDebt  {
     effect(() => {
       const esPagoConAcuerdo = this.esPagoConAcuerdo();
       const plazoPagoControl = this.deudaForm.get('plazoPagoId');
-      const fechaCobroControl = this.deudaForm.get('fechaCobro');
+      const fechaDeudaControl = this.deudaForm.get('fechaDeuda');
       if (esPagoConAcuerdo) {
         plazoPagoControl?.clearValidators();
         plazoPagoControl?.setValue(null);
         plazoPagoControl?.updateValueAndValidity({ emitEvent: false });
-        fechaCobroControl?.setValidators([Validators.required]);
-        fechaCobroControl?.updateValueAndValidity({ emitEvent: false });
+        fechaDeudaControl?.setValidators([Validators.required]);
+        fechaDeudaControl?.updateValueAndValidity({ emitEvent: false });
       } else {
         plazoPagoControl?.setValidators([Validators.required]);
         plazoPagoControl?.updateValueAndValidity({ emitEvent: false });
-        fechaCobroControl?.clearValidators();
-        fechaCobroControl?.setValue(null);
-        fechaCobroControl?.updateValueAndValidity({ emitEvent: false });
       }
     });
   }
@@ -489,10 +485,6 @@ export class CreateDebt  {
       (tipo: ITipoDeuda) => tipo.id === Number(formValue.tipoDeudaId)
     );
 
-    const estDeudaSeleccionado = (this.estDeuda.value()?.response as IParametroGeneral[] | undefined)?.find(
-      (est: IParametroGeneral) => est.id === Number(formValue.estDeudaId)
-    );
-
     const plazoPagoSeleccionado = this.plazopago.value()?.response?.find(
       plazo => formValue.plazoPagoId && plazo.nombre === formValue.plazoPagoId
     );
@@ -521,12 +513,12 @@ export class CreateDebt  {
     // const valorTotal = valorBase + valorInteres;
 
     // Construir objeto deuda con payload limpio y correcto
-    const deuda: Partial<IDeudaCliente> & { fechaCobro?: Date } = {
+    const deuda: Partial<IDeudaCliente> = {
       empresaClienteContador: { id: contadorSeleccionado.id },
       tipoDeuda: { id: tipoDeudaSeleccionado.id },
+      ...(formValue.estDeudaId ? { estado: { id: Number(formValue.estDeudaId) } } : {}),
       ...(plazoPagoSeleccionado ? { plazoPago: plazoPagoSeleccionado.nombre } : {}),
       fechaDeuda: new Date(formValue.fechaDeuda!),
-      ...(esPagoConAcuerdo && formValue.fechaCobro ? { fechaCobro: new Date(formValue.fechaCobro) } : {}),
       valor: valorBase, // Enviar como número, no string
       descripcion: formValue.descripcion!,
       activo: true,
