@@ -7,6 +7,8 @@ import { IEmpresaContadorChartData } from '@interfaces/IEmpresaContadorConsumpti
 
 declare const ApexCharts: any;
 
+const CHART_HEIGHT = 260;
+
 interface ColumnSeries {
   name: string;
   data: { x: string; y: number }[];
@@ -19,10 +21,12 @@ interface ColumnChartOptions {
   chart: {
     type: 'bar';
     height: number | string;
+    width?: number | string;
     maxWidth?: string;
     fontFamily?: string;
     toolbar: { show: boolean };
     dropShadow?: { enabled: boolean };
+    background?: string;
   };
   plotOptions: {
     bar: {
@@ -61,6 +65,8 @@ interface ColumnChartOptions {
     position?: 'bottom' | 'top' | 'left' | 'right';
     horizontalAlign?: 'center' | 'left' | 'right';
     fontFamily?: string;
+    fontSize?: string;
+    itemMargin?: { horizontal: number; vertical: number };
   };
   xaxis: {
     type?: 'category';
@@ -98,42 +104,56 @@ interface ColumnChartOptions {
   standalone: true,
   imports: [DecimalPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styles: [`
+    :host { display: block; width: 100%; }
+    :host ::ng-deep .apexcharts-canvas,
+    :host ::ng-deep .apexcharts-svg,
+    :host ::ng-deep .apexcharts-inner {
+      background: transparent !important;
+    }
+  `],
   template: `
-<div class="relative z-10 w-full shadow-sm rounded-lg bg-white/20 dark:bg-slate-800/20 backdrop-blur-2xl p-4 md:p-6">
-  <div class="flex justify-between mb-5">
-    <div>
-      <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Consumo Empresa vs Clientes</h5>
-      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Comparación entre consumo de empresa y consumo de clientes</p>
+<div class="relative z-10 w-full bg-white/20 dark:bg-slate-800/20 backdrop-blur-xl rounded-2xl shadow-lg
+            border border-white/10 dark:border-slate-700/30 p-3 sm:p-4 transition-all duration-300">
+
+  <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+    <div class="min-w-0">
+      <h2 class="text-base sm:text-lg font-bold text-gray-900 dark:text-white tracking-tight leading-tight">
+        Consumo Empresa vs Clientes
+      </h2>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+        Comparación entre consumo de empresa y consumo de clientes
+      </p>
     </div>
   </div>
 
   @if (chartData() && chartData()!.xAxis.length > 0) {
-    <div class="grid grid-cols-2 pb-4 mb-4 border-b border-gray-200 dark:border-gray-700">
-      <dl class="flex items-center">
-        <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">Total Empresa:</dt>
-        <dd class="text-gray-900 dark:text-white text-sm font-semibold">{{ totalConsumoEmpresa() | number:'1.0-0':'es-CO' }} m³</dd>
+    <div class="grid grid-cols-2 gap-2 pb-2 mb-2 border-b border-gray-200/40 dark:border-slate-700/50">
+      <dl class="flex items-center min-w-0">
+        <dt class="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 me-1 shrink-0">Total Empresa</dt>
+        <dd class="text-xs font-semibold tabular-nums text-gray-800 dark:text-gray-100 truncate">{{ totalConsumoEmpresa() | number:'1.0-0':'es-CO' }} m³</dd>
       </dl>
-      <dl class="flex items-center justify-end">
-        <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">Total Clientes:</dt>
-        <dd class="text-gray-900 dark:text-white text-sm font-semibold">{{ totalConsumoClientes() | number:'1.0-0':'es-CO' }} m³</dd>
+      <dl class="flex items-center justify-end min-w-0">
+        <dt class="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 me-1 shrink-0">Total Clientes</dt>
+        <dd class="text-xs font-semibold tabular-nums text-gray-800 dark:text-gray-100 truncate">{{ totalConsumoClientes() | number:'1.0-0':'es-CO' }} m³</dd>
       </dl>
     </div>
 
-    <div id="empresa-contador-chart"></div>
+    <div id="empresa-contador-chart" class="w-full"></div>
   } @else {
-    <div class="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
+    <div class="flex items-center justify-center h-48 text-gray-500 dark:text-gray-400">
       <div class="text-center">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg class="mx-auto h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
         <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No hay datos disponibles</h3>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No se encontraron datos de consumo de empresa para mostrar.</p>
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">No se encontraron datos de consumo de empresa para mostrar.</p>
       </div>
     </div>
   }
 
-  <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between mt-5">
-    <div class="flex justify-between items-center pt-5">
+  <div class="border-t border-gray-200/40 dark:border-slate-700/50 mt-3 pt-3">
+    <div class="flex justify-between items-center">
       <div class="dropdown-container relative">
         <button
           (click)="toggleDropdown()"
@@ -515,11 +535,13 @@ export class EmpresaContadorChartComponent implements AfterViewInit, OnDestroy {
       series,
       chart: {
         type: 'bar',
-        height: 350,
+        height: CHART_HEIGHT,
+        width: '100%',
         maxWidth: '100%',
         fontFamily: 'Inter, sans-serif',
         toolbar: { show: false },
         dropShadow: { enabled: false },
+        background: 'transparent',
       },
       plotOptions: {
         bar: {
@@ -561,7 +583,9 @@ export class EmpresaContadorChartComponent implements AfterViewInit, OnDestroy {
         show: true,
         position: 'bottom',
         horizontalAlign: 'center',
-        fontFamily: 'Inter, sans-serif'
+        fontFamily: 'Inter, sans-serif',
+        fontSize: '11px',
+        itemMargin: { horizontal: 8, vertical: 0 },
       },
       xaxis: {
         type: 'category',
@@ -607,7 +631,7 @@ export class EmpresaContadorChartComponent implements AfterViewInit, OnDestroy {
         console.error('Error al renderizar el gráfico:', error);
       });
     } else if (el && !hasData) {
-      el.innerHTML = '<div class="flex items-center justify-center h-64 text-gray-500">No hay datos disponibles</div>';
+      el.innerHTML = '<div class="flex items-center justify-center h-48 text-gray-500 dark:text-gray-400 text-sm">No hay datos disponibles</div>';
     }
   }
 }
