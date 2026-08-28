@@ -28,6 +28,8 @@ import { IEnterpriseClientCounter } from '@interfaces/IenterpriseClientCounter';
   standalone: true,
 })
 export class CreateDebt  {
+  private static readonly ESTADO_DEUDA_PENDIENTE_CODIGO = 'PEND';
+
   // Exponer Array para usar en el template
   protected readonly Array = Array;
 
@@ -512,8 +514,23 @@ export class CreateDebt  {
     // const valorInteres = valorBase * (tasaInteres / 100);
     // const valorTotal = valorBase + valorInteres;
 
-    // Estado pendiente (id 43) por defecto si no se selecciona uno
-    const estadoDeudaId = formValue.estDeudaId ? Number(formValue.estDeudaId) : 43;
+    // Estado pendiente (codigo PEND) por defecto si no se selecciona uno
+    const estDeudaOptions = this.estDeuda.value()?.response as IParametroGeneral[] | undefined;
+    let estadoDeudaId: number;
+
+    if (formValue.estDeudaId) {
+      estadoDeudaId = Number(formValue.estDeudaId);
+    } else {
+      const estadoPendiente = estDeudaOptions?.find(
+        o => o.codigo === CreateDebt.ESTADO_DEUDA_PENDIENTE_CODIGO
+      );
+      if (!estadoPendiente) {
+        this.toastService.error('Error', 'No se pudo obtener el estado pendiente de deuda');
+        this.procesandoDeuda.set(false);
+        return;
+      }
+      estadoDeudaId = estadoPendiente.id;
+    }
 
     // Construir objeto deuda con payload limpio y correcto
     const deuda: Partial<IDeudaCliente> = {
