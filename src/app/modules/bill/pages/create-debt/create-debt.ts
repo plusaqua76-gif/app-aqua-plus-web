@@ -516,8 +516,8 @@ export class CreateDebt  {
     // const valorInteres = valorBase * (tasaInteres / 100);
     // const valorTotal = valorBase + valorInteres;
 
-    // Estado pendiente (id 43) por defecto si no se selecciona uno
-    const estadoDeudaId = formValue.estDeudaId ? Number(formValue.estDeudaId) : 43;
+    // Estado por defecto (id 46) si no se selecciona uno
+    const estadoDeudaId = formValue.estDeudaId ? Number(formValue.estDeudaId) : 46;
 
     // Construir objeto deuda con payload limpio y correcto
     const deuda: Partial<IDeudaCliente> = {
