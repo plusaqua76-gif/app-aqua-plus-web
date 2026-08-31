@@ -14,6 +14,11 @@ import { PagoService } from '@services/pago.service';
 import { CheckoutPagoResponse } from '@interfaces/pago/checkout-pago-response';
 import { WompiCheckoutSubmit } from '../../pagos/components/wompi-checkout-submit';
 import { ErrorHandlerService } from '@shared/services/error-handler.service';
+import {
+  calcularComisionWompi,
+  formatCop,
+  WompiFeeBreakdown,
+} from '../../../core/utils/wompi-fee.util';
 
 
 @Component({
@@ -485,8 +490,65 @@ import { ErrorHandlerService } from '@shared/services/error-handler.service';
         </div>
       </app-pop-up>
 
+      @if (feeConfirmOpen() && feeBreakdown(); as fee) {
+        <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+          <div class="w-full max-w-md rounded-3xl border border-white/10 bg-[#0b1220] p-6 shadow-2xl">
+            <h2 class="text-lg font-bold text-white">Confirmar pago</h2>
+            <p class="mt-1 text-sm text-white/50">
+              Al pagar en línea se suma el costo de la pasarela Wompi. Revisa el desglose antes de continuar.
+            </p>
+
+            <div class="mt-5 space-y-2 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm">
+              <div class="flex items-center justify-between text-white/70">
+                <span>Valor de la factura</span>
+                <span class="font-medium text-white">{{ formatMoney(fee.factura) }}</span>
+              </div>
+              <div class="flex items-center justify-between text-white/70">
+                <span>Comisión Wompi (2,65% + $700)</span>
+                <span class="font-medium text-white">{{ formatMoney(fee.comision) }}</span>
+              </div>
+              <div class="flex items-center justify-between text-white/70">
+                <span>IVA 19% sobre comisión</span>
+                <span class="font-medium text-white">{{ formatMoney(fee.iva) }}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-white/10 pt-2 text-white/70">
+                <span>Costo de la transferencia</span>
+                <span class="font-semibold text-amber-300">{{ formatMoney(fee.feeTotal) }}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-white/10 pt-3">
+                <span class="font-semibold text-white">Total a pagar</span>
+                <span class="text-lg font-bold text-blue-300">{{ formatMoney(fee.totalCobrar) }}</span>
+              </div>
+            </div>
+
+            <p class="mt-3 text-xs leading-relaxed text-white/40">
+              Este valor es el que se enviará a Wompi. El IVA aplica solo sobre la comisión, no sobre el valor de la factura.
+            </p>
+
+            <div class="mt-6 flex flex-col gap-2 sm:flex-row-reverse">
+              <button
+                type="button"
+                (click)="confirmFeeAndPay()"
+                [disabled]="checkoutPending()"
+                class="inline-flex flex-1 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#1d4ed8,#3b82f6,#1e40af)] py-3 text-sm font-bold text-white disabled:opacity-50"
+              >
+                Continuar a Wompi
+              </button>
+              <button
+                type="button"
+                (click)="cancelFeeConfirm()"
+                [disabled]="checkoutPending()"
+                class="inline-flex flex-1 items-center justify-center rounded-2xl border border-white/15 bg-white/[0.03] py-3 text-sm font-medium text-white/70 hover:bg-white/[0.06] disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
       @if (checkoutPending()) {
-        <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+        <div class="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div class="mx-4 w-full max-w-sm rounded-3xl border border-white/10 bg-black/70 p-8 text-center">
             <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-500/15 text-blue-400">
               <svg class="h-7 w-7 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -630,6 +692,8 @@ export class BillUsers {
   procesandoPDF = signal(false);
   checkoutPending = signal(false);
   checkoutData = signal<CheckoutPagoResponse | null>(null);
+  feeConfirmOpen = signal(false);
+  feeBreakdown = signal<WompiFeeBreakdown | null>(null);
 
   userColumns = signal([
     { field: 'codigo', header: 'Código', type: 'text' as const },
@@ -990,15 +1054,55 @@ goToPyment(): void {
     return;
   }
 
+  if (bill.precio == null || bill.precio <= 0) {
+    this.toastService.error('Error', 'La factura no tiene un valor válido para pagar');
+    return;
+  }
+
   if (this.checkoutPending()) {
     return;
   }
+
+  try {
+    this.feeBreakdown.set(calcularComisionWompi(Number(bill.precio)));
+    this.feeConfirmOpen.set(true);
+  } catch {
+    this.toastService.error('Error', 'No se pudo calcular el costo de la transferencia');
+  }
+}
+
+formatMoney(value: number): string {
+  return formatCop(value);
+}
+
+cancelFeeConfirm(): void {
+  if (this.checkoutPending()) return;
+  this.feeConfirmOpen.set(false);
+  this.feeBreakdown.set(null);
+}
+
+confirmFeeAndPay(): void {
+  const bill = this.selectedBillRow();
+  const expected = this.feeBreakdown();
+  if (!bill?.id || !expected) return;
+  if (this.checkoutPending()) return;
 
   this.checkoutPending.set(true);
   this.pagoService.crearCheckout(bill.id).subscribe({
     next: (res) => {
       if (res.success && res.response) {
-        this.checkoutData.set(res.response);
+        const checkout = res.response;
+        if (checkout.amountInCents !== expected.totalAmountInCents) {
+          this.checkoutPending.set(false);
+          this.feeConfirmOpen.set(false);
+          this.toastService.error(
+            'Error',
+            'El monto del checkout no coincide con el desglose. Intenta de nuevo o contacta soporte.'
+          );
+          return;
+        }
+        this.feeConfirmOpen.set(false);
+        this.checkoutData.set(checkout);
         return;
       }
       this.checkoutPending.set(false);
