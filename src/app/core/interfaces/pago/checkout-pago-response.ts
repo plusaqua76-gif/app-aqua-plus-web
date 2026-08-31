@@ -17,4 +17,5 @@ export interface CheckoutPagoResponse {
   reference: string;
   signatureIntegrity: string;
   redirectUrl: string;
+  
 }
