@@ -211,7 +211,36 @@ import {
             </span>
           </button>
 
+          <button
+            type="button"
+            (click)="downloadColillasTemplate()"
+            class="group/item flex items-center w-9 hover:w-[11rem] px-2 hover:px-3
+                  bg-white/10 dark:bg-slate-800/20
+                  backdrop-blur-[35px] border border-white/20
+                  text-white rounded-full overflow-hidden cursor-pointer
+                  transition-all duration-300 ease-out"
+            [style.height]="isActionsDropdownOpen() ? '2.25rem' : '0'"
+            [style.margin-top]="isActionsDropdownOpen() ? '0.4rem' : '0'"
+            [style.opacity]="isActionsDropdownOpen() ? '1' : '0'"
+            [class.pointer-events-none]="!isActionsDropdownOpen()"
+            title="Descargar plantilla Excel"
+          >
+            <div class="flex items-center justify-center min-w-[20px]
+                        transition-transform duration-300 ease-in-out
+                        group-hover/item:-translate-x-1">
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 10v6m0 0-3-3m3 3 3-3M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2M12 4v6"/>
+              </svg>
+            </div>
 
+            <span class="ml-2 whitespace-nowrap opacity-0 -translate-x-3
+                        group-hover/item:opacity-100 group-hover/item:translate-x-0
+                        transition-all duration-300 ease-in-out
+                        text-xs font-medium">
+              Descargar plantilla
+            </span>
+          </button>
 
             </div>
           </div>
@@ -908,6 +937,23 @@ export class Header {
       this.fileInput.nativeElement.click();
     } else {
       console.error('fileInput no está definido');
+    }
+  }
+
+  async downloadColillasTemplate(): Promise<void> {
+    try {
+      const XLSX = await import('xlsx');
+      const rows = [
+        { idFactura: '', valorPago: '' },
+        { idFactura: 12345, valorPago: 50000 },
+      ];
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      worksheet['!cols'] = [{ wch: 14 }, { wch: 14 }];
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Colillas');
+      XLSX.writeFile(workbook, 'plantilla-cargue-colillas.xlsx');
+    } catch (error) {
+      console.error('Error al generar la plantilla de colillas:', error);
     }
   }
 

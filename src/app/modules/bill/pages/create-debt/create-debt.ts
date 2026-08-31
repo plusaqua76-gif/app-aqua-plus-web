@@ -28,6 +28,8 @@ import { IEnterpriseClientCounter } from '@interfaces/IenterpriseClientCounter';
   standalone: true,
 })
 export class CreateDebt  {
+  private static readonly ESTADO_DEUDA_PENDIENTE_CODIGO = 'PEND';
+
   // Exponer Array para usar en el template
   protected readonly Array = Array;
 
@@ -67,6 +69,7 @@ export class CreateDebt  {
     plazoPagoId: [null, [Validators.required]],
     facturaId: [null],
     fechaDeuda: [new Date().toISOString().split('T')[0], [Validators.required]],
+    fechaCobro: [null as string | null],
     valor: ['', [Validators.required, Validators.min(0.01), Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
     estDeudaId: [null, []],
     descripcion: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(500)]]
@@ -103,16 +106,19 @@ export class CreateDebt  {
     effect(() => {
       const esPagoConAcuerdo = this.esPagoConAcuerdo();
       const plazoPagoControl = this.deudaForm.get('plazoPagoId');
-      const fechaDeudaControl = this.deudaForm.get('fechaDeuda');
+      const fechaCobroControl = this.deudaForm.get('fechaCobro');
       if (esPagoConAcuerdo) {
         plazoPagoControl?.clearValidators();
         plazoPagoControl?.setValue(null);
         plazoPagoControl?.updateValueAndValidity({ emitEvent: false });
-        fechaDeudaControl?.setValidators([Validators.required]);
-        fechaDeudaControl?.updateValueAndValidity({ emitEvent: false });
+        fechaCobroControl?.setValidators([Validators.required]);
+        fechaCobroControl?.updateValueAndValidity({ emitEvent: false });
       } else {
         plazoPagoControl?.setValidators([Validators.required]);
         plazoPagoControl?.updateValueAndValidity({ emitEvent: false });
+        fechaCobroControl?.clearValidators();
+        fechaCobroControl?.setValue(null);
+        fechaCobroControl?.updateValueAndValidity({ emitEvent: false });
       }
     });
   }
@@ -512,8 +518,23 @@ export class CreateDebt  {
     // const valorInteres = valorBase * (tasaInteres / 100);
     // const valorTotal = valorBase + valorInteres;
 
-    // Estado pendiente (id 43) por defecto si no se selecciona uno
-    const estadoDeudaId = formValue.estDeudaId ? Number(formValue.estDeudaId) : 43;
+    // Estado pendiente (codigo PEND) por defecto si no se selecciona uno
+    const estDeudaOptions = this.estDeuda.value()?.response as IParametroGeneral[] | undefined;
+    let estadoDeudaId: number;
+
+    if (formValue.estDeudaId) {
+      estadoDeudaId = Number(formValue.estDeudaId);
+    } else {
+      const estadoPendiente = estDeudaOptions?.find(
+        o => o.codigo === CreateDebt.ESTADO_DEUDA_PENDIENTE_CODIGO
+      );
+      if (!estadoPendiente) {
+        this.toastService.error('Error', 'No se pudo obtener el estado pendiente de deuda');
+        this.procesandoDeuda.set(false);
+        return;
+      }
+      estadoDeudaId = estadoPendiente.id;
+    }
 
     // Construir objeto deuda con payload limpio y correcto
     const deuda: Partial<IDeudaCliente> = {
@@ -521,7 +542,10 @@ export class CreateDebt  {
       tipoDeuda: { id: tipoDeudaSeleccionado.id },
       estado: { id: estadoDeudaId },
       ...(plazoPagoSeleccionado ? { plazoPago: plazoPagoSeleccionado.nombre } : {}),
-      fechaDeuda: new Date(formValue.fechaDeuda!),
+      fechaDeuda: formValue.fechaDeuda!,
+      ...(esPagoConAcuerdo && formValue.fechaCobro
+        ? { fechaCobro: formValue.fechaCobro }
+        : {}),
       valor: valorBase, // Enviar como número, no string
       descripcion: formValue.descripcion!,
       activo: true,
@@ -561,7 +585,8 @@ export class CreateDebt  {
 
   private resetForm(): void {
     this.deudaForm.reset({
-      fechaDeuda: new Date().toISOString().split('T')[0]
+      fechaDeuda: new Date().toISOString().split('T')[0],
+      fechaCobro: null
     });
     this.clearClient();
     this.procesandoDeuda.set(false);

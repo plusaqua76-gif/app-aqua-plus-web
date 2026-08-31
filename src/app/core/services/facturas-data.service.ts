@@ -108,6 +108,10 @@ export class FacturasDataService {
     const facturasPendientes: number[] = [];
     const facturasVencidas: number[] = [];
 
+    let totalMontoPagadas = 0;
+    let totalMontoPendientes = 0;
+    let totalMontoVencidas = 0;
+
     for (const mesData of meses) {
       if (mesData.periodo.mes === null) continue;
       const nombreMes = nombresMeses[mesData.periodo.mes - 1];
@@ -116,6 +120,9 @@ export class FacturasDataService {
       facturasPagadas.push(mesData.facturasPagadas.total);
       facturasPendientes.push(mesData.facturasPendientes.total);
       facturasVencidas.push(mesData.facturasVencidas.total);
+      totalMontoPagadas    += mesData.facturasPagadas.totalMonto    ?? 0;
+      totalMontoPendientes += mesData.facturasPendientes.totalMonto ?? 0;
+      totalMontoVencidas   += mesData.facturasVencidas.totalMonto   ?? 0;
     }
 
     return {
@@ -124,7 +131,11 @@ export class FacturasDataService {
         facturasPagadas,
         facturasPendientes,
         facturasVencidas
-      }
+      },
+      totalMontoPagadas,
+      totalMontoPendientes,
+      totalMontoVencidas,
+      totalMontoRecaudado: totalMontoPagadas,
     };
   }
 
@@ -154,6 +165,10 @@ export class FacturasDataService {
     // Si no hay meses con datos, mostrar todos los meses para mantener la estructura
     const mesesAMostrar = mesesConDatos.length > 0 ? mesesConDatos : response.porMes;
 
+    let totalMontoPagadas = 0;
+    let totalMontoPendientes = 0;
+    let totalMontoVencidas = 0;
+
     for (const mesData of mesesAMostrar) {
       const nombreMes = nombresMeses[mesData.mes - 1];
 
@@ -161,6 +176,9 @@ export class FacturasDataService {
       facturasPagadas.push(mesData.pagadas.total);
       facturasPendientes.push(mesData.pendientes.total);
       facturasVencidas.push(mesData.vencidas.total);
+      totalMontoPagadas    += mesData.pagadas.totalMonto    ?? 0;
+      totalMontoPendientes += mesData.pendientes.totalMonto ?? 0;
+      totalMontoVencidas   += mesData.vencidas.totalMonto   ?? 0;
     }
 
     return {
@@ -169,7 +187,11 @@ export class FacturasDataService {
         facturasPagadas,
         facturasPendientes,
         facturasVencidas
-      }
+      },
+      totalMontoPagadas,
+      totalMontoPendientes,
+      totalMontoVencidas,
+      totalMontoRecaudado: totalMontoPagadas,
     };
   }
 }

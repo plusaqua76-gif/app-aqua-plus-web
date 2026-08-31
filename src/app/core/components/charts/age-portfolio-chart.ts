@@ -1,86 +1,141 @@
-import { isPlatformBrowser, DecimalPipe, NgClass } from '@angular/common';
+import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, Component, effect, inject, input, OnDestroy, PLATFORM_ID, signal } from '@angular/core';
 import { ColombianCurrencyPipe } from '../../../shared/pipes/colombian-currency.pipe';
 import { CarteraEdadesFacturas } from '../../interfaces/accounting/ICarteraEdadesFacturas';
 
-
 declare const ApexCharts: any;
 
-
+const DEFAULT_CHART_HEIGHT  = 350;
+const EMBEDDED_CHART_HEIGHT = 280;
 
 @Component({
   selector: 'app-age-portfolio-chart',
   standalone: true,
-  imports: [ ColombianCurrencyPipe],
+  imports: [CommonModule, ColombianCurrencyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styles: [`
+    :host { display: block; }
+    :host ::ng-deep .apexcharts-canvas,
+    :host ::ng-deep .apexcharts-svg,
+    :host ::ng-deep .apexcharts-inner {
+      background: transparent !important;
+    }
+    .embedded-total-detail {
+      display: flex;
+      align-items: baseline;
+      justify-content: flex-end;
+      gap: 0.375rem;
+      line-height: 1.2;
+    }
+    .embedded-total-value {
+      font-size: smaller;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+  `],
   template: `
-<div class="relative z-10 w-full shadow-sm rounded-lg bg-white/20 dark:bg-slate-800/20 backdrop-blur-2xl p-4 md:p-6">
-  <div class="flex justify-between items-center mb-5">
-    <div>
-      <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Cartera por edades</h5>
-      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Distribución de cartera según antigüedad de deuda</p>
-    </div>
-    <div class="flex items-center">
-      <button
-        (click)="loadData()"
-        type="button"
-        class="text-gray-500 w-8 h-8 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm inline-flex items-center justify-center">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-        </svg>
-        <span class="sr-only">Actualizar</span>
-      </button>
-    </div>
-  </div>
+<div class="relative w-full"
+     [class]="embedded()
+       ? 'bg-transparent p-0'
+       : 'z-10 shadow-sm rounded-lg bg-white/20 dark:bg-slate-800/20 backdrop-blur-2xl p-4 md:p-6'">
 
-  @if (chartData()) {
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pb-4 mb-4 border-b border-gray-200 dark:border-gray-700">
-      <dl class="flex flex-col items-center justify-center">
-        <dt class="text-gray-500 dark:text-gray-400 text-xs font-normal mb-1">0-30 días</dt>
-        <dd class="text-gray-900 dark:text-white text-lg font-semibold">{{ chartData()!['0-30'] | colombianCurrency }}</dd>
-        <dd class="text-gray-500 dark:text-gray-400 text-xs mt-1">{{ debtCount()!['0-30'] }} deudas</dd>
-      </dl>
-      <dl class="flex flex-col items-center justify-center">
-        <dt class="text-gray-500 dark:text-gray-400 text-xs font-normal mb-1">31-60 días</dt>
-        <dd class="text-gray-900 dark:text-white text-lg font-semibold">{{ chartData()!['31-60'] | colombianCurrency }}</dd>
-        <dd class="text-gray-500 dark:text-gray-400 text-xs mt-1">{{ debtCount()!['31-60'] }} deudas</dd>
-      </dl>
-      <dl class="flex flex-col items-center justify-center">
-        <dt class="text-gray-500 dark:text-gray-400 text-xs font-normal mb-1">61-90 días</dt>
-        <dd class="text-gray-900 dark:text-white text-lg font-semibold">{{ chartData()!['61-90'] | colombianCurrency }}</dd>
-        <dd class="text-gray-500 dark:text-gray-400 text-xs mt-1">{{ debtCount()!['61-90'] }} deudas</dd>
-      </dl>
-      <dl class="flex flex-col items-center justify-center">
-        <dt class="text-gray-500 dark:text-gray-400 text-xs font-normal mb-1">90+ días</dt>
-        <dd class="text-gray-900 dark:text-white text-lg font-semibold">{{ chartData()!['90+'] | colombianCurrency }}</dd>
-        <dd class="text-gray-500 dark:text-gray-400 text-xs mt-1">{{ debtCount()!['90+'] }} deudas</dd>
-      </dl>
-    </div>
-
-    <div id="age-portfolio-chart"></div>
-
-    <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between mt-5 pt-5">
-      <div class="flex justify-between items-center">
-        <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
-          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-          </svg>
-          Total cartera: <strong class="ml-1">{{ totalCartera() | colombianCurrency }}</strong>
-        </div>
-        <!-- <div class="text-sm font-medium"
-             [ngClass]="carteraVencidaPercentage() < 30 ? 'text-green-500 dark:text-green-500' : carteraVencidaPercentage() < 50 ? 'text-yellow-500 dark:text-yellow-500' : 'text-red-500 dark:text-red-500'">
-          {{ carteraVencidaPercentage() | number:'1.0-1':'es-CO' }}% vencida (>30 días)
-        </div> -->
-      </div>
+  @if (embedded()) {
+    <div class="flex items-center justify-between gap-2 mb-1">
+      <h3 class="text-xs font-semibold text-gray-600 dark:text-gray-400 shrink-0">
+        Cartera por edades
+      </h3>
     </div>
   } @else {
-    <div class="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
+    <div class="flex justify-between items-center mb-5">
+      <div>
+        <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Cartera por edades</h5>
+        <p class="text-base font-normal text-gray-500 dark:text-gray-400">Distribución de cartera según antigüedad de deuda</p>
+      </div>
+      <div class="flex items-center">
+        <button
+          (click)="loadData()"
+          type="button"
+          class="text-gray-500 w-8 h-8 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm inline-flex items-center justify-center">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          <span class="sr-only">Actualizar</span>
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (chartData()) {
+    <div [class]="embedded()
+      ? 'grid grid-cols-4 gap-1 mb-1'
+      : 'grid grid-cols-2 md:grid-cols-4 gap-4 pb-4 mb-4 border-b border-gray-200 dark:border-gray-700'">
+
+      <dl [class]="embedded() ? 'min-w-0 text-center' : 'flex flex-col items-center justify-center'">
+        <dt [class]="embedded() ? 'text-[9px] text-gray-500 dark:text-gray-400' : 'text-gray-500 dark:text-gray-400 text-xs font-normal mb-1'">0-30 días</dt>
+        <dd [class]="embedded() ? 'text-[10px] font-semibold tabular-nums text-gray-800 dark:text-gray-100 truncate' : 'text-gray-900 dark:text-white text-lg font-semibold'">{{ chartData()!['0-30'] | colombianCurrency }}</dd>
+        @if (!embedded()) {
+          <dd class="text-gray-500 dark:text-gray-400 text-xs mt-1">{{ debtCount()!['0-30'] }} deudas</dd>
+        }
+      </dl>
+      <dl [class]="embedded() ? 'min-w-0 text-center' : 'flex flex-col items-center justify-center'">
+        <dt [class]="embedded() ? 'text-[9px] text-gray-500 dark:text-gray-400' : 'text-gray-500 dark:text-gray-400 text-xs font-normal mb-1'">31-60 días</dt>
+        <dd [class]="embedded() ? 'text-[10px] font-semibold tabular-nums text-gray-800 dark:text-gray-100 truncate' : 'text-gray-900 dark:text-white text-lg font-semibold'">{{ chartData()!['31-60'] | colombianCurrency }}</dd>
+        @if (!embedded()) {
+          <dd class="text-gray-500 dark:text-gray-400 text-xs mt-1">{{ debtCount()!['31-60'] }} deudas</dd>
+        }
+      </dl>
+      <dl [class]="embedded() ? 'min-w-0 text-center' : 'flex flex-col items-center justify-center'">
+        <dt [class]="embedded() ? 'text-[9px] text-gray-500 dark:text-gray-400' : 'text-gray-500 dark:text-gray-400 text-xs font-normal mb-1'">61-90 días</dt>
+        <dd [class]="embedded() ? 'text-[10px] font-semibold tabular-nums text-gray-800 dark:text-gray-100 truncate' : 'text-gray-900 dark:text-white text-lg font-semibold'">{{ chartData()!['61-90'] | colombianCurrency }}</dd>
+        @if (!embedded()) {
+          <dd class="text-gray-500 dark:text-gray-400 text-xs mt-1">{{ debtCount()!['61-90'] }} deudas</dd>
+        }
+      </dl>
+      <dl [class]="embedded() ? 'min-w-0 text-center' : 'flex flex-col items-center justify-center'">
+        <dt [class]="embedded() ? 'text-[9px] text-gray-500 dark:text-gray-400' : 'text-gray-500 dark:text-gray-400 text-xs font-normal mb-1'">90+ días</dt>
+        <dd [class]="embedded() ? 'text-[10px] font-semibold tabular-nums text-gray-800 dark:text-gray-100 truncate' : 'text-gray-900 dark:text-white text-lg font-semibold'">{{ chartData()!['90+'] | colombianCurrency }}</dd>
+        @if (!embedded()) {
+          <dd class="text-gray-500 dark:text-gray-400 text-xs mt-1">{{ debtCount()!['90+'] }} deudas</dd>
+        }
+      </dl>
+    </div>
+
+    <div [id]="chartElementId"
+         class="w-full"
+         [style.height.px]="embedded() ? resolvedEmbeddedHeight : null"></div>
+
+    @if (embedded() && chartData()) {
+      <p class="embedded-total-detail mt-1.5 pt-1.5 border-t border-white/10 dark:border-slate-700/30 px-0.5">
+        <span class="text-[10px] text-gray-500 dark:text-gray-400">Total cartera</span>
+        <strong class="embedded-total-value tabular-nums text-gray-800 dark:text-gray-100">{{ totalCartera() | colombianCurrency }}</strong>
+      </p>
+    }
+
+    @if (!embedded()) {
+      <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between mt-5 pt-5">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+            Total cartera: <strong class="ml-1">{{ totalCartera() | colombianCurrency }}</strong>
+          </div>
+        </div>
+      </div>
+    }
+  } @else {
+    <div [class]="embedded()
+      ? 'flex items-center justify-center h-24 text-gray-500 dark:text-gray-400'
+      : 'flex items-center justify-center h-64 text-gray-500 dark:text-gray-400'">
       <div class="text-center">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No hay datos disponibles</h3>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No se encontraron datos de cartera para mostrar.</p>
+        @if (!embedded()) {
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        }
+        <p [class]="embedded() ? 'text-[10px]' : 'mt-2 text-sm font-medium text-gray-900 dark:text-white'">
+          Sin datos de cartera
+        </p>
       </div>
     </div>
   }
@@ -91,13 +146,27 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
   private chart: any;
   protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
-  public readonly data = input<CarteraEdadesFacturas | null>(null);
-  public readonly chartData = signal<AgePortfolioData | null>(null);
-  public readonly debtCount = signal<AgePortfolioInvoiceCount | null>(null);
-  public isLoading = signal<boolean>(false);
-  public hasError = signal<boolean>(false);
-  public totalCartera = signal<number>(0);
-  public carteraVencidaPercentage = signal<number>(0);
+
+  /** Modo compacto: sin fondo, para embeber en pass-customers */
+  readonly embedded = input(false);
+  readonly data = input<CarteraEdadesFacturas | null>(null);
+  /** Altura fija del gráfico embebido (evita ResizeObserver) */
+  readonly chartHeight = input<number | undefined>(undefined);
+
+  readonly chartData = signal<AgePortfolioData | null>(null);
+  readonly debtCount = signal<AgePortfolioInvoiceCount | null>(null);
+  readonly isLoading = signal<boolean>(false);
+  readonly hasError = signal<boolean>(false);
+  readonly totalCartera = signal<number>(0);
+  readonly carteraVencidaPercentage = signal<number>(0);
+
+  get chartElementId(): string {
+    return this.embedded() ? 'age-portfolio-chart-embedded' : 'age-portfolio-chart';
+  }
+
+  get resolvedEmbeddedHeight(): number {
+    return this.chartHeight() ?? EMBEDDED_CHART_HEIGHT;
+  }
 
   constructor() {
     effect(() => {
@@ -139,11 +208,9 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
         '90+': 0
       };
 
-      // Mapear metricas a la estructura del gráfico
       serviceData.metricas.forEach((metrica) => {
         const rango = metrica.rangoAntiguedad.trim();
 
-        // Normalizar el rango para que coincida con la estructura
         if (rango === '0-30' || rango.includes('0-30')) {
           transformedData['0-30'] = metrica.valorCartera;
           invoiceCounts['0-30'] = metrica.cantidadDeudas;
@@ -179,9 +246,6 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  /**
-   * Recargar datos manualmente (para el botón de actualizar)
-   */
   public loadData(): void {
     const serviceData = this.data();
     if (serviceData) {
@@ -189,9 +253,6 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  /**
-   * Calcular totales y porcentajes
-   */
   private calculateTotals(data: AgePortfolioData): void {
     const total = data['0-30'] + data['31-60'] + data['61-90'] + data['90+'];
     const vencida = data['31-60'] + data['61-90'] + data['90+'];
@@ -202,9 +263,6 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
     this.carteraVencidaPercentage.set(percentage);
   }
 
-  /**
-   * Actualizar gráfico con nuevos datos
-   */
   private updateChart(data: AgePortfolioData): void {
     if (this.chart && data) {
       const newSeries = [
@@ -223,11 +281,10 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  /**
-   * Obtener opciones del gráfico
-   */
   private getOptions(): AgePortfolioChartOptions {
     const currentData = this.chartData();
+    const compact = this.embedded();
+    const labelSize = compact ? '9px' : '12px';
 
     const series: BarSeries[] = currentData ? [
       {
@@ -246,17 +303,19 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
       series,
       chart: {
         type: 'bar',
-        height: 350,
+        height: compact ? (this.chartHeight() ?? EMBEDDED_CHART_HEIGHT) : DEFAULT_CHART_HEIGHT,
+        width: '100%',
         maxWidth: '100%',
         fontFamily: 'Inter, sans-serif',
         toolbar: { show: false },
+        background: 'transparent',
       },
       plotOptions: {
         bar: {
           horizontal: false,
-          columnWidth: '70%',
+          columnWidth: compact ? '82%' : '70%',
           borderRadiusApplication: 'end',
-          borderRadius: 8,
+          borderRadius: compact ? 4 : 8,
         },
       },
       tooltip: {
@@ -266,7 +325,6 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
         style: { fontFamily: 'Inter, sans-serif' },
         y: {
           formatter: (value: number, opts?: any) => {
-            const seriesIndex = opts?.seriesIndex ?? 0;
             const dataPointIndex = opts?.dataPointIndex ?? 0;
             const debts = this.debtCount();
 
@@ -287,8 +345,10 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
       grid: {
         show: true,
         strokeDashArray: 3,
-        padding: { left: 20, right: 20, top: 0 },
-        borderColor: '#374151'
+        padding: compact
+          ? { left: 0, right: 0, top: -4 }
+          : { left: 20, right: 20, top: 0 },
+        borderColor: compact ? 'rgba(156,163,175,0.15)' : '#374151'
       },
       dataLabels: {
         enabled: false,
@@ -303,7 +363,7 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
           style: {
             fontFamily: 'Inter, sans-serif',
             colors: '#9CA3AF',
-            fontSize: '12px',
+            fontSize: labelSize,
           },
         },
         axisBorder: { show: false },
@@ -314,7 +374,7 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
         labels: {
           style: {
             colors: '#9CA3AF',
-            fontSize: '12px',
+            fontSize: labelSize,
             fontFamily: 'Inter, sans-serif'
           },
           formatter: (value: number) => {
@@ -343,11 +403,8 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
     };
   }
 
-  /**
-   * Inicializar gráfico
-   */
   private initializeChart(): void {
-    const el = document.getElementById('age-portfolio-chart') as HTMLElement;
+    const el = document.getElementById(this.chartElementId) as HTMLElement;
     const hasData = this.chartData() !== null;
 
     if (el && ApexCharts !== undefined && hasData) {
@@ -356,7 +413,7 @@ export class AgePortfolioChartComponent implements AfterViewInit, OnDestroy {
         console.error('Error rendering chart:', error);
       });
     } else if (el && !hasData) {
-      el.innerHTML = '<div class="flex items-center justify-center h-64 text-gray-500">No hay datos disponibles</div>';
+      el.innerHTML = '';
     }
   }
 }

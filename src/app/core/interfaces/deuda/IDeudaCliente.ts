@@ -11,6 +11,7 @@ export interface IDeudaCliente {
   plazoPago: number | IPlazoPago | string;
   factura?: IFactura | { id: number; codigo?: string };
   fechaDeuda: Date | string;
+  fechaCobro?: Date | string;
   valor: number;
   valorTotal?: number;
   totalAbonado?: number;
