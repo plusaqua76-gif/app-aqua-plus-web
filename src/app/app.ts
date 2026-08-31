@@ -44,7 +44,7 @@ constructor() {
 
   shouldShowGlobalLoader = (): boolean => {
     const route = this.currentRoute();
-    return !route.includes('/pagos/redirigir/') && !route.includes('/pagos/') && !route.includes('/pagos/transaccion') && !route.includes('/pagos/iniciar');
+    return !route.includes('/pagos/');
   };
 
   ngOnInit(): void {

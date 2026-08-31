@@ -7,15 +7,18 @@ import { PopupComponent } from '@shared/components/popUp';
 import { IPaginationParams } from '@interfaces/IpaginatedResponse';
 import { IUserBill } from '@interfaces/IuserBill';
 import { ToastService } from '@services/toast.service';
-import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { PlazoPagoService } from '../../bill/service/print-bill-details.service';
 import { PdfBill } from '@components/pdf-bill/pdf-bill';
 import { PdfService } from '@services/pdf.service';
+import { PagoService } from '@services/pago.service';
+import { CheckoutPagoResponse } from '@interfaces/pago/checkout-pago-response';
+import { WompiCheckoutSubmit } from '../../pagos/components/wompi-checkout-submit';
+import { ErrorHandlerService } from '@shared/services/error-handler.service';
 
 
 @Component({
   selector: 'app-bills-users',
-  imports: [CommonModule, RouterModule, PopupComponent, PdfBill],
+  imports: [CommonModule, PopupComponent, PdfBill, WompiCheckoutSubmit],
   template: `
     <div class="relative min-h-screen overflow-hidden bg-black/70 px-4 py-8 sm:px-6 lg:px-10">
       <!-- Fondos difuminados (coherente con módulo de pagos) -->
@@ -481,6 +484,25 @@ import { PdfService } from '@services/pdf.service';
           }
         </div>
       </app-pop-up>
+
+      @if (checkoutPending()) {
+        <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div class="mx-4 w-full max-w-sm rounded-3xl border border-white/10 bg-black/70 p-8 text-center">
+            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-500/15 text-blue-400">
+              <svg class="h-7 w-7 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+            </div>
+            <p class="text-lg font-semibold text-white">Redirigiendo a Wompi…</p>
+            <p class="mt-1 text-sm text-white/45">No cierres esta ventana.</p>
+          </div>
+        </div>
+      }
+
+      @if (checkoutData(); as checkout) {
+        <app-wompi-checkout-submit [checkout]="checkout" />
+      }
     </div>
   `,
   styles: [`
@@ -592,10 +614,10 @@ import { PdfService } from '@services/pdf.service';
 export class BillUsers {
   readonly userAccessService = inject(UserAccessService);
   readonly toastService = inject(ToastService);
-  readonly router = inject(Router);
-  readonly route = inject(ActivatedRoute);
   readonly billDetailsService = inject(PlazoPagoService);
   readonly pdfService = inject(PdfService);
+  readonly pagoService = inject(PagoService);
+  readonly errorHandler = inject(ErrorHandlerService);
   protected platformId = inject(PLATFORM_ID);
   protected isBrowser = isPlatformBrowser(this.platformId);
 
@@ -606,6 +628,8 @@ export class BillUsers {
   selectedBillId = signal<number | null>(null);
   selectedBillRow = signal<any>(null);
   procesandoPDF = signal(false);
+  checkoutPending = signal(false);
+  checkoutData = signal<CheckoutPagoResponse | null>(null);
 
   userColumns = signal([
     { field: 'codigo', header: 'Código', type: 'text' as const },
@@ -961,14 +985,30 @@ goToPyment(): void {
     return;
   }
 
-  const queryParams: Record<string, string> = {};
-  if (bill) {
-    queryParams['bill'] = encodeURIComponent(JSON.stringify(bill));
-    if (bill.precio != null && bill.precio > 0) {
-      queryParams['monto'] = String(Math.round(bill.precio * 100));
-    }
+  if (bill.id == null) {
+    this.toastService.error('Error', 'No se pudo identificar la factura a pagar');
+    return;
   }
-  this.router.navigate(['../pyments'], { relativeTo: this.route, queryParams });
+
+  if (this.checkoutPending()) {
+    return;
+  }
+
+  this.checkoutPending.set(true);
+  this.pagoService.crearCheckout(bill.id).subscribe({
+    next: (res) => {
+      if (res.success && res.response) {
+        this.checkoutData.set(res.response);
+        return;
+      }
+      this.checkoutPending.set(false);
+      this.toastService.error('Error', res.message || 'No se pudo iniciar el checkout');
+    },
+    error: (err) => {
+      this.checkoutPending.set(false);
+      this.toastService.error('Error', this.errorHandler.extractErrorMessage(err));
+    },
+  });
 }
 
   async downloadPDF(): Promise<void> {

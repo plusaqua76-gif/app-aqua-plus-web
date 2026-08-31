@@ -124,9 +124,14 @@ export const routes: Routes = [
           import('./modules/electronic-invoicing/electronic-invoicing.route').then((m) => m.default),
       },
       {
-        path: 'pyments',
+        path: 'pagos',
         loadChildren: () =>
-          import('./modules/pyments/pyments.route').then((m) => m.default),
+          import('./modules/pagos/pagos.route').then((m) => m.default),
+      },
+      {
+        path: 'pyments',
+        redirectTo: 'bills-users',
+        pathMatch: 'prefix',
       }
     ],
   },

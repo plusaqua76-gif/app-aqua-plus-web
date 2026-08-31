@@ -860,85 +860,44 @@ import { WompiService } from '@services/wompi.service';
                       Configuración de Pagos Wompi
                     </h3>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                      Ingresa las claves de tu cuenta Wompi para habilitar los pagos en línea
+                      Credenciales de Web Checkout para habilitar los pagos en línea
                     </p>
                   </div>
                 </div>
 
                 <form [formGroup]="wompiForm" class="space-y-4">
-                  <!-- Clave Pública -->
                   <div>
                     <label
-                      for="clavePublica"
+                      for="wompiClavePublica"
                       class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
                     >
                       Clave Pública <span class="text-red-500">*</span>
                     </label>
                     <input
-                      id="clavePublica"
+                      id="wompiClavePublica"
                       type="text"
-                      formControlName="clavePublica"
+                      formControlName="wompiClavePublica"
                       autocomplete="off"
                       class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 font-mono text-sm"
                       placeholder="pub_test_xxxxxxxxxxxxxxxxxxxxxxxx"
                     />
-                    @if (wompiForm.get('clavePublica')?.invalid && wompiForm.get('clavePublica')?.touched) {
+                    @if (wompiForm.get('wompiClavePublica')?.invalid && wompiForm.get('wompiClavePublica')?.touched) {
                       <p class="mt-1 text-sm text-red-500">La clave pública es requerida</p>
                     }
                   </div>
 
-                  <!-- Clave Privada -->
                   <div>
                     <label
-                      for="clavePrivada"
-                      class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
-                    >
-                      Clave Privada <span class="text-red-500">*</span>
-                    </label>
-                    <div class="relative">
-                      <input
-                        id="clavePrivada"
-                        [type]="showWompiPrivada() ? 'text' : 'password'"
-                        formControlName="clavePrivada"
-                        autocomplete="new-password"
-                        class="w-full px-4 py-3 pr-12 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 font-mono text-sm"
-                        placeholder="prv_test_xxxxxxxxxxxxxxxxxxxxxxxx"
-                      />
-                      <button
-                        type="button"
-                        (click)="showWompiPrivada.set(!showWompiPrivada())"
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                      >
-                        @if (showWompiPrivada()) {
-                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
-                          </svg>
-                        } @else {
-                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                          </svg>
-                        }
-                      </button>
-                    </div>
-                    @if (wompiForm.get('clavePrivada')?.invalid && wompiForm.get('clavePrivada')?.touched) {
-                      <p class="mt-1 text-sm text-red-500">La clave privada es requerida</p>
-                    }
-                  </div>
-
-                  <!-- Secreto de Integridad -->
-                  <div>
-                    <label
-                      for="secretoIntegridad"
+                      for="wompiSecretoIntegridad"
                       class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
                     >
                       Secreto de Integridad <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
                       <input
-                        id="secretoIntegridad"
+                        id="wompiSecretoIntegridad"
                         [type]="showWompiSecreto() ? 'text' : 'password'"
-                        formControlName="secretoIntegridad"
+                        formControlName="wompiSecretoIntegridad"
                         autocomplete="new-password"
                         class="w-full px-4 py-3 pr-12 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 font-mono text-sm"
                         placeholder="Ingresa el secreto de integridad"
@@ -960,12 +919,104 @@ import { WompiService } from '@services/wompi.service';
                         }
                       </button>
                     </div>
-                    @if (wompiForm.get('secretoIntegridad')?.invalid && wompiForm.get('secretoIntegridad')?.touched) {
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Por seguridad no se muestran. Debes ingresarlos al guardar.
+                    </p>
+                    @if (wompiForm.get('wompiSecretoIntegridad')?.invalid && wompiForm.get('wompiSecretoIntegridad')?.touched) {
                       <p class="mt-1 text-sm text-red-500">El secreto de integridad es requerido</p>
                     }
                   </div>
 
-                  <!-- Save Button -->
+                  <div>
+                    <label
+                      for="wompiSecretoEventos"
+                      class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
+                    >
+                      Secreto de Eventos <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                      <input
+                        id="wompiSecretoEventos"
+                        [type]="showWompiSecretoEventos() ? 'text' : 'password'"
+                        formControlName="wompiSecretoEventos"
+                        autocomplete="new-password"
+                        class="w-full px-4 py-3 pr-12 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 font-mono text-sm"
+                        placeholder="Ingresa el secreto de eventos"
+                      />
+                      <button
+                        type="button"
+                        (click)="showWompiSecretoEventos.set(!showWompiSecretoEventos())"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                      >
+                        @if (showWompiSecretoEventos()) {
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                          </svg>
+                        } @else {
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                          </svg>
+                        }
+                      </button>
+                    </div>
+                    @if (wompiForm.get('wompiSecretoEventos')?.invalid && wompiForm.get('wompiSecretoEventos')?.touched) {
+                      <p class="mt-1 text-sm text-red-500">El secreto de eventos es requerido</p>
+                    }
+                  </div>
+
+                  <div>
+                    <label
+                      for="checkoutUrl"
+                      class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
+                    >
+                      URL de Checkout <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="checkoutUrl"
+                      type="url"
+                      formControlName="checkoutUrl"
+                      autocomplete="off"
+                      class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 font-mono text-sm"
+                      placeholder="https://checkout.wompi.co/p/"
+                    />
+                    @if (wompiForm.get('checkoutUrl')?.invalid && wompiForm.get('checkoutUrl')?.touched) {
+                      <p class="mt-1 text-sm text-red-500">Ingresa una URL HTTPS válida de checkout</p>
+                    }
+                  </div>
+
+                  <div>
+                    <label
+                      for="redirectUrl"
+                      class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wider uppercase"
+                    >
+                      URL de Redirect <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="redirectUrl"
+                      type="url"
+                      formControlName="redirectUrl"
+                      autocomplete="off"
+                      class="w-full px-4 py-3 bg-white/10 dark:bg-slate-700/50 border border-white/20 dark:border-slate-400/30 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/20 dark:focus:bg-slate-600/50 backdrop-blur-md transition-all duration-300 hover:bg-white/15 dark:hover:bg-slate-600/40 font-mono text-sm"
+                      placeholder="https://www.aquaplus.dev/shell/pagos/resultado"
+                    />
+                    @if (wompiForm.get('redirectUrl')?.invalid && wompiForm.get('redirectUrl')?.touched) {
+                      <p class="mt-1 text-sm text-red-500">Ingresa una URL HTTPS válida de resultado</p>
+                    }
+                  </div>
+
+                  <div class="flex items-center gap-3 pt-1">
+                    <input
+                      id="wompiActivo"
+                      type="checkbox"
+                      formControlName="activo"
+                      class="h-4 w-4 rounded border-white/20 bg-white/10 text-blue-600 focus:ring-blue-500/50"
+                    />
+                    <label for="wompiActivo" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Configuración activa
+                    </label>
+                  </div>
+
                   <div class="flex items-center justify-center pt-2">
                     <button
                       type="button"
@@ -979,7 +1030,7 @@ import { WompiService } from '@services/wompi.service';
                           Guardando...
                         </div>
                       } @else {
-                        Guardar Claves Wompi
+                        Guardar configuración Wompi
                       }
                     </button>
                   </div>
@@ -1009,8 +1060,8 @@ export class Profile {
   corregimientosLoading = signal<boolean>(false);
   isUpdating = signal<boolean>(false);
   isSavingWompi = signal<boolean>(false);
-  showWompiPrivada = signal<boolean>(false);
   showWompiSecreto = signal<boolean>(false);
+  showWompiSecretoEventos = signal<boolean>(false);
 
   private readonly fb = inject(FormBuilder);
   private readonly locationService = inject(LocationService);
@@ -1174,11 +1225,16 @@ export class Profile {
     });
   }
 
+  private readonly httpsUrlPattern = /^https:\/\/\S+$/i;
+
   private initializeWompiForm(): void {
     this.wompiForm = this.fb.group({
-      clavePublica: ['', [Validators.required]],
-      clavePrivada: ['', [Validators.required]],
-      secretoIntegridad: ['', [Validators.required]],
+      wompiClavePublica: ['', [Validators.required]],
+      wompiSecretoIntegridad: ['', [Validators.required]],
+      wompiSecretoEventos: ['', [Validators.required]],
+      checkoutUrl: ['', [Validators.required, Validators.pattern(this.httpsUrlPattern)]],
+      redirectUrl: ['', [Validators.required, Validators.pattern(this.httpsUrlPattern)]],
+      activo: [true],
     });
   }
 
@@ -1187,10 +1243,14 @@ export class Profile {
     this.wompiService.obtenerConfigWompi(idEmpresa).subscribe({
       next: (res) => {
         if (res.success && res.response) {
+          const cfg = res.response;
           this.wompiForm.patchValue({
-            clavePublica: res.response.clavePublica || '',
-            clavePrivada: res.response.clavePrivada || '',
-            secretoIntegridad: res.response.secretoIntegridad || '',
+            wompiClavePublica: cfg.wompiClavePublica || '',
+            wompiSecretoIntegridad: '',
+            wompiSecretoEventos: '',
+            checkoutUrl: cfg.checkoutUrl || '',
+            redirectUrl: cfg.redirectUrl || '',
+            activo: cfg.activo !== false,
           });
         }
       },
@@ -1216,16 +1276,27 @@ export class Profile {
       return;
     }
 
-    const { clavePublica, clavePrivada, secretoIntegridad } = this.wompiForm.value;
+    const {
+      wompiClavePublica,
+      wompiSecretoIntegridad,
+      wompiSecretoEventos,
+      checkoutUrl,
+      redirectUrl,
+      activo,
+    } = this.wompiForm.value;
 
     this.isSavingWompi.set(true);
     this.wompiService
       .guardarConfigWompi({
         idEmpresa: enterprise.id,
-        clavePublica,
-        clavePrivada,
-        secretoIntegridad,
+        wompiClavePublica,
+        wompiSecretoIntegridad,
+        wompiSecretoEventos,
+        checkoutUrl,
+        redirectUrl,
+        activo,
         usuarioCreacion: this.nombreUsuario(),
+        usuarioModificacion: this.nombreUsuario(),
       })
       .subscribe({
         next: () => {

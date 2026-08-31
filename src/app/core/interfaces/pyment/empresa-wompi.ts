@@ -1,15 +1,22 @@
 export interface IEmpresaWompi {
   id?: number;
   idEmpresa: number;
-  clavePublica: string;
-  clavePrivada: string;
-  secretoIntegridad: string;
+  wompiClavePublica: string;
+  wompiSecretoIntegridad?: string;
+  wompiSecretoEventos?: string;
+  checkoutUrl: string;
+  redirectUrl: string;
+  activo?: boolean;
 }
 
 export interface IEmpresaWompiRequest {
   idEmpresa: number;
-  clavePublica: string;
-  clavePrivada: string;
-  secretoIntegridad: string;
+  wompiClavePublica: string;
+  wompiSecretoIntegridad: string;
+  wompiSecretoEventos: string;
+  checkoutUrl: string;
+  redirectUrl: string;
+  activo?: boolean;
   usuarioCreacion: string;
+  usuarioModificacion?: string;
 }
