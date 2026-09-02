@@ -52,4 +52,4 @@ jobs:
           app-name: 'app-aqua-plus-web-test'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_926499FCFBFB45FF8B8438BE9948834B }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_511CD933313E45A6AB01459BDCA5CFF8 }}
