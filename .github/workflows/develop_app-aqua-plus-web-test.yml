@@ -10,10 +10,6 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
-    permissions:
-      id-token: write
-      contents: read
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -30,18 +26,12 @@ jobs:
       - name: Build Angular SSR (TEST)
         run: npm run build -- --configuration test
 
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_13FFE1A52AC8493186D25485A42E2231 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0D8A9E5888704B12B3CC580CCE82C0A0 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_94745A0832814300AFC99A181290D578 }}
-
       - name: Deploy to Azure Web App (TEST)
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'app-aqua-plus-web-test'
           slot-name: 'Production'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_926499FCFBFB45FF888438BE9948834B }}
           package: .
 
       - name: Deployment Summary
