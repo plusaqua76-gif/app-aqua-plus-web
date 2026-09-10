@@ -124,20 +124,21 @@ export class PagoResultado implements OnInit {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
-    this.startPolling(facturaId);
+    const idTransaccion = this.route.snapshot.queryParamMap.get('id');
+    this.startPolling(facturaId, idTransaccion);
   }
 
   volverAFacturas(): void {
     this.router.navigate(['/shell/bills-users']);
   }
 
-  private startPolling(facturaId: number): void {
+  private startPolling(facturaId: number, idTransaccion: string | null): void {
     interval(3000)
       .pipe(
         startWith(0),
         take(15),
         switchMap(() =>
-          this.pagoService.consultarEstadoPago(facturaId).pipe(
+          this.pagoService.consultarEstadoPago(facturaId, idTransaccion).pipe(
             catchError(() =>
               of({ success: false, message: '', code: 0, response: null as EstadoPagoResponse | null }),
             ),

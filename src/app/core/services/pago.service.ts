@@ -24,10 +24,16 @@ export class PagoService {
     );
   }
 
-  consultarEstadoPago(facturaId: number | string): Observable<ApiResponse<EstadoPagoResponse>> {
+  consultarEstadoPago(
+    facturaId: number | string,
+    idTransaccion?: string | null,
+  ): Observable<ApiResponse<EstadoPagoResponse>> {
+    const params = idTransaccion
+      ? { idTransaccion }
+      : undefined;
     return this.http.get<ApiResponse<EstadoPagoResponse>>(
       `${this.apiUrl}/pagos/${facturaId}/estado`,
-      this.skipLoader,
+      { ...this.skipLoader, params },
     );
   }
 }
