@@ -30,7 +30,6 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'app-aqua-plus-web-test'
-          slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_926499FCFBFB45FF888438BE9948834B }}
           package: .
 
