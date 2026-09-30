@@ -641,8 +641,81 @@ export class CreateClient implements OnInit {
       tarifasContador: this.buildTarifasCliente(),
       aforosContador: this.buildAforosContador()
     };
-
+ // 1) Qué se le está enviando al backend
+    console.log('[CLIENTE] Payload enviado a saveClient:', clientPayload);
+ 
     this.enterpriseClientCounterService.saveClient(clientPayload).subscribe({
+      next: (response: any) => {
+        // 2) Respuesta completa del backend
+        console.log('[CLIENTE] Respuesta saveClient:', response);
+ 
+        // Algunos servicios HTTP envuelven la respuesta; soportamos ambos casos
+        const r = response?.response ?? response;
+ 
+        console.log('[CLIENTE] Resumen →', {
+          statusCode: r?.statusCode,
+          idPersona: r?.idPersona,
+          idUsuario: r?.idUsuario,
+          usuario: r?.usuario,
+          usuarioCreado: r?.usuarioCreado,
+          emailSent: r?.emailSent,
+          emailError: r?.emailError,
+          notice: r?.notice,
+          error: r?.error,
+          message: r?.message,
+        });
+ 
+        // 3) Si el backend respondió con error de negocio (409, 404, 400, 500...)
+        if (r?.error || (r?.statusCode && r.statusCode !== 200)) {
+          console.error('[CLIENTE] El backend NO creó el cliente:', r?.message || r?.error);
+          this.toast.error('Error', r?.message || r?.error || 'No se pudo crear el cliente');
+          return; // no cerrar ni navegar: que el usuario corrija
+        }
+ 
+        // 4) Cliente creado. Ahora revisamos el correo
+        const idEmpresaClienteContador = r?.idEmpresaClienteContador;
+        this.idEmpresaClienteContador.set(idEmpresaClienteContador);
+ 
+        if (r?.emailSent === true) {
+          console.log('[CORREO] Enviado OK a:', r?.emailTo);
+          this.toast.success('Éxito', 'Cliente creado y correo de activación enviado');
+        } else if (r?.emailSent === false) {
+          console.error('[CORREO] FALLÓ el envío:', r?.emailError);
+          this.toast.warning(
+            'Cliente creado, pero el correo no se envió',
+            r?.emailError || 'Revise la configuración de correo'
+          );
+        } else {
+          // emailSent no viene: no se intentó enviar (ver r.notice)
+          console.warn('[CORREO] No se intentó enviar:', r?.notice);
+          this.toast.info(
+            'Cliente creado',
+            r?.notice || 'Cliente y contadores asignados correctamente'
+          );
+        }
+ 
+        this.registerForm.reset();
+        this.selectedSerials.set([]);
+        this.closeModal();
+        this.router.navigate(['/shell/client']);
+      },
+ 
+      // 5) Errores HTTP (401, 403, 500, sin red, etc.). Antes no había manejo.
+      error: (err) => {
+        console.error('[CLIENTE] Error HTTP en saveClient:', {
+          status: err?.status,
+          statusText: err?.statusText,
+          url: err?.url,
+          body: err?.error,
+        });
+        this.toast.error(
+          'Error',
+          err?.error?.message || err?.error?.error || 'No se pudo crear el cliente'
+        );
+      },
+    });
+  }
+    /*this.enterpriseClientCounterService.saveClient(clientPayload).subscribe({
       next: (response) => {
         const idEmpresaClienteContador = response.idEmpresaClienteContador;
         this.idEmpresaClienteContador.set(idEmpresaClienteContador);
@@ -653,7 +726,7 @@ export class CreateClient implements OnInit {
         this.router.navigate(['/shell/client']);
       }
     });
-  }
+  }*/
 
   createCounter(): void {
     if (this.counterForm.invalid) {
